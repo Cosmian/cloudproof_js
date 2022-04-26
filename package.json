@@ -1,0 +1,24 @@
+{
+    "name": "cosmian_js_lib",
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "Cosmian javascript client library",
+    "main": "dist/lib.js",
+    "module": "dist/lib.js",
+    "types": "dist/lib.d.ts",
+    "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>",
+    "scripts": {
+        "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    },
+    "devDependencies": {
+        "@types/jest": "^27",
+        "@wasm-tool/wasm-pack-plugin": "^1.4.0",
+        "jest": "^27",
+        "ts-jest": "^27.0.2",
+        "ts-loader": "9.2.3",
+        "typescript": "^4.3.2",
+        "webpack": "^5.38.1",
+        "webpack-cli": "^4.9.2",
+        "webpack-dev-server": "^3.11.3"
+    }
+}
