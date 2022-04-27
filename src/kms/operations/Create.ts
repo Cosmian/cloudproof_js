@@ -13,7 +13,6 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 import { Attributes } from "../types/Attributes"
 import { ObjectType } from "../types/ObjectType"
-import { SecretDataType } from "../types/SecretDataType"
 
 export class Create implements KmipStruct {
     @PropertyMetadata({

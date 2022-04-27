@@ -41,22 +41,17 @@ test('re-serialize deserialized Create', () => {
   )
 
   const ttlv = to_ttlv(createSK)
-  console.log("T", ttlv)
+  const jsonString = JSON.stringify(ttlv, null, 2)
+  console.log("S", jsonString)
 
-  const stringify = JSON.stringify(ttlv, null, 2)
-  console.log("S", stringify)
+  const parse = JSON.parse(jsonString)
+  const createSK_ = build_object_from_json(parse)
 
-  const parse = JSON.parse(stringify)
-  console.log("P", parse)
-
-  const deserialize = build_object_from_json(parse)
-  console.log("D", deserialize)
-
-  const re_serialize = to_ttlv(deserialize)
-  console.log("R", re_serialize)
+  const ttlv_ = to_ttlv(createSK_)
+  console.log("R", JSON.stringify(ttlv_, null, 2))
 
 
-  expect(re_serialize).toEqual(ttlv)
+  expect(ttlv_).toEqual(ttlv)
 })
 
 

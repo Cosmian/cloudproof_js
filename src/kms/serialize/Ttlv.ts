@@ -7,32 +7,13 @@ export type TtlvValue = TTLV[] | Date | Uint8Array | LongInt | Interval | DateTi
 
 export class TTLV {
 
-    private _tag: string
-    private _type: TtlvType
-    private _value: TtlvValue
+    public tag: string
+    public type: TtlvType
+    public value: TtlvValue
 
-    constructor(_tag: string, _type: TtlvType, _value: TtlvValue) {
-        this._tag = _tag
-        this._type = _type
-        this._value = _value
-    }
-
-    public get tag(): string {
-        return this._tag
-    }
-    public set tag(value: string) {
-        this._tag = value
-    }
-    public get type(): TtlvType {
-        return this._type
-    }
-    public set type(value: TtlvType) {
-        this._type = value
-    }
-    public get value(): TtlvValue {
-        return this._value
-    }
-    public set value(value: TtlvValue) {
-        this._value = value
+    constructor(tag: string, type: TtlvType, value: TtlvValue) {
+        this.tag = tag
+        this.type = type
+        this.value = value
     }
 }
