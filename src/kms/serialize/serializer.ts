@@ -10,19 +10,15 @@ import { TtlvType } from "./TtlvType"
  * @returns a TTLV
  */
 export function to_ttlv(value: Object): TTLV {
+  // there is no metadata available for the top level object
+  // so we use the class name as name.
+  // The top level object is always a structure
   return to_ttlv_inner(value, {
     name: value.constructor.name,
     type: TtlvType.Structure
   })
 }
 function to_ttlv_inner(value: Object, metadata: ISinglePropertyMetadata): TTLV {
-
-
-  console.log("Value metadata", metadata)
-
-  // the meta data of the object describes its properties/children
-  // const metadata = Reflect.getMetadata(METADATA_KEY, value)
-
 
   // The JSON representation of a TTLV 
   // is always a dictionary or an array
@@ -32,30 +28,42 @@ function to_ttlv_inner(value: Object, metadata: ISinglePropertyMetadata): TTLV {
   }
 
   if (value.constructor.name === "Array") {
-    let array = value as Object[]
-    let children: TTLV[] = []
-    for (let child of array) {
-      // same metadata for all children of the array which are all of the same type
-      children.push(to_ttlv_inner(child, metadata))
-    }
-    return new TTLV(
-      // there should always be meta data descriptions for arrays
-      Reflect.get(metadata, "name") as string,
-      TtlvType.Structure,
-      children)
+    return processArray(value, metadata)
   }
 
   return processDictionary(value, metadata)
 }
 
+function processArray(value: Object, metadata: ISinglePropertyMetadata): TTLV {
+  let array = value as Object[]
+  let children: TTLV[] = []
+  for (let child of array) {
+    // same metadata for all children of the array which are all of the same type
+    children.push(to_ttlv_inner(child, metadata))
+  }
+  return new TTLV(
+    // there should always be meta data descriptions for arrays
+    Reflect.get(metadata, "name") as string,
+    TtlvType.Structure,
+    children)
+}
 
-function processDictionary(value: Object, value_metadata: ISinglePropertyMetadata): TTLV {
+
+function processDictionary(value: Object, metadata: ISinglePropertyMetadata): TTLV {
 
   //process all object properties as new TTLVs
   let children: TTLV[] = parseChildren(value)
 
-  let name: string = Reflect.get(value_metadata, "name")
-  let type: TtlvType = Reflect.get(value_metadata, "type")
+  let name: string = Reflect.get(metadata, "name")
+  let type: TtlvType = Reflect.get(metadata, "type")
+
+  // handle the special case of Choices: there is only
+  // one child which name is identical to that of the parent
+  // We need to flatten that to the type of the child
+  // Exemple: LinkedObjectIdentifier
+  if (children.length == 1 && children[0].tag === name) {
+    return children[0]
+  }
 
   return new TTLV(name, type, children)
 

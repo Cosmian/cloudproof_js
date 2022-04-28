@@ -1,5 +1,6 @@
-import { KmipChoiceLinkedObjectIdentifier } from "../json/KmipChoiceLinkedObjectIdentifier";
-import { UniqueIdentifier } from "./UniqueIdentifier";
+import { UniqueIdentifier } from "./UniqueIdentifier"
+import { PropertyMetadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
 
 /**
  * Either:
@@ -12,18 +13,67 @@ import { UniqueIdentifier } from "./UniqueIdentifier";
  * 
  * - Integer: Index
  */
-export class LinkedObjectIdentifier extends KmipChoiceLinkedObjectIdentifier<string, number, UniqueIdentifier> {
+export class LinkedObjectIdentifier {
 
-    constructor (value1?: string, value2?: number, value3?: UniqueIdentifier) {
-        super(value1, value2, value3);
+    @PropertyMetadata({
+        name: "LinkedObjectIdentifier",
+        type: TtlvType.TextString,
+    })
+    private _str?: string | undefined
+
+    @PropertyMetadata({
+        name: "LinkedObjectIdentifier",
+        type: TtlvType.Integer,
+    })
+    private _num?: number | undefined
+
+    @PropertyMetadata({
+        name: "LinkedObjectIdentifier",
+        type: TtlvType.Enumeration,
+        isEnum: UniqueIdentifier
+    })
+    private _uid?: UniqueIdentifier | undefined
+
+    constructor(str?: string, num?: number, uid?: UniqueIdentifier) {
+        this.str = str
+        this.num = num
+        this.uid = uid
     }
 
-    public equals(o: any): boolean {
-        return super.equals(o)
+    public get str(): string | undefined {
+        return this._str
+    }
+    public set str(value: string | undefined) {
+        this._str = value
+    }
+    public get num(): number | undefined {
+        return this._num
+    }
+    public set num(value: number | undefined) {
+        this._num = value
+    }
+
+    public get uid(): UniqueIdentifier | undefined {
+        return this._uid
+    }
+    public set uid(value: UniqueIdentifier | undefined) {
+        this._uid = value
+    }
+
+    public equals(o: object): boolean {
+        if (o == this)
+            return true
+        if (!(o instanceof LinkedObjectIdentifier)) {
+            return false
+        }
+        let kmipChoice = o as LinkedObjectIdentifier
+        return this.str === kmipChoice._str &&
+            this.num === kmipChoice._num &&
+            this.uid === kmipChoice._uid
     }
 
     public toString(): string {
-        return super.toString()
+        return "{" + " linked_object_identifier='" + (this.str, this.num, this.uid) + "}"
     }
 
 }
