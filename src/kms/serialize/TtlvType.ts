@@ -12,4 +12,8 @@ export enum TtlvType {
     DateTime = "DateTime",
     Interval = "Interval",
     DateTimeExtended = "DateTimeExtended",
+
+    // a type added to support polymorphism
+    // where a TTLV value can take a list of multiple types
+    Choice = "Choice"
 }

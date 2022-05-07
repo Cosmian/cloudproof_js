@@ -9,7 +9,9 @@
  */
 
 import { PropertyMetadata } from "../decorators/function"
+import { FromTTLV } from "../deserialize/deserializer"
 import { KmipStruct } from "../json/KmipStruct"
+import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"
 import { Attributes } from "../types/Attributes"
 import { ObjectType } from "../types/ObjectType"
@@ -26,6 +28,8 @@ export class Create implements KmipStruct {
     @PropertyMetadata({
         name: "Attributes",
         type: TtlvType.Structure,
+        // need to postfix the Object Type of the attributes
+        from_ttlv: FromTTLV.structure(Attributes, ObjectType.Certificate)
     })
     /// Specifies desired attributes to be associated with the new object.
     private _attributes: Attributes
@@ -39,9 +43,15 @@ export class Create implements KmipStruct {
     /// @see ProtectionStorageMasks
     private _protection_storage_masks?: number
 
-    constructor(objectType: ObjectType, attributes: Attributes, protection_storage_masks?: number) {
-        this._objectType = objectType
-        this._attributes = attributes
+    this() {
+
+    }
+
+    constructor()
+    constructor(objectType: ObjectType, attributes: Attributes, protection_storage_masks?: number)
+    constructor(objectType?: ObjectType, attributes?: Attributes, protection_storage_masks?: number) {
+        this._objectType = objectType ?? ObjectType.SymmetricKey
+        this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey)
         this._protection_storage_masks = protection_storage_masks
     }
 
@@ -78,6 +88,13 @@ export class Create implements KmipStruct {
     public toString(): string {
         return "{" + " objectType='" + this._objectType + "'" + ", attributes='" + this._attributes + "'"
             + ", protection_storage_masks='" + this._protection_storage_masks + "'" + "}"
+    }
+
+    public static from_ttlv(propertyName: string, ttlv: TTLV): Create {
+        let create: Create = FromTTLV.structure(Create)(propertyName, ttlv)
+        // postfix attribute type
+        create._attributes.object_type = create._objectType
+        return create
     }
 
 }

@@ -6,8 +6,10 @@ import { KeyFormatType } from "./KeyFormatType"
 import { Link } from "./Link"
 import { ObjectType } from "./ObjectType"
 import { VendorAttribute } from "./VendorAttribute"
-import { PropertyMetadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
+import { TTLV } from "../serialize/Ttlv"
+import { FromTTLV } from "../deserialize/deserializer"
+import { PropertyMetadata } from "../decorators/function"
 
 /**
  * The following subsections describe the attributes that are associated with
@@ -61,8 +63,16 @@ export class
   @PropertyMetadata({
     name: "Link",
     type: TtlvType.Structure,
+    from_ttlv: (propertyName: string, ttlv: TTLV): Object => {
+      const elementMetadata = {
+        name: "Link",
+        type: TtlvType.Structure,
+        from_ttlv: FromTTLV.structure(Link)
+      }
+      return FromTTLV.array(propertyName, ttlv, elementMetadata,)
+    }
   })
-  private _link: Link[]
+  private _link?: Link[]
 
   /**
    * A vendor specific Attribute is a structure used for sending and receiving a
@@ -202,8 +212,8 @@ export class
   private _key_format_type?: KeyFormatType
 
   constructor(
-    link: Link[],
     object_type: ObjectType,
+    link?: Link[],
     vendor_attributes?: VendorAttribute[],
     activation_date?: number,
     cryptographic_algorithm?: CryptographicAlgorithm,
@@ -213,6 +223,7 @@ export class
     cryptographic_usage_mask?: number,
     key_format_type?: KeyFormatType
   ) {
+    this._object_type = object_type
     this._activation_date = activation_date
     this._cryptographic_algorithm = cryptographic_algorithm
     this._cryptographic_length = cryptographic_length
@@ -221,14 +232,13 @@ export class
     this._cryptographic_usage_mask = cryptographic_usage_mask
     this._key_format_type = key_format_type
     this._link = link
-    this._object_type = object_type
     this._vendor_attributes = vendor_attributes
   }
 
-  public get link(): Link[] {
+  public get link(): Link[] | undefined {
     return this._link
   }
-  public set link(value: Link[]) {
+  public set link(value: Link[] | undefined) {
     this._link = value
   }
   public get vendor_attributes(): VendorAttribute[] | undefined {
@@ -287,4 +297,5 @@ export class
   public set object_type(value: ObjectType) {
     this._object_type = value
   }
+
 }

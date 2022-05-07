@@ -1,8 +1,10 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
-import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier";
-import { LinkType } from "./LinkType";
+import { PropertyMetadata } from "../decorators/function"
+import { FromTTLV } from "../deserialize/deserializer"
+import { KmipStruct } from "../json/KmipStruct"
+import { TTLV } from "../serialize/Ttlv"
+import { TtlvType } from "../serialize/TtlvType"
+import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier"
+import { LinkType } from "./LinkType"
 
 /**
  * The Link attribute is a structure used to create a link from one Managed
@@ -37,28 +39,29 @@ export class Link implements KmipStruct {
         type: TtlvType.Enumeration,
         isEnum: LinkType,
     })
-    private link_type: LinkType;
-    
+    private link_type: LinkType
+
     @PropertyMetadata({
         name: "LinkedObjectIdentifier",
-        type: TtlvType.Structure,
+        type: TtlvType.Choice,
+        from_ttlv: FromTTLV.choice(LinkedObjectIdentifier)
     })
-    private linked_object_identifier: LinkedObjectIdentifier;
+    private linked_object_identifier: LinkedObjectIdentifier
 
     constructor(link_type: LinkType, linked_object_identifier: LinkedObjectIdentifier) {
-        this.link_type = link_type;
-        this.linked_object_identifier = linked_object_identifier;
+        this.link_type = link_type
+        this.linked_object_identifier = linked_object_identifier
     }
 
     public equals(o: any): boolean {
         if (o == this)
-            return true;
+            return true
         if (!(o instanceof Link)) {
-            return false;
+            return false
         }
-        let link = o as Link;
+        let link = o as Link
         return this.link_type === link.link_type
-                && this.linked_object_identifier === link.linked_object_identifier;
+            && this.linked_object_identifier === link.linked_object_identifier
     }
 
 }

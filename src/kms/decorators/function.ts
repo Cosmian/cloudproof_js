@@ -1,7 +1,7 @@
-import { ISinglePropertyMetadata, METADATA_KEY } from "./interface"
+import { PropertyMetadata as PropertyMetadata, METADATA_KEY } from "./interface"
 import "reflect-metadata"
 
-export function PropertyMetadata(updates: ISinglePropertyMetadata) {
+export function PropertyMetadata(updates: PropertyMetadata) {
     return (target: any, propertyKey: string | symbol) => {
         // Pull the existing metadata or create an empty object
         const allMetadata = (

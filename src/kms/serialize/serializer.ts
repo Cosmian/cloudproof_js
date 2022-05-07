@@ -1,6 +1,6 @@
 import { TTLV } from "./Ttlv"
 import "reflect-metadata"
-import { METADATA_KEY, ISinglePropertyMetadata } from "../decorators/interface"
+import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
 import { TtlvType } from "./TtlvType"
 
 
@@ -18,13 +18,13 @@ export function to_ttlv(value: Object): TTLV {
     type: TtlvType.Structure
   })
 }
-function to_ttlv_inner(value: Object, metadata: ISinglePropertyMetadata): TTLV {
+function to_ttlv_inner(value: Object, metadata: PropertyMetadata): TTLV {
 
   // The JSON representation of a TTLV 
   // is always a dictionary or an array
 
   if (typeof value !== "object") {
-    throw "Unknown type"
+    throw "Unknown type '" + (typeof value) + "' for value: " + JSON.stringify(value, null, 2)
   }
 
   if (value.constructor.name === "Array") {
@@ -34,7 +34,7 @@ function to_ttlv_inner(value: Object, metadata: ISinglePropertyMetadata): TTLV {
   return processDictionary(value, metadata)
 }
 
-function processArray(value: Object, metadata: ISinglePropertyMetadata): TTLV {
+function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   let array = value as Object[]
   let children: TTLV[] = []
   for (let child of array) {
@@ -49,7 +49,7 @@ function processArray(value: Object, metadata: ISinglePropertyMetadata): TTLV {
 }
 
 
-function processDictionary(value: Object, metadata: ISinglePropertyMetadata): TTLV {
+function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
 
   //process all object properties as new TTLVs
   let children: TTLV[] = parseChildren(value)
@@ -61,43 +61,18 @@ function processDictionary(value: Object, metadata: ISinglePropertyMetadata): TT
   // one child which name is identical to that of the parent
   // We need to flatten that to the type of the child
   // Exemple: LinkedObjectIdentifier
-  if (children.length == 1 && children[0].tag === name) {
+  if (type === TtlvType.Choice) {
+    console.log("FOUND A CHOICE ", children)
     return children[0]
   }
 
   return new TTLV(name, type, children)
-
-
-  // // Determine whether this value is a structure
-  // if (
-  //   value.constructor.name != "Object" &&
-  //   value.constructor.name != "Uint8Array" &&
-  //   value.constructor.name != "Date" &&
-  //   value.constructor.name != "LongInt" &&
-  //   value.constructor.name != "Interval" &&
-  //   value.constructor.name != "DateTimeExtended"
-  // ) {
-  //   return new TTLV(value.constructor.name, TtlvType.Structure, children)
-  // }
-
-  // // Determine whether this value is NOT an array
-  // if (Reflect.getMetadata("name", value) != children[0].tag) {
-  //   return new TTLV(
-  //     Reflect.getMetadata("name", value),
-  //     Reflect.getMetadata("type", value),
-  //     children
-  //   )
-  // }
-
-  // // This value is an element of array - the tag and the type are identical on all children 
-  // // are actually the one of the main value
-  // return new TTLV(children[0].tag, children[0].type, children[0].value)
 }
 
 
 function parseChildren(value: Object): TTLV[] {
 
-  const childrenMetadata: { [propertyName: string]: ISinglePropertyMetadata } = Reflect.getMetadata(METADATA_KEY, value)
+  const childrenMetadata: { [propertyName: string]: PropertyMetadata } = Reflect.getMetadata(METADATA_KEY, value)
 
   let children: TTLV[] = []
   for (let pn of Object.getOwnPropertyNames(value)) {
@@ -108,7 +83,7 @@ function parseChildren(value: Object): TTLV[] {
       // skip processing  an undefine value
       continue
     }
-    let childMetadata: ISinglePropertyMetadata = childrenMetadata[propertyName]
+    let childMetadata: PropertyMetadata = childrenMetadata[propertyName]
     if (!childMetadata) {
       console.error("Child Metadata is not defined for " + propertyName + " in ", childrenMetadata)
       throw new Error("Child Metadata is not defined for " + propertyName)
@@ -117,7 +92,7 @@ function parseChildren(value: Object): TTLV[] {
     let childName = childMetadata.name
     let childType = childMetadata.type
 
-    if (childType === "Structure") {
+    if (childType === TtlvType.Structure || childType === TtlvType.Choice) {
       // it is a structure, recursively process the child
       const child = to_ttlv_inner(
         childValue,
@@ -127,7 +102,7 @@ function parseChildren(value: Object): TTLV[] {
       continue
     }
 
-    if (childType === "Enumeration") {
+    if (childType === TtlvType.Enumeration) {
       if (childrenMetadata) {
         childValue = (childrenMetadata[propertyName] as any).isEnum[childValue]
       } else {
@@ -135,23 +110,23 @@ function parseChildren(value: Object): TTLV[] {
       }
     }
 
-    if (childType === "ByteString") {
+    if (childType === TtlvType.ByteString) {
       childValue = Buffer.from(childValue).toString("hex")
     }
 
-    if (childType === "DateTimeExtended") {
+    if (childType === TtlvType.DateTimeExtended) {
       childValue = childValue.extendedDate
     }
 
-    if (childType === "Interval") {
+    if (childType === TtlvType.Interval) {
       childValue = childValue.timeInMilliSeconds
     }
 
-    if (childType === "DateTime") {
+    if (childType === TtlvType.DateTime) {
       childValue = childValue.DateTime
     }
 
-    if (childType === "LongInteger") {
+    if (childType === TtlvType.LongInteger) {
       childValue = childValue.bytes
     }
 
@@ -159,35 +134,3 @@ function parseChildren(value: Object): TTLV[] {
   }
   return children
 }
-
-// function childNameAndType<T extends Object>(metadata: ISinglePropertyMetadata, propertyName: keyof ISinglePropertyMetadata, value: T): { childName: string, childType: TtlvType } {
-//   if (metadata) {
-//     return { childName: metadata[propertyName].name, childType: metadata[propertyName].type }
-//   }
-//   console.error("THERE SHOULD BE METADATA", value)
-//   throw new Error("THERE SHOULD BE METADATA")
-
-
-  // if (typeof value[propertyName] === "object") {
-  //   const child: Object = value[propertyName]
-  //   const constructor = child.constructor
-  //   if (
-  //     constructor != Uint8Array &&
-  //     constructor != Date &&
-  //     constructor != LongInt &&
-  //     constructor != Interval &&
-  //     constructor != DateTimeExtended) {
-  //     return {
-  //       childName: Reflect.getMetadata("name", child),
-  //       childType: Reflect.getMetadata("type", child)
-  //     }
-  //   }
-  // }
-  // if (typeof propertyName === "number") {
-  //   throw Error("Arrays should not be processed here")
-  // }
-  // return { childName: Reflect.getMetadata("name", value, propertyName), childType: Reflect.getMetadata("type", value, propertyName) }
-// }
-
-
-

@@ -1,6 +1,7 @@
 import { KeyBlock } from "../../kms/data_structures/KeyBlock"
 import { KeyValue } from "../../kms/data_structures/KeyValue"
-import { build_object_from_json } from "../../kms/deserialize/deserializer"
+import { METADATA_KEY } from "../../kms/decorators/interface"
+import { build_object_from_json, } from "../../kms/deserialize/deserializer"
 import { SymmetricKey } from "../../kms/objects/SymmetricKey"
 import { Create } from "../../kms/operations/Create"
 import { to_ttlv } from "../../kms/serialize/serializer"
@@ -32,31 +33,51 @@ test('re-serialize deserialized SymmetricKey object', () => {
 
 test('re-serialize deserialized Create', () => {
 
-  const createSK = new Create(
+  const create = new Create(
     ObjectType.SymmetricKey,
     new Attributes(
-      [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-      ObjectType.SymmetricKey, undefined, undefined, CryptographicAlgorithm.AES, undefined, undefined, undefined, undefined, KeyFormatType.TransparentSymmetricKey
+      ObjectType.SymmetricKey, [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
+      undefined, undefined, CryptographicAlgorithm.AES, undefined, undefined, undefined, undefined, KeyFormatType.TransparentSymmetricKey
     )
   )
 
-  const ttlv = to_ttlv(createSK)
+  const ttlv = to_ttlv(create)
   const jsonString = JSON.stringify(ttlv, null, 2)
   console.log("S", jsonString)
 
   const parse = JSON.parse(jsonString)
-  const createSK_ = build_object_from_json(parse)
+  const create_ = build_object_from_json(parse)
 
-  console.log("B", JSON.stringify(createSK, null, 2))
-  console.log("B", JSON.stringify(createSK_, null, 2))
-  expect(JSON.stringify(createSK_, null, 2)).toEqual(JSON.stringify(createSK, null, 2))
+  console.log("B", JSON.stringify(create, null, 2))
+  expect(JSON.stringify(create_, null, 2)).toEqual(JSON.stringify(create, null, 2))
 
-  // const ttlv_ = to_ttlv(createSK_)
+  // const ttlv_ = to_ttlv(create_)
   // console.log("R", JSON.stringify(ttlv_, null, 2))
 
   // expect(ttlv_).toEqual(ttlv)
 })
 
+test('deserialize Create', () => {
+  const create = new Create(
+    ObjectType.SymmetricKey,
+    new Attributes(
+      ObjectType.SymmetricKey, [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
+      undefined, undefined, CryptographicAlgorithm.AES, undefined, undefined, undefined, undefined, KeyFormatType.TransparentSymmetricKey
+    )
+  )
+  console.log(JSON.stringify(create, null, 2))
 
+  const ttlv = to_ttlv(create)
+  console.log(JSON.stringify(ttlv, null, 2))
 
+  const create_ = Create.from_ttlv("Operation", ttlv)
+  console.log(JSON.stringify(create_, null, 2))
+
+  const ttlv_ = to_ttlv(create_)
+
+  console.log(JSON.stringify(ttlv_, null, 2))
+
+  expect(ttlv_).toEqual(ttlv)
+
+})
 
