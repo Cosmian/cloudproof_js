@@ -85,9 +85,8 @@ function parseChildren(value: Object): TTLV[] {
     }
     let childMetadata: PropertyMetadata = childrenMetadata[propertyName]
     if (!childMetadata) {
-      console.error("Child Metadata is not defined for " + propertyName + " in ", childrenMetadata)
-      throw new Error("Child Metadata is not defined for " + propertyName)
-
+      console.error("Serializer: child Metadata is not defined for " + propertyName + " in ", childrenMetadata)
+      throw new Error("Serializer: child Metadata is not defined for " + propertyName)
     }
     let childName = childMetadata.name
     let childType = childMetadata.type
@@ -100,34 +99,25 @@ function parseChildren(value: Object): TTLV[] {
       )
       children.push(child)
       continue
-    }
-
-    if (childType === TtlvType.Enumeration) {
+    } else if (childType === TtlvType.Enumeration) {
       if (childrenMetadata) {
         childValue = (childrenMetadata[propertyName] as any).isEnum[childValue]
       } else {
         childValue = value[propertyName]
       }
-    }
-
-    if (childType === TtlvType.ByteString) {
+    } else if (childType === TtlvType.ByteString) {
       childValue = Buffer.from(childValue).toString("hex")
-    }
-
-    if (childType === TtlvType.DateTimeExtended) {
+    } else if (childType === TtlvType.DateTimeExtended) {
       childValue = childValue.extendedDate
-    }
-
-    if (childType === TtlvType.Interval) {
+    } else if (childType === TtlvType.Interval) {
       childValue = childValue.timeInMilliSeconds
-    }
-
-    if (childType === TtlvType.DateTime) {
+    } else if (childType === TtlvType.DateTime) {
       childValue = childValue.DateTime
-    }
-
-    if (childType === TtlvType.LongInteger) {
+    } else if (childType === TtlvType.LongInteger) {
       childValue = childValue.bytes
+    } else {
+      console.error("Serializer: unknown TTLV type: " + childType)
+      throw new Error("Serializer: unknown TTLV type: " + childType)
     }
 
     children.push(new TTLV(childName, childType, childValue))
