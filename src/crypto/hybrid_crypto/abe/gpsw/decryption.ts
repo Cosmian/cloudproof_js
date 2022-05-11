@@ -88,6 +88,7 @@ export class GpswHybridDecryption extends HybridDecryption {
         //
         logger.log(() => "decrypt for headerSize: " + headerSize)
         logger.log(() => "decrypt for asymmetricHeader: " + asymmetricHeader)
+        logger.log(() => "decrypt for asymmetricHeader (size): " + asymmetricHeader.length)
 
         // HEADER decryption: asymmetric decryption
         const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
