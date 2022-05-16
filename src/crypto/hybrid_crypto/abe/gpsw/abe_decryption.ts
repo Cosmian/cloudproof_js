@@ -8,7 +8,35 @@ import {
     webassembly_get_encrypted_header_size
 } from "../../../../../wasm_lib/abe/abe_gpsw"
 import { logger } from "../../../../utils/logger"
+import { fromBeBytes } from "../../../../utils/utils"
 
+
+const SYMMETRIC_KEY_SIZE = 32
+
+export class ClearTextHeader {
+    private _symmetricKey: Uint8Array
+    private _uid: Uint8Array
+
+    /* Getter / Setters */
+    public get uid(): Uint8Array {
+        return this._uid
+    }
+    public set uid(value: Uint8Array) {
+        this._uid = value
+    }
+
+    public get symmetricKey(): Uint8Array {
+        return this._symmetricKey
+    }
+    public set symmetricKey(value: Uint8Array) {
+        this._symmetricKey = value
+    }
+
+    constructor(symmetricKey: Uint8Array, uid: Uint8Array) {
+        this._symmetricKey = symmetricKey
+        this._uid = uid;
+    }
+}
 
 export abstract class HybridDecryption {
     private _asymmetricDecryptionKey: Uint8Array
@@ -30,7 +58,7 @@ export abstract class HybridDecryption {
      *
      * @param asymmetricHeader asymmetric encrypted data
      */
-    public abstract decryptHybridHeader(asymmetricHeader: Uint8Array): Uint8Array
+    public abstract decryptHybridHeader(asymmetricHeader: Uint8Array): ClearTextHeader
 
     /**
      * Decrypts a hybrid block
@@ -73,6 +101,17 @@ export class AbeHybridDecryption extends HybridDecryption {
         webassembly_destroy_decryption_cache(this._cache)
     }
 
+    parseCleartextHeader(cleartextHeader: Uint8Array): ClearTextHeader {
+        if (cleartextHeader.length < SYMMETRIC_KEY_SIZE + 4 + 4) {
+            throw new Error("Invalid cleartext");
+        }
+        const symmetricKeySize = fromBeBytes(cleartextHeader.slice(0, 4))
+        const symmetricKey = cleartextHeader.slice(4, 4 + symmetricKeySize)
+        const uidSize = fromBeBytes(cleartextHeader.slice(4 + symmetricKeySize, 4 + symmetricKeySize + 4))
+        const uid = cleartextHeader.slice(4 + symmetricKeySize + 4, 4 + symmetricKeySize + 4 + uidSize)
+        return new ClearTextHeader(symmetricKey, uid)
+
+    }
     /**
      * Decrypts an ABE ciphertext using the given user decryption key in cache. Must return cleartext value if correct user key (meaning, the correct access policy) has been given.
      * This function is using a cache to store the user decryption key.
@@ -80,9 +119,10 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param abeHeader ABE encrypted value
      * @returns cleartext decrypted ABE value
      */
-    public decryptHybridHeader(abeHeader: Uint8Array): Uint8Array {
+    public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
         // logger.log(() => "cache: " + this._cache)
-        return webassembly_decrypt_hybrid_header_using_cache(this._cache, abeHeader)
+        const cleartextHeader = webassembly_decrypt_hybrid_header_using_cache(this._cache, abeHeader)
+        return this.parseCleartextHeader(cleartextHeader)
     }
 
     /**
@@ -91,8 +131,9 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param abeHeader ABE encrypted value
      * @returns cleartext decrypted ABE value
      */
-    public decryptHybridHeaderNoCache(abeHeader: Uint8Array): Uint8Array {
-        return webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
+    public decryptHybridHeaderNoCache(abeHeader: Uint8Array): ClearTextHeader {
+        const cleartextHeader = webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
+        return this.parseCleartextHeader(cleartextHeader)
     }
 
     /**
@@ -119,8 +160,7 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param encryptedData
      * @returns a list of cleartext values
      */
-    public decrypt(uid: Uint8Array, encryptedData: Uint8Array): Uint8Array {
-        logger.log(() => "decrypt for uid: " + uid)
+    public decrypt(encryptedData: Uint8Array): Uint8Array {
         logger.log(() => "decrypt for encryptedData: " + encryptedData)
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
@@ -133,10 +173,10 @@ export class AbeHybridDecryption extends HybridDecryption {
         logger.log(() => "decrypt for asymmetricHeader: " + asymmetricHeader)
 
         // HEADER decryption: asymmetric decryption
-        const cleartextSymmetricKey = this.decryptHybridHeader(asymmetricHeader)
+        const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
 
         // AES_DATA: AES Symmetric part decryption
-        const cleartext = this.decryptHybridBlock(cleartextSymmetricKey, encryptedSymmetricBytes, uid, 0)
+        const cleartext = this.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.uid, 0)
         logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
         return cleartext
     }
@@ -147,10 +187,10 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param databaseEntries a map of database entries (uid, encrypted_data) to decrypt
      * @returns a list of cleartext values
      */
-    public decryptBatch(databaseEntries: Map<Uint8Array, Uint8Array>): Uint8Array[] {
+    public decryptBatch(databaseEntries: Uint8Array[]): Uint8Array[] {
         const cleartextValues: Uint8Array[] = []
-        databaseEntries.forEach((encryptedValue: Uint8Array, uid: Uint8Array) => {
-            const cleartext = this.decrypt(uid, encryptedValue)
+        databaseEntries.forEach((encryptedValue: Uint8Array) => {
+            const cleartext = this.decrypt(encryptedValue)
             logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
             cleartextValues.push(cleartext)
         })

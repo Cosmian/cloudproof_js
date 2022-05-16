@@ -27,7 +27,7 @@ export class AbeHybridEncryptionDemo {
     const mediumSecretMkgUser = hexDecode(mediumSecretMkgUserHex)
 
     // The UID param is an integrity parameter both used in ABE header construction and AES-GCM-ciphertext generation
-    const uidHex = '3132333435363738'
+    const uidHex = 'cd8ca2eeb654b5f39f347f4e3f91b3a15c450c1e52c40716237b4c18510f65b4'
     const uid = hexDecode(uidHex)
 
     // Plaintext example is: Martin DUPONT: CONSEILLER GRANDE CLIENTELE
@@ -49,35 +49,35 @@ export class AbeHybridEncryptionDemo {
     }
 
     // The medium secret marketing user can successfully decrypt a low security marketing message :
-    let cleartext = new AbeHybridDecryption(mediumSecretMkgUser).decrypt(uid, lowSecretMkgData)
+    let cleartext = new AbeHybridDecryption(mediumSecretMkgUser).decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(plaintext, cleartext)
 
     // .. however it can neither decrypt a marketing message with higher security:
     try {
-      new AbeHybridDecryption(mediumSecretMkgUser).decrypt(uid, topSecretMkgData)
+      new AbeHybridDecryption(mediumSecretMkgUser).decrypt(topSecretMkgData)
     } catch (e) {
       logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // … nor decrypt a message from another department even with a lower security:
     try {
-      new AbeHybridDecryption(mediumSecretMkgUser).decrypt(uid, lowSecretFinData)
+      new AbeHybridDecryption(mediumSecretMkgUser).decrypt(lowSecretFinData)
     } catch (e) {
       logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below
     // As expected, the top secret marketing financial user can successfully decrypt all messages
-    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(uid, lowSecretMkgData)
+    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(plaintext, cleartext)
 
-    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(uid, topSecretMkgData)
+    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(topSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(plaintext, cleartext)
 
-    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(uid, lowSecretFinData)
+    cleartext = new AbeHybridDecryption(topSecretMkgFinUser).decrypt(lowSecretFinData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(plaintext, cleartext)
 

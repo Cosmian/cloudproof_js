@@ -1,4 +1,4 @@
-import { HybridDecryption, AbeHybridDecryption, DecryptionWorkerMessage } from "./gpsw/abe_decryption"
+import { HybridDecryption, AbeHybridDecryption, DecryptionWorkerMessage, ClearTextHeader } from "./gpsw/abe_decryption"
 import { hexDecode } from "./../../../utils/utils"
 import { logger } from "./../../../utils/logger"
 
@@ -22,7 +22,7 @@ class DecryptWorker {
         this.hybridDecryption.destroyInstance()
     }
 
-    decrypt(encryptedEntries: { uidHex: string, ciphertextHex: string }[]): Uint8Array[] {
+    decrypt(encryptedEntries: { ciphertextHex: string }[]): Uint8Array[] {
 
         let dec: HybridDecryption
         if (this.hybridDecryption === null) {
@@ -34,10 +34,9 @@ class DecryptWorker {
 
         const cleartextValues: Uint8Array[] = []
         for (let index = 0; index < encryptedEntries.length; index++) {
-            const { uidHex, ciphertextHex } = encryptedEntries[index]
+            const { ciphertextHex } = encryptedEntries[index]
 
             // Hex decode (uid and value)
-            const uid = hexDecode(uidHex)
             const encryptedValue = hexDecode(ciphertextHex)
 
             // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
@@ -46,9 +45,9 @@ class DecryptWorker {
             const encryptedSymmetricBytes = encryptedValue.slice(4 + headerSize, encryptedValue.length)
 
             // HEADER decryption: asymmetric decryption
-            let cleartextSymmetricKey: Uint8Array
+            let cleartextHeader: ClearTextHeader
             try {
-                cleartextSymmetricKey = dec.decryptHybridHeader(asymmetricHeader)
+                cleartextHeader = dec.decryptHybridHeader(asymmetricHeader)
             } catch (error) {
                 //TODO Handle additional ABE decryption errors if need be
                 continue
@@ -57,7 +56,7 @@ class DecryptWorker {
             // AES_DATA: AES Symmetric part decryption
             let cleartext: Uint8Array
             try {
-                cleartext = dec.decryptHybridBlock(cleartextSymmetricKey, encryptedSymmetricBytes, uid, 0)
+                cleartext = dec.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.uid, 0)
             } catch (error) {
                 //TODO Handle AES decryption errors if need be
                 continue

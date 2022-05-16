@@ -7,6 +7,9 @@ import {
     webassembly_encrypt_hybrid_block
 } from "../../../../../wasm_lib/abe/abe_gpsw"
 import { logger } from "../../../../utils/logger"
+import { fromBeBytes, hexEncode, toBeBytes } from "../../../../utils/utils"
+
+const SYMMETRIC_KEY_SIZE = 32;
 
 export abstract class EncryptionParameters { }
 
@@ -41,10 +44,7 @@ export class EncryptedHeader {
         this._encryptedSymmetricKey = encryptedSymmetricKey
 
         // Convert symmetric key length to 4-bytes array
-        const arr = new ArrayBuffer(4);
-        const view = new DataView(arr);
-        view.setUint32(0, this._encryptedSymmetricKey.length, false);
-        this._encryptedSymmetricKeySizeAsArray = new Uint8Array(arr, 0)
+        this._encryptedSymmetricKeySizeAsArray = toBeBytes(this._encryptedSymmetricKey.length)
     }
 }
 
@@ -132,6 +132,7 @@ export class AbeHybridEncryption extends HybridEncryption {
         super(policy, publicKey)
         // Create encryption cache. This number is linked to the public key and policy
         this._cache = webassembly_create_encryption_cache(policy, publicKey)
+        // logger.log(() => "this._cache = " + this._cache)
     }
 
     /**
@@ -143,6 +144,27 @@ export class AbeHybridEncryption extends HybridEncryption {
     }
 
     /**
+     * Deserialize an ABE encrypted header
+     *
+     * @param headerBytes an ABE header
+     * @returns the corresponding EncryptedHeader object
+     */
+    createEncryptedHeader(headerBytes: Uint8Array): EncryptedHeader {
+        if (headerBytes.length < 4 + SYMMETRIC_KEY_SIZE) {
+            throw new Error("Cannot deserialize an encrypted header: invalid header size")
+        }
+        const encryptedHeaderSizeAsArray = headerBytes.slice(0, 4);
+        const symmetricKeySize = fromBeBytes(encryptedHeaderSizeAsArray)
+        logger.log(() => "symmetricKeySize: " + symmetricKeySize)
+
+        const encryptedHeader = new EncryptedHeader(
+            headerBytes.slice(4, 4 + symmetricKeySize),
+            headerBytes.slice(4 + symmetricKeySize, headerBytes.length));
+        return encryptedHeader;
+
+    }
+
+    /**
      * Generate and encrypt a symmetric key using the public key and policy in cache. Must return ciphertext value if everything went well
      * This function is using a cache to store the public key and ABE policy.
      *
@@ -150,27 +172,11 @@ export class AbeHybridEncryption extends HybridEncryption {
      * @returns an encrypted header witch contains the clear and encrypted symmetric key
      */
     public encryptHybridHeader(parameters: AbeEncryptionParameters): EncryptedHeader {
-        // logger.log(() => "cache: " + this._cache)
+        logger.log(() => "cache: " + this._cache)
         const encryptedHeaderBytes = webassembly_encrypt_hybrid_header_using_cache(this._cache, parameters.attributes, parameters.uid)
-        const encryptedHeaderSizeAsArray = encryptedHeaderBytes.slice(0, 4);
+        logger.log(() => "hybrid header succeeded");
 
-        // Create a buffer
-        const buf = new ArrayBuffer(4);
-        // Create a data view of it
-        const view = new DataView(buf);
-        // set bytes
-        encryptedHeaderSizeAsArray.forEach((b, i) => {
-            view.setUint8(i, b);
-        });
-
-        // Read the bits as a float; note that by doing this, we're implicitly
-        // converting it from a 32-bit float into JavaScript's native 64-bit double
-        const symmetricKeySize = view.getUint32(0);
-
-        const encryptedHeader = new EncryptedHeader(
-            encryptedHeaderBytes.slice(4, 4 + symmetricKeySize),
-            encryptedHeaderBytes.slice(4 + symmetricKeySize, encryptedHeaderBytes.length));
-        return encryptedHeader;
+        return this.createEncryptedHeader(encryptedHeaderBytes)
     }
 
     /**
@@ -182,8 +188,10 @@ export class AbeHybridEncryption extends HybridEncryption {
      * @param uid header integrity param
      * @returns ciphertext ABE value
      */
-    public encryptHybridHeaderNoCache(publicKey: Uint8Array, policy: Uint8Array, attributes: string, uid: Uint8Array): Uint8Array {
-        return webassembly_encrypt_hybrid_header(policy, publicKey, attributes, uid)
+    public encryptHybridHeaderNoCache(publicKey: Uint8Array, policy: Uint8Array, attributes: string, uid: Uint8Array): EncryptedHeader {
+        const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(policy, publicKey, attributes, uid)
+
+        return this.createEncryptedHeader(encryptedHeaderBytes)
     }
 
     /**
@@ -223,16 +231,17 @@ export class AbeHybridEncryption extends HybridEncryption {
         logger.log(() => "encrypt: encryptedSymmetricKeySizeAsArray:" + hybridHeader.encryptedSymmetricKeySizeAsArray)
         const ciphertext = this.encryptHybridBlock(hybridHeader.symmetricKey, plaintext, uid, 0)
 
-        logger.log(() => "encrypt: header size : " + hybridHeader.encryptedSymmetricKeySizeAsArray)
+        logger.log(() => "encrypt: header size : " + hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray))
+        logger.log(() => "encrypt: enc header size : " + hybridHeader.encryptedSymmetricKey.length)
         logger.log(() => "encrypt: encrypted symmetric key : " + hybridHeader.encryptedSymmetricKey)
-        logger.log(() => "encrypt: symmetric key : " + hybridHeader.symmetricKey)
         logger.log(() => "encrypt: ciphertext : " + ciphertext)
 
         // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
-        const encryptedData = new Uint8Array(hybridHeader.encryptedSymmetricKeySizeAsArray.length + hybridHeader.encryptedSymmetricKey.length + ciphertext.length)
+        const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length
+        const encryptedData = new Uint8Array(headerSize + hybridHeader.encryptedSymmetricKey.length + ciphertext.length)
         encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray)
-        encryptedData.set(hybridHeader.encryptedSymmetricKey, hybridHeader.encryptedSymmetricKeySizeAsArray.length)
-        encryptedData.set(ciphertext, hybridHeader.encryptedSymmetricKeySizeAsArray.length + hybridHeader.encryptedSymmetricKey.length)
+        encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize)
+        encryptedData.set(ciphertext, headerSize + hybridHeader.encryptedSymmetricKey.length)
         return encryptedData
     }
 
