@@ -7,7 +7,6 @@
 //    `npx webpack serve`
 // then navigate to http://locahost:8080
 
-
 import {
   webassembly_get_encrypted_header_size
 } from "../../wasm_lib/abe/gpsw"
@@ -26,11 +25,12 @@ import { hexDecode } from "./../utils/utils"
 import { Findex } from "../interface/findex/findex"
 import { DBInterface } from "../interface/db/dbInterface"
 import axios, { AxiosResponse, AxiosInstance } from 'axios';
+import { bobKey, aliceKey } from "./../utils/demo_keys"
 
 
 class DB implements DBInterface {
   instance: AxiosInstance = axios.create({
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: process.env.SERVER,
     timeout: 15000,
   });
 
@@ -41,19 +41,16 @@ class DB implements DBInterface {
   };
 
   getEntryTableEntries(uids: string[]): Promise<{ uid: string; Value: string; }[]> {
-    const result = this.requests.get(`/index_chain?UID=in.(${uids})`)
-    return result;
+    return this.requests.get(`/index_chain?UID=in.(${uids})`)
   }
 
 
   getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string; }[]> {
-    const result = this.requests.get(`/index_entry?UID=in.(${uids})`)
-    return result;
+    return this.requests.get(`/index_entry?UID=in.(${uids})`)
   }
 
   getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
-    const result = this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
-    return result;
+    return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
   }
 
   getfirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
@@ -78,27 +75,19 @@ class DB implements DBInterface {
 }
 
 async function load_data() {
-  const db = new DB;
+  const db = new DB();
   const users = await db.getfirstUsers();
-  const encrypted_users = await db.getfirstEncryptedDirectoryEntries();
-  const clear_db = document.getElementById("clear_db");
-  const enc_db = document.getElementById("enc_db");
-  if (clear_db && enc_db) {
-    if (clear_db.innerHTML || enc_db.innerHTML) {
-      clear_db.innerHTML = "";
-      enc_db.innerHTML = "";
+  const encryptedUsers = await db.getfirstEncryptedDirectoryEntries();
+  const clearDb = document.getElementById("clear_db");
+  const encDb = document.getElementById("enc_db");
+  if (clearDb && encDb) {
+    if (clearDb.innerHTML || encDb.innerHTML) {
+      clearDb.innerHTML = "";
+      encDb.innerHTML = "";
     }
     else {
-      users.forEach((item, index) => {
-        if (item) {
-          displayInTab(item, index, clear_db);
-        }
-      });
-      encrypted_users.forEach((item, index) => {
-        if (item) {
-          displayInTab(item, index, enc_db);
-        }
-      });
+      displayInTab(users, clearDb);
+      displayInTab(encryptedUsers, encDb);
     }
   }
 };
@@ -111,28 +100,44 @@ async function load_data() {
  * @param parent HTML parent element to insert the line in
  * @returns void
  */
-function displayInTab(object: Object, index: number, parent: HTMLElement) {
-  if (index === 0) {
-    let columns = document.createElement('div');
-    columns.setAttribute('class', "columns");
-    const keys = Object.keys(object);
-    for (const key of keys) {
-      let column = document.createElement('div');
-      column.setAttribute("class", "cell");
-      column.innerHTML = key;
-      columns.appendChild(column);
+function displayInTab(array: Object[], parent: HTMLElement) {
+  array.forEach((item, index) => {
+    if (item) {
+      if (index === 0) {
+        const columns = document.createElement('div');
+        columns.setAttribute('class', "item columns");
+        const keys = Object.keys(item);
+        for (const key of keys) {
+          const column = document.createElement('div');
+          column.setAttribute("class", "cell");
+          column.innerHTML = key;
+          columns.appendChild(column);
+        }
+        parent.appendChild(columns);
+      }
+      const line = document.createElement('div');
+      line.setAttribute("class", "item");
+      const values = Object.values(item);
+      for (const value of values) {
+        const cell = document.createElement('div');
+        cell.setAttribute("class", "cell");
+        cell.innerHTML = value;
+        line.appendChild(cell);
+      }
+      parent.appendChild(line);
     }
-    parent.appendChild(columns);
-  }
-  let line = document.createElement('div');
+  });
+}
+
+/**
+ * Display No result in div
+ * @param parent HTML parent element to insert the line in
+ * @returns void
+ */
+function displayNoResult(parent: HTMLElement) {
+  const line = document.createElement('div');
   line.setAttribute("class", "item");
-  const values = Object.values(object);
-  for (const value of values) {
-    let cell = document.createElement('div');
-    cell.setAttribute("class", "cell");
-    cell.innerHTML = value;
-    line.appendChild(cell);
-  }
+  line.innerHTML = "No results";
   parent.appendChild(line);
 }
 
@@ -154,87 +159,76 @@ function sanitizeString(str: string): string {
  * @returns void
  */
 async function search(words: string, role: string) {
+  type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string };
+  type ClearValue = { User: string, HR_Elements: string, Security_Elements: string };
+
   const result = document.getElementById("result");
   const content = document.getElementById("content");
   if (result && content) {
     result.style.visibility = "visible";
     content.innerHTML = "";
     try {
-      const db = new DB;
+      const db = new DB();
       const k1 = "19e1b63d2972a47b84194ed5fa6d8264fc8cbe6dfee5074c8fb1eac3a17b85e8";
       const k2 = "a2cdd03bf58eea8ae842e06ae351700cbac94c8a5dbd8f38984dfa5c104f59d0";
-      const query_results = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
-      if (query_results) {
-        const res: { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[] = await db.getEncryptedDirectoryEntries(query_results.reduce((acc, result) => { return [...acc, ...result.dbUids] }, [] as string[]));
+      const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
+      if (queryResults) {
+        const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]));
         if (res && res.length) {
           switch (role) {
             case "mallory":
-              res.forEach((item, index) => {
-                if (item) {
-                  displayInTab(item, index, content);
-                }
-              });
+              displayInTab(res, content);
               break;
             case "alice":
             case "bob":
               let key;
               if (role === "bob") {
-                key = "000000029024acd8939bc232bc576c56188a99b09ad710c12c3b2910202c7f58aa04c7bc08ecd78ea45a684f5a9bcd8f6ebb14ee01852ca969af502d8b3103cc52702032629344a30c3a27c8ae465ccfd586771b3b1db90b542cf3409cfa6aef892c787fa9d342174d62d39f87d59f5d0b1dc906265ec9d764bcf1e7cb1d4901deecd5671c8596eb741d9de68f73915d46d3cfb502b73d9397d2d9687fe3b318bbcb794ca229cdefe855869fd15e0734601e2005fcf554ada1ad7ac6817fa2de284d76bb0000000200000002000000020000000501000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffe5bfeff02a4bd5305d8a10908d83933487d9d2953a7ed73";
+                key = bobKey;
               }
               else {
-                key = "0000000296bc80fefb445765edd87706f4df1fe443a5da07950a3f3ea48f6ffba316e599c77d49979a8c4d896f0386d6e6a53b13175798775f0702903dbe0a6270f0fe05cb33913f216d54e5d751f84b9d5d9af4622b0447cd17d42b20128d7268f947f898bc94e484d49c1c6bd3246414c5a5f4e892b67fa4892c5a0b59869df2fb094e38f73ebfb6b23b3202181978cb060c9000eaecfc00a31079cbfa1c335c355002208850a9a0239e6e80fc377c0860b00d8dfad550ccd9b5bb7d564c1fb40b00cb0000000200000002000000010000000401000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffe5bfeff02a4bd5305d8a10908d83933487d9d2953a7ed73";
+                key = aliceKey;
               }
               const hybridDecryption = new GpswHybridDecryption(hexDecode(key));
-              const clearValues: { User: string, HR_Elements: string, Security_Elements: string }[] = [];
+              const clearValues: ClearValue[] = [];
               res.forEach((item) => {
                 if (item) {
-                  let clearValue:{ User: string, HR_Elements: string, Security_Elements: string } = { User: "", HR_Elements: "", Security_Elements: ""};
-                  try {
-                    const cleartextBase = hybridDecryption.decrypt(hexDecode(item.Enc_K_base.substring(2)));                   
-                    clearValue.User = new TextDecoder().decode(cleartextBase);
-                  }
-                  catch (e) {
-                    console.log("Impossible to decrypt", e)
-                  }
-                  try {
-                    const cleartextHR = hybridDecryption.decrypt(hexDecode(item.Enc_K_rh.substring(2)));
-                    clearValue.HR_Elements = new TextDecoder().decode(cleartextHR);
-                  }
-                  catch (e) {
-                    console.log("Impossible to decrypt", e)
-                  }
-                  try {
-                    const cleartextSecurity = hybridDecryption.decrypt(hexDecode(item.Enc_K_sec.substring(2)));
-                    clearValue.Security_Elements = new TextDecoder().decode(cleartextSecurity);
-                  }
-                  catch (e) {
-                    console.log("Impossible to decrypt", e)
+                  const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: ""};
+                  const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[];
+                  const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
+                  for (let index = 0; index < clearKeys.length; index++) {
+                    try {
+                      const itemKey = encryptedKeys[index * 2 + 1];
+                      const clearKey = clearKeys[index];
+                      const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)));
+                      const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g);
+                      if (value) {
+                        clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ");
+                      }
+                    }
+                    catch (e) {
+                      logger.log(() =>"Impossible to decrypt");
+                    }
                   }
                   if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
                     clearValues.push(clearValue);
                   }
                 }
-              });
-              clearValues.forEach((item, index) => {
-                if (item) {
-                  displayInTab(item, index, content);
-                }
-              });
+              }
+            );
+            if (clearValues.length) {
+              displayInTab(clearValues, content);
               hybridDecryption.destroyInstance();
               break;
+            } else {
+              displayNoResult(content);
+            }
           }
         } else {
-          let line = document.createElement('div');
-          line.setAttribute("class", "item");
-          line.innerHTML = "No results";
-          content.appendChild(line);
+          displayNoResult(content);
         }
       }
     } catch {
-      let line = document.createElement('div');
-      line.setAttribute("class", "item");
-      line.innerHTML = "No results";
-      content.appendChild(line);
+      displayNoResult(content);
     }
   }
 }
