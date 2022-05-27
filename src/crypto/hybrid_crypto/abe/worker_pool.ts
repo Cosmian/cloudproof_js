@@ -1,4 +1,4 @@
-import { DecryptionWorkerMessage } from "./gpsw/abe_decryption"
+import { DecryptionWorkerMessage } from "./cover_crypt/decryption"
 import { logger } from "./../../../utils/logger"
 
 

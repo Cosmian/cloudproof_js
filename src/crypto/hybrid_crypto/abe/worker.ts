@@ -1,6 +1,7 @@
-import { HybridDecryption, AbeHybridDecryption, DecryptionWorkerMessage, ClearTextHeader } from "./gpsw/abe_decryption"
-import { hexDecode } from "./../../../utils/utils"
+import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
 import { logger } from "./../../../utils/logger"
+import { hexDecode } from "./../../../utils/utils"
+import { AbeHybridDecryption, DecryptionWorkerMessage } from "./cover_crypt/decryption"
 
 const ctx: Worker = self as any
 
@@ -56,7 +57,11 @@ class DecryptWorker {
             // AES_DATA: AES Symmetric part decryption
             let cleartext: Uint8Array
             try {
-                cleartext = dec.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.uid, 0)
+                cleartext = dec.decryptHybridBlock(
+                    cleartextHeader.symmetricKey,
+                    encryptedSymmetricBytes,
+                    cleartextHeader.metadata.uid,
+                    0)
             } catch (error) {
                 //TODO Handle AES decryption errors if need be
                 continue
