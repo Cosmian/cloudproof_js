@@ -1,19 +1,19 @@
 import { logger } from "../../../../utils/logger"
-import { AbeHybridDecryption } from "./decryption"
-import { AbeHybridEncryption } from "./encryption"
-import { DemoKeys } from "./demo_keys"
+import { CoverCryptHybridDecryption } from "./decryption"
+import { CoverCryptDemoKeys } from "./demo_keys"
+import { CoverCryptHybridEncryption } from "./encryption"
 
 
-export class AbeHybridEncryptionDemo {
+export class CoverCryptHybridEncryptionDemo {
 
   public static run() {
 
     // Init ABE decryption cache
-    const abeEncryption = new AbeHybridEncryption(DemoKeys.policy, DemoKeys.publicKey)
+    const abeEncryption = new CoverCryptHybridEncryption(CoverCryptDemoKeys.policy, CoverCryptDemoKeys.publicKey)
 
-    const lowSecretMkgData = abeEncryption.encrypt(['Security Level::Low Secret', 'Department::MKG'], DemoKeys.uid, DemoKeys.plaintext)
-    const topSecretMkgData = abeEncryption.encrypt(['Security Level::Top Secret', 'Department::MKG'], DemoKeys.uid, DemoKeys.plaintext)
-    const lowSecretFinData = abeEncryption.encrypt(['Security Level::Low Secret', 'Department::FIN'], DemoKeys.uid, DemoKeys.plaintext)
+    const lowSecretMkgData = abeEncryption.encrypt(['Security Level::Low Secret', 'Department::MKG'], CoverCryptDemoKeys.uid, CoverCryptDemoKeys.plaintext)
+    const topSecretMkgData = abeEncryption.encrypt(['Security Level::Top Secret', 'Department::MKG'], CoverCryptDemoKeys.uid, CoverCryptDemoKeys.plaintext)
+    const lowSecretFinData = abeEncryption.encrypt(['Security Level::Low Secret', 'Department::FIN'], CoverCryptDemoKeys.uid, CoverCryptDemoKeys.plaintext)
 
     // Finish with cache destroying
     abeEncryption.destroyInstance()
@@ -23,36 +23,36 @@ export class AbeHybridEncryptionDemo {
     }
 
     // The medium secret marketing user can successfully decrypt a low security marketing message :
-    let cleartext = new AbeHybridDecryption(DemoKeys.mediumSecretMkgUser).decrypt(lowSecretMkgData)
+    let cleartext = new CoverCryptHybridDecryption(CoverCryptDemoKeys.mediumSecretMkgUser).decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
-    assert(DemoKeys.plaintext, cleartext)
+    assert(CoverCryptDemoKeys.plaintext, cleartext)
 
     // .. however it can neither decrypt a marketing message with higher security:
     try {
-      new AbeHybridDecryption(DemoKeys.mediumSecretMkgUser).decrypt(topSecretMkgData)
+      new CoverCryptHybridDecryption(CoverCryptDemoKeys.mediumSecretMkgUser).decrypt(topSecretMkgData)
     } catch (e) {
       logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // … nor decrypt a message from another department even with a lower security:
     try {
-      new AbeHybridDecryption(DemoKeys.mediumSecretMkgUser).decrypt(lowSecretFinData)
+      new CoverCryptHybridDecryption(CoverCryptDemoKeys.mediumSecretMkgUser).decrypt(lowSecretFinData)
     } catch (e) {
       logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below
     // As expected, the top secret marketing financial user can successfully decrypt all messages
-    cleartext = new AbeHybridDecryption(DemoKeys.topSecretMkgFinUser).decrypt(lowSecretMkgData)
+    cleartext = new CoverCryptHybridDecryption(CoverCryptDemoKeys.topSecretMkgFinUser).decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
-    assert(DemoKeys.plaintext, cleartext)
+    assert(CoverCryptDemoKeys.plaintext, cleartext)
 
-    cleartext = new AbeHybridDecryption(DemoKeys.topSecretMkgFinUser).decrypt(topSecretMkgData)
+    cleartext = new CoverCryptHybridDecryption(CoverCryptDemoKeys.topSecretMkgFinUser).decrypt(topSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
-    assert(DemoKeys.plaintext, cleartext)
+    assert(CoverCryptDemoKeys.plaintext, cleartext)
 
-    cleartext = new AbeHybridDecryption(DemoKeys.topSecretMkgFinUser).decrypt(lowSecretFinData)
+    cleartext = new CoverCryptHybridDecryption(CoverCryptDemoKeys.topSecretMkgFinUser).decrypt(lowSecretFinData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
-    assert(DemoKeys.plaintext, cleartext)
+    assert(CoverCryptDemoKeys.plaintext, cleartext)
   }
 }

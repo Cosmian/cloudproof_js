@@ -1,36 +1,56 @@
 /* tslint:disable:max-classes-per-file */
 import {
-    webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size
-} from "../../../../../wasm_lib/abe/cover_crypt"
+    webassembly_create_decryption_cache, webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_decrypt_hybrid_header_using_cache, webassembly_destroy_decryption_cache, webassembly_get_encrypted_header_size
+} from "../../../../../wasm_lib/abe/gpsw"
 import { logger } from "../../../../utils/logger"
 import { ClearTextHeader, HybridDecryption } from "../../hybrid_crypto"
+
 
 /**
  * This class exposes the ABE primitives.
  *
  */
-export class CoverCryptHybridDecryption extends HybridDecryption {
+export class GpswHybridDecryption extends HybridDecryption {
+
+    private _cache: number
+
 
     constructor(userDecryptionKey: Uint8Array) {
         super(userDecryptionKey)
+        // Create decryption cache. This number is linked to the user decryption key
+        this._cache = webassembly_create_decryption_cache(userDecryptionKey)
     }
 
     /**
-     * Destroy ABE instance
+     * Destroy decryption cache
      */
     public destroyInstance() {
         logger.log(() => "DestroyInstance Abe")
+        webassembly_destroy_decryption_cache(this._cache)
     }
 
     /**
-     * Decrypts an ABE ciphertext using the given user decryption key. Must return cleartext value if correct user key (meaning, the correct access policy) has been given.
+     * Decrypts an ABE ciphertext using the given user decryption key in cache. Must return cleartext value if correct user key (meaning, the correct access policy) has been given.
+     * This function is using a cache to store the user decryption key.
      *
      * @param abeHeader ABE encrypted value
      * @returns cleartext decrypted ABE value
      */
     public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
-        const cleartextHeader = webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
-        return ClearTextHeader.parseJson(cleartextHeader)
+        // logger.log(() => "cache: " + this._cache)
+        const clearTextHeader = webassembly_decrypt_hybrid_header_using_cache(this._cache, abeHeader)
+        return ClearTextHeader.parseRaw(clearTextHeader)
+
+    }
+
+    /**
+     * Decrypts an ABE ciphertext using the given user decryption key. Must return cleartext value if correct user key (meaning, the correct access policy) has been given
+     *
+     * @param abeHeader ABE encrypted value
+     * @returns cleartext decrypted ABE value
+     */
+    public decryptHybridHeaderNoCache(abeHeader: Uint8Array): Uint8Array {
+        return webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
     }
 
     /**
@@ -71,15 +91,9 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
 
         // HEADER decryption: asymmetric decryption
         const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
-        logger.log(() => "decrypt for cleartextHeader: " + cleartextHeader)
-
 
         // AES_DATA: AES Symmetric part decryption
-        const cleartext = this.decryptHybridBlock(
-            cleartextHeader.symmetricKey,
-            encryptedSymmetricBytes,
-            cleartextHeader.metadata.uid,
-            0)
+        const cleartext = this.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.metadata.uid, 0)
         logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
         return cleartext
     }
@@ -102,7 +116,7 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
     }
 
     /**
-     * Bench ABE decryption
+     * Bench ABE decryption using a cache and without cache
      *
      * @param abeHeader ABE encrypted value
      * @returns cleartext decrypted ABE value
@@ -116,10 +130,21 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
             webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
         }
         const endDate = new Date().getTime()
-        const ms = (endDate - startDate) / (loops)
-        logger.log(() => "webassembly-JS avg time: " + ms + "ms")
+        const msNoCache = (endDate - startDate) / (loops)
+        logger.log(() => "webassembly-JS avg time (no cache): " + msNoCache + "ms")
 
-        return [ms, -1]
+        // With cache
+        const cache = webassembly_create_decryption_cache(this.asymmetricDecryptionKey)
+        const start = new Date().getTime()
+        for (let i = 0; i < loops; i++) {
+            webassembly_decrypt_hybrid_header_using_cache(cache, abeHeader)
+        }
+        const end = new Date().getTime()
+        const msCache = (end - start) / (loops)
+        logger.log(() => "webassembly-JS avg time (with cache): " + msCache + "ms")
+        webassembly_destroy_decryption_cache(cache)
+
+        return [msNoCache, msCache]
     }
 
     public getHeaderSize(encryptedBytes: Uint8Array): number {

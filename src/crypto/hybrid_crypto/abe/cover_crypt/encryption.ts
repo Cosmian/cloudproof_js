@@ -1,44 +1,18 @@
-/* tslint:disable:max-classes-per-file */
 import {
     webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header
 } from "../../../../../wasm_lib/abe/cover_crypt";
 import { logger } from "../../../../utils/logger";
 import { hexEncode } from "../../../../utils/utils";
-import { EncryptedHeader, EncryptionParameters, HybridEncryption } from "../../hybrid_crypto";
-import { Metadata } from "./metadata";
+import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto";
+import { AbeEncryptionParameters } from "../encryption_parameters";
+import { Metadata } from "../metadata";
 
-
-export class AbeEncryptionParameters extends EncryptionParameters {
-    // ABE attributes as a string: for example: ["Department::FIN" , "Security Level::Confidential"]
-    private _attributes: string[]
-    // Metadata used to save integrity parameter and additional data
-    private _metadata: Metadata;
-
-    constructor(attributes: string[], metadata: Metadata) {
-        super()
-        this._attributes = attributes
-        this._metadata = metadata
-    }
-
-    public get attributes(): string[] {
-        return this._attributes
-    }
-    public set attributes(value: string[]) {
-        this._attributes = value
-    }
-    public get metadata(): Metadata {
-        return this._metadata;
-    }
-    public set metadata(value: Metadata) {
-        this._metadata = value;
-    }
-}
 
 /**
  * This class exposes the ABE primitives.
  *
  */
-export class AbeHybridEncryption extends HybridEncryption {
+export class CoverCryptHybridEncryption extends HybridEncryption {
     constructor(policy: Uint8Array, publicKey: Uint8Array,) {
         super(policy, publicKey)
     }
@@ -129,8 +103,8 @@ export class AbeHybridEncryption extends HybridEncryption {
      * @param uid header integrity param
      * @returns timings for encryption
      */
-    public benchEncryptHybridHeader(attributes: string[], uid: Uint8Array): number {
-        const loops = 1000
+    public benchEncryptHybridHeader(attributes: string[], uid: Uint8Array): number[] {
+        const loops = 100
         const startDate = new Date().getTime()
         const metadata = new Metadata(uid)
         for (let i = 0; i < loops; i++) {
@@ -144,17 +118,6 @@ export class AbeHybridEncryption extends HybridEncryption {
         const ms = (endDate - startDate) / (loops)
         logger.log(() => "webassembly-JS avg time: " + ms + "ms")
 
-        return ms
+        return [ms,-1]
     }
-}
-
-export type EncryptionWorkerMessage = {
-    name:
-    'INIT' |
-    'DESTROY' |
-    'ENCRYPT' |
-    'SUCCESS' |
-    'ERROR',
-    error?: string
-    value?: any
 }

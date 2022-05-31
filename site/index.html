@@ -37,6 +37,19 @@
     <form method="GET" id="my_form"></form>
 
     <br>
+
+    <fieldset id="abe_group">
+        <input type="radio" value="gpsw" name="abe_group" checked onclick="
+            initPage(true)
+        ">
+        <label for="gpsw">ABE-GPSW</label>
+
+        <input type="radio" value="covercrypt" name="abe_group" onclick="
+            initPage(false)
+        ">
+        <label for="covercrypt">ABE-CoverCrypt</label>
+    </fieldset>
+
     <table>
         <caption>ABE Keys</caption>
         <tr>
@@ -115,7 +128,7 @@
                             document.getElementById('abe_user_key_1').value,
                             document.getElementById('database_value_1').value,
                             );
-                    document.getElementById('decryption_only_result').innerHTML=res+'ms';
+                    document.getElementById('decryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
                 },0)">
             Bench Asymmetric header decryption (only):
         </button>
@@ -152,11 +165,24 @@
                                     ['Department::FIN', 'Security Level::Low Secret'],
                                     document.getElementById('database_uid_1').value,
                                 );
-                        document.getElementById('encryption_only_result').innerHTML=res+'ms';
+                        document.getElementById('encryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
                     },0)">
             Bench Asymmetric header encryption (only):
         </button>
         <span id="encryption_only_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+
+    <div>
+        <button onclick="
+            document.getElementById('abe_demo').innerHTML='running...';
+            window.setTimeout(()=> {
+                var res = abeDemo();
+                document.getElementById('abe_demo').innerHTML=res ;
+            },0)">
+            ABE demo
+        </button>
+        <span id="abe_demo">N/A</span>
         <!-- <span>ms</span> -->
     </div>
 
@@ -173,23 +199,10 @@
         <span>Results : <br><span id="workers_result"></span></span>
     </div>
 
-
     <noscript class="app-noscript">
         Requires Javascript
     </noscript>
 </body>
 
-<div>
-    <button onclick="
-            document.getElementById('abe_demo').innerHTML='running...';
-            window.setTimeout(()=> {
-                var res = abeDemo();
-                document.getElementById('abe_demo').innerHTML=res ;
-            },0)">
-        ABE demo
-    </button>
-    <span id="abe_demo">N/A</span>
-    <!-- <span>ms</span> -->
-</div>
 
 </html>

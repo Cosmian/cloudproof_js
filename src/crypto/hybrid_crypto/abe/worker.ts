@@ -1,7 +1,8 @@
-import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
+import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "../hybrid_crypto"
 import { logger } from "./../../../utils/logger"
 import { hexDecode } from "./../../../utils/utils"
-import { AbeHybridDecryption, DecryptionWorkerMessage } from "./cover_crypt/decryption"
+import { CoverCryptHybridDecryption } from "./cover_crypt/decryption"
+import { GpswHybridDecryption } from "./gpsw/decryption"
 
 const ctx: Worker = self as any
 
@@ -9,9 +10,12 @@ class DecryptWorker {
 
     hybridDecryption: HybridDecryption | null = null
 
-    init(asymmetricDecryptionKey: string) {
-        this.hybridDecryption = new AbeHybridDecryption(hexDecode(asymmetricDecryptionKey))
-
+    init(asymmetricDecryptionKey: string, isGpswImplementation: boolean) {
+        if (isGpswImplementation) {
+            this.hybridDecryption = new GpswHybridDecryption(hexDecode(asymmetricDecryptionKey))
+        } else {
+            this.hybridDecryption = new CoverCryptHybridDecryption(hexDecode(asymmetricDecryptionKey))
+        }
     }
     /**
      * Destroy the hybrid decryption crypto
@@ -28,7 +32,7 @@ class DecryptWorker {
         let dec: HybridDecryption
         if (this.hybridDecryption === null) {
             // TODO handle hybrid crypto not initialized here if needed
-            throw new Error("The hybrid decrption scheme is not initalized")
+            throw new Error("The hybrid decryption scheme is not initialized")
         } else {
             dec = this.hybridDecryption
         }
@@ -81,9 +85,10 @@ ctx.onmessage = (event) => {
     const msg = event.data as DecryptionWorkerMessage
     const msgName = msg.name
     const input = msg.value
+    const isGpswImplementation = msg.isGpswImplementation
 
-    if (msgName == "INIT") {
-        decrypter.init(input as string)
+    if (msgName === "INIT") {
+        decrypter.init(input as string, isGpswImplementation)
         logger.log(() => "worker cache initialized")
         ctx.postMessage({
             name: "INIT",

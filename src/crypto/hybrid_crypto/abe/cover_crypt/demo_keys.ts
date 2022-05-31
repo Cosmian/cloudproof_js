@@ -2,7 +2,7 @@
 import { hexDecode } from "../../../../utils/utils"
 
 
-export class DemoKeys {
+export class CoverCryptDemoKeys {
 
 
   // Policy example in hex: {"last_attribute":9,"max_attribute":109,"store":{"Security Level":[["Protected","Low Secret","Medium Secret","High Secret","Top Secret"],true],"Department":[["R&D","HR","MKG","FIN"],false]},"attribute_to_int":{"Security Level::Top Secret":[5],"Security Level::Low Secret":[2],"Security Level::High Secret":[4],"Security Level::Protected":[1],"Department::R&D":[6],"Department::MKG":[8],"Department::FIN":[9],"Department::HR":[7],"Security Level::Medium Secret":[3]}}

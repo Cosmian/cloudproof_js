@@ -8,17 +8,21 @@
 // then navigate to http://locahost:8080
 
 
-import * as lib from "../lib"
 import {
-  webassembly_get_encrypted_header_size,
+  webassembly_get_encrypted_header_size
 } from "../../wasm_lib/abe"
-import { DecryptionWorkerMessage, AbeHybridDecryption } from "../crypto/hybrid_crypto/abe/cover_crypt/decryption"
-import { EncryptionWorkerMessage, AbeEncryptionParameters, AbeHybridEncryption } from "../crypto/hybrid_crypto/abe/cover_crypt/encryption"
-import { logger } from "./../utils/logger"
+import { CoverCryptHybridDecryption } from "../crypto/hybrid_crypto/abe/cover_crypt/decryption"
+import { CoverCryptHybridEncryptionDemo } from "../crypto/hybrid_crypto/abe/cover_crypt/demo"
+import { CoverCryptDemoKeys } from "../crypto/hybrid_crypto/abe/cover_crypt/demo_keys"
+import { CoverCryptHybridEncryption } from "../crypto/hybrid_crypto/abe/cover_crypt/encryption"
+import { GpswHybridDecryption } from "../crypto/hybrid_crypto/abe/gpsw/decryption"
+import { GpswHybridEncryptionDemo } from "../crypto/hybrid_crypto/abe/gpsw/demo"
+import { GpswDemoKeys } from "../crypto/hybrid_crypto/abe/gpsw/demo_keys"
+import { GpswHybridEncryption } from "../crypto/hybrid_crypto/abe/gpsw/encryption"
+import * as lib from "../lib"
 import { EncryptedEntry, WorkerPool } from "./../crypto/hybrid_crypto/abe/worker_pool"
+import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
-import { AbeHybridEncryptionDemo } from "../crypto/hybrid_crypto/abe/cover_crypt/demo"
-import { DemoKeys } from "../crypto/hybrid_crypto/abe/cover_crypt/demo_keys"
 
 
 /**
@@ -56,28 +60,38 @@ function hybridDecryptionTest(abeUserDecryption: string, databaseEncryptedValue:
   const singleDatabaseEntries: Uint8Array[] = [encryptedValue]
 
   // Init ABE decryption cache
-  const abe = new AbeHybridDecryption(hexDecode(abeUserDecryption))
+  let hybridCrypto;
+  if (!isGpswImplementation()) {
+    hybridCrypto = new CoverCryptHybridDecryption(hexDecode(abeUserDecryption))
+  } else {
+    hybridCrypto = new GpswHybridDecryption(hexDecode(abeUserDecryption))
+  }
 
   // Iter as much as needed
   const startDate = new Date().getTime()
-  const loops = 1000
+  const loops = 100
   for (let i = 0; i < loops; i++) {
-    abe.decryptBatch(singleDatabaseEntries)
+    hybridCrypto.decryptBatch(singleDatabaseEntries)
   }
   const endDate = new Date().getTime()
   const milliseconds = (endDate - startDate) / (loops)
   logger.log(() => "webassembly-JS avg time (with cache): " + milliseconds + "ms")
 
   // Finish with cache destroying
-  abe.destroyInstance()
+  hybridCrypto.destroyInstance()
 
   return milliseconds
 }
 (window as any).hybridDecryptionTest = hybridDecryptionTest
 
-function benchAsymmetricDecryption(asymmetricDecryptionKeyHex: string, databaseEncryptedValueHex: string): number {
+function benchAsymmetricDecryption(asymmetricDecryptionKeyHex: string, databaseEncryptedValueHex: string): number[] {
   // Init ABE decryption cache
-  const hybridCrypto = new AbeHybridDecryption(hexDecode(asymmetricDecryptionKeyHex))
+  let hybridCrypto;
+  if (!isGpswImplementation()) {
+    hybridCrypto = new CoverCryptHybridDecryption(hexDecode(asymmetricDecryptionKeyHex))
+  } else {
+    hybridCrypto = new GpswHybridDecryption(hexDecode(asymmetricDecryptionKeyHex))
+  }
 
   const databaseEncryptedValue = hexDecode(databaseEncryptedValueHex)
   logger.log(() => "benchAsymmetricDecryption for databaseEncryptedValue: " + databaseEncryptedValue)
@@ -88,19 +102,24 @@ function benchAsymmetricDecryption(asymmetricDecryptionKeyHex: string, databaseE
   const abeHeader = databaseEncryptedValue.slice(4, 4 + headerSize)
 
   // Process hybrid decryption on multiple iterations
-  const milliseconds = hybridCrypto.benchDecryptHybridHeader(abeHeader)
+  const res = hybridCrypto.benchDecryptHybridHeader(abeHeader)
 
   // Finish with cache destroying
   hybridCrypto.destroyInstance()
 
-  return milliseconds
+  return res
 }
 (window as any).benchAsymmetricDecryption = benchAsymmetricDecryption
 
 // --- ENCRYPTION ---
 function hybridEncryptionTest(publicKey: string, policy: string, attributes: string[], uid: string, plaintext: string) {
   // Init ABE encryption cache
-  const abe = new AbeHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  let hybridCrypto;
+  if (!isGpswImplementation()) {
+    hybridCrypto = new CoverCryptHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  } else {
+    hybridCrypto = new GpswHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  }
 
   // Hex decoded
   const uidBytes = hexDecode(uid)
@@ -108,25 +127,31 @@ function hybridEncryptionTest(publicKey: string, policy: string, attributes: str
 
   // Iter as much as needed
   const startDate = new Date().getTime()
-  const loops = 1000
+  const loops = 100
   for (let i = 0; i < loops; i++) {
-    const ct = abe.encrypt(attributes, uidBytes, plaintextBytes)
+    const ct = hybridCrypto.encrypt(attributes, uidBytes, plaintextBytes)
+    logger.log(() => "ct:" + lib.hexEncode(ct))
   }
   const endDate = new Date().getTime()
   const milliseconds = (endDate - startDate) / (loops)
   logger.log(() => "webassembly-JS avg time (with cache): " + milliseconds + "ms")
 
   // Finish with cache destroying
-  abe.destroyInstance()
+  hybridCrypto.destroyInstance()
 
   return milliseconds
 }
 (window as any).hybridEncryptionTest = hybridEncryptionTest
 
 
-function benchAsymmetricEncryption(publicKey: string, policy: string, attributes: string[], uid: string): number {
+function benchAsymmetricEncryption(publicKey: string, policy: string, attributes: string[], uid: string): number[] {
   // Init ABE decryption cache
-  const hybridCrypto = new AbeHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  let hybridCrypto;
+  if (!isGpswImplementation()) {
+    hybridCrypto = new CoverCryptHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  } else {
+    hybridCrypto = new GpswHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+  }
 
   // Hex decode
   const uidBytes = hexDecode(uid)
@@ -161,18 +186,36 @@ if (wnElt == null) {
   wnElt.innerHTML = NUM_WORKERS + ""
 }
 
-// create set of test entries
-const encryptedEntries: EncryptedEntry[] = []
-for (let index = 0; index < NUM_ENTRIES; index++) {
-  encryptedEntries.push({
-    uidHex: lib.hexEncode(DemoKeys.uid),
-    ciphertextHex: lib.hexEncode(DemoKeys.encryptedData)
-  })
-}
-
 
 // The function called whn clicking the decrypt button
 const decryptUsingWorker = (): void => {
+  // create set of test entries
+  const encryptedEntries: EncryptedEntry[] = []
+  let demoUid = new Uint8Array()
+  let demoEncryptedData = new Uint8Array()
+  let demoTopSecretMkgFinUser = new Uint8Array()
+  let isGpsw = false
+  if (isGpswImplementation()) {
+    demoUid = GpswDemoKeys.uid
+    demoEncryptedData = GpswDemoKeys.encryptedData
+    demoTopSecretMkgFinUser = GpswDemoKeys.topSecretMkgFinUser
+    isGpsw = true
+  } else {
+    demoUid = CoverCryptDemoKeys.uid
+    demoEncryptedData = CoverCryptDemoKeys.encryptedData
+    demoTopSecretMkgFinUser = CoverCryptDemoKeys.topSecretMkgFinUser
+    isGpsw = false
+  }
+
+  logger.log(() => "isGpsw: " + isGpsw)
+
+  for (let index = 0; index < NUM_ENTRIES; index++) {
+    encryptedEntries.push({
+      uidHex: lib.hexEncode(demoUid),
+      ciphertextHex: lib.hexEncode(demoEncryptedData)
+    })
+  }
+
   const wrnElt = document.getElementById("workers_results_number")
   const wrElt = document.getElementById("workers_result")
   if (wrnElt == null || wrElt == null) {
@@ -181,10 +224,12 @@ const decryptUsingWorker = (): void => {
     wrElt.innerHTML = ""
     wrnElt.innerHTML = "...running..."
     const startDate = new Date().getTime()
-    workerPool.decrypt(lib.hexEncode(DemoKeys.topSecretMkgFinUser),
-      encryptedEntries
+    workerPool.decrypt(
+      lib.hexEncode(demoTopSecretMkgFinUser),
+      encryptedEntries,
+      isGpsw
     ).then(
-      (results: Uint8Array[]) => displayResults(startDate, results),
+      (results: Uint8Array[]) => displayResults(startDate, results, encryptedEntries.length),
       (err: any) => displayError(err)
     ).finally(() => {
       logger.log(() => "all decryption workers terminated")
@@ -194,10 +239,10 @@ const decryptUsingWorker = (): void => {
 (window as any).decryptUsingWorker = decryptUsingWorker
 
 // Display the decryption results
-const displayResults = (startDate: number, results: Uint8Array[]) => {
+const displayResults = (startDate: number, results: Uint8Array[], encryptedEntriesLength: number) => {
   // got results  - stope time measurement
   const endDate = new Date().getTime()
-  const milliseconds = (endDate - startDate) / (encryptedEntries.length)
+  const milliseconds = (endDate - startDate) / (encryptedEntriesLength)
 
   // display some stats
   const wrnElt = document.getElementById("workers_results_number")
@@ -206,7 +251,6 @@ const displayResults = (startDate: number, results: Uint8Array[]) => {
     return
   }
   wrnElt.innerHTML = results.length + " in " + (endDate - startDate) + "ms i.e. " + milliseconds + "ms/record average"
-
 
   // the results themselves
   const wrElt = document.getElementById("workers_result")
@@ -230,9 +274,13 @@ const displayError = (err: string) => {
   wnElement.innerHTML = "ERROR: " + err
 }
 
-
+// run demo scenario for ABE implementation
 function abeDemo(): string {
-  AbeHybridEncryptionDemo.run()
+  if (!isGpswImplementation()) {
+    CoverCryptHybridEncryptionDemo.run()
+  } else {
+    GpswHybridEncryptionDemo.run()
+  }
   return "OK"
 }
 (window as any).abeDemo = abeDemo
@@ -252,13 +300,34 @@ function elementSetValue(id: string, value: Uint8Array | string) {
   }
 }
 
-export function initPage() {
-  elementSetValue("abe_user_key_access_policy_1", DemoKeys.topSecretMkgFinUserAccessPolicy)
-  elementSetValue("abe_user_key_1", DemoKeys.topSecretMkgFinUser)
-  elementSetValue("abe_public_key", DemoKeys.publicKey)
-  elementSetValue("abe_policy", DemoKeys.policy)
-  elementSetValue("database_uid_1", DemoKeys.uid)
-  elementSetValue("database_value_1", DemoKeys.encryptedData)
-  elementSetValue("plaintext_1", DemoKeys.plaintext)
+function isGpswImplementation(): boolean {
+  const abeImplementation = document.querySelector('input[name="abe_group"]:checked')
+  if (abeImplementation == null) {
+    console.error("Unexpected error for ABE implementation choice")
+    return false
+  }
+  const abeValue = abeImplementation.getAttribute("value")
+  return abeValue === 'gpsw'
 }
-initPage();
+
+export function initPage(isGpsw: boolean) {
+  if (isGpsw) {
+    elementSetValue("abe_user_key_access_policy_1", GpswDemoKeys.topSecretMkgFinUserAccessPolicy)
+    elementSetValue("abe_user_key_1", GpswDemoKeys.topSecretMkgFinUser)
+    elementSetValue("abe_public_key", GpswDemoKeys.publicKey)
+    elementSetValue("abe_policy", GpswDemoKeys.policy)
+    elementSetValue("database_uid_1", GpswDemoKeys.uid)
+    elementSetValue("database_value_1", GpswDemoKeys.encryptedData)
+    elementSetValue("plaintext_1", GpswDemoKeys.plaintext)
+  } else {
+    elementSetValue("abe_user_key_access_policy_1", CoverCryptDemoKeys.topSecretMkgFinUserAccessPolicy)
+    elementSetValue("abe_user_key_1", CoverCryptDemoKeys.topSecretMkgFinUser)
+    elementSetValue("abe_public_key", CoverCryptDemoKeys.publicKey)
+    elementSetValue("abe_policy", CoverCryptDemoKeys.policy)
+    elementSetValue("database_uid_1", CoverCryptDemoKeys.uid)
+    elementSetValue("database_value_1", CoverCryptDemoKeys.encryptedData)
+    elementSetValue("plaintext_1", CoverCryptDemoKeys.plaintext)
+  }
+}
+initPage(true);
+(window as any).initPage = initPage

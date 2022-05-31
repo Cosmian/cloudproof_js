@@ -1,11 +1,14 @@
 /* tslint:disable:max-classes-per-file */
 import { logger } from "../../utils/logger"
-import { toBeBytes } from "../../utils/utils"
-import { Metadata } from "./abe/cover_crypt/metadata"
+import { fromBeBytes, toBeBytes } from "../../utils/utils"
+import { Metadata } from "./abe/metadata"
 
 const SYMMETRIC_KEY_SIZE = 32
 
 export abstract class EncryptionParameters { }
+
+
+
 
 export class EncryptedHeader {
   private _symmetricKey: Uint8Array
@@ -104,6 +107,7 @@ export abstract class HybridEncryption {
   public abstract encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
 }
 
+
 export class ClearTextHeader {
   private _symmetricKey: Uint8Array
   private _metadata: Metadata
@@ -133,7 +137,7 @@ export class ClearTextHeader {
    * @param cleartextHeader a raw header
    * @returns the object deserialized
    */
-  public static parse(cleartextHeader: Uint8Array): ClearTextHeader {
+  public static parseJson(cleartextHeader: Uint8Array): ClearTextHeader {
     const clearTextHeaderString = new TextDecoder().decode(cleartextHeader.buffer)
     logger.log(() => "clearTextHeaderString: " + clearTextHeaderString)
     // parse JSON to object
@@ -144,6 +148,22 @@ export class ClearTextHeader {
     logger.log(() => "additional_data: " + clearTextHeaderJson.meta_data.additional_data)
 
     return new ClearTextHeader(clearTextHeaderJson.symmetric_key, clearTextHeaderJson.meta_data)
+  }
+
+  public static parseRaw(cleartextHeader: Uint8Array): ClearTextHeader {
+    const headerSize = fromBeBytes(cleartextHeader.slice(0, 4))
+    const symmetricKey = cleartextHeader.slice(4, 4 + headerSize)
+    const metadata = cleartextHeader.slice(4 + headerSize, cleartextHeader.length)
+    logger.log(() => "symmetric_key: " + symmetricKey)
+    logger.log(() => "metadata: " + metadata)
+
+    const metadataSize = fromBeBytes(metadata.slice(0, 4))
+    const uid = metadata.slice(4, 4 + metadataSize)
+    const additionalData = metadata.slice(4 + metadataSize, metadata.length)
+    logger.log(() => "uid: " + uid)
+    logger.log(() => "additionalData: " + additionalData)
+
+    return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
   }
 }
 
@@ -185,4 +205,28 @@ export abstract class HybridDecryption {
    * @param encryptedBytes the hybrid encrypted bytes
    */
   public abstract getHeaderSize(encryptedBytes: Uint8Array): number
+}
+
+
+export type EncryptionWorkerMessage = {
+  name:
+  'INIT' |
+  'DESTROY' |
+  'ENCRYPT' |
+  'SUCCESS' |
+  'ERROR',
+  error?: string
+  value?: any
+}
+
+export type DecryptionWorkerMessage = {
+  name:
+  'INIT' |
+  'DESTROY' |
+  'DECRYPT' |
+  'SUCCESS' |
+  'ERROR',
+  isGpswImplementation: boolean
+  error?: string
+  value?: any
 }

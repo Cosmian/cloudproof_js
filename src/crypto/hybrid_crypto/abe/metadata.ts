@@ -31,7 +31,7 @@ export class Metadata {
         this._additionalData = additionalData
     }
 
-    
+
     public toJsonEncoded() {
         const metadata: any = {}
         metadata.uid = Array.from(this._uid)
