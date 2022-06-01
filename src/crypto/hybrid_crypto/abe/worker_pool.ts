@@ -1,4 +1,4 @@
-import { DecryptionWorkerMessage } from "./gpsw/abe_decryption"
+import { DecryptionWorkerMessage } from "../hybrid_crypto"
 import { logger } from "./../../../utils/logger"
 
 
@@ -28,10 +28,11 @@ export class WorkerPool {
      * Attempt decryption of the selected entries using an user decryption key
      * @param decryptionKeyHex
      * @param encryptedEntries
+     * @param isGpswImplementation
      * @returns an array of the results that could be decrypted
      */
-    public async decrypt(decryptionKeyHex: string, encryptedEntries: EncryptedEntry[]): Promise<Uint8Array[]> {
-        return runWorkers(this.workers, decryptionKeyHex, encryptedEntries)
+    public async decrypt(decryptionKeyHex: string, encryptedEntries: EncryptedEntry[], isGpswImplementation: boolean): Promise<Uint8Array[]> {
+        return runWorkers(this.workers, decryptionKeyHex, encryptedEntries, isGpswImplementation)
     }
 
     /**
@@ -49,11 +50,11 @@ export class WorkerPool {
  * @param encryptedEntries
  * @returns an array of the results that could be decrypted
  */
-export async function runWorkers(workers: Worker[], decryptionKeyHex: string, encryptedEntries: EncryptedEntry[]): Promise<Uint8Array[]> {
+export async function runWorkers(workers: Worker[], decryptionKeyHex: string, encryptedEntries: EncryptedEntry[], isGpswImplementation: boolean): Promise<Uint8Array[]> {
     logger.log(() => "NUM WORKERS: " + workers.length)
     if (workers.length === 1) {
         // let us kep this simple then
-        return await runWorker(workers[0], decryptionKeyHex, encryptedEntries)
+        return await runWorker(workers[0], decryptionKeyHex, encryptedEntries, isGpswImplementation)
     }
     // split the entries among workers
     const perWorker = encryptedEntries.length / workers.length
@@ -66,7 +67,7 @@ export async function runWorkers(workers: Worker[], decryptionKeyHex: string, en
         } else {
             entries = encryptedEntries.slice(index * perWorker, (index + 1) * perWorker)
         }
-        promises.push(runWorker(workers[index], decryptionKeyHex, entries))
+        promises.push(runWorker(workers[index], decryptionKeyHex, entries, isGpswImplementation))
     }
     // wait for all workers to complete
     let results = await Promise.all(promises)
@@ -75,7 +76,7 @@ export async function runWorkers(workers: Worker[], decryptionKeyHex: string, en
 }
 
 
-const runWorker = (worker: Worker, decryptionKeyHex: string, encryptedEntries: EncryptedEntry[]): Promise<Uint8Array[]> => {
+const runWorker = (worker: Worker, decryptionKeyHex: string, encryptedEntries: EncryptedEntry[], isGpswImplementation: boolean): Promise<Uint8Array[]> => {
 
     // Transform asynchronous messaging wih callback into a Future
     return new Promise((resolve: (value: Uint8Array[] | PromiseLike<Uint8Array[]>) => void, reject: (reason?: any) => void) => {
@@ -139,7 +140,8 @@ const runWorker = (worker: Worker, decryptionKeyHex: string, encryptedEntries: E
         // let us get started
         worker.postMessage({
             name: "INIT",
-            value: decryptionKeyHex
+            value: decryptionKeyHex,
+            isGpswImplementation
         } as DecryptionWorkerMessage)
         logger.log(() => "run worker ")
 

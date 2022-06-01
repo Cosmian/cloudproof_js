@@ -1,60 +1,16 @@
 /* tslint:disable:max-classes-per-file */
 import {
-    webassembly_create_decryption_cache,
-    webassembly_destroy_decryption_cache,
-    webassembly_decrypt_hybrid_header_using_cache,
-    webassembly_decrypt_hybrid_header,
-    webassembly_decrypt_hybrid_block,
-    webassembly_get_encrypted_header_size
-} from "../../../../../wasm_lib/abe/abe_gpsw"
+    webassembly_create_decryption_cache, webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_decrypt_hybrid_header_using_cache, webassembly_destroy_decryption_cache, webassembly_get_encrypted_header_size
+} from "../../../../../wasm_lib/abe/gpsw"
 import { logger } from "../../../../utils/logger"
+import { ClearTextHeader, HybridDecryption } from "../../hybrid_crypto"
 
-
-export abstract class HybridDecryption {
-    private _asymmetricDecryptionKey: Uint8Array
-
-    public set asymmetricDecryptionKey(value: Uint8Array) {
-        this._asymmetricDecryptionKey = value
-    }
-    public get asymmetricDecryptionKey(): Uint8Array {
-        return this._asymmetricDecryptionKey
-    }
-
-    constructor(asymmetricDecryptionKey: Uint8Array) {
-        this._asymmetricDecryptionKey = asymmetricDecryptionKey
-    }
-
-    public abstract destroyInstance(): void
-
-    /**
-     *
-     * @param asymmetricHeader asymmetric encrypted data
-     */
-    public abstract decryptHybridHeader(asymmetricHeader: Uint8Array): Uint8Array
-
-    /**
-     * Decrypts a hybrid block
-     *
-     * @param symmetricKey symmetric key
-     * @param encryptedBytes encrypted data
-     * @param uid uid used as additional data
-     * @param blockNumber
-     * @returns the cleartext if everything succeeded
-     */
-    public abstract decryptHybridBlock(symmetricKey: Uint8Array, encryptedBytes: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
-
-    /**
-     * Return the size of the header
-     * @param encryptedBytes the hybrid encrypted bytes
-     */
-    public abstract getHeaderSize(encryptedBytes: Uint8Array): number
-}
 
 /**
  * This class exposes the ABE primitives.
  *
  */
-export class AbeHybridDecryption extends HybridDecryption {
+export class GpswHybridDecryption extends HybridDecryption {
 
     private _cache: number
 
@@ -80,9 +36,11 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param abeHeader ABE encrypted value
      * @returns cleartext decrypted ABE value
      */
-    public decryptHybridHeader(abeHeader: Uint8Array): Uint8Array {
+    public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
         // logger.log(() => "cache: " + this._cache)
-        return webassembly_decrypt_hybrid_header_using_cache(this._cache, abeHeader)
+        const clearTextHeader = webassembly_decrypt_hybrid_header_using_cache(this._cache, abeHeader)
+        return ClearTextHeader.parseRaw(clearTextHeader)
+
     }
 
     /**
@@ -119,8 +77,7 @@ export class AbeHybridDecryption extends HybridDecryption {
      * @param encryptedData
      * @returns a list of cleartext values
      */
-    public decrypt(uid: Uint8Array, encryptedData: Uint8Array): Uint8Array {
-        logger.log(() => "decrypt for uid: " + uid)
+    public decrypt(encryptedData: Uint8Array): Uint8Array {
         logger.log(() => "decrypt for encryptedData: " + encryptedData)
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
@@ -133,10 +90,10 @@ export class AbeHybridDecryption extends HybridDecryption {
         logger.log(() => "decrypt for asymmetricHeader: " + asymmetricHeader)
 
         // HEADER decryption: asymmetric decryption
-        const cleartextSymmetricKey = this.decryptHybridHeader(asymmetricHeader)
+        const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
 
         // AES_DATA: AES Symmetric part decryption
-        const cleartext = this.decryptHybridBlock(cleartextSymmetricKey, encryptedSymmetricBytes, uid, 0)
+        const cleartext = this.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.metadata.uid, 0)
         logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
         return cleartext
     }
@@ -144,13 +101,13 @@ export class AbeHybridDecryption extends HybridDecryption {
     /**
      * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
      *
-     * @param databaseEntries a map of database entries (uid, encrypted_data) to decrypt
+     * @param databaseEntries a list of encrypted database entries to decrypt
      * @returns a list of cleartext values
      */
-    public decryptBatch(databaseEntries: Map<Uint8Array, Uint8Array>): Uint8Array[] {
+    public decryptBatch(databaseEntries: Uint8Array[]): Uint8Array[] {
         const cleartextValues: Uint8Array[] = []
-        databaseEntries.forEach((encryptedValue: Uint8Array, uid: Uint8Array) => {
-            const cleartext = this.decrypt(uid, encryptedValue)
+        databaseEntries.forEach((encryptedValue: Uint8Array) => {
+            const cleartext = this.decrypt(encryptedValue)
             logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
             cleartextValues.push(cleartext)
         })
@@ -168,22 +125,22 @@ export class AbeHybridDecryption extends HybridDecryption {
         logger.log(() => "benchDecryptHybridHeader for abeHeader: " + abeHeader)
 
         const loops = 100
-        let startDate = new Date().getTime()
+        const startDate = new Date().getTime()
         for (let i = 0; i < loops; i++) {
             webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
         }
-        let endDate = new Date().getTime()
+        const endDate = new Date().getTime()
         const msNoCache = (endDate - startDate) / (loops)
         logger.log(() => "webassembly-JS avg time (no cache): " + msNoCache + "ms")
 
         // With cache
         const cache = webassembly_create_decryption_cache(this.asymmetricDecryptionKey)
-        startDate = new Date().getTime()
+        const start = new Date().getTime()
         for (let i = 0; i < loops; i++) {
             webassembly_decrypt_hybrid_header_using_cache(cache, abeHeader)
         }
-        endDate = new Date().getTime()
-        const msCache = (endDate - startDate) / (loops)
+        const end = new Date().getTime()
+        const msCache = (end - start) / (loops)
         logger.log(() => "webassembly-JS avg time (with cache): " + msCache + "ms")
         webassembly_destroy_decryption_cache(cache)
 
@@ -193,15 +150,4 @@ export class AbeHybridDecryption extends HybridDecryption {
     public getHeaderSize(encryptedBytes: Uint8Array): number {
         return webassembly_get_encrypted_header_size(encryptedBytes)
     }
-}
-
-export type DecryptionWorkerMessage = {
-    name:
-    'INIT' |
-    'DESTROY' |
-    'DECRYPT' |
-    'SUCCESS' |
-    'ERROR',
-    error?: string
-    value?: any
 }

@@ -1,129 +1,17 @@
-/* tslint:disable:max-classes-per-file */
 import {
-    webassembly_destroy_encryption_cache,
-    webassembly_create_encryption_cache,
-    webassembly_encrypt_hybrid_header_using_cache,
-    webassembly_encrypt_hybrid_header,
-    webassembly_encrypt_hybrid_block
-} from "../../../../../wasm_lib/abe/abe_gpsw"
+    webassembly_create_encryption_cache, webassembly_destroy_encryption_cache, webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header, webassembly_encrypt_hybrid_header_using_cache
+} from "../../../../../wasm_lib/abe/gpsw"
 import { logger } from "../../../../utils/logger"
-
-export abstract class EncryptionParameters { }
-
-export class EncryptedHeader {
-    private _symmetricKey: Uint8Array
-    private _encryptedSymmetricKey: Uint8Array
-    private _encryptedSymmetricKeySizeAsArray: Uint8Array
-
-    public get encryptedSymmetricKey(): Uint8Array {
-        return this._encryptedSymmetricKey
-    }
-    public set encryptedSymmetricKey(value: Uint8Array) {
-        this._encryptedSymmetricKey = value
-    }
-
-    public get symmetricKey(): Uint8Array {
-        return this._symmetricKey
-    }
-    public set symmetricKey(value: Uint8Array) {
-        this._symmetricKey = value
-    }
-
-    public get encryptedSymmetricKeySizeAsArray(): Uint8Array {
-        return this._encryptedSymmetricKeySizeAsArray
-    }
-    public set encryptedSymmetricKeySizeAsArray(value: Uint8Array) {
-        this._encryptedSymmetricKeySizeAsArray = value
-    }
-
-    constructor(symmetricKey: Uint8Array, encryptedSymmetricKey: Uint8Array) {
-        this._symmetricKey = symmetricKey
-        this._encryptedSymmetricKey = encryptedSymmetricKey
-
-        // Convert symmetric key length to 4-bytes array
-        const arr = new ArrayBuffer(4);
-        const view = new DataView(arr);
-        view.setUint32(0, this._encryptedSymmetricKey.length, false);
-        this._encryptedSymmetricKeySizeAsArray = new Uint8Array(arr, 0)
-    }
-}
-
-export abstract class HybridEncryption {
-    private _publicKey: Uint8Array
-    private _policy: Uint8Array
-
-    public get policy(): Uint8Array {
-        return this._policy
-    }
-    public set policy(value: Uint8Array) {
-        this._policy = value
-    }
-
-    public set publicKey(value: Uint8Array) {
-        this._publicKey = value
-    }
-    public get publicKey(): Uint8Array {
-        return this._publicKey
-    }
-
-    constructor(policy: Uint8Array, publicKey: Uint8Array) {
-        this._policy = policy
-        this._publicKey = publicKey
-    }
-
-    public abstract destroyInstance(): void
-
-    /**
-     *
-     * @param parameters Encryption parameters
-     */
-    public abstract encryptHybridHeader(parameters: EncryptionParameters): EncryptedHeader
-
-    /**
-     * Encrypts a hybrid block
-     *
-     * @param symmetricKey symmetric key
-     * @param plaintext data to encrypt
-     * @param uid uid used as additional data
-     * @param blockNumber
-     * @returns the ciphertext if everything succeeded
-     */
-    public abstract encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
-}
-
-export class AbeEncryptionParameters extends EncryptionParameters {
-    // ABE attributes as a string: for example: "Department::FIN, Security Level::Confidential"
-    private _attributes: string
-    // UID is an integrity parameter
-    private _uid: Uint8Array
-
-    constructor(attributes: string, uid: Uint8Array) {
-        super()
-        this._attributes = attributes
-        this._uid = uid
-    }
-
-    public get attributes(): string {
-        return this._attributes
-    }
-    public set attributes(value: string) {
-        this._attributes = value
-    }
-
-    public get uid(): Uint8Array {
-        return this._uid
-    }
-    public set uid(value: Uint8Array) {
-        this._uid = value
-    }
-}
+import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto"
+import { AbeEncryptionParameters } from "../encryption_parameters"
+import { Metadata } from "../metadata"
 
 
 /**
  * This class exposes the ABE primitives.
  *
  */
-export class AbeHybridEncryption extends HybridEncryption {
+export class GpswHybridEncryption extends HybridEncryption {
 
     private _cache: number
 
@@ -142,6 +30,18 @@ export class AbeHybridEncryption extends HybridEncryption {
         webassembly_destroy_encryption_cache(this._cache)
     }
 
+    attributes_array_to_attributes_string(attrs: string[]): string {
+        let attributes = ""
+        for (let i = 0; i < attrs.length; i++) {
+            attributes += attrs[i]
+            if (i !== attrs.length - 1) {
+                attributes += ','
+            }
+        }
+        logger.log(() => "attributes concat: " + attributes)
+        return attributes;
+    }
+
     /**
      * Generate and encrypt a symmetric key using the public key and policy in cache. Must return ciphertext value if everything went well
      * This function is using a cache to store the public key and ABE policy.
@@ -151,7 +51,8 @@ export class AbeHybridEncryption extends HybridEncryption {
      */
     public encryptHybridHeader(parameters: AbeEncryptionParameters): EncryptedHeader {
         // logger.log(() => "cache: " + this._cache)
-        const encryptedHeaderBytes = webassembly_encrypt_hybrid_header_using_cache(this._cache, parameters.attributes, parameters.uid)
+        const attributes = this.attributes_array_to_attributes_string(parameters.attributes)
+        const encryptedHeaderBytes = webassembly_encrypt_hybrid_header_using_cache(this._cache, attributes, parameters.metadata.uid)
         const encryptedHeaderSizeAsArray = encryptedHeaderBytes.slice(0, 4);
 
         // Create a buffer
@@ -159,7 +60,7 @@ export class AbeHybridEncryption extends HybridEncryption {
         // Create a data view of it
         const view = new DataView(buf);
         // set bytes
-        encryptedHeaderSizeAsArray.forEach((b, i) => {
+        encryptedHeaderSizeAsArray.forEach((b: any, i: any) => {
             view.setUint8(i, b);
         });
 
@@ -211,13 +112,13 @@ export class AbeHybridEncryption extends HybridEncryption {
      * @param plaintext
      * @returns
      */
-    public encrypt(attributes: string, uid: Uint8Array, plaintext: Uint8Array): Uint8Array {
+    public encrypt(attributes: string[], uid: Uint8Array, plaintext: Uint8Array): Uint8Array {
         logger.log(() => "encrypt for attributes: " + attributes)
         logger.log(() => "encrypt for uid: " + uid)
         logger.log(() => "encrypt for plaintext: " + plaintext)
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-        const encryptionParameters = new AbeEncryptionParameters(attributes, uid)
+        const encryptionParameters = new AbeEncryptionParameters(attributes, new Metadata(uid))
         const hybridHeader = this.encryptHybridHeader(encryptionParameters)
         logger.log(() => "encrypt: symmetricKey:" + hybridHeader.symmetricKey)
         logger.log(() => "encrypt: encryptedSymmetricKeySizeAsArray:" + hybridHeader.encryptedSymmetricKeySizeAsArray)
@@ -245,11 +146,12 @@ export class AbeHybridEncryption extends HybridEncryption {
      * @param uid header integrity param
      * @returns timings for encryption without cache and with cache
      */
-    public benchEncryptHybridHeader(attributes: string, uid: Uint8Array): number[] {
-        const loops = 100
+    public benchEncryptHybridHeader(attributes: string[], uid: Uint8Array): number[] {
+        const loops = 10
+        const attributesString = this.attributes_array_to_attributes_string(attributes)
         let startDate = new Date().getTime()
         for (let i = 0; i < loops; i++) {
-            webassembly_encrypt_hybrid_header(this.policy, this.publicKey, attributes, uid)
+            webassembly_encrypt_hybrid_header(this.policy, this.publicKey, attributesString, uid)
         }
         let endDate = new Date().getTime()
         const msNoCache = (endDate - startDate) / (loops)
@@ -259,7 +161,7 @@ export class AbeHybridEncryption extends HybridEncryption {
         const cache = webassembly_create_encryption_cache(this.policy, this.publicKey)
         startDate = new Date().getTime()
         for (let i = 0; i < loops; i++) {
-            webassembly_encrypt_hybrid_header_using_cache(cache, attributes, uid)
+            webassembly_encrypt_hybrid_header_using_cache(cache, attributesString, uid)
         }
         endDate = new Date().getTime()
         const msCache = (endDate - startDate) / (loops)
@@ -268,15 +170,4 @@ export class AbeHybridEncryption extends HybridEncryption {
 
         return [msNoCache, msCache]
     }
-}
-
-export type EncryptionWorkerMessage = {
-    name:
-    'INIT' |
-    'DESTROY' |
-    'ENCRYPT' |
-    'SUCCESS' |
-    'ERROR',
-    error?: string
-    value?: any
 }
