@@ -20,10 +20,6 @@
             font-weight: bold;
         }
 
-        button {
-          height: 40px;
-        }
-
         table,
         th,
         td {
@@ -36,121 +32,24 @@
 </head>
 
 <body>
-  <script src="./main.js"></script>
+    <script src="./main.js"></script>
 
-    <b>Word:</b><input type="text" name="Martin" id="word" value="Martin" readonly>
-
-    <br>
-    <table>
-        <caption>SSE Keys:</caption>
-        <tr>
-            <th>Name</th>
-            <th>Value</th>
-        </tr>
-        <tr>
-            <td>K1 (derived from K)</td>
-            <td><input type="text" id="k1" form="my_form" style="width:98%; height:auto;"
-                    value="0000000000000000000000000000000000000000000000000000000000000000" />
-            </td>
-        </tr>
-        <tr>
-            <td>K2 (derived from K)</td>
-            <td><input type="text" id="k2" form="my_form" style="width:98%; height:auto;"
-                    value="80a09de3bfe30da90116e588ade2f812d49b55625be8b4abbff775fa5a5a74e9" />
-            </td>
-        </tr>
-        <tr>
-            <td>K_word (derived from K*)</td>
-            <td><input type="text" id="k_word" form="my_form" style="width:98%; height:auto;"
-                    value="0635063c5f5da27f17f174e470957c7f3ac7839c6adad46683cc74766b5633a1" />
-            </td>
-        </tr>
-    </table>
-
+    <form method="GET" id="my_form"></form>
 
     <br>
-    <table>
-        <caption>Table 1: Entry Table</caption>
-        <tr>
-            <th>UID</th>
-            <th>Encrypted value</th>
-        </tr>
-        <tr>
-            <td><input type="text" id="table1_uid_1" form="my_form" style="width:98%; height:auto;"
-                    value="311d5b88b4f02893ac2d9695be4c064b45786e8a8b61c8a90672c42cf74a8acdcf" /></td>
-            <td><input type="text" id="table1_enc_value_1" form="my_form" style="width:98%; height:auto;"
-                    value="2cefe8cffe45333bf16935a5f31224cc2fa687bc97f2cb954514cd24c3b189bae8043eea7ae53a1ab49c154a4f3f3e01e360e5654f525f0307e97b04cca8357b3f5f16fc6664fb082a52f3ac6c20fda96256fa731aeda50d2e57d1e8" />
-            </td>
-        </tr>
-    </table>
 
-    <br>
-    <table>
-        <caption>Table 2: Chain Table</caption>
-        <tr>
-            <th>UID</th>
-            <th>Encrypted value</th>
-        </tr>
-        <tr>
-            <td><input type="text" id="table2_uid_1" form="my_form" style="width:98%; height:auto;"
-                    value="321715b8610ef35a300a5a30916eaa31d4b16ebf9869be5f5a814a593c193d633c" /></td>
-            <td><input type="text" id="table2_enc_value_1" form="my_form" style="width:98%; height:auto;"
-                    value="a4ff6ae53be20f1bd9d296913ce3c62268c74b1a08957f051ec1ee529fc26c2eb97e68f0d6fbbf4ae89b3a96964c8cb503b328507da5823a79d7c292" />
-            </td>
-        </tr>
-        <tr>
-            <td><input type="text" id="table2_uid_2" form="my_form" style="width:98%; height:auto;"
-                    value="32c1ac78ec7cc5ccf7b5c67407339d80c101a1183057f53697abfe196bf80fea31" /></td>
-            <td><input type="text" id="table2_enc_value_2" form="my_form" style="width:98%; height:auto;"
-                    value="58041b64886f153789a5d26b53fedf0033b9b1a421ffca40d70ddc0517358f0a1b4a868e051ef63dee3c64f295971eafce21a7d81e85cfedb6cdfa7e" />
-            </td>
-        </tr>
-    </table>
+    <fieldset id="abe_group">
+        <input type="radio" value="gpsw" name="abe_group" checked onclick="
+            initPage(true)
+        ">
+        <label for="gpsw">ABE-GPSW</label>
 
-    <br>
-    <table>
-        <caption>Database in clear for demo:</caption>
-        <tr>
-            <th>UID</th>
-            <th>Clear Text value</th>
-        </tr>
-        <tr>
-            <td><input type="text" id="clear_database_uid_1" form="my_form" style="width:98%; height:auto;"
-                    value="0000000000000000000000000000000000000000000000000000000000000000" readonly /></td>
-            <td>Martin</td>
-        </tr>
-        <tr>
-            <td><input type="text" id="clear_database_uid_2" form="my_form" style="width:98%; height:auto;"
-                    value="0101010101010101010101010101010101010101010101010101010101010101" readonly /></td>
-            <td>Martin</td>
-        </tr>
-    </table>
+        <input type="radio" value="covercrypt" name="abe_group" onclick="
+            initPage(false)
+        ">
+        <label for="covercrypt">ABE-CoverCrypt</label>
+    </fieldset>
 
-
-    <button onclick="sseI1_UID(
-                    document.getElementById('k1').value,
-                    document.getElementById('word').value,
-                    )">
-        Compute Table 1 UID
-    </button>
-
-    <button onclick="sseI2_UIDs(
-            document.getElementById('word').value,
-            document.getElementById('k2').value,
-            document.getElementById('table1_enc_value_1').value,
-            1000)">
-        SSE search (sseI2_UIDs)
-    </button>
-
-    <button onclick="sseGetDatabaseUIDs(
-            document.getElementById('word').value,
-            document.getElementById('k_word').value,
-            [document.getElementById('table2_enc_value_1').value,
-             document.getElementById('table2_enc_value_2').value])">
-        Get database UIDs
-    </button>
-
-    <br>
     <table>
         <caption>ABE Keys</caption>
         <tr>
@@ -158,15 +57,14 @@
             <th>Value</th>
         </tr>
         <tr>
-            <td>Department: R&D, Country: France</td>
-            <td><input type="text" id="abe_user_key_1" form="my_form" style="width:98%; height:auto;"
-                    value="00000002b3b7edd9c7f94fd16ea286404307a71db9b94ebaeb2d1f7e40df5a56eb1f7a15ead336562219497ae35b5e622f0af6e709416b7738813b06ff36af4e79a36d4bf7714ffebffed1df31d9c0f00a264b44df2e00891a4f8a9283708188c81f9adbb568cbb92ba8e73346a70ed4148e8424b5c4ac49c511ca767f85f0e376ece806c0c0c02afa544894691f566393f01b3016234d30d721e52b916b3ea63867415c5596ab8fd7558414cf1b6fb8991e291d91f573b4445f1851bb93fdb59783c2a00000000200000002000000010000000401000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fffffffffe5bfeff02a4bd5305d8a10908d83933487d9d2953a7ed73" />
+            <td><input type="text" id="abe_user_key_access_policy_1" form="my_form" style="width:98%; height:auto;" />
+            </td>
+            <td><input type="text" id="abe_user_key_1" form="my_form" style="width:98%; height:auto;" />
             </td>
         </tr>
         <tr>
             <td>Public key</td>
-            <td><input type="text" id="abe_public_key" form="my_form" style="width:98%; height:auto;"
-                    value="000000148411C4E261C1443E81AE9465EC7E83BE27E780DF2E4F89BF0E79EAFC5B656D74F32820F8043C7A7FC859209039B6F6CD99E4CD6421062816D9DA5C68BF64DC2F1E2C143B7F955F99917A7021AFA78544D54265719633F53970EC1DDAB0A8A922A6417EF8D3B4DF10384C2A24AE295F1502791C9657D93549267604578045F03FC62036BFE0CC5E21E278FCDFD21D976FA93CAB942336C34E0EA16D3C1A4B14FDD709241C02E8EDA4CF23624744B81E1D884D6F80FBD9C6BCDCABEA4CFB428A9C97720ED413D30FEA23DA8BC0BAB52838E7A019751D08658896397287717D58E31749482FA3A40F2AD5760A73A4D009E5AF9F9CEAA57BEBA75C2564A6B9FD10AF71D822C9C5137F28DBB1EB4A9C06D66838A63D6ABEB27E873A60589B07292B5DA43164913457A3238F886A83B4633611CEB4EC9A4E30A1B5789C7F2ED4CA10639D58E27CCFA55FEC622A9A1BACB7BEAC88BA180EE0D87BFE87FF2A7BBF2511E0A492F89364011EC36CAE1F26ABB05127D7CA16AB1C924749EDE3397F41637E9DB554161AD1EBB277E7DA16557A31E44FDDB18667365C48D1E2285462A092976562933BD10AD37551F9DD1B514CACC37FABEF9FD10BCFB56685B7376FC5068D195C26C6F25BC59809A35A1B785CB604D5BEBF861B154840C31FE32068AA761E58AB28CDFBE4DF7E541319B75E8DB3B694E11BB653569A2D17B5185057F4374D17AB3920139B9D7D7896D340B99D2A66EFA23D7563E894F1E1A8BA38B1C71D8353601AA721550C59AA27F71FC1F56746229185BE4BA1E32596FF4010B91A92FD68AC12D419BA50DFF9ECF7CC414F4642CEC79ACD4E8055CD1305E118176BC93658E9E6A4EB87CBBAFB051AE2BD611B644EB5CC8E8E645AF2BB167A98003103B66B4D35795795AE4BB8D2E63E048AF1A449F37F04DD809506E04761AB7232AF06CB80FC19B16A7D4F6569CE503143D5BD2CB6A377DEB98EBA3F9580BF5B7ADF00EC8ABF4D63546FC66431C68C139CA8ADCF82AB8D848DB4593A96E3C86E56B14F70DB082BB5D67E50A5A576CB398298A579F8461A8BD1FADBA3C849DEB6ECAC149E8FCB450F89C34A0112E570B8F5258B839C96A79B36559F2C153B800D47EBF5E99FF1911A20EAA33420BA007B592750CC8485CA891B83779DED3BDFD079442A23FB59179347B15357031BB4985916AFD241721465789E2BBA4D5AB62BC4D24CCB804CAAE0DF7F0762B90FD21BBB64DD83B8857707A1009C9E38AB063CC5FAA1E78F3F86974C5041CDB49DB81FFD0E3ED5B248C27C9FB74044AA9D1A143FD88DF162D81FB8E733A7A935A74C573FCEFF3C7473729F9C429907D0C13D9866FC1A3D8A3F885AB7A1CBDF2BF32669EA531DD4C5EEBA269F785C32DC55566F360AB8655319C8D5D08530C4FC9E46722132008D142B8C529A8C63A8DD3306FB8ED84D642AE3E5AB1D281DB0A5D2326C569E05C41E6D70EEF91BF572F661C4B57493EBEB04A25937F6CFF02CCFCFB33F083A5E8B87084C79B9F273C1B3D5C72C1C3AC58FF599A7FB4ACAF4AA0B976371BB09236E097FCC3D5A75400A77A6844B13BDFE3CFB32DB94FB43FA541D86CECB0778C1215D6CAC8A54D56A1F3ECF038E1A49DD0E08FBCEA5C0661726896866E35614AB486780911248F80C57C1403C33842D2099A3EC32869783BE2FBB4ED9BBD5EB2A7D14F7026D61406D1A52079E74E6896C1039D081A39160EBD8069FE2ABE2A983469B1E76A8F22A8E464925CD0191CB0FD0" />
+            <td><input type="text" id="abe_public_key" form="my_form" style="width:98%; height:auto;" />
             </td>
         </tr>
     </table>
@@ -178,8 +76,7 @@
             <th>Value</th>
         </tr>
         <tr>
-            <td><input type="text" id="abe_policy" form="my_form" style="width:98%; height:auto;"
-                    value="7B226C6173745F617474726962757465223A362C226D61785F617474726962757465223A32302C2273746F7265223A7B225365637572697479204C6576656C223A5B5B2250726F746563746564222C22436F6E666964656E7469616C222C22546F7020536563726574225D2C747275655D2C224465706172746D656E74223A5B5B2246494E222C224D4B47222C224852225D2C66616C73655D7D2C226174747269627574655F746F5F696E74223A7B225365637572697479204C6576656C3A3A50726F746563746564223A5B315D2C225365637572697479204C6576656C3A3A546F7020536563726574223A5B335D2C224465706172746D656E743A3A46494E223A5B345D2C224465706172746D656E743A3A4852223A5B365D2C225365637572697479204C6576656C3A3A436F6E666964656E7469616C223A5B325D2C224465706172746D656E743A3A4D4B47223A5B355D7D7D" />
+            <td><input type="text" id="abe_policy" form="my_form" style="width:98%; height:auto;" />
             </td>
         </tr>
     </table>
@@ -192,11 +89,8 @@
             <th>Encrypted value</th>
         </tr>
         <tr>
-            <td><input type="text" id="database_uid_1" form="my_form" style="width:98%; height:auto;"
-                    value="cd8ca2eeb654b5f39f347f4e3f91b3a15c450c1e52c40716237b4c18510f65b4" readonly /></td>
-            <td><input type="text" id="database_value_1" form="my_form" style="width:98%; height:auto;"
-                    value="000001bc0000019000000002000000010000000400000002b0ab30de72bd283cc8d42b3b969a3247ab1932c2edbb6958564e1edee835ec6ba0fcd7b726ab79fa8002cd2591d6210fb049610e974def02305e946461d596c8b64e3825311ad3d606e47729a3b557f4ecda243c183603ea3da4144c4ed6b0248b00fbdacc935ad6f1e52a25b83a4ba0507e7d2d16319cf68b741a380eeed717743b48b57a5d33bc7e063f148e5aa8e619debc58ac27237f54b760b856869da3df7d27f488c61c648189ba1816bbc6fa9e56ec497ecbb3025824982b39509da70ad9fbe49f916679139e9e4b1ff2a7cbdcf789dcec628f549fae8e8a0c6c0f47d4bbb1c3aa8d291ff2deeb3d9a4c199c19a88c55d4e74c3919ec55f64c3b2e56a50fdf4d0910a0810e35190cd07f4796971a1762a2cb3417c5f6009641e6f31e0cd6e3a3d9669c50f087036dbe17ec4be882195ec91c2423a2ff7256569ef32336b7ba0549ee29a44d08ee90115c107e1657739ee8db76a08855c4ed02381ee4448330168c9e2a2d63f672d9cc42a82722dd28c89e1060fbdcaae41333f4834c6693c0fa8e002d2dbb193f6d000000180ee60adb400749cc8fa9b2a33eac28b2ab8d90a968436372e09ba17fdff90afbb18546211268b8aef6517a73b701283ab334c0720372f565c751a311c1ec09a6bbb070f8a1961ca3f048b280ea36a578a0068edea8408f3cf4ab26f5a71933dffed384ea7d33e42c16fe17a1026937a345386bb980917d6d2175a48b6d69e8322689dde0bf99cee9d2da5bbee1f29b2005725b6969021462e6608284a5135677b03d8fcce03563cc4d8988f455d27b95ef62080f4c2f18e7897636ac69e9d216668765d2025f66c805d549c4ef779c32ac3286bee8d35c1b758b51f1686d2aea996cc1f3bfff2aea7d605cce963e5bc69f77f284a1c05b803df08fcdec6a6d4f0c74ad8f6076d9ca692642dcdff64a34d1fbbb4d57aea776ce8032b03d63c9e376377fb95725b6d3ac6be3a29f47d15eb22b5c81bf6168785844da8d22914076415957d9e253142f14c5c68fbe1108d74832e2347425f89b46321ac0c7b939f793e3c39e5dbb83d9e6be29db4aa3df0e645cc859aac9a0324d546b70856e2ae89c77b87a8e25eac90f9265642bbd8c407f0aa307aef613bd79fa8fd6c959c959007791621e5fe047edfcadae2c195bb681b6621a9583c8d51911e39df50331b495b603fbf826eebeffe26cd2bc0287a280801bc54cfa9fed1279a58843bb8ea1262982753481dc61852cca49279d0de5e287f6a43dca38"
-                    readonly /></td>
+            <td><input type="text" id="database_uid_1" form="my_form" style="width:98%; height:auto;" /></td>
+            <td><input type="text" id="database_value_1" form="my_form" style="width:98%; height:auto;" readonly /></td>
         </tr>
     </table>
 
@@ -207,9 +101,7 @@
             <th>Hex value</th>
         </tr>
         <tr>
-            <td><input type="text" id="plaintext_1" form="my_form" style="width:98%; height:auto;"
-                    value="4D617274696E204455504F4E543A20434F4E5345494C4C4552204752414E444520434C49454E54454C45"
-                    readonly /></td>
+            <td><input type="text" id="plaintext_1" form="my_form" style="width:98%; height:auto;" readonly /></td>
         </tr>
     </table>
 
@@ -219,7 +111,6 @@
             window.setTimeout(()=> {
                 var res = hybridDecryptionTest(
                         document.getElementById('abe_user_key_1').value,
-                        document.getElementById('database_uid_1').value,
                         document.getElementById('database_value_1').value,
                         );
                 document.getElementById('hybrid_decryption_result').innerHTML=res+'ms' ;
@@ -237,7 +128,7 @@
                             document.getElementById('abe_user_key_1').value,
                             document.getElementById('database_value_1').value,
                             );
-                    document.getElementById('decryption_only_result').innerHTML=' no cache: '+res[0]+', with cache: '+res[1];
+                    document.getElementById('decryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
                 },0)">
             Bench Asymmetric header decryption (only):
         </button>
@@ -253,7 +144,7 @@
                             var res = hybridEncryptionTest(
                                     document.getElementById('abe_public_key').value,
                                     document.getElementById('abe_policy').value,
-                                    'Department::FIN, Security Level::Confidential',
+                                    ['Department::FIN', 'Security Level::Low Secret'],
                                     document.getElementById('database_uid_1').value,
                                     document.getElementById('plaintext_1').value,
                                     );
@@ -271,14 +162,27 @@
                         var res = benchAsymmetricEncryption(
                                     document.getElementById('abe_public_key').value,
                                     document.getElementById('abe_policy').value,
-                                    'Department::FIN, Security Level::Confidential',
+                                    ['Department::FIN', 'Security Level::Low Secret'],
                                     document.getElementById('database_uid_1').value,
                                 );
-                        document.getElementById('encryption_only_result').innerHTML=' no cache: '+res[0]+', with cache: '+res[1];
+                        document.getElementById('encryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
                     },0)">
             Bench Asymmetric header encryption (only):
         </button>
         <span id="encryption_only_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+
+    <div>
+        <button onclick="
+            document.getElementById('abe_demo').innerHTML='running...';
+            window.setTimeout(()=> {
+                var res = abeDemo();
+                document.getElementById('abe_demo').innerHTML=res ;
+            },0)">
+            ABE demo
+        </button>
+        <span id="abe_demo">N/A</span>
         <!-- <span>ms</span> -->
     </div>
 
@@ -295,23 +199,10 @@
         <span>Results : <br><span id="workers_result"></span></span>
     </div>
 
-
     <noscript class="app-noscript">
         Requires Javascript
     </noscript>
 </body>
 
-<div>
-    <button onclick="
-            document.getElementById('abe_demo').innerHTML='running...';
-            window.setTimeout(()=> {
-                var res = abeDemo();
-                document.getElementById('abe_demo').innerHTML=res ;
-            },0)">
-        ABE demo
-    </button>
-    <span id="abe_demo">N/A</span>
-    <!-- <span>ms</span> -->
-</div>
 
 </html>

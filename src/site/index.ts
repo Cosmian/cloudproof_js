@@ -94,9 +94,8 @@ async function load_data() {
 (window as any).load_data = load_data
 
 /**
- * Display a simple JS object into a line of an array in HTML
- * @param object object to display in a line
- * @param index index of the line in the global array
+ * Display an array of simple JS objects into a an array in HTML
+ * @param array array to display
  * @param parent HTML parent element to insert the line in
  * @returns void
  */
@@ -144,8 +143,7 @@ function displayNoResult(parent: HTMLElement) {
 /**
  * Remove accents and uppercase to query word
  * @param str string to sanitize
- * @param string initial string without accents and uppercase
- * @returns void
+ * @returns string initial string without accents and uppercase
  */
 function sanitizeString(str: string): string {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
@@ -153,7 +151,7 @@ function sanitizeString(str: string): string {
 
 //
 /**
- * Search terms with Findex implementation and store the results into sessionStorage
+ * Search terms with Findex implementation
  * @param words string of all searched terms separated by a space character
  * @param role chosen role to decrypt result
  * @returns void
@@ -217,11 +215,10 @@ async function search(words: string, role: string) {
             );
             if (clearValues.length) {
               displayInTab(clearValues, content);
-              hybridDecryption.destroyInstance();
-              break;
             } else {
               displayNoResult(content);
             }
+            hybridDecryption.destroyInstance();
           }
         } else {
           displayNoResult(content);
@@ -515,5 +512,5 @@ export function initPage(isGpsw: boolean) {
     elementSetValue("plaintext_1", CoverCryptDemoKeys.plaintext)
   }
 }
-initPage(true);
+// initPage(true);
 (window as any).initPage = initPage
