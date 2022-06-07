@@ -1,9 +1,9 @@
 /* tslint:disable:max-classes-per-file */
 import {
     webassembly_create_decryption_cache, webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_decrypt_hybrid_header_using_cache, webassembly_destroy_decryption_cache, webassembly_get_encrypted_header_size
-} from "../../../../../wasm_lib/abe/gpsw"
+} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
 import { logger } from "../../../../utils/logger"
-import { ClearTextHeader, HybridDecryption } from "../../hybrid_crypto"
+import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
 
 
 /**
@@ -21,6 +21,11 @@ export class GpswHybridDecryption extends HybridDecryption {
         this._cache = webassembly_create_decryption_cache(userDecryptionKey)
     }
 
+    public renew_key(userDecryptionKey: Uint8Array): void {
+        // Create decryption cache. This number is linked to the user decryption key
+        this._cache = webassembly_create_decryption_cache(userDecryptionKey)
+
+    }
     /**
      * Destroy decryption cache
      */
@@ -78,7 +83,7 @@ export class GpswHybridDecryption extends HybridDecryption {
      * @returns a list of cleartext values
      */
     public decrypt(encryptedData: Uint8Array): Uint8Array {
-        logger.log(() => "decrypt for encryptedData: " + encryptedData)
+        logger.log(() => "decrypt: encryptedData: " + encryptedData)
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
         const headerSize = webassembly_get_encrypted_header_size(encryptedData)
@@ -86,12 +91,13 @@ export class GpswHybridDecryption extends HybridDecryption {
         const encryptedSymmetricBytes = encryptedData.slice(4 + headerSize, encryptedData.length)
 
         //
-        logger.log(() => "decrypt for headerSize: " + headerSize)
-        logger.log(() => "decrypt for asymmetricHeader: " + asymmetricHeader)
+        logger.log(() => "decrypt: headerSize: " + headerSize)
+        logger.log(() => "decrypt: asymmetricHeader: " + asymmetricHeader)
         logger.log(() => "decrypt for asymmetricHeader (size): " + asymmetricHeader.length)
 
         // HEADER decryption: asymmetric decryption
         const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
+        logger.log(() => "decrypt: metadata: " + cleartextHeader.metadata)
 
         // AES_DATA: AES Symmetric part decryption
         const cleartext = this.decryptHybridBlock(cleartextHeader.symmetricKey, encryptedSymmetricBytes, cleartextHeader.metadata.uid, 0)

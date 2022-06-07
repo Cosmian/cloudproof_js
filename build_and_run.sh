@@ -28,9 +28,10 @@ build_wasm_bindgen() {
   cp -r pkg ${DEST_DIR}
 }
 
+rm -rf ${JSLIB_DIR}/wasm_lib
 build_wasm_bindgen ${WASM_LIBS_DIR}/searchable_directory ${JSLIB_DIR}/wasm_lib/sse 0.2.0
-build_wasm_bindgen ${WASM_LIBS_DIR}/abe_gpsw ${JSLIB_DIR}/wasm_lib/abe/gpsw v0.6.9
-build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v1.0.3
+build_wasm_bindgen ${WASM_LIBS_DIR}/abe_gpsw ${JSLIB_DIR}/wasm_lib/abe/gpsw v0.6.11
+build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v2.0.1
 
 cd ${JSLIB_DIR}
 npm install

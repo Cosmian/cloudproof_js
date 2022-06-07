@@ -3,8 +3,8 @@ import {
 } from "../../../../../wasm_lib/abe/cover_crypt";
 import { logger } from "../../../../utils/logger";
 import { hexEncode } from "../../../../utils/utils";
-import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto";
 import { AbeEncryptionParameters } from "../encryption_parameters";
+import { EncryptedHeader, HybridEncryption } from "../hybrid_crypto";
 import { Metadata } from "../metadata";
 
 
@@ -16,6 +16,12 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     constructor(policy: Uint8Array, publicKey: Uint8Array,) {
         super(policy, publicKey)
     }
+
+    public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
+        this.policy = policy
+        this.publicKey = publicKey
+     }
+
 
     /**
      * Destroy encryption
@@ -118,6 +124,6 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
         const ms = (endDate - startDate) / (loops)
         logger.log(() => "webassembly-JS avg time: " + ms + "ms")
 
-        return [ms,-1]
+        return [ms, -1]
     }
 }

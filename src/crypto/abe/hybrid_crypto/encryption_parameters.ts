@@ -1,4 +1,4 @@
-import { EncryptionParameters } from "../hybrid_crypto";
+import { EncryptionParameters } from "./hybrid_crypto";
 import { Metadata } from "./metadata";
 
 export class AbeEncryptionParameters extends EncryptionParameters {

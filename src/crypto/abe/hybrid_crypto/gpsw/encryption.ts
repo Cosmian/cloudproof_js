@@ -1,9 +1,9 @@
 import {
     webassembly_create_encryption_cache, webassembly_destroy_encryption_cache, webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header, webassembly_encrypt_hybrid_header_using_cache
-} from "../../../../../wasm_lib/abe/gpsw"
+} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
 import { logger } from "../../../../utils/logger"
-import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto"
 import { AbeEncryptionParameters } from "../encryption_parameters"
+import { EncryptedHeader, HybridEncryption } from "../hybrid_crypto"
 import { Metadata } from "../metadata"
 
 
@@ -18,6 +18,11 @@ export class GpswHybridEncryption extends HybridEncryption {
 
     constructor(policy: Uint8Array, publicKey: Uint8Array) {
         super(policy, publicKey)
+        // Create encryption cache. This number is linked to the public key and policy
+        this._cache = webassembly_create_encryption_cache(policy, publicKey)
+    }
+
+    public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
         // Create encryption cache. This number is linked to the public key and policy
         this._cache = webassembly_create_encryption_cache(policy, publicKey)
     }

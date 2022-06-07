@@ -1,5 +1,5 @@
-import { DecryptionWorkerMessage } from "../hybrid_crypto"
-import { logger } from "./../../../utils/logger"
+import { logger } from "../../../utils/logger"
+import { DecryptionWorkerMessage } from "./hybrid_crypto"
 
 
 export type EncryptedEntry = { uidHex: string, ciphertextHex: string }
@@ -36,7 +36,7 @@ export class WorkerPool {
     }
 
     /**
-     * Terminate all workers
+kk     * Terminate all workers
      * Tis pool is no more usable
      */
     public terminate() {

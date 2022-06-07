@@ -1,7 +1,7 @@
 /* tslint:disable:max-classes-per-file */
-import { logger } from "../../utils/logger"
-import { fromBeBytes, toBeBytes } from "../../utils/utils"
-import { Metadata } from "./abe/metadata"
+import { logger } from "../../../utils/logger"
+import { fromBeBytes, toBeBytes } from "../../../utils/utils"
+import { Metadata } from "./metadata"
 
 const SYMMETRIC_KEY_SIZE = 32
 
@@ -86,6 +86,7 @@ export abstract class HybridEncryption {
     this._policy = policy
     this._publicKey = publicKey
   }
+  public abstract renew_key(policy: Uint8Array, publicKey: Uint8Array): void
 
   public abstract destroyInstance(): void
 
@@ -105,6 +106,16 @@ export abstract class HybridEncryption {
    * @returns the ciphertext if everything succeeded
    */
   public abstract encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
+
+  /**
+   * Hybrid encrypt wrapper: ABE encrypt then AES encrypt
+   *
+   * @param attributes
+   * @param uid
+   * @param plaintext
+   * @returns
+   */
+  public abstract encrypt(attributes: string[], uid: Uint8Array, plaintext: Uint8Array): Uint8Array
 }
 
 
@@ -181,6 +192,8 @@ export abstract class HybridDecryption {
     this._asymmetricDecryptionKey = asymmetricDecryptionKey
   }
 
+  public abstract renew_key(userDecryptionKey: Uint8Array): void
+
   public abstract destroyInstance(): void
 
   /**
@@ -205,6 +218,15 @@ export abstract class HybridDecryption {
    * @param encryptedBytes the hybrid encrypted bytes
    */
   public abstract getHeaderSize(encryptedBytes: Uint8Array): number
+
+  /**
+   * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
+   *
+   * @param uid integrity parameter used when encrypting
+   * @param encryptedData
+   * @returns a list of cleartext values
+   */
+  public abstract decrypt(encryptedData: Uint8Array): Uint8Array
 }
 
 
