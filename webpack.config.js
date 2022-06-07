@@ -1,5 +1,5 @@
 const path = require('path')
-const Dotenv = require('dotenv-webpack');
+const webpack = require('webpack');
 
 module.exports = {
     mode: 'development',
@@ -30,6 +30,8 @@ module.exports = {
         asyncWebAssembly: true,
     },
     plugins: [
-      new Dotenv(),
+      new webpack.EnvironmentPlugin({
+        SERVER: 'http://localhost:3000', // default backend URI
+      }),
     ]
 }
