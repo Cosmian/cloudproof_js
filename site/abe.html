@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <meta http-equiv="x-dns-prefetch-control" content="off" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <base href="/" />
+    <title>Cosmian JS Lib</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        caption {
+            font-weight: bold;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            /* width: 98%; */
+            /* height: auto; */
+        }
+    </style>
+</head>
+
+<body>
+    <script src="./main.js"></script>
+
+    <form method="GET" id="my_form"></form>
+
+    <br>
+
+    <fieldset id="abe_group">
+        <input type="radio" value="gpsw" name="abe_group" checked onclick="
+            initPage(true)
+        ">
+        <label for="gpsw">ABE-GPSW</label>
+
+        <input type="radio" value="covercrypt" name="abe_group" onclick="
+            initPage(false)
+        ">
+        <label for="covercrypt">ABE-CoverCrypt</label>
+    </fieldset>
+
+    <table>
+        <caption>ABE Keys</caption>
+        <tr>
+            <th>Key</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td><input type="text" id="abe_user_key_access_policy_1" form="my_form" style="width:98%; height:auto;" />
+            </td>
+            <td><input type="text" id="abe_user_key_1" form="my_form" style="width:98%; height:auto;" />
+            </td>
+        </tr>
+        <tr>
+            <td>Public key</td>
+            <td><input type="text" id="abe_public_key" form="my_form" style="width:98%; height:auto;" />
+            </td>
+        </tr>
+    </table>
+
+    <br>
+    <table>
+        <caption>ABE Policy</caption>
+        <tr>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td><input type="text" id="abe_policy" form="my_form" style="width:98%; height:auto;" />
+            </td>
+        </tr>
+    </table>
+
+    <br>
+    <table>
+        <caption>Database extract (with encrypted values):</caption>
+        <tr>
+            <th>UID</th>
+            <th>Encrypted value</th>
+        </tr>
+        <tr>
+            <td><input type="text" id="database_uid_1" form="my_form" style="width:98%; height:auto;" /></td>
+            <td><input type="text" id="database_value_1" form="my_form" style="width:98%; height:auto;" readonly /></td>
+        </tr>
+    </table>
+
+    <br>
+    <table>
+        <caption>Plaintext:</caption>
+        <tr>
+            <th>Hex value</th>
+        </tr>
+        <tr>
+            <td><input type="text" id="plaintext_1" form="my_form" style="width:98%; height:auto;" readonly /></td>
+        </tr>
+    </table>
+
+    <div>
+        <button onclick="
+            document.getElementById('hybrid_decryption_result').innerHTML='running...';
+            window.setTimeout(()=> {
+                var res = hybridDecryptionTest(
+                        document.getElementById('abe_user_key_1').value,
+                        document.getElementById('database_value_1').value,
+                        );
+                document.getElementById('hybrid_decryption_result').innerHTML=res+'ms' ;
+            },0)">
+            Bench Hybrid decryption with cache
+        </button>
+        <span id="hybrid_decryption_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+    <div>
+        <button onclick="
+                document.getElementById('decryption_only_result').innerHTML='running...';
+                window.setTimeout(()=> {
+                    var res = benchAsymmetricDecryption(
+                            document.getElementById('abe_user_key_1').value,
+                            document.getElementById('database_value_1').value,
+                            );
+                    document.getElementById('decryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
+                },0)">
+            Bench Asymmetric header decryption (only):
+        </button>
+        <span id="decryption_only_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+
+
+    <div>
+        <button onclick="
+                        document.getElementById('hybrid_encryption_result').innerHTML='running...';
+                        window.setTimeout(()=> {
+                            var res = hybridEncryptionTest(
+                                    document.getElementById('abe_public_key').value,
+                                    document.getElementById('abe_policy').value,
+                                    ['Department::FIN', 'Security Level::Low Secret'],
+                                    document.getElementById('database_uid_1').value,
+                                    document.getElementById('plaintext_1').value,
+                                    );
+                            document.getElementById('hybrid_encryption_result').innerHTML=res+'ms' ;
+                        },0)">
+            Bench Hybrid encryption with cache
+        </button>
+        <span id="hybrid_encryption_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+    <div>
+        <button onclick="
+                    document.getElementById('encryption_only_result').innerHTML='running...';
+                    window.setTimeout(()=> {
+                        var res = benchAsymmetricEncryption(
+                                    document.getElementById('abe_public_key').value,
+                                    document.getElementById('abe_policy').value,
+                                    ['Department::FIN', 'Security Level::Low Secret'],
+                                    document.getElementById('database_uid_1').value,
+                                );
+                        document.getElementById('encryption_only_result').innerHTML=' no cache: '+res[0]+'ms, with cache: '+res[1]+'ms';
+                    },0)">
+            Bench Asymmetric header encryption (only):
+        </button>
+        <span id="encryption_only_result">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+
+    <div>
+        <button onclick="
+            document.getElementById('abe_demo').innerHTML='running...';
+            window.setTimeout(()=> {
+                var res = abeDemo();
+                document.getElementById('abe_demo').innerHTML=res ;
+            },0)">
+            ABE demo
+        </button>
+        <span id="abe_demo">N/A</span>
+        <!-- <span>ms</span> -->
+    </div>
+
+
+    <h2>Workers Demo</h2>
+    <button onclick="decryptUsingWorker();">Click to run Decrypt</button>
+    <div>
+        <span>Number of workers : <span id="workers_number">N/A</span></span>
+    </div>
+    <div>
+        <span>Number of Results: <span id="workers_results_number">N/A</span></span>
+    </div>
+    <div>
+        <span>Results : <br><span id="workers_result"></span></span>
+    </div>
+
+    <noscript class="app-noscript">
+        Requires Javascript
+    </noscript>
+</body>
+
+
+</html>

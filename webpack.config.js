@@ -1,4 +1,6 @@
 const path = require('path')
+const webpack = require('webpack');
+
 module.exports = {
     mode: 'development',
     entry: [
@@ -27,4 +29,9 @@ module.exports = {
     experiments: {
         asyncWebAssembly: true,
     },
+    plugins: [
+      new webpack.EnvironmentPlugin({
+        SERVER: 'http://localhost:3000', // default backend URI
+      }),
+    ]
 }

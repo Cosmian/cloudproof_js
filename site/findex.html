@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
+        rel="stylesheet"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/brands.min.css"
+        integrity="sha512-lCU0XyQA8yobR7ychVxEOU5rcxs0+aYh/9gNDLaybsgW9hdrtqczjfKVNIS5doY0Y5627/+3UVuoGv7p8QsUFw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    />
+    <link
+        rel="icon"
+        href="https://raw.githubusercontent.com/Cosmian/Files/main/cosmian-c-orange-42x50.svg"
+        type="image/png"
+        sizes="192x192"
+    />
+    <meta http-equiv="x-dns-prefetch-control" content="off" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <base href="/" />
+    <title>Cosmian JS Lib</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        button {
+            height: 40px;
+            width: 200px;
+            margin: 20px;
+            background: #e3431a;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+
+        img {
+          width: 133px;
+          margin-right: 50px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-around;
+            width: 100%;
+        }
+
+        .block {
+            background-color: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 5px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .textInput {
+            height: 32px;
+            flex-grow: 2;
+            border-radius: 5px;
+        }
+
+        h3 {
+          width: 100%;
+          margin-top: 30px;
+        }
+
+        footer {
+            color: #fff;
+            background-color: #320099;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .header {
+            max-width: 100%;
+            height: 60px;
+            border-bottom: 1px solid #d9d9d9;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            color: #320099;
+        }
+
+        .demo {
+            margin-left: 10%;
+            margin-right: 10%;
+            border-left: 1px solid #d9d9d9;
+            border-right: 1px solid #d9d9d9;
+            padding: 30px;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .users {
+            display: flex;
+            justify-content: space-between;
+            width: 60%;
+            margin: 40px;
+        }
+
+        .user {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+        }
+
+        .picto {
+            width: 80%;
+        }
+
+        .radio {
+            width: 20px;
+            height: 20px;
+            margin: 20px;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            width: 70%;
+        }
+
+        .columns {
+            background: #d9d9d9;
+            border-bottom: 1px solid rgb(201, 200, 200);
+            border-radius: 2px;
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0px;
+            margin: 10px;
+            font-weight: 200;
+            width: 95%;
+        }
+
+        .cell {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0px 10px;
+            border-bottom: 1px solid #d9d9d9;
+        }
+
+        .tab {
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="./main.js"></script>
+    <div class="header">
+        <img src="./assets/cosmian-logo-color-234x50.svg" onclick="location.href='index.html';">
+        <h2>Findex</h2>
+    </div>
+    <div class="demo">
+        <h3>Findex</h3>
+        <div class="tab">
+            <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed Findex.</p>
+            <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
+            <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained under NDA.</p>
+        </div>
+        <br/>
+        <button onclick="load_data(); return false">Toggle tables</button>
+        <h3>Users database</h3>
+        <div class="block">
+            <img class="picto" src="./assets/Cleartext database.png">
+            <div id="clear_db" class="tab"></div>
+        </div>
+        <h3>Encrypted directory</h3>
+        <div  class="block">
+            <img class="picto" src="./assets/Encrypted database.png">
+            <div id="enc_db" class="tab"></div>
+        </div>
+        <h3>Search elements</h3>
+            <form class="block" onSubmit="search(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value); return false">
+                <div class="users">
+                <div class="user">
+                    <img class="picto" src="./assets/Alice.png">
+                    <input type="radio" id="alice" name="user" value="alice" class="radio">
+                </div>
+                <div class="user">
+                    <img class="picto" src="./assets/Bob.png">
+                    <input type="radio" id="bob" name="user" value="bob" class="radio">
+                </div>
+                <div class="user">
+                    <img class="picto" src="./assets/Mallory.png">
+                    <input type="radio" id="mallory" name="user" value="mallory" class="radio" checked>
+                </div>
+                </div>
+                <div class="search">
+                <input type="text" id="query" name="query" class="textInput" placeholder="Words to query... ex: Félix Paul">
+                <br/>
+                <button type="submit" value="Submit">Search</button>
+                </div>
+            </form>
+            <div id="result" style="visibility: hidden; width: 100%;">
+                <h3>Result</h3>
+                <div class="block" id="content"></div>
+            </div>
+        </form>
+        <div id="result" class="tab" style="visibility: hidden;">
+            <h3>Result</h3>
+            <div class="block tab" id="content"></div>
+        </div>
+    </div>
+
+    <footer>
+        <img src="./assets/cosmian-logo-white-234x50.svg">
+    </footer>
+</body>
+
+</html>
