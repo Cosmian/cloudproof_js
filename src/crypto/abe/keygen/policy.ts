@@ -36,11 +36,15 @@ export class PolicyAxis {
 
 export class Policy {
     private _axis: PolicyAxis[]
-    private _revocationNumber: number
+    private _maxAttributeValue: number
+    private _lastAttributeValue?: number
+    private _attributeToInt?: {}
 
-    constructor(axis: PolicyAxis[], revocationNumber: number) {
+    constructor(axis: PolicyAxis[], maxAttributeValue: number, lastAttributeValue?: number, attributeToInt?: {}) {
         this._axis = axis
-        this._revocationNumber = revocationNumber
+        this._maxAttributeValue = maxAttributeValue
+        this._lastAttributeValue = lastAttributeValue
+        this._attributeToInt = attributeToInt
     }
 
     // Convert this `Policy` to JSON. Output example:
@@ -101,25 +105,49 @@ export class Policy {
     // }
     public toJsonEncoded(): Uint8Array {
         const policy: any = {}
-        policy.max_attribute_value = this._revocationNumber
         policy.store = {}
         policy.attribute_to_int = {}
-        let attributeNb = 1
-        this._axis.forEach((axis: PolicyAxis) => {
-            policy.store[axis.name] = [axis.attributes, axis.hierarchical]
-            axis.attributes.forEach((attr: string) => {
-                policy.attribute_to_int[axis.name + "::" + attr] = [attributeNb]
-                attributeNb++;
+        if (this._lastAttributeValue === undefined && this._lastAttributeValue === undefined) {
+            let attributeNb = 1
+            this._axis.forEach((axis: PolicyAxis) => {
+                policy.store[axis.name] = [axis.attributes, axis.hierarchical]
+                axis.attributes.forEach((attr: string) => {
+                    policy.attribute_to_int[axis.name + "::" + attr] = [attributeNb]
+                    attributeNb++;
+                })
             })
-        })
-        policy.last_attribute_value = attributeNb
-        // TODO(ecse): differences between GPSW and CoverCrypt policies
-        policy.last_attribute = attributeNb
-        policy.max_attribute = this._revocationNumber
+            policy.last_attribute_value = attributeNb
+
+        } else {
+            policy.last_attribute_value = this._lastAttributeValue
+            policy.attribute_to_int = this._attributeToInt
+            this._axis.forEach((axis: PolicyAxis) => {
+                policy.store[axis.name] = [axis.attributes, axis.hierarchical]
+            })
+
+        }
+        policy.max_attribute_value = this._maxAttributeValue
 
         logger.log(() => "policy (JSON)" + policy)
         const result = new TextEncoder().encode(JSON.stringify(policy))
         return result
     }
 
+    public static fromJsonEncoded(policy: string): Policy {
+        logger.log(() => "policy: " + policy)
+        const policyJson = JSON.parse(policy)
+
+        // Fill Policy Axis
+        const axis: PolicyAxis[] = []
+        for (const e of Object.keys(policyJson.store)) {
+            const value = policyJson.store[e]
+            logger.log(() => "Axis name: " + e)
+            logger.log(() => "Axis value: " + value[0])
+            axis.push(new PolicyAxis(e, value[0], value[1]))
+        }
+        return new Policy(axis,
+            policyJson.max_attribute_value,
+            policyJson.last_attribute_value,
+            policyJson.attribute_to_int)
+    }
 }

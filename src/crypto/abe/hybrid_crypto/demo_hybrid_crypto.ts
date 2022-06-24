@@ -55,8 +55,10 @@ export class EncryptionDecryptionDemo {
       new PolicyAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true),
       new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
     ], 100)
+    // Generate master keys
     const masterKeys = this.keyGenerator.generateMasterKey(policy)
 
+    // set all keys values
     this.demoKeys.policy = policy.toJsonEncoded()
     this.demoKeys.publicKey = masterKeys.publicKey
     this.demoKeys.privateKey = masterKeys.privateKey
@@ -65,6 +67,24 @@ export class EncryptionDecryptionDemo {
     this.hybridEncryption.policy = policy.toJsonEncoded()
     this.hybridEncryption.publicKey = masterKeys.publicKey
 
+    // Run demo scenario (encryption + decryption)
+    this.encryptionDemo()
+
+    // Rotate attribute
+    const newPolicy = this.keyGenerator.rotateAttributes(['Security Level::Low Secret', 'Department::MKG'], policy)
+    // Refresh master keys (only needed by CoverCrypt)
+    const newMasterKeys = this.keyGenerator.generateMasterKey(newPolicy)
+
+    // set all keys values
+    this.demoKeys.policy = newPolicy.toJsonEncoded()
+    this.demoKeys.publicKey = newMasterKeys.publicKey
+    this.demoKeys.privateKey = newMasterKeys.privateKey
+    this.demoKeys.topSecretMkgFinUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.topSecretMkgFinUserAccessPolicy, newPolicy)
+    this.demoKeys.mediumSecretMkgUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.mediumSecretMkgUserAccessPolicy, newPolicy)
+    this.hybridEncryption.policy = newPolicy.toJsonEncoded()
+    this.hybridEncryption.publicKey = newMasterKeys.publicKey
+
+    // and restart again demo scenario
     this.encryptionDemo()
   }
 
