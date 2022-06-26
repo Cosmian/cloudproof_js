@@ -3,8 +3,8 @@
  */
 
 import { TransformStream, Transformer } from "web-streams-polyfill"
-import { CoverCryptHybridDecryption } from "../../crypto/hybrid_crypto/abe/cover_crypt/decryption"
-import { ClearTextHeader } from "../../crypto/hybrid_crypto/hybrid_crypto"
+import { CoverCryptHybridDecryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/decryption"
+import { ClearTextHeader } from "../../crypto/abe/hybrid_crypto/hybrid_crypto"
 import { logger } from "../../utils/logger"
 
 class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {

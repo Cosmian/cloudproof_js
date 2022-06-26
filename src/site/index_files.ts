@@ -2,7 +2,7 @@
 // Local files encryption and decryption
 // ----------------------------------------------------
 
-import { CoverCryptDemoKeys } from "../crypto/hybrid_crypto/abe/cover_crypt/demo_keys"
+import { CoverCryptDemoKeys } from "../crypto/abe/hybrid_crypto/cover_crypt/demo_keys"
 import { download, FileMetaData } from "../files/download/DownloadManager"
 import { CoverCryptDecryptionTS } from "../files/transformers/CoverCryptDecryptionTS"
 import { CoverCryptEncryptionTS } from "../files/transformers/CoverCryptEncryptionTS"

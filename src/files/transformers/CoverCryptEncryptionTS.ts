@@ -3,9 +3,9 @@
  */
 
 import { TransformStream, Transformer } from "web-streams-polyfill"
-import { CoverCryptHybridEncryption } from "../../crypto/hybrid_crypto/abe/cover_crypt/encryption"
-import { AbeEncryptionParameters } from "../../crypto/hybrid_crypto/abe/encryption_parameters"
-import { Metadata } from "../../crypto/hybrid_crypto/abe/metadata"
+import { CoverCryptHybridEncryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/encryption"
+import { AbeEncryptionParameters } from "../../crypto/abe/hybrid_crypto/encryption_parameters"
+import { Metadata } from "../../crypto/abe/hybrid_crypto/metadata"
 import { hexDecode } from "../../lib"
 import { logger } from "../../utils/logger"
 import { toBeBytes } from "../../utils/utils"

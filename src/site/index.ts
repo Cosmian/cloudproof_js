@@ -17,7 +17,7 @@ import { GpswDemoKeys } from "../crypto/abe/hybrid_crypto/gpsw/demo_keys"
 import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryption"
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
-import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
+// import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 import * as lib from "../lib"
 import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
@@ -37,105 +37,105 @@ import { CoverCryptPolicy } from "../crypto/abe/hybrid_crypto/cover_crypt/cover_
 
 logger.on = true
 
-class DB implements DBInterface {
-  instance: AxiosInstance = axios.create({
-    baseURL: process.env.SERVER,
-    timeout: 15000,
-  });
+// class DB implements DBInterface {
+//   instance: AxiosInstance = axios.create({
+//     baseURL: process.env.SERVER,
+//     timeout: 15000,
+//   });
 
-  responseBody = (response: AxiosResponse) => response.data;
+//   responseBody = (response: AxiosResponse) => response.data;
 
-  requests = {
-    get: (url: string) => this.instance.get(url).then(this.responseBody),
-  };
+//   requests = {
+//     get: (url: string) => this.instance.get(url).then(this.responseBody),
+//   };
 
-  getEntryTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
-    return this.requests.get(`/index_chain?UID=in.(${uids})`)
-  }
+//   getEntryTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
+//     return this.requests.get(`/index_chain?UID=in.(${uids})`)
+//   }
 
 
-  getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
-    return this.requests.get(`/index_entry?UID=in.(${uids})`)
-  }
+//   getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
+//     return this.requests.get(`/index_entry?UID=in.(${uids})`)
+//   }
 
-  getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
-    return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
-  }
+//   getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+//     return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
+//   }
 
-  getFirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
-    const config = {
-      headers: {
-        "Range-Unit": "items",
-        "Range": "0-4",
-      }
-    }
-    return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
-  }
+//   getFirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+//     const config = {
+//       headers: {
+//         "Range-Unit": "items",
+//         "Range": "0-4",
+//       }
+//     }
+//     return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
+//   }
 
-  getFirstUsers(): Promise<object[]> {
-    const config = {
-      headers: {
-        "Range-Unit": "items",
-        "Range": "0-4",
-      }
-    }
-    return this.instance.get(`/users`, config).then(this.responseBody)
-  }
-}
+//   getFirstUsers(): Promise<object[]> {
+//     const config = {
+//       headers: {
+//         "Range-Unit": "items",
+//         "Range": "0-4",
+//       }
+//     }
+//     return this.instance.get(`/users`, config).then(this.responseBody)
+//   }
+// }
 
-async function loadData() {
-  const db = new DB()
-  const users = await db.getFirstUsers()
-  const encryptedUsers = await db.getFirstEncryptedDirectoryEntries()
-  const clearDb = document.getElementById("clear_db")
-  const encDb = document.getElementById("enc_db")
-  if (clearDb && encDb) {
-    if (clearDb.innerHTML || encDb.innerHTML) {
-      clearDb.innerHTML = ""
-      encDb.innerHTML = ""
-    }
-    else {
-      displayInTab(users, clearDb)
-      displayInTab(encryptedUsers, encDb)
-    }
-  }
-};
-(window as any).loadData = loadData
+// async function loadData() {
+//   const db = new DB()
+//   const users = await db.getFirstUsers()
+//   const encryptedUsers = await db.getFirstEncryptedDirectoryEntries()
+//   const clearDb = document.getElementById("clear_db")
+//   const encDb = document.getElementById("enc_db")
+//   if (clearDb && encDb) {
+//     if (clearDb.innerHTML || encDb.innerHTML) {
+//       clearDb.innerHTML = ""
+//       encDb.innerHTML = ""
+//     }
+//     else {
+//       displayInTab(users, clearDb)
+//       displayInTab(encryptedUsers, encDb)
+//     }
+//   }
+// };
+// (window as any).loadData = loadData
 
-/**
- * Display an array of simple JS objects into a an array in HTML
- * @param array array to display
- * @param parent HTML parent element to insert the line in
- * @returns void
- */
-function displayInTab(array: object[], parent: HTMLElement) {
-  array.forEach((item, index) => {
-    if (item) {
-      if (index === 0) {
-        const columns = document.createElement('div')
-        columns.setAttribute('class', "item columns")
-        const keys = Object.keys(item)
-        for (const key of keys) {
-          const column = document.createElement('div')
-          column.setAttribute("class", "cell")
-          column.innerHTML = key
-          columns.appendChild(column)
-        }
-        parent.appendChild(columns)
-      }
-      const line = document.createElement('div')
-      line.setAttribute("class", "item")
-      const values = Object.values(item)
-      for (const value of values) {
-        const cell = document.createElement('div')
-        cell.setAttribute("class", "cell")
-        cell.innerHTML = value
-        line.appendChild(cell)
-      }
-      parent.appendChild(line)
-    }
-  })
-}
+// /**
+//  * Display an array of simple JS objects into a an array in HTML
+//  * @param array array to display
+//  * @param parent HTML parent element to insert the line in
+//  * @returns void
+//  */
+// function displayInTab(array: object[], parent: HTMLElement) {
+//   array.forEach((item, index) => {
+//     if (item) {
+//       if (index === 0) {
+//         const columns = document.createElement('div')
+//         columns.setAttribute('class', "item columns")
+//         const keys = Object.keys(item)
+//         for (const key of keys) {
+//           const column = document.createElement('div')
+//           column.setAttribute("class", "cell")
+//           column.innerHTML = key
+//           columns.appendChild(column)
+//         }
+//         parent.appendChild(columns)
+//       }
+//       const line = document.createElement('div')
+//       line.setAttribute("class", "item")
+//       const values = Object.values(item)
+//       for (const value of values) {
+//         const cell = document.createElement('div')
+//         cell.setAttribute("class", "cell")
+//         cell.innerHTML = value
+//         line.appendChild(cell)
+//       }
+//       parent.appendChild(line)
+//     }
+//   })
+// }
 
 /**
  * Display No result in div
@@ -158,95 +158,96 @@ function sanitizeString(str: string): string {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-')
 }
 
-//
-/**
- * Search terms with Findex implementation
- * @param words string of all searched terms separated by a space character
- * @param role chosen role to decrypt result
- * @param logicalSwitch boolean to select OR (false) AND (true) operator
- * @returns void
- */
-async function search(words: string, role: string) {
-  type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
-  type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
+// //
+// /**
+//  * Search terms with Findex implementation
+//  * @param words string of all searched terms separated by a space character
+//  * @param role chosen role to decrypt result
+//  * @param logicalSwitch boolean to select OR (false) AND (true) operator
+//  * @returns void
+//  */
+// async function search(words: string, role: string) {
+//   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
+//   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
 
-  const result = document.getElementById("result")
-  const content = document.getElementById("content")
-  if (result && content) {
-    result.style.visibility = "visible"
-    content.innerHTML = ""
-    try {
-      const db = new DB()
-      const k1 = "19e1b63d2972a47b84194ed5fa6d8264fc8cbe6dfee5074c8fb1eac3a17b85e8"
-      const k2 = "a2cdd03bf58eea8ae842e06ae351700cbac94c8a5dbd8f38984dfa5c104f59d0"
-      const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100)
-      if (queryResults) {
-        const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]))
-        if (res && res.length) {
-          switch (role) {
-            case "mallory":
-              displayInTab(res, content)
-              break
-            case "alice":
-            case "bob":
-              let key
-              if (role === "bob") {
-                key = bobKey
-              }
-              else {
-                key = aliceKey
-              }
-              const hybridDecryption = new GpswHybridDecryption(hexDecode(key))
-              const clearValues: ClearValue[] = []
-              res.forEach((item) => {
-                if (item) {
-                  const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" }
-                  const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[]
-                  const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[]
-                  for (let index = 0; index < clearKeys.length; index++) {
-                    try {
-                      const itemKey = encryptedKeys[index * 2 + 1]
-                      const clearKey = clearKeys[index]
-                      const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)))
-                      const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g)
-                      if (value) {
-                        clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ")
-                      }
-                    }
-                    catch (e) {
-                      logger.log(() => "Impossible to decrypt")
-                    }
-                  }
-                  if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
-                    clearValues.push(clearValue)
-                  }
-                }
-              })
-              if (clearValues.length) {
-                displayInTab(clearValues, content)
-              } else {
-                displayNoResult(content)
-              }
-              hybridDecryption.destroyInstance()
-          }
-        } else {
-          displayNoResult(content)
-        }
-      } else {
-        displayNoResult(content)
-      }
-    } catch {
-      displayNoResult(content)
-    }
-  }
-}
+//   const result = document.getElementById("result")
+//   const content = document.getElementById("content")
+//   if (result && content) {
+//     result.style.visibility = "visible"
+//     content.innerHTML = ""
+//     try {
+//       const db = new DB()
+//       const k1 = "19e1b63d2972a47b84194ed5fa6d8264fc8cbe6dfee5074c8fb1eac3a17b85e8"
+//       const k2 = "a2cdd03bf58eea8ae842e06ae351700cbac94c8a5dbd8f38984dfa5c104f59d0"
+//       const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100)
+//       if (queryResults) {
+//         const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]))
+//         if (res && res.length) {
+//           switch (role) {
+//             case "mallory":
+//               displayInTab(res, content)
+//               break
+//             case "alice":
+//             case "bob":
+//               let key
+//               if (role === "bob") {
+//                 key = bobKey
+//               }
+//               else {
+//                 key = aliceKey
+//               }
+//               const hybridDecryption = new GpswHybridDecryption(hexDecode(key))
+//               const clearValues: ClearValue[] = []
+//               res.forEach((item) => {
+//                 if (item) {
+//                   const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" }
+//                   const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[]
+//                   const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[]
+//                   for (let index = 0; index < clearKeys.length; index++) {
+//                     try {
+//                       const itemKey = encryptedKeys[index * 2 + 1]
+//                       const clearKey = clearKeys[index]
+//                       const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)))
+//                       const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g)
+//                       if (value) {
+//                         clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ")
+//                       }
+//                     }
+//                     catch (e) {
+//                       logger.log(() => "Impossible to decrypt")
+//                     }
+//                   }
+//                   if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
+//                     clearValues.push(clearValue)
+//                   }
+//                 }
+//               })
+//               if (clearValues.length) {
+//                 displayInTab(clearValues, content)
+//               } else {
+//                 displayNoResult(content)
+//               }
+//               hybridDecryption.destroyInstance()
+//           }
+//         } else {
+//           displayNoResult(content)
+//         }
+//       } else {
+//         displayNoResult(content)
+//       }
+//     } catch {
+//       displayNoResult(content)
+//     }
+//   }
+// }
 
 
 // ----------------------------------------------------
 // Local files encryption and decryption
 // ----------------------------------------------------
 
-(window as any).search = search;
+// (window as any).search = search;
+(window as any).encrypt_files = encrypt_files;
 (window as any).encrypt_file = encrypt_file;
 (window as any).decrypt_files = decrypt_files;
 (window as any).decrypt_file = decrypt_file
@@ -478,40 +479,40 @@ const displayError = (err: string) => {
   wnElement.innerHTML = "ERROR: " + err
 }
 
-// run demo scenario for ABE implementation
-function abeDemo(): string {
-  if (!isGpswImplementation()) {
-    // const policy =     new CoverCryptPolicy(100)
-    //   .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
-    //   .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
+// // run demo scenario for ABE implementation
+// function abeDemo(): string {
+//   if (!isGpswImplementation()) {
+//     // const policy =     new CoverCryptPolicy(100)
+//     //   .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+//     //   .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
 
-    const keyGeneration = new CoverCryptMasterKeyGeneration()
-    const demoKeys = new CoverCryptDemoKeys()
-    const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
-    const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
-    const encryptionDemo = new EncryptionDecryptionDemo(policy,
-      keyGeneration, demoKeys, hybridEncryption, hybridDecryption
-    )
-    encryptionDemo.run()
-    // CoverCryptHybridEncryptionDemo.run()
-  } else {
+//     const keyGeneration = new CoverCryptMasterKeyGeneration()
+//     const demoKeys = new CoverCryptDemoKeys()
+//     const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+//     const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
+//     const encryptionDemo = new EncryptionDecryptionDemo(policy,
+//       keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+//     )
+//     encryptionDemo.run()
+//     // CoverCryptHybridEncryptionDemo.run()
+//   } else {
 
-    const policy = new CoverCryptPolicy(100)
-      .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
-      .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
-    const keyGeneration = new GpswMasterKeyGeneration()
-    const demoKeys = new GpswDemoKeys()
-    const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
-    const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
-    const encryptionDemo = new EncryptionDecryptionDemo(policy,
-      keyGeneration, demoKeys, hybridEncryption, hybridDecryption
-    )
-    encryptionDemo.run()
-    // GpswHybridEncryptionDemo.run()
-  }
-  return "OK"
-}
-(window as any).abeDemo = abeDemo
+//     const policy = new CoverCryptPolicy(100)
+//       .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+//       .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
+//     const keyGeneration = new GpswMasterKeyGeneration()
+//     const demoKeys = new GpswDemoKeys()
+//     const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+//     const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
+//     const encryptionDemo = new EncryptionDecryptionDemo(policy,
+//       keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+//     )
+//     encryptionDemo.run()
+//     // GpswHybridEncryptionDemo.run()
+//   }
+//   return "OK"
+// }
+(window as any).abeDemo = undefined // abeDemo
 
 function elementSetValue(id: string, value: Uint8Array | string) {
   const box = document.getElementById(id)
