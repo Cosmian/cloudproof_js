@@ -3,7 +3,10 @@
  */
 
 import { WritableStream } from 'web-streams-polyfill'
+<<<<<<< HEAD
 import { logger } from '../../utils/logger'
+=======
+>>>>>>> 54f95b8 (re-importing from old repo)
 
 const SW_PATH = "cdsw"
 
@@ -35,7 +38,10 @@ export const download = async (file_meta_data: FileMetaData, cancel: () => void)
         if (event.data.action === 'cancel') {
             cancel()
         } else if (event.data.action === 'fetch_url') {
+<<<<<<< HEAD
             logger.log(() => "creating IFrame for " + event.data.payload)
+=======
+>>>>>>> 54f95b8 (re-importing from old repo)
             createIFrame(event.data.payload)
         } else {
             console.error(`Unknown action received from the service worker: ${event.data.action}`)

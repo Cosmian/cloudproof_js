@@ -4,7 +4,10 @@
 
 
 import { ReadableStream, WritableStream, ReadableStreamAsyncIterator, ReadableStreamBYOBReader, ReadableStreamDefaultReader, ReadableStreamIteratorOptions, ReadableWritablePair, StreamPipeOptions } from "web-streams-polyfill"
+<<<<<<< HEAD
 import { logger } from "../../utils/logger"
+=======
+>>>>>>> 54f95b8 (re-importing from old repo)
 export class ClearTextFileReader implements ReadableStream<Uint8Array>{
 
     private offset = 0
@@ -13,6 +16,7 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
 
     private stream: ReadableStream<Uint8Array>
 
+<<<<<<< HEAD
     constructor(blob: Blob | File, block_size: number) {
 
         const self = this
@@ -20,6 +24,14 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
             start(_controller: ReadableStreamController<any>): void {
                 // logger.log(() => "STREAM: ", blob.stream())
             },
+=======
+    // private current_reader = 0
+
+    constructor(blob: Blob | File, block_size: number) {
+        const self = this
+        this.stream = new ReadableStream<Uint8Array>({
+            start(_controller: ReadableStreamController<any>): void { },
+>>>>>>> 54f95b8 (re-importing from old repo)
             pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
 
                 if (self.offset >= blob.size) {
@@ -35,12 +47,19 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
                         return controller.error('error opening file for reading' + (e.target?.error ? ': ' + e.target?.error : ''))
                     }
                     let bytes = new Uint8Array(e.target.result as ArrayBuffer)
+<<<<<<< HEAD
                     // logger.log(() => "reader " + self.current_reader + ": " + bytes.byteLength + " bytes read")
+=======
+                    // console.log("reader " + self.current_reader + ": " + bytes.byteLength + " bytes read")
+>>>>>>> 54f95b8 (re-importing from old repo)
                     controller.enqueue(bytes)
                     self.bytes_read += bytes.byteLength
                     if (self.bytes_read >= blob.size) {
                         //everything was read and enqueued - notify end
+<<<<<<< HEAD
                         logger.log(() => "ClearTextReader: Done reading " + blob.size + " bytes. Closing controller")
+=======
+>>>>>>> 54f95b8 (re-importing from old repo)
                         controller.close()
                     }
                 }
@@ -51,7 +70,11 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
 
                 const end = Math.min(blob.size, self.offset + block_size)
                 const slice = blob.slice(self.offset, end)
+<<<<<<< HEAD
                 // logger.log(() => "pulling from reader " + self.current_reader + " start " + self.offset + " end " + end)
+=======
+                // console.log("pulling from reader " + self.current_reader + " start " + self.offset + " end " + end)
+>>>>>>> 54f95b8 (re-importing from old repo)
                 self.offset = end
                 file_reader.readAsArrayBuffer(slice)
             },
