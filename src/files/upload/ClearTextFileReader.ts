@@ -36,6 +36,7 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
                     self.bytes_read += bytes.byteLength
                     if (self.bytes_read >= blob.size) {
                         //everything was read and enqueued - notify end
+                        console.log("reader: Done reading " + blob.size + " bytes. Closing controller")
                         controller.close()
                     }
                 }
