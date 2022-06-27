@@ -110,7 +110,12 @@ function createDownloadStream(port: MessagePort) {
             port.onmessage = ({ data }) => {
                 switch (data?.action) {
                     case 'write':
-                        return controller.enqueue(data?.payload)
+                        try {
+                            return controller.enqueue(data?.payload)
+                        } catch (error) {
+                            // controller is likely closed following user cancel action ignore
+                            return
+                        }
                     case 'close':
                         return controller.close()
                     case 'abort':
@@ -121,6 +126,7 @@ function createDownloadStream(port: MessagePort) {
             }
         },
         cancel() {
+            console.log("CANCEL CALLED")
             port.postMessage({ action: 'cancel' })
         },
     })

@@ -12,8 +12,6 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
 
     private stream: ReadableStream<Uint8Array>
 
-    // private current_reader = 0
-
     constructor(blob: Blob | File, block_size: number) {
         const self = this
         this.stream = new ReadableStream<Uint8Array>({
