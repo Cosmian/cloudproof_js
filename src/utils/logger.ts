@@ -10,4 +10,4 @@ class Logger {
     }
 }
 
-export const logger = new Logger(false)
+export const logger = new Logger(true)

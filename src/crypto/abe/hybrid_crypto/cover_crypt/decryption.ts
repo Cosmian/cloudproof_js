@@ -3,7 +3,7 @@ import {
     webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size
 } from "../../../../../wasm_lib/abe/cover_crypt"
 import { logger } from "../../../../utils/logger"
-import { ClearTextHeader, HybridDecryption } from "../../hybrid_crypto"
+import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
 
 /**
  * This class exposes the ABE primitives.
@@ -13,6 +13,10 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
 
     constructor(userDecryptionKey: Uint8Array) {
         super(userDecryptionKey)
+    }
+
+    public renew_key(userDecryptionKey: Uint8Array): void {
+        this.asymmetricDecryptionKey = userDecryptionKey
     }
 
     /**

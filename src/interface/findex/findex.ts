@@ -1,10 +1,10 @@
 import { Sse, EntryTableUnchainedValue } from "../../crypto/sse/sse"
-import { webassembly_hex_decode as hex_decode, webassembly_hex_encode as hex_encode} from "../../../wasm_lib/sse"
+import { webassembly_hex_decode as hex_decode, webassembly_hex_encode as hex_encode } from "../../../wasm_lib/sse"
 import { DBInterface } from "../db/dbInterface";
 
 export class Findex {
   public static async query(k1: string, k2: string, words: string[], db: DBInterface, loopIterationLimit: number): Promise<{ word: string; dbUids: string[]; }[]> {
-    const entryTableUids:  Uint8Array[] = words.map((word: string) => Sse.computeEntryTableUid(hex_decode(k1), word));
+    const entryTableUids: Uint8Array[] = words.map((word: string) => Sse.computeEntryTableUid(hex_decode(k1), word));
 
     const entryTableValues: ({ uid: string; Value: string; } | null)[] = await db.getEntryTableEntries(entryTableUids.map(uid => hex_encode(uid)));
 

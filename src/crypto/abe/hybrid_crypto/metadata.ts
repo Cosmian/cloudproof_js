@@ -32,7 +32,7 @@ export class Metadata {
     }
 
 
-    public toJsonEncoded() {
+    public toJsonEncoded(): Uint8Array {
         const metadata: any = {}
         metadata.uid = Array.from(this._uid)
         if (this._additionalData !== undefined) {

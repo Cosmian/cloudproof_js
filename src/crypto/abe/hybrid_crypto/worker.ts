@@ -1,6 +1,6 @@
-import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "../hybrid_crypto"
-import { logger } from "./../../../utils/logger"
-import { hexDecode } from "./../../../utils/utils"
+import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "./hybrid_crypto"
+import { logger } from "../../../utils/logger"
+import { hexDecode } from "../../../utils/utils"
 import { CoverCryptHybridDecryption } from "./cover_crypt/decryption"
 import { GpswHybridDecryption } from "./gpsw/decryption"
 
