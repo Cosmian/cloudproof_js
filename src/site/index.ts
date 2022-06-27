@@ -347,7 +347,7 @@ async function encrypt_file(file: File): Promise<void> {
 
 
   // stream the clear text content from the file by block
-  let clear_text_stream = new ClearTextFileReader(file, 4096)
+  let clear_text_stream = new ClearTextFileReader(file, 1 * 1024)
   // encrypt a stream of blocks
   let encryption_stream = new EncryptionTransformStream("public_key")
   // save the encrypted content to disk
@@ -356,7 +356,10 @@ async function encrypt_file(file: File): Promise<void> {
     filename: file.name + ".encrypted",
     mimeType: file.type,
   } as FileMetaData
-  let encrypted_writable_stream = await download(encrypted_file_meta_data, () => { console.log("download canceled") })
+  let encrypted_writable_stream = await download(encrypted_file_meta_data, () => {
+    encryption_stream.writable.abort("download canceled")
+    console.log("download canceled")
+  })
   // connect all the streams and make the magic happen
   await Promise.all([
     clear_text_stream.pipeTo(encryption_stream.writable),
@@ -379,7 +382,7 @@ async function decrypt_file(file: File): Promise<void> {
 
 
   // stream the encrypted content from the file by block
-  let encrypted_stream = new EncryptedFileReader(file, 1024, 4096)
+  let encrypted_stream = new EncryptedFileReader(file, 1024, 1 * 1024)
   // decrypt a stream of blocks
   let decryption_stream = new DecryptionTransformStream("private_key")
   // save the clear text content to disk
@@ -388,7 +391,10 @@ async function decrypt_file(file: File): Promise<void> {
     filename: file.name + ".decrypted",
     mimeType: file.type,
   } as FileMetaData
-  let decrypted_writable_stream = await download(decrypted_file_meta_data, () => { console.log("download canceled") })
+  let decrypted_writable_stream = await download(decrypted_file_meta_data, () => {
+    console.log("download canceled")
+    encrypted_stream.cancel("download canceled")
+  })
   // connect all the streams and make the magic happen
   await Promise.all([
     encrypted_stream.pipeTo(decryption_stream.writable),
