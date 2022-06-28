@@ -12,16 +12,22 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
 
     private stream: ReadableStream<Uint8Array>
 
-    private current_reader = 0
+    private currentReader = 0
 
     constructor(blob: Blob | File, header_size: number, encrypted_block_size: number) {
         const self = this
         this.stream = new ReadableStream<Uint8Array>({
             start(controller: ReadableStreamController<any>): void {
+
+                blob.stream().read()
+
                 //on start, read the encrypted file header
+                let fileReader = self.getFileReader(controller, blob.size)
+                fileReader.re
                 self.read_next_chunk(controller, blob, header_size)
             },
             pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
+
                 self.read_next_chunk(controller, blob, encrypted_block_size)
             },
             cancel(_reason: any): void { }
@@ -80,10 +86,21 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
             return
         }
 
-        let file_reader = new FileReader()
-        this.current_reader += 1
+        const fileReader = this.getFileReader(controller, blob.size)
 
-        file_reader.onload = (e: ProgressEvent<FileReader>) => {
+        const end = Math.min(blob.size, this.offset + chunk_size)
+        const slice = blob.slice(this.offset, end)
+        // console.log("pulling from reader " + this.current_reader + " start " + this.offset + " end " + end)
+        this.offset = end
+        fileReader.readAsArrayBuffer(slice)
+    }
+
+    getFileReader(controller: ReadableStreamController<any>, blobSize: number): FileReader {
+
+        let fileReader = new FileReader()
+        this.currentReader += 1
+
+        fileReader.onload = (e: ProgressEvent<FileReader>) => {
             if (e.target == null || e.target?.error) {
                 return controller.error('error opening file for reading' + (e.target?.error ? ': ' + e.target?.error : ''))
             }
@@ -91,21 +108,18 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
             // console.log("reader " + this.current_reader + ": " + bytes.byteLength + " bytes read")
             controller.enqueue(bytes)
             this.bytes_read += bytes.byteLength
-            if (this.bytes_read >= blob.size) {
+            if (this.bytes_read >= blobSize) {
                 //everything was read and enqueued - notify end
                 controller.close()
                 return
             }
         }
 
-        file_reader.onabort = (_e: ProgressEvent<FileReader>) => {
+        fileReader.onabort = (_e: ProgressEvent<FileReader>) => {
             controller.error("file reader aborted")
         }
 
-        const end = Math.min(blob.size, this.offset + chunk_size)
-        const slice = blob.slice(this.offset, end)
-        // console.log("pulling from reader " + this.current_reader + " start " + this.offset + " end " + end)
-        this.offset = end
-        file_reader.readAsArrayBuffer(slice)
+        return fileReader
+
     }
 }

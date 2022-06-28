@@ -28,9 +28,9 @@ import axios, { AxiosResponse, AxiosInstance } from 'axios'
 import { bobKey, aliceKey } from "./../utils/demo_keys"
 import { ClearTextFileReader } from "../files/upload/ClearTextFileReader"
 import { download, FileMetaData } from "../files/download/DownloadManager"
-import { EncryptionTransformStream } from "../files/transformers/EncryptionTransformStream"
+import { CoverCryptEncryptionTS } from "../files/transformers/CoverCryptEncryptionTS"
 import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
-import { DecryptionTransformStream } from "../files/transformers/DecryptionTransformStream"
+import { CoverCryptDecryptionTS } from "../files/transformers/CoverCryptDecryptionTS"
 
 
 class DB implements DBInterface {
@@ -258,7 +258,7 @@ async function encrypt_file(file: File): Promise<void> {
   // stream the clear text content from the file by block
   let clear_text_stream = new ClearTextFileReader(file, 1 * 1024)
   // encrypt a stream of blocks
-  let encryption_stream = new EncryptionTransformStream("public_key")
+  let encryption_stream = new CoverCryptEncryptionTS("public_key")
   // save the encrypted content to disk
   const encrypted_file_meta_data = {
     uuid: "12345",
@@ -293,7 +293,7 @@ async function decrypt_file(file: File): Promise<void> {
   // stream the encrypted content from the file by block
   let encrypted_stream = new EncryptedFileReader(file, 1024, 1 * 1024)
   // decrypt a stream of blocks
-  let decryption_stream = new DecryptionTransformStream("private_key")
+  let decryption_stream = new CoverCryptDecryptionTS("private_key")
   // save the clear text content to disk
   const decrypted_file_meta_data = {
     uuid: "12345",
