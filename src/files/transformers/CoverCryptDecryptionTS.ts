@@ -3,8 +3,9 @@
  */
 
 import { TransformStream, Transformer } from "web-streams-polyfill"
+import { logger } from "../../utils/logger"
 
-class DecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
+class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
 
     private private_key: string
 
@@ -12,11 +13,17 @@ class DecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
         this.private_key = private_key
     }
 
+    /**
+    * A function that is called immediately during creation of the {@link TransformStream}.
+    */
     start(controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
         console.log("decryption transformer start")
         return Promise.resolve()
     }
 
+    /**
+    * A function called when a new chunk originally written to the writable side is ready to be transformed.
+    */
     transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
         return new Promise((resolve, reject) => {
 
@@ -57,13 +64,17 @@ class DecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
         })
     }
 
+    flush(controller: TransformStreamDefaultController<Uint8Array>): void | PromiseLike<void> {
+        logger.log(() => "decryption transformer flush")
+    }
+
 }
 
-export class DecryptionTransformStream extends TransformStream {
+export class CoverCryptDecryptionTS extends TransformStream {
 
 
     constructor(private_key: string) {
-        super(new DecryptionTransformer(private_key))
+        super(new CoverCryptDecryptionTransformer(private_key))
     }
 
     // static max_encrypted_length(): number {
