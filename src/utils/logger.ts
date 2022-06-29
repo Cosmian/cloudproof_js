@@ -5,9 +5,12 @@ class Logger {
     }
     public log(expr: () => string) {
         if (this.on) {
-            console.log(expr())
+            let caller = (new Error()).stack?.split("\n")[2].trim().split(" ")[1]
+            console.log(expr() + "   \t\t[" + caller + "]")
         }
     }
+
+
 }
 
 export const logger = new Logger(false)

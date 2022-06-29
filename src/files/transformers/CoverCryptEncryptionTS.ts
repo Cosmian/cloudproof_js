@@ -23,8 +23,8 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 
     private blockNumber: number
 
-    constructor(publicKey: string, policy: string, attributes: string[], uid: Uint8Array) {
-        this.hybridCrypto = new CoverCryptHybridEncryption(hexDecode(policy), hexDecode(publicKey))
+    constructor(publicKey: Uint8Array, policy: Uint8Array, attributes: string[], uid: Uint8Array) {
+        this.hybridCrypto = new CoverCryptHybridEncryption(policy, publicKey)
         this.attributes = attributes
         this.uid = uid
         this.symmetricKey = undefined
@@ -36,19 +36,22 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
      */
     start(controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
         return new Promise((resolve, reject) => {
-            logger.log(() => "encryption transformer start")
+            logger.log(() => "CoverCrypt encryption transformer start")
+
             try {
-                // write/enqueue the header 
+                // // write/enqueue the header 
                 const encryptionParameters = new AbeEncryptionParameters(this.attributes, new Metadata(this.uid, new Uint8Array(1)))
                 const encryptedHeader = this.hybridCrypto.encryptHybridHeader(encryptionParameters)
                 this.symmetricKey = encryptedHeader.symmetricKey
                 // the size of the header as a U32 big endian (4 bytes)
-                controller.enqueue(encryptedHeader.encryptedSymmetricKeySizeAsArray)
-                controller.enqueue(encryptedHeader.encryptedSymmetricKey)
-                resolve()
+                controller.enqueue(new Uint8Array(encryptedHeader.encryptedSymmetricKeySizeAsArray))
+                // BGR: had to wrap into a new Uint8Array to avoid strange enqueuing issues
+                controller.enqueue(new Uint8Array(encryptedHeader.encryptedSymmetricKey))
+                return resolve()
             } catch (error) {
+                logger.log(() => "CoverCrypt encryption transformer ERROR: " + error)
                 controller.error(error)
-                reject(error)
+                return reject(error)
             }
         })
     }
@@ -60,9 +63,9 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 
 
         return new Promise((resolve, reject) => {
-            logger.log(() => "encryption transformer: enqueue " + chunk.length + " bytes")
+            logger.log(() => "CoverCrypt encryption transformer: enqueue " + chunk.length + " bytes")
             if (typeof this.symmetricKey === 'undefined') {
-                return reject("Content decryption error: the symmetric key was not decrypted from the header")
+                return reject("CoverCrypt decryption error: the symmetric key was not decrypted from the header")
             }
             this.blockNumber += 1
             let ct = this.hybridCrypto.encryptHybridBlock(this.symmetricKey, chunk, this.uid, this.blockNumber)
@@ -79,13 +82,13 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
      * through {Transformer.transform | transform()}, and the writable side is about to be closed.
      */
     flush(controller: TransformStreamDefaultController<Uint8Array>): void | PromiseLike<void> {
-        logger.log(() => "encryption transformer flush")
+        logger.log(() => "CoverCrypt encryption transformer flush")
     }
 
 }
 
 export class CoverCryptEncryptionTS extends TransformStream {
-    constructor(publicKey: string, policy: string, attributes: string[], uid: Uint8Array) {
+    constructor(publicKey: Uint8Array, policy: Uint8Array, attributes: string[], uid: Uint8Array) {
         super(new CoverCryptEncryptionTransformer(publicKey, policy, attributes, uid))
     }
 }

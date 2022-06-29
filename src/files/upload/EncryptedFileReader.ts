@@ -4,6 +4,8 @@
  */
 
 import { ReadableStream, WritableStream, ReadableStreamAsyncIterator, ReadableStreamBYOBReader, ReadableStreamDefaultReader, ReadableStreamIteratorOptions, ReadableWritablePair, StreamPipeOptions } from "web-streams-polyfill"
+import { logger } from "../../utils/logger"
+import { fromBeBytes } from "../../utils/utils"
 export class EncryptedFileReader implements ReadableStream<Uint8Array>{
 
     private offset = 0
@@ -16,22 +18,7 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
 
     constructor(blob: Blob | File, header_size: number, encrypted_block_size: number) {
         const self = this
-        this.stream = new ReadableStream<Uint8Array>({
-            start(controller: ReadableStreamController<any>): void {
-
-                blob.stream().read()
-
-                //on start, read the encrypted file header
-                let fileReader = self.getFileReader(controller, blob.size)
-                fileReader.re
-                self.read_next_chunk(controller, blob, header_size)
-            },
-            pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
-
-                self.read_next_chunk(controller, blob, encrypted_block_size)
-            },
-            cancel(_reason: any): void { }
-        })
+        this.stream = new ReadableStream<Uint8Array>(new BlobUnderlyingSource(blob))
     }
     getReader({ mode }: { mode: "byob" }): ReadableStreamBYOBReader
     getReader(): ReadableStreamDefaultReader<Uint8Array>
@@ -80,46 +67,43 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
         return this.stream.tee()
     }
 
-    read_next_chunk(controller: ReadableStreamController<any>, blob: Blob | File, chunk_size: number): void {
-        if (this.offset >= blob.size) {
-            //no point pulling more
-            return
-        }
+}
 
-        const fileReader = this.getFileReader(controller, blob.size)
+class BlobUnderlyingSource implements UnderlyingSource {
 
-        const end = Math.min(blob.size, this.offset + chunk_size)
-        const slice = blob.slice(this.offset, end)
-        // console.log("pulling from reader " + this.current_reader + " start " + this.offset + " end " + end)
-        this.offset = end
-        fileReader.readAsArrayBuffer(slice)
+    stream: NodeJS.ReadableStream | null
+    blobSize: number
+
+    bytesRead: number
+
+    constructor(blob: Blob | File) {
+        // this.stream = blob.stream()
+        // this.stream.setEncoding("binary")
+
+        this.stream = null
+        this.blobSize = blob.size
     }
 
-    getFileReader(controller: ReadableStreamController<any>, blobSize: number): FileReader {
+    start(controller: ReadableStreamController<any>): void {
+        // let buf = this.stream.read(4) as Buffer
+        // let headerSize = fromBeBytes(buf)
+        // let encryptedHeader = this.stream.read(headerSize)
+        // this.bytesRead = headerSize + 4
+        // controller.enqueue(encryptedHeader)
+    }
+    pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
 
-        let fileReader = new FileReader()
-        this.currentReader += 1
-
-        fileReader.onload = (e: ProgressEvent<FileReader>) => {
-            if (e.target == null || e.target?.error) {
-                return controller.error('error opening file for reading' + (e.target?.error ? ': ' + e.target?.error : ''))
-            }
-            let bytes = new Uint8Array(e.target.result as ArrayBuffer)
-            // console.log("reader " + this.current_reader + ": " + bytes.byteLength + " bytes read")
-            controller.enqueue(bytes)
-            this.bytes_read += bytes.byteLength
-            if (this.bytes_read >= blobSize) {
-                //everything was read and enqueued - notify end
-                controller.close()
-                return
-            }
-        }
-
-        fileReader.onabort = (_e: ProgressEvent<FileReader>) => {
-            controller.error("file reader aborted")
-        }
-
-        return fileReader
-
+        // if (this.bytesRead >= this.blobSize) {
+        //     controller.close()
+        //     return
+        // }
+        // let buf = this.stream.read(4) as Buffer
+        // let contentSize = fromBeBytes(buf)
+        // let encryptedContent = this.stream.read(contentSize)
+        // this.bytesRead += 4 + contentSize
+        // controller.enqueue(encryptedContent)
+    }
+    cancel(reason: any): void {
+        logger.log(() => "Canceled call on underlying stream: " + reason)
     }
 }
