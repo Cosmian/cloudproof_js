@@ -6,67 +6,79 @@
 import { ReadableStream, WritableStream, ReadableStreamAsyncIterator, ReadableStreamBYOBReader, ReadableStreamDefaultReader, ReadableStreamIteratorOptions, ReadableWritablePair, StreamPipeOptions } from "web-streams-polyfill"
 import { logger } from "../../utils/logger"
 import { fromBeBytes } from "../../utils/utils"
-export class EncryptedFileReader implements ReadableStream<Uint8Array>{
+// export class EncryptedFileReader implements ReadableStream<Uint8Array>{
 
-    private offset = 0
+//     private offset = 0
 
-    private bytes_read = 0
+//     private bytes_read = 0
 
-    private stream: ReadableStream<Uint8Array>
+//     private stream: ReadableStream<Uint8Array>
 
-    private currentReader = 0
+//     private currentReader = 0
 
-    constructor(blob: Blob | File, header_size: number, encrypted_block_size: number) {
-        const self = this
-        this.stream = new ReadableStream<Uint8Array>(new BlobUnderlyingSource(blob))
-    }
-    getReader({ mode }: { mode: "byob" }): ReadableStreamBYOBReader
-    getReader(): ReadableStreamDefaultReader<Uint8Array>
-    getReader(__0?: any): ReadableStreamBYOBReader | ReadableStreamDefaultReader<Uint8Array> {
-        return this.stream.getReader(__0)
-    }
-    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions | undefined) => ReadableStreamAsyncIterator<Uint8Array>
-    pipeThrough<RS extends ReadableStream>(transform: {
-        readable: RS
-        writable: WritableStream<Uint8Array>
-    }, options?: StreamPipeOptions): RS {
-        return this.stream.pipeThrough(transform)
-    }
-    pipeTo(destination: WritableStream<Uint8Array>, options?: StreamPipeOptions): Promise<void> {
-        return this.stream.pipeTo(destination, options)
-    }
-    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions | undefined) => ReadableStreamAsyncIterator<Uint8Array>
-    public get locked() {
-        return this.stream.locked
-    }
+//     constructor(blob: Blob | File, header_size: number, encrypted_block_size: number) {
+//         const self = this
+//         this.stream = new ReadableStream<Uint8Array>(new BlobUnderlyingSource(blob))
+//     }
+//     getReader({ mode }: { mode: "byob" }): ReadableStreamBYOBReader
+//     getReader(): ReadableStreamDefaultReader<Uint8Array>
+//     getReader(__0?: any): ReadableStreamBYOBReader | ReadableStreamDefaultReader<Uint8Array> {
+//         return this.stream.getReader(__0)
+//     }
+//     [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions | undefined) => ReadableStreamAsyncIterator<Uint8Array>
+//     pipeThrough<RS extends ReadableStream>(transform: {
+//         readable: RS
+//         writable: WritableStream<Uint8Array>
+//     }, options?: StreamPipeOptions): RS {
+//         return this.stream.pipeThrough(transform)
+//     }
+//     pipeTo(destination: WritableStream<Uint8Array>, options?: StreamPipeOptions): Promise<void> {
+//         return this.stream.pipeTo(destination, options)
+//     }
+//     [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions | undefined) => ReadableStreamAsyncIterator<Uint8Array>
+//     public get locked() {
+//         return this.stream.locked
+//     }
+
+//     /**
+//      * Asynchronously iterates over the chunks in the stream's internal queue.
+//      *
+//      * Asynchronously iterating over the stream will lock it, preventing any other consumer from acquiring a reader.
+//      * The lock will be released if the async iterator's {ReadableStreamAsyncIterator.return | return()} method
+//      * is called, e.g. by breaking out of the loop.
+//      *
+//      * By default, calling the async iterator's {ReadableStreamAsyncIterator.return | return()} method will also
+//      * cancel the stream. To prevent this, use the stream's {ReadableStream.values | values()} method, passing
+//      * `true` for the `preventCancel` option.
+//      */
+//     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<Uint8Array> {
+//         return this.stream.values(options)
+//     };
+//     /**
+//      * {@inheritDoc ReadableStream.values}
+//      */
+//     [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<Uint8Array>
+
+//     cancel(reason?: any): Promise<void> {
+//         return this.stream.cancel(reason)
+//     }
+
+//     tee(): [ReadableStream<Uint8Array>, ReadableStream<Uint8Array>] {
+//         return this.stream.tee()
+//     }
+
+// }
+
+
+export class EncryptedFileReader extends ReadableStream<Uint8Array>{
 
     /**
-     * Asynchronously iterates over the chunks in the stream's internal queue.
      *
-     * Asynchronously iterating over the stream will lock it, preventing any other consumer from acquiring a reader.
-     * The lock will be released if the async iterator's {@link ReadableStreamAsyncIterator.return | return()} method
-     * is called, e.g. by breaking out of the loop.
-     *
-     * By default, calling the async iterator's {@link ReadableStreamAsyncIterator.return | return()} method will also
-     * cancel the stream. To prevent this, use the stream's {@link ReadableStream.values | values()} method, passing
-     * `true` for the `preventCancel` option.
      */
-    values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<Uint8Array> {
-        return this.stream.values(options)
-    };
-    /**
-     * {@inheritDoc ReadableStream.values}
-     */
-    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<Uint8Array>
+    constructor(blob: Blob | File) {
+        super(new BlobUnderlyingSource(blob))
 
-    cancel(reason?: any): Promise<void> {
-        return this.stream.cancel(reason)
     }
-
-    tee(): [ReadableStream<Uint8Array>, ReadableStream<Uint8Array>] {
-        return this.stream.tee()
-    }
-
 }
 
 class BlobUnderlyingSource implements UnderlyingSource {
@@ -86,8 +98,11 @@ class BlobUnderlyingSource implements UnderlyingSource {
 
         if (this.bytesRead >= this.blob.size) {
             // EOF
+            logger.log(() => "encrypted reader: EOF")
             controller.close()
             return
+        } else {
+            logger.log(() => "encrypted reader: read " + this.bytesRead + " bytes out of " + this.blob.size)
         }
 
         const start = this.bytesRead
@@ -111,8 +126,8 @@ class BlobUnderlyingSource implements UnderlyingSource {
                     return
                 }
                 const chunkBytes = new Uint8Array(event.target?.result as ArrayBuffer)
-                controller.enqueue(chunkBytes)
                 this.bytesRead += 4 + chunkSize
+                controller.enqueue(chunkBytes)
             }
             // trigger read of the chunk
             var chunkBlob = this.blob.slice(start + 4, start + chunkSize)
