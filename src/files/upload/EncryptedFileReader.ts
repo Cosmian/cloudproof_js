@@ -71,39 +71,61 @@ export class EncryptedFileReader implements ReadableStream<Uint8Array>{
 
 class BlobUnderlyingSource implements UnderlyingSource {
 
-    stream: NodeJS.ReadableStream | null
-    blobSize: number
-
+    blob: Blob | File
     bytesRead: number
 
     constructor(blob: Blob | File) {
-        // this.stream = blob.stream()
-        // this.stream.setEncoding("binary")
-
-        this.stream = null
-        this.blobSize = blob.size
+        this.blob = blob
+        this.bytesRead = 0
     }
 
     start(controller: ReadableStreamController<any>): void {
-        // let buf = this.stream.read(4) as Buffer
-        // let headerSize = fromBeBytes(buf)
-        // let encryptedHeader = this.stream.read(headerSize)
-        // this.bytesRead = headerSize + 4
-        // controller.enqueue(encryptedHeader)
+        logger.log(() => "encrypted reader: start")
     }
     pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
 
-        // if (this.bytesRead >= this.blobSize) {
-        //     controller.close()
-        //     return
-        // }
-        // let buf = this.stream.read(4) as Buffer
-        // let contentSize = fromBeBytes(buf)
-        // let encryptedContent = this.stream.read(contentSize)
-        // this.bytesRead += 4 + contentSize
-        // controller.enqueue(encryptedContent)
+        if (this.bytesRead >= this.blob.size) {
+            // EOF
+            controller.close()
+            return
+        }
+
+        const start = this.bytesRead
+        var sizeReader = new FileReader()
+
+        sizeReader.onload = (event: ProgressEvent<FileReader>): any => {
+            if (event.target?.error !== null) {
+                controller.error("Failed reading size of the next chunk")
+                controller.close()
+                return
+            }
+
+            const sizeBytes = new Uint8Array(event.target?.result as ArrayBuffer)
+            const chunkSize = fromBeBytes(sizeBytes)
+            logger.log(() => "encrypted reader: chunk size is " + chunkSize + " bytes")
+            var chunkReader = new FileReader()
+            chunkReader.onload = (event: ProgressEvent<FileReader>): any => {
+                if (event.target?.error !== null) {
+                    controller.error("Failed reading size of the next chunk")
+                    controller.close()
+                    return
+                }
+                const chunkBytes = new Uint8Array(event.target?.result as ArrayBuffer)
+                controller.enqueue(chunkBytes)
+                this.bytesRead += 4 + chunkSize
+            }
+            // trigger read of the chunk
+            var chunkBlob = this.blob.slice(start + 4, start + chunkSize)
+            chunkReader.readAsArrayBuffer(chunkBlob)
+        }
+
+        // trigger read of the size of the next chunk
+        var sizeBlob = this.blob.slice(start, start + 4)
+        sizeReader.readAsArrayBuffer(sizeBlob)
+
     }
     cancel(reason: any): void {
         logger.log(() => "Canceled call on underlying stream: " + reason)
     }
+
 }

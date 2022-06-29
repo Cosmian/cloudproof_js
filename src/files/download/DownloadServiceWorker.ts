@@ -2,6 +2,9 @@
  * Copyright Cosmian 2021 -
  */
 
+import { logger } from "../../utils/logger"
+logger.on = false
+
 const SW_PATH = "cdsw"
 
 interface DownloadConfig {
@@ -20,18 +23,18 @@ class DownloadServiceWorker {
         self.addEventListener('activate', this.onActivate)
         self.addEventListener('message', this.onMessage)
         self.addEventListener('fetch', this.onFetch)
-        console.log("--ServiceWorker Instantiated")
+        logger.log(() => "--serviceWorker Instantiated")
     }
 
     onInstall = () => {
         (self as any).skipWaiting()
-        console.log("--ServiceWorker Installed")
+        logger.log(() => "--serviceWorker Installed")
     };
 
     onActivate = (event: any) => {
         // set the SV as  the controller for all clients
         event.waitUntil((self as any).clients.claim())
-        console.log("--ServiceWorker Activated")
+        logger.log(() => "--serviceWorker Activated")
     };
 
     /**
@@ -40,7 +43,7 @@ class DownloadServiceWorker {
      */
     onFetch = (event: any) => {
 
-        console.log(`--ServiceWorker fetch ${event.request.url}`)
+        logger.log(() => `--serviceWorker fetch ${event.request.url}`)
 
         const { url } = event.request
 
@@ -50,11 +53,11 @@ class DownloadServiceWorker {
 
         const pendingDownload = this.pendingDownloads.get(url)
         if (!pendingDownload) {
-            console.error(`--ServiceWorker unknown download URL: ${event.request.url}`)
+            console.error(`--serviceWorker unknown download URL: ${event.request.url}`)
             return
         }
 
-        console.log("--service worker: intercept " + url)
+        logger.log(() => "--service worker: intercept " + url)
 
         const { stream, filename, size, mimeType } = pendingDownload
 
@@ -127,7 +130,7 @@ function createDownloadStream(port: MessagePort) {
             }
         },
         cancel() {
-            console.log("CANCEL CALLED")
+            logger.log(() => "--service worker: cancel called")
             port.postMessage({ action: 'cancel' })
         },
     })
