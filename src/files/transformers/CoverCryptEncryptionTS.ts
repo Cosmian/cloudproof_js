@@ -49,9 +49,10 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
                 controller.enqueue(new Uint8Array(encryptedHeader.encryptedSymmetricKey))
                 return resolve()
             } catch (error) {
-                logger.log(() => "CoverCrypt encryption transformer ERROR: " + error)
-                controller.error(error)
-                return reject(error)
+                let err = "CoverCrypt encryption transformer ERROR: " + error
+                logger.log(() => err)
+                controller.error(err)
+                return reject(err)
             }
         })
     }
@@ -83,6 +84,7 @@ class CoverCryptEncryptionTransformer implements Transformer<Uint8Array, Uint8Ar
      */
     flush(controller: TransformStreamDefaultController<Uint8Array>): void | PromiseLike<void> {
         logger.log(() => "CoverCrypt encryption transformer flush")
+        controller.terminate()
     }
 
 }

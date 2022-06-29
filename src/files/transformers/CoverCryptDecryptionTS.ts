@@ -28,6 +28,7 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
         return new Promise((resolve, reject) => {
 
             console.log("decryption transformer transform " + chunk.length + " bytes")
+            controller.enqueue(chunk)
             resolve()
 
             // if (this.header == null) {
