@@ -15,7 +15,9 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
     constructor(blob: Blob | File, block_size: number) {
         const self = this
         this.stream = new ReadableStream<Uint8Array>({
-            start(_controller: ReadableStreamController<any>): void { },
+            start(_controller: ReadableStreamController<any>): void {
+                // console.log("STREAM: ", blob.stream())
+            },
             pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
 
                 if (self.offset >= blob.size) {

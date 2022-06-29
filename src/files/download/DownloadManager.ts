@@ -3,6 +3,7 @@
  */
 
 import { WritableStream } from 'web-streams-polyfill'
+import { logger } from '../../utils/logger'
 
 const SW_PATH = "cdsw"
 
@@ -34,6 +35,7 @@ export const download = async (file_meta_data: FileMetaData, cancel: () => void)
         if (event.data.action === 'cancel') {
             cancel()
         } else if (event.data.action === 'fetch_url') {
+            logger.log(() => "creating IFrame for " + event.data.payload)
             createIFrame(event.data.payload)
         } else {
             console.error(`Unknown action received from the service worker: ${event.data.action}`)

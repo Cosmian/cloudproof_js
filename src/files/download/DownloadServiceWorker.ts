@@ -2,7 +2,6 @@
  * Copyright Cosmian 2021 -
  */
 
-
 const SW_PATH = "cdsw"
 
 interface DownloadConfig {
@@ -21,18 +20,18 @@ class DownloadServiceWorker {
         self.addEventListener('activate', this.onActivate)
         self.addEventListener('message', this.onMessage)
         self.addEventListener('fetch', this.onFetch)
-        // console.log("--ServiceWorker Instantiated")
+        console.log("--ServiceWorker Instantiated")
     }
 
     onInstall = () => {
         (self as any).skipWaiting()
-        // console.log("--ServiceWorker Installed")
+        console.log("--ServiceWorker Installed")
     };
 
     onActivate = (event: any) => {
         // set the SV as  the controller for all clients
         event.waitUntil((self as any).clients.claim())
-        // console.log("--ServiceWorker Activated")
+        console.log("--ServiceWorker Activated")
     };
 
     /**
@@ -41,7 +40,7 @@ class DownloadServiceWorker {
      */
     onFetch = (event: any) => {
 
-        // console.log(`--ServiceWorker fetch ${event.request.url}`)
+        console.log(`--ServiceWorker fetch ${event.request.url}`)
 
         const { url } = event.request
 
@@ -54,6 +53,8 @@ class DownloadServiceWorker {
             console.error(`--ServiceWorker unknown download URL: ${event.request.url}`)
             return
         }
+
+        console.log("--service worker: intercept " + url)
 
         const { stream, filename, size, mimeType } = pendingDownload
 
@@ -110,12 +111,12 @@ function createDownloadStream(port: MessagePort) {
             port.onmessage = ({ data }) => {
                 switch (data?.action) {
                     case 'write':
-                        try {
-                            return controller.enqueue(data?.payload)
-                        } catch (error) {
-                            // controller is likely closed following user cancel action ignore
-                            return
-                        }
+                        // try {
+                        return controller.enqueue(data?.payload)
+                    // } catch (error) {
+                    // controller is likely closed following user cancel action ignore
+                    // return
+                    // }
                     case 'close':
                         return controller.close()
                     case 'abort':
