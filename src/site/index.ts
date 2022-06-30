@@ -296,7 +296,7 @@ async function decrypt_file(file: File): Promise<void> {
 
 
   // stream the encrypted content from the file by block
-  let encrypted_stream = new EncryptedFileReader(file, 1024, 1024 * 1024)
+  let encrypted_stream = new EncryptedFileReader(file)
   // decrypt a stream of blocks
   let decryption_stream = new CoverCryptDecryptionTS("private_key")
   // save the clear text content to disk
