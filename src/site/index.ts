@@ -389,7 +389,7 @@ async function decrypt_file(file: File): Promise<void> {
   // stream the encrypted content from the file by block
   let encrypted_stream = new EncryptedFileReader(file)
   // decrypt a stream of blocks
-  let decryption_stream = new CoverCryptDecryptionTS("private_key")
+  let decryption_stream = new CoverCryptDecryptionTS(CoverCryptDemoKeys.topSecretMkgFinUser, CoverCryptDemoKeys.uid)
   // save the clear text content to disk
   const decrypted_file_meta_data = {
     uuid: "12345",
