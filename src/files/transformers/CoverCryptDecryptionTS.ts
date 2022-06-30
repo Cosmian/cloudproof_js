@@ -7,10 +7,10 @@ import { logger } from "../../utils/logger"
 
 class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
 
-    private private_key: string
+    private privateKey: Uint8Array
 
-    constructor(private_key: string) {
-        this.private_key = private_key
+    constructor(privateKey: Uint8Array) {
+        this.privateKey = privateKey
     }
 
     /**
@@ -37,7 +37,7 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
             //         return reject(`Invalid encrypted chunk of length ${chunk.length}. The header length should be: ${HybridCrypto.header_len()} `)
             //     }
             //     try {
-            //         this.header = this.hybrid_crypto.header_from_bytes(chunk, this.private_key)
+            //         this.header = this.hybrid_crypto.header_from_bytes(chunk, this.privateKey)
             //         return resolve()
             //     } catch (error) {
             //         console.error("header parsing error: ", error)
@@ -67,6 +67,7 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 
     flush(controller: TransformStreamDefaultController<Uint8Array>): void | PromiseLike<void> {
         logger.log(() => "decryption transformer flush")
+        controller.terminate()
     }
 
 }
@@ -74,8 +75,8 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 export class CoverCryptDecryptionTS extends TransformStream {
 
 
-    constructor(private_key: string) {
-        super(new CoverCryptDecryptionTransformer(private_key))
+    constructor(privateKey: string) {
+        super(new CoverCryptDecryptionTransformer(privateKey))
     }
 
     // static max_encrypted_length(): number {

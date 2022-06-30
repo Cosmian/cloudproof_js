@@ -93,8 +93,20 @@ class BlobUnderlyingSource implements UnderlyingSource {
 
     start(controller: ReadableStreamController<any>): void {
         logger.log(() => "encrypted reader: start")
+        // we run all in start to avoid concurrent issues in pull
+        this.readAllByChunks(controller)
     }
     pull(controller: ReadableStreamController<any>): void | PromiseLike<void> {
+
+
+
+    }
+    cancel(reason: any): void {
+        logger.log(() => "Canceled call on underlying stream: " + reason)
+    }
+
+
+    readAllByChunks(controller: ReadableStreamController<any>): void | PromiseLike<void> {
 
         if (this.bytesRead >= this.blob.size) {
             // EOF
@@ -128,6 +140,8 @@ class BlobUnderlyingSource implements UnderlyingSource {
                 const chunkBytes = new Uint8Array(event.target?.result as ArrayBuffer)
                 this.bytesRead += 4 + chunkSize
                 controller.enqueue(chunkBytes)
+
+                this.readAllByChunks(controller)
             }
             // trigger read of the chunk
             var chunkBlob = this.blob.slice(start + 4, start + chunkSize)
@@ -138,9 +152,6 @@ class BlobUnderlyingSource implements UnderlyingSource {
         var sizeBlob = this.blob.slice(start, start + 4)
         sizeReader.readAsArrayBuffer(sizeBlob)
 
-    }
-    cancel(reason: any): void {
-        logger.log(() => "Canceled call on underlying stream: " + reason)
     }
 
 }
