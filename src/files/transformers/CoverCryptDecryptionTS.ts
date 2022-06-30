@@ -3,21 +3,32 @@
  */
 
 import { TransformStream, Transformer } from "web-streams-polyfill"
+import { CoverCryptHybridDecryption } from "../../crypto/hybrid_crypto/abe/cover_crypt/decryption"
+import { ClearTextHeader } from "../../crypto/hybrid_crypto/hybrid_crypto"
 import { logger } from "../../utils/logger"
 
 class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Array> {
 
-    private privateKey: Uint8Array
+    private uid: Uint8Array
 
-    constructor(privateKey: Uint8Array) {
-        this.privateKey = privateKey
+    private hybridCrypto: CoverCryptHybridDecryption
+
+    private header: ClearTextHeader | undefined
+
+    private blockNumber: number
+
+    constructor(privateKey: Uint8Array, uid: Uint8Array) {
+        this.uid = uid
+        this.hybridCrypto = new CoverCryptHybridDecryption(privateKey)
     }
 
     /**
     * A function that is called immediately during creation of the {@link TransformStream}.
     */
-    start(controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
+    start(_controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
         console.log("decryption transformer start")
+        this.header = undefined
+        this.blockNumber = 0
         return Promise.resolve()
     }
 
@@ -28,40 +39,16 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
         return new Promise((resolve, reject) => {
 
             console.log("decryption transformer transform " + chunk.length + " bytes")
-            controller.enqueue(chunk)
-            resolve()
 
-            // if (this.header == null) {
-            //     // this should be the first chunk containing the header
-            //     if (chunk.length != HybridCrypto.header_len()) {
-            //         return reject(`Invalid encrypted chunk of length ${chunk.length}. The header length should be: ${HybridCrypto.header_len()} `)
-            //     }
-            //     try {
-            //         this.header = this.hybrid_crypto.header_from_bytes(chunk, this.privateKey)
-            //         return resolve()
-            //     } catch (error) {
-            //         console.error("header parsing error: ", error)
-            //         controller.error(error)
-            //         return reject(error)
-            //     }
-            // }
+            if (typeof this.header === 'undefined') {
+                // first block, this is the header
+                this.header = this.hybridCrypto.decryptHybridHeader(chunk)
+                return resolve()
+            }
 
-            // // check data does not exceed block clear text length
-            // if (chunk.length > HybridCrypto.block_max_encrypted_len()) {
-            //     return reject(`Invalid encrypted chunk of length ${chunk.length}. Max length: ${HybridCrypto.block_max_encrypted_len()} `)
-            // }
-            // try {
-            //     // decrypt block
-            //     let bytes = this.hybrid_crypto.decrypt_block(chunk, this.header, this.block_number)
-            //     controller.enqueue(bytes)
-            //     // console.log(`decrypted block of size: ${chunk.length} -> ${bytes.length}`)
-            //     this.block_number += 1
-            //     resolve()
-            // } catch (error) {
-            //     console.error("encrypted block parsing error: ", error)
-            //     controller.error(error)
-            //     reject(error)
-            // }
+            const block = this.hybridCrypto.decryptHybridBlock(this.header.symmetricKey, chunk, this.uid, this.blockNumber)
+            controller.enqueue(block)
+            return resolve()
         })
     }
 
@@ -73,18 +60,8 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 }
 
 export class CoverCryptDecryptionTS extends TransformStream {
-
-
-    constructor(privateKey: string) {
-        super(new CoverCryptDecryptionTransformer(privateKey))
+    constructor(privateKey: Uint8Array, uid: Uint8Array) {
+        super(new CoverCryptDecryptionTransformer(privateKey, uid))
     }
-
-    // static max_encrypted_length(): number {
-    //     return HybridCrypto.block_max_encrypted_len()
-    // }
-
-    // static header_length(): number {
-    //     return HybridCrypto.header_len()
-    // }
 
 }
