@@ -55,12 +55,10 @@ export class EncryptedHeader {
       throw new Error("Cannot deserialize an empty encrypted header")
     }
     const encryptedHeaderJson = JSON.parse(new TextDecoder().decode(headerBytes))
-    logger.log(() => "encryptedHeaderJson: " + encryptedHeaderJson)
-
     const encryptedHeader = new EncryptedHeader(encryptedHeaderJson.symmetric_key, encryptedHeaderJson.header_bytes)
-    logger.log(() => "encryptedHeader: " + encryptedHeader)
+    // console.log(encryptedHeader)
 
-    return encryptedHeader;
+    return encryptedHeader
   }
 }
 

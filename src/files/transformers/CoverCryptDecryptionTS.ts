@@ -38,16 +38,26 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
     transform(chunk: Uint8Array, controller: TransformStreamDefaultController<Uint8Array>): Promise<void> {
         return new Promise((resolve, reject) => {
 
-            console.log("decryption transformer transform " + chunk.length + " bytes")
-
             if (typeof this.header === 'undefined') {
                 // first block, this is the header
-                this.header = this.hybridCrypto.decryptHybridHeader(chunk)
+                console.log("decryption transformer dec. header of " + chunk.length + " bytes (encrypted)")
+                logger.log(() => "decrypting header: ")
+                try {
+                    this.header = this.hybridCrypto.decryptHybridHeader(chunk)
+                } catch (error) {
+                    const err = "decryption transformer: ERROR decrypting header: " + error
+                    logger.log(() => err)
+                    controller.error(err)
+                    controller.terminate()
+                    return reject(err)
+                }
                 return resolve()
             }
 
+            console.log("decryption transformer dec. block of " + chunk.length + " bytes (encrypted)")
             const block = this.hybridCrypto.decryptHybridBlock(this.header.symmetricKey, chunk, this.uid, this.blockNumber)
             controller.enqueue(block)
+            this.blockNumber += 1
             return resolve()
         })
     }
