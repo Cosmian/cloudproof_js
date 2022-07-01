@@ -1,11 +1,11 @@
 import {
     webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header
-} from "../../../../../wasm_lib/abe/cover_crypt";
-import { logger } from "../../../../utils/logger";
-import { hexEncode } from "../../../../utils/utils";
-import { AbeEncryptionParameters } from "../encryption_parameters";
-import { EncryptedHeader, HybridEncryption } from "../hybrid_crypto";
-import { Metadata } from "../metadata";
+} from "../../../../../wasm_lib/abe/cover_crypt"
+import { logger } from "../../../../utils/logger"
+import { hexEncode } from "../../../../utils/utils"
+import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto"
+import { AbeEncryptionParameters } from "../encryption_parameters"
+import { Metadata } from "../metadata"
 
 
 /**
@@ -20,7 +20,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
         this.policy = policy
         this.publicKey = publicKey
-     }
+    }
 
 
     /**
@@ -42,7 +42,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
             this.policy,
             new TextEncoder().encode(JSON.stringify(parameters.attributes)),
             this.publicKey)
-        logger.log(() => "hybrid header succeeded");
+        logger.log(() => "CoverCrypt: encrypted header with attributes: " + parameters.attributes + ", meta data: " + JSON.stringify(parameters.metadata))
 
         return EncryptedHeader.parse(encryptedHeaderBytes)
     }

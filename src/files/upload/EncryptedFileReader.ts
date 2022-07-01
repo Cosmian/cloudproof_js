@@ -47,7 +47,7 @@ class BlobUnderlyingSource implements UnderlyingSource {
 
         if (this.bytesRead >= this.blob.size) {
             // EOF
-            logger.log(() => "encrypted reader: EOF")
+            logger.log(() => "encrypted reader: EOF; total bytes read: " + this.bytesRead)
             controller.close()
             return
         } else {
@@ -66,22 +66,29 @@ class BlobUnderlyingSource implements UnderlyingSource {
 
             const sizeBytes = new Uint8Array(event.target?.result as ArrayBuffer)
             const chunkSize = fromBeBytes(sizeBytes)
-            logger.log(() => "encrypted reader: chunk size is " + chunkSize + " bytes")
+            logger.log(() => "encrypted reader: encrypted chunk size is " + chunkSize + " bytes")
             var chunkReader = new FileReader()
             chunkReader.onload = (event: ProgressEvent<FileReader>): any => {
                 if (event.target?.error !== null) {
-                    controller.error("Failed reading size of the next chunk")
+                    controller.error("Failed reading size of the next chunk " + event.target?.error)
                     controller.close()
                     return
                 }
                 const chunkBytes = new Uint8Array(event.target?.result as ArrayBuffer)
                 this.bytesRead += 4 + chunkSize
-                controller.enqueue(chunkBytes)
+                try {
+                    controller.enqueue(chunkBytes)
+                } catch (error) {
+                    const err = "the underlying stream is in error: " + error
+                    controller.error(err)
+                    controller.close()
+                    return
+                }
 
                 this.readAllByChunks(controller)
             }
             // trigger read of the chunk
-            var chunkBlob = this.blob.slice(start + 4, start + chunkSize)
+            var chunkBlob = this.blob.slice(start + 4, start + 4 + chunkSize)
             chunkReader.readAsArrayBuffer(chunkBlob)
         }
 

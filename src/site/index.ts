@@ -31,6 +31,7 @@ import { CoverCryptEncryptionTS } from "../files/transformers/CoverCryptEncrypti
 import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
 import { CoverCryptDecryptionTS } from "../files/transformers/CoverCryptDecryptionTS"
 import { DoNothingTS } from "../files/transformers/DoNothingTS"
+import { decrypt_file, decrypt_files, encrypt_file, encrypt_files } from "./index_files"
 
 
 logger.on = true
@@ -325,7 +326,7 @@ async function search(words: string, role: string) {
     displayNoResult(content)
   }
 }
-(window as any).search = search
+(window as any).search = search;
 
 <<<<<<< HEAD
 //
@@ -335,77 +336,9 @@ async function search(words: string, role: string) {
 // Local files encryption and decryption
 // ----------------------------------------------------
 
-
-
-async function encrypt_files(files: File[]) {
-  Promise.all(files.map(encrypt_file))
-}
-(window as any).encrypt_files = encrypt_files
-
-async function encrypt_file(file: File): Promise<void> {
-  console.log("Encrypting....")
-  console.log("....Name", file.name)
-  console.log("....Type", file.type)
-  console.log("....Size", file.size)
-
-
-  // stream the clear text content from the file by block
-  let clear_text_stream = new ClearTextFileReader(file, 1024 * 1024)
-  // encrypt a stream of blocks
-  let encryption_stream = new CoverCryptEncryptionTS(CoverCryptDemoKeys.publicKey, CoverCryptDemoKeys.policy, ['Security Level::Low Secret', 'Department::FIN'], CoverCryptDemoKeys.uid)
-  // let encryption_stream = new DoNothingTS()
-
-  // save the encrypted content to disk
-  const encrypted_file_meta_data = {
-    uuid: "12345",
-    filename: file.name + ".encrypted",
-    mimeType: file.type,
-  } as FileMetaData
-  let encrypted_writable_stream = await download(encrypted_file_meta_data, () => {
-    encryption_stream.writable.abort("download canceled")
-    console.log("download canceled")
-  })
-  // connect all the streams and make the magic happen
-  await Promise.all([
-    clear_text_stream.pipeTo(encryption_stream.writable),
-    encryption_stream.readable.pipeTo(encrypted_writable_stream)
-  ])
-}
-(window as any).encrypt_file = encrypt_file
-
-
-async function decrypt_files(files: File[]) {
-  Promise.all(files.map(decrypt_file))
-}
-(window as any).decrypt_files = decrypt_files
-
-async function decrypt_file(file: File): Promise<void> {
-  console.log("Decrypting....")
-  console.log("....Name", file.name)
-  console.log("....Type", file.type)
-  console.log("....Size", file.size)
-
-
-  // stream the encrypted content from the file by block
-  let encrypted_stream = new EncryptedFileReader(file)
-  // decrypt a stream of blocks
-  let decryption_stream = new CoverCryptDecryptionTS(CoverCryptDemoKeys.topSecretMkgFinUser, CoverCryptDemoKeys.uid)
-  // save the clear text content to disk
-  const decrypted_file_meta_data = {
-    uuid: "12345",
-    filename: file.name + ".decrypted",
-    mimeType: file.type,
-  } as FileMetaData
-  let decrypted_writable_stream = await download(decrypted_file_meta_data, () => {
-    console.log("download canceled")
-    encrypted_stream.cancel("download canceled")
-  })
-  // connect all the streams and make the magic happen
-  await Promise.all([
-    encrypted_stream.pipeTo(decryption_stream.writable),
-    decryption_stream.readable.pipeTo(decrypted_writable_stream)
-  ])
-}
+(window as any).encrypt_files = encrypt_files;
+(window as any).encrypt_file = encrypt_file;
+(window as any).decrypt_files = decrypt_files;
 (window as any).decrypt_file = decrypt_file
 
 

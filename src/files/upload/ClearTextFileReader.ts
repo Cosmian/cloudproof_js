@@ -15,8 +15,6 @@ export class ClearTextFileReader implements ReadableStream<Uint8Array>{
 
     constructor(blob: Blob | File, block_size: number) {
 
-        console.log("BLOB", blob)
-
         const self = this
         this.stream = new ReadableStream<Uint8Array>({
             start(_controller: ReadableStreamController<any>): void {
