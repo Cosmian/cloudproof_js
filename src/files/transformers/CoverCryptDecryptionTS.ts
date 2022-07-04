@@ -13,6 +13,7 @@ class CoverCryptDecryptionTransformer implements Transformer<Uint8Array, Uint8Ar
 
     private hybridCrypto: CoverCryptHybridDecryption
 
+
     private header: ClearTextHeader | undefined
 
     private blockNumber: number

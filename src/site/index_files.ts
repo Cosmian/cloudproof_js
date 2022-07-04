@@ -11,12 +11,12 @@ import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
 
 
 
-export async function encrypt_files(files: File[], securityLevel: string, department: string) {
-    Promise.all(files.map(f => encrypt_file(f, securityLevel, department)))
+export async function encrypt_files(files: File[], securityLevel: string, department: string): Promise<string[]> {
+    return Promise.all(files.map(f => encrypt_file(f, securityLevel, department)))
 }
 
 
-export async function encrypt_file(file: File, securityLevel: string, department: string): Promise<void> {
+export async function encrypt_file(file: File, securityLevel: string, department: string): Promise<string> {
     console.log("Encrypting....")
     console.log("....Name", file.name)
     console.log("....Type", file.type)
@@ -24,42 +24,49 @@ export async function encrypt_file(file: File, securityLevel: string, department
     console.log("....Security Level", securityLevel)
     console.log("....Department", department)
 
-
-    // stream the clear text content from the file by block
-    let clear_text_stream = new ClearTextFileReader(file, 1024 * 1024)
-    // encrypt a stream of blocks
-    let encryption_stream = new CoverCryptEncryptionTS(CoverCryptDemoKeys.publicKey, CoverCryptDemoKeys.policy, ['Security Level::' + securityLevel, 'Department::' + department], CoverCryptDemoKeys.uid)
-    // let encryption_stream = new DoNothingTS()
+    const filename = file.name + ".cabe"
 
     // save the encrypted content to disk
     const encrypted_file_meta_data = {
         uuid: "12345",
-        filename: file.name + ".encrypted",
+        filename: filename,
         mimeType: file.type,
     } as FileMetaData
-    let encrypted_writable_stream = await download(encrypted_file_meta_data, () => {
-        encryption_stream.writable.abort("download canceled")
-        console.log("download canceled")
-    })
-    // connect all the streams and make the magic happen
-    await Promise.all([
-        clear_text_stream.pipeTo(encryption_stream.writable),
-        encryption_stream.readable.pipeTo(encrypted_writable_stream)
-    ])
-}
 
-
-
-export async function decrypt_files(files: File[], userKey: string): Promise<void> {
     try {
-        await Promise.all(files.map(f => decrypt_file(f, userKey)))
+
+        // stream the clear text content from the file by block
+        const clear_text_stream = new ClearTextFileReader(file, 1024 * 1024)
+        // encrypt a stream of blocks
+        const encryption_stream = new CoverCryptEncryptionTS(CoverCryptDemoKeys.publicKey, CoverCryptDemoKeys.policy, ['Security Level::' + securityLevel, 'Department::' + department], CoverCryptDemoKeys.uid)
+
+        const encrypted_writable_stream = await download(encrypted_file_meta_data, () => {
+            encryption_stream.writable.abort("download canceled")
+            console.log("download canceled")
+        })
+        // connect all the streams and make the magic happen
+        await Promise.all([
+            clear_text_stream.pipeTo(encryption_stream.writable),
+            encryption_stream.readable.pipeTo(encrypted_writable_stream)
+        ])
     } catch (error) {
         return Promise.reject(error)
     }
-    return Promise.resolve()
+
+    return Promise.resolve(filename)
 }
 
-export async function decrypt_file(file: File, userKey: string): Promise<void> {
+
+
+export async function decrypt_files(files: File[], userKey: string): Promise<string[]> {
+    try {
+        return await Promise.all(files.map(f => decrypt_file(f, userKey)))
+    } catch (error) {
+        return Promise.reject(error)
+    }
+}
+
+export async function decrypt_file(file: File, userKey: string): Promise<string> {
     console.log("Decrypting....")
     console.log("....Name", file.name)
     console.log("....Type", file.type)
@@ -75,19 +82,21 @@ export async function decrypt_file(file: File, userKey: string): Promise<void> {
         return Promise.reject("Unknown key")
     }
 
+    const filename = file.name.replace(".cabe", "")
+
     try {
 
         // stream the encrypted content from the file by block
-        let encrypted_stream = new EncryptedFileReader(file)
+        const encrypted_stream = new EncryptedFileReader(file)
         // decrypt a stream of blocks
-        let decryption_stream = new CoverCryptDecryptionTS(userKeyBin, CoverCryptDemoKeys.uid)
+        const decryption_stream = new CoverCryptDecryptionTS(userKeyBin, CoverCryptDemoKeys.uid)
         // save the clear text content to disk
         const decrypted_file_meta_data = {
             uuid: "12345",
-            filename: file.name + ".decrypted",
+            filename: filename,
             mimeType: file.type,
         } as FileMetaData
-        let decrypted_writable_stream = await download(decrypted_file_meta_data, () => {
+        const decrypted_writable_stream = await download(decrypted_file_meta_data, () => {
             console.log("download canceled")
             encrypted_stream.cancel("download canceled")
         })
@@ -101,7 +110,7 @@ export async function decrypt_file(file: File, userKey: string): Promise<void> {
         return Promise.reject(error)
     }
 
-    return Promise.resolve()
+    return Promise.resolve(filename)
 }
 
 
