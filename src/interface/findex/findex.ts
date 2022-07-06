@@ -1,5 +1,5 @@
-import { Sse, EntryTableUnchainedValue } from "../../crypto/sse/sse"
-import { webassembly_hex_decode as hex_decode, webassembly_hex_encode as hex_encode } from "../../../wasm_lib/sse"
+import { webassembly_hex_decode as hex_decode, webassembly_hex_encode as hex_encode } from "../../../wasm_lib/sse";
+import { EntryTableUnchainedValue, Sse } from "../../crypto/sse/sse";
 import { DBInterface } from "../db/dbInterface";
 
 export class Findex {
