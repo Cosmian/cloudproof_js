@@ -1,202 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, user-scalable=no" />
     <meta http-equiv="x-dns-prefetch-control" content="off" />
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <base href="/" />
     <title>Cosmian JS Lib</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css"
+    />
     <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-        }
-
-        .block {
-            display: flex;
-            flex-direction: row;
-            margin-bottom: 20px;
-        }
-
-        .drop_zone {
-            border: 5px solid;
-            width: 300px;
-            height: 200px;
-        }
-
-        .drop_zone p {
-            padding-left: 10px;
-            padding-right: 5px;
-        }
-
-        #encryption_drop_zone {
-            border-color: green;
-        }
-
-        #decryption_drop_zone {
-            border-color: orange;
-        }
-
-        .drop_downs {
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-            padding-left: 5px;
-        }
-
-        .drop_downs label {
-            padding-top: 10px;
-        }
-
-        .modal {
-            border: 1px solid black;
-            background-color: white;
-            width: 400px;
-            height: 200px;
-            position: absolute;
-            left: 50%;
-            margin-left: -(50% of width);
-            top: 50%;
-            margin-left: -200px;
-            margin-top: -100px;
-            flex-direction: column;
-            align-items: stretch;
-            display: none;
-        }
-
-        #modal_title {
-            background-color: lightgray;
-            color: darkgreen;
-            text-align: center;
-            padding-top: 10px;
-            padding-bottom: 10px;
-        }
-
-        #modal_content {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            flex-grow: 1;
-            padding: 5px;
-        }
-
-        #modal_button {
-            display: flex;
-            vertical-align: middle;
-            padding-top: 10px;
-            padding-bottom: 10px;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+      .modal {
+        background-color: rgba(0, 0, 0, 0.7);
+      }
+      #decryption_drop_zone {
+        display: none;
+      }
+      :root,
+      .btn {
+        --bs-primary-rgb: 0, 145, 90;
+        --bs-btn-color: #00915a;
+        --bs-btn-border-color: #00915a;
+        --bs-btn-hover-bg: #00915a;
+        --bs-btn-hover-border-color: #00915a;
+        --bs-btn-active-bg: #00915a;
+        --bs-btn-active-border-color: #00915a;
+        --bs-btn-disabled-color: #00915a;
+        --bs-btn-active-bg: #00915a;
+      }
+      .btn-secondary {
+        --bs-btn-bg: white;
+      }
     </style>
+
     <script>
+      function on_drag_over(event) {
+        // prevent default drag over event
+        event.preventDefault();
+      }
 
-        function on_drag_over(event) {
-            // prevent default drag over event
-            event.preventDefault()
-        }
+      // from: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
+      function recover_files(ev) {
+        // Prevent default behavior (Prevent file from being opened)
+        ev.preventDefault();
 
-        // from: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop
-        function recover_files(ev) {
+        var files = [];
 
-            // Prevent default behavior (Prevent file from being opened)
-            ev.preventDefault()
-
-            var files = []
-
-            if (ev.dataTransfer.items) {
-                // Use DataTransferItemList interface to access the file(s)
-                for (var i = 0; i < ev.dataTransfer.items.length; i++) {
-                    // If dropped items aren't files, reject them
-                    if (ev.dataTransfer.items[i].kind === 'file') {
-                        files.push(ev.dataTransfer.items[i].getAsFile())
-                    }
-                }
-            } else {
-                // Use DataTransfer interface to access the file(s)
-                for (var i = 0; i < ev.dataTransfer.files.length; i++) {
-                    files.push(ev.dataTransfer.files[i])
-                }
+        if (ev.dataTransfer.items) {
+          // Use DataTransferItemList interface to access the file(s)
+          for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+            // If dropped items aren't files, reject them
+            if (ev.dataTransfer.items[i].kind === "file") {
+              files.push(ev.dataTransfer.items[i].getAsFile());
             }
-            return files
+          }
+        } else {
+          // Use DataTransfer interface to access the file(s)
+          for (var i = 0; i < ev.dataTransfer.files.length; i++) {
+            files.push(ev.dataTransfer.files[i]);
+          }
         }
+        return files;
+      }
 
-        function dialog(error, msg) {
-            var dialog_title = document.getElementById('modal_title')
-            dialog_title.innerHTML = error ? "ERROR" : "SUCCESS"
-            dialog_title.style.color = error ? "darkred" : "darkgreen"
-            var dialog_content = document.getElementById('modal_content')
-            dialog_content.innerHTML = msg
-            var dialog = document.getElementById('modal_dialog')
-            dialog.style.display = 'flex'
+      function dialog(error, msg) {
+        if (error) {
+          document.getElementById("modal_success").style.display = "none";
+          document.getElementById("modal_fail").style.display = "flex";
+        } else {
+          document.getElementById("modal_success").style.display = "flex";
+          document.getElementById("modal_fail").style.display = "none";
         }
+        var dialog_content = document.getElementById("modal_content");
+        dialog_content.innerHTML = msg;
+        var dialog = document.getElementById("modal_dialog");
+        dialog.style.display = "flex";
+      }
+
+      function toggleZone(mode) {
+        var encryptZone = document.getElementById("encryption_drop_zone");
+        var decryptZone = document.getElementById("decryption_drop_zone");
+        if (mode === "decrypt") {
+          decryptZone.style.display = "flex";
+          encryptZone.style.display = "none";
+        } else {
+          encryptZone.style.display = "flex";
+          decryptZone.style.display = "none";
+        }
+      }
     </script>
-</head>
+  </head>
 
-<body>
-    <div class="block">
-        <div id="encryption_drop_zone" class="drop_zone" ondrop="encrypt_files(
-                recover_files(event), 
-                document.getElementById('security-level').value, 
-                document.getElementById('department').value
-            ).then((filenames) => dialog(false, 'Encrypted:<br/>'+filenames.join('<br/>')), (e)=>dialog(true, e));"
-            ondragover="on_drag_over(event);">
-            <p>Drag one or more files to this Drop Zone to <b>encrypt</b> them ...</p>
+  <body>
+    <header>
+      <nav class="navbar navbar-dark bg-primary shadow-sm">
+        <div class="container">
+          <a class="navbar-brand" href="#">Local file Encryption</a>
         </div>
-        <div class="drop_downs">
-            <label>Department</label>
-            <select id="department" title="Department">
+      </nav>
+    </header>
+    <main class="mb-5">
+      <section class="container">
+        <!-- Toggle buttons -->
+        <div class="row mt-5">
+          <div class="col-12 mx-auto text-center">
+            <div
+              class="btn-group"
+              role="group"
+              aria-label="Toggle button group"
+            >
+              <input
+                type="radio"
+                class="btn-check"
+                name="btnradio"
+                id="btnradio1"
+                autocomplete="off"
+                checked
+                onclick="toggleZone('encrypt')"
+              />
+              <label class="btn btn-outline-primary" for="btnradio1">
+                Encrypt
+              </label>
+
+              <input
+                type="radio"
+                class="btn-check"
+                name="btnradio"
+                id="btnradio2"
+                autocomplete="off"
+                onclick="toggleZone('decrypt');"
+              />
+              <label class="btn btn-outline-primary" for="btnradio2"
+                >Decrypt</label
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- Encrypt -->
+        <div id="encryption_drop_zone" class="row mt-5">
+          <!-- Drop zone -->
+          <div class="col-12 col-md-6 col-lg-7 mb-3 mb-md-0">
+            <div
+              class="card bg-light text-center p-4"
+              id="encryption_drop_zone"
+              ondrop="encrypt_files(
+              recover_files(event), 
+              document.getElementById('security-level').value, 
+              document.getElementById('department').value
+          ).then((filenames) => dialog(false, 'Encrypted:<br/>'+filenames.join('<br/>')), (e)=>dialog(true, e));"
+              ondragover="on_drag_over(event);"
+            >
+              <svg
+                class="text-primary mx-auto mb-3"
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                fill="currentColor"
+                class="bi bi-lock"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"
+                />
+              </svg>
+              <p>
+                Click or drag file to this area to
+                <strong>encrypt</strong> them...
+              </p>
+              <p class="small text-secondary mb-0">
+                Support for a single or bulk upload. Maximum file size 2GB.
+              </p>
+            </div>
+          </div>
+          <!-- Form -->
+          <div class="col-12 col-md-6 col-lg-5">
+            <form class="">
+              <label for="department" class="form-label">Department</label>
+              <select id="department" title="Department" class="form-select">
                 <option value="MKG" selected>Marketing</option>
                 <option value="FIN">Finance</option>
                 <option value="HR">Human Res.</option>
                 <option value="R&D">R&D</option>
-            </select>
-            <label>Security Level</label>
-            <select id="security-level" title="Security Level">
+              </select>
+
+              <label for="security-level" class="form-label mt-4"
+                >Security Level</label
+              >
+              <select
+                id="security-level"
+                title="Security Level"
+                class="form-select"
+              >
                 <option value="Protected">Minimum</option>
                 <option value="Low Secret" selected>Low</option>
                 <option value="Medium Secret">Medium</option>
                 <option value="High Secret">High</option>
                 <option value="Top Secret">Maximum</option>
-            </select>
+              </select>
+            </form>
+          </div>
         </div>
-    </div>
-    <div class="block">
-        <div id="sep"></div>
-        <div id="decryption_drop_zone" class="drop_zone" ondrop="decrypt_files(
+
+        <!-- Decrypt -->
+        <div id="decryption_drop_zone" class="row mt-5">
+          <!-- Drop zone -->
+          <div class="col-12 col-md-6 col-lg-7 mb-3 mb-md-0">
+            <div
+              class="card bg-light text-center p-4"
+              id="encryption_drop_zone"
+              ondrop="decrypt_files(
             recover_files(event), 
             document.getElementById('user_key').value
             ).then((filenames) => dialog(false, 'Decrypted:<br/>'+filenames.join('<br/>')), (e)=>dialog(true, e));"
-            ondragover="on_drag_over(event);">
-            <p>Drag one or more files to this Drop Zone to <b>decrypt</b> them ...</p>
-        </div>
-        <div class="drop_downs">
-            <label>User Key</label>
-            <select id="user_key" title="User Key">
-                <option value="topSecretMkgFinUser">(Department::Marketing
-                    || Department::Finance) && Security Level::Maximum</option>
-                <option value="mediumSecretMarketingUser" selected>Department::Marketing && Security Level::Medium
+              ondragover="on_drag_over(event);"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="text-primary mx-auto mb-3"
+                width="48"
+                height="48"
+                fill="currentColor"
+                class="bi bi-unlock"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M11 1a2 2 0 0 0-2 2v4a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5V3a3 3 0 0 1 6 0v4a.5.5 0 0 1-1 0V3a2 2 0 0 0-2-2zM3 8a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1H3z"
+                />
+              </svg>
+              <p>
+                Click or drag file to this area to
+                <strong>decrypt</strong> them...
+              </p>
+              <p class="small text-secondary mb-0">
+                Support for a single or bulk upload. Maximum file size 2GB.
+              </p>
+            </div>
+          </div>
+          <!-- Form -->
+          <div class="col-12 col-md-6 col-lg-5">
+            <form class="">
+              <label for="user_key" class="form-label">User Key</label>
+              <select id="user_key" title="User Key" class="form-select">
+                <option value="topSecretMkgFinUser">
+                  Department: Marketing or Finance – Security level: Maximum
                 </option>
-            </select>
+                <option value="mediumSecretMarketingUser" selected>
+                  Department: Marketing — Security level: Medium
+                </option>
+              </select>
+            </form>
+          </div>
         </div>
-    </div>
-    <div id="modal_dialog" class="modal">
-        <div id="modal_title">Title</div>
-        <div id="modal_content">This the content</div>
-        <div id="modal_button"><button
-                onclick="document.getElementById('modal_dialog').style.display='none'">OK</button></div>
-    </div>
-    <script src="./main.js"></script>
-    <noscript class="app-noscript">
-        Requires Javascript
-    </noscript>
-</body>
+      </section>
+    </main>
 
+    <!-- Modal -->
+    <div id="modal_dialog" class="modal" tabindex="-1">
+      <div class="modal-dialog" style="width: 400px">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div
+              id="modal_success"
+              class="alert alert-success align-items-center"
+              role="alert"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-check2-circle"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M2.5 8a5.5 5.5 0 0 1 8.25-4.764.5.5 0 0 0 .5-.866A6.5 6.5 0 1 0 14.5 8a.5.5 0 0 0-1 0 5.5 5.5 0 1 1-11 0z"
+                />
+                <path
+                  d="M15.354 3.354a.5.5 0 0 0-.708-.708L8 9.293 5.354 6.646a.5.5 0 1 0-.708.708l3 3a.5.5 0 0 0 .708 0l7-7z"
+                />
+              </svg>
+              <div class="ms-2">Success</div>
+            </div>
+            <div
+              id="modal_fail"
+              class="alert alert-danger align-items-center"
+              role="alert"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-x-circle"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"
+                />
+                <path
+                  d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"
+                />
+              </svg>
+              <div class="ms-2">Error</div>
+            </div>
+            <p id="modal_content">Modal body text goes here.</p>
+          </div>
+          <div id="modal_button" class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+              onclick="document.getElementById('modal_dialog').style.display='none'"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./main.js"></script>
+    <noscript class="app-noscript"> Requires Javascript </noscript>
+  </body>
 </html>
