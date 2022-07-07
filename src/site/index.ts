@@ -22,7 +22,7 @@ import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_ke
 import { DBInterface } from "../interface/db/dbInterface"
 import { Findex } from "../interface/findex/findex"
 import * as lib from "../lib"
-import { aliceKey, bobKey } from "./../utils/demo_keys"
+import { aliceKey, bobKey, charlieKey, k1, k2 } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
 
@@ -165,59 +165,54 @@ async function search(words: string, role: string) {
     content.innerHTML = "";
     try {
       const db = new DB();
-      const k1 = "19e1b63d2972a47b84194ed5fa6d8264fc8cbe6dfee5074c8fb1eac3a17b85e8";
-      const k2 = "a2cdd03bf58eea8ae842e06ae351700cbac94c8a5dbd8f38984dfa5c104f59d0";
       const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
       if (queryResults) {
         const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]));
         if (res && res.length) {
+          let key = "";
           switch (role) {
-            case "mallory":
-              displayInTab(res, content);
+            case "charlie":
+              key = charlieKey;
               break;
             case "alice":
+              key = aliceKey;
+              break;
             case "bob":
-              let key;
-              if (role === "bob") {
-                key = bobKey;
-              }
-              else {
-                key = aliceKey;
-              }
-              const hybridDecryption = new GpswHybridDecryption(hexDecode(key));
-              const clearValues: ClearValue[] = [];
-              res.forEach((item) => {
-                if (item) {
-                  const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" };
-                  const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[];
-                  const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
-                  for (let index = 0; index < clearKeys.length; index++) {
-                    try {
-                      const itemKey = encryptedKeys[index * 2 + 1];
-                      const clearKey = clearKeys[index];
-                      const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)));
-                      const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g);
-                      if (value) {
-                        clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ");
-                      }
-                    }
-                    catch (e) {
-                      logger.log(() => "Impossible to decrypt");
-                    }
-                  }
-                  if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
-                    clearValues.push(clearValue);
+              key = bobKey;
+          }
+          const hybridDecryption = new GpswHybridDecryption(hexDecode(key));
+          const clearValues: ClearValue[] = [];
+          res.forEach((item) => {
+            if (item) {
+              const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" };
+              const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[];
+              const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
+              for (let index = 0; index < clearKeys.length; index++) {
+                try {
+                  const itemKey = encryptedKeys[index * 2 + 1];
+                  const clearKey = clearKeys[index];
+                  const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)));
+                  const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g);
+                  if (value) {
+                    clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ");
                   }
                 }
+                catch (e) {
+                  logger.log(() => "Impossible to decrypt");
+                }
               }
-              );
-              if (clearValues.length) {
-                displayInTab(clearValues, content);
-              } else {
-                displayNoResult(content);
+              if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
+                clearValues.push(clearValue);
               }
-              hybridDecryption.destroyInstance();
+            }
           }
+          );
+          if (clearValues.length) {
+            displayInTab(clearValues, content);
+          } else {
+            displayNoResult(content);
+          }
+          hybridDecryption.destroyInstance();
         } else {
           displayNoResult(content);
         }
