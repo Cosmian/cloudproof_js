@@ -1,5 +1,5 @@
 /* tslint:disable:max-classes-per-file */
-import { webassembly_unchain_entry_table_value, webassembly_aesgcm_decrypt, webassembly_hmac_sha256 } from "../../../wasm_lib/sse"
+import { webassembly_aesgcm_decrypt, webassembly_hmac_sha256, webassembly_unchain_entry_table_value } from "../../../wasm_lib/sse"
 
 const UID_SIZE = 32
 const AES_MAC_SIZE = 16

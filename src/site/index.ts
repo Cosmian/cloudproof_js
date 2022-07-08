@@ -20,7 +20,7 @@ import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_p
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 import { DBInterface } from "../interface/db/dbInterface"
-import { Findex } from "../interface/findex/findex"
+import { Findex } from '../interface/findex/findex'
 import * as lib from "../lib"
 import { aliceKey, bobKey, charlieKey, k1, k2 } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
@@ -38,12 +38,12 @@ class DB implements DBInterface {
     get: (url: string) => this.instance.get(url).then(this.responseBody),
   };
 
-  getEntryTableEntries(uids: string[]): Promise<{ uid: string; Value: string; }[]> {
+  getEntryTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
     return this.requests.get(`/index_chain?UID=in.(${uids})`)
   }
 
 
-  getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string; }[]> {
+  getChainTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
     return this.requests.get(`/index_entry?UID=in.(${uids})`)
   }
 
@@ -152,9 +152,10 @@ function sanitizeString(str: string): string {
  * Search terms with Findex implementation
  * @param words string of all searched terms separated by a space character
  * @param role chosen role to decrypt result
+ * @param logicalSwitch boolean to select OR (false) AND (true) operator
  * @returns void
  */
-async function search(words: string, role: string) {
+async function search(words: string, role: string, logicalSwitch: boolean) {
   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string };
   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string };
 
@@ -166,8 +167,14 @@ async function search(words: string, role: string) {
     try {
       const db = new DB();
       const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
+      let searchedUids;
+      if (logicalSwitch && words.length > 1) {
+        searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[]);
+      } else {
+        searchedUids = queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]);
+      }
       if (queryResults) {
-        const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]));
+        const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(searchedUids);
         if (res && res.length) {
           let key = "";
           switch (role) {
