@@ -20,6 +20,8 @@ build_wasm_bindgen() {
   GIT_TAG=$3
 
   cd $SRC_DIR
+  git checkout main
+  git pull --tags
   git checkout $GIT_TAG
   rm -rf pkg
   wasm-pack build --release --features wasm_bindgen
@@ -30,9 +32,11 @@ build_wasm_bindgen() {
 
 rm -rf ${JSLIB_DIR}/wasm_lib
 build_wasm_bindgen ${WASM_LIBS_DIR}/searchable_directory ${JSLIB_DIR}/wasm_lib/sse 0.2.0
-build_wasm_bindgen ${WASM_LIBS_DIR}/abe_gpsw ${JSLIB_DIR}/wasm_lib/abe/gpsw v0.8.0
-build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v3.0.1
+build_wasm_bindgen ${WASM_LIBS_DIR}/abe_gpsw ${JSLIB_DIR}/wasm_lib/abe/gpsw v0.6.9
+build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v3.1.0
 
 cd ${JSLIB_DIR}
 npm install
 npx webpack serve
+import { DBInterface } from "../interface/db/dbInterface"
+import { Findex } from '../interface/findex/findex'

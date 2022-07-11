@@ -11,6 +11,9 @@ import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
 
 
 
+
+
+
 export async function encrypt_files(files: File[], securityLevel: string, department: string): Promise<string[]> {
     return Promise.all(files.map(f => encrypt_file(f, securityLevel, department)))
 }
@@ -114,5 +117,9 @@ export async function decrypt_file(file: File, userKey: string): Promise<string>
 }
 
 
+const policy = JSON.parse(new TextDecoder().decode(CoverCryptDemoKeys.policy))
+console.log(policy)
+console.log(JSON.stringify(policy, null, 4))
 
-console.log(JSON.parse(new TextDecoder().decode(CoverCryptDemoKeys.policy)))
+
+

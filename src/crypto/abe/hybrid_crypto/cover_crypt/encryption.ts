@@ -1,5 +1,5 @@
 import {
-    webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header
+    webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header, webassembly_generate_master_keys
 } from "../../../../../wasm_lib/abe/cover_crypt"
 import { logger } from "../../../../utils/logger"
 import { hexEncode } from "../../../../utils/utils"
@@ -126,4 +126,8 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
 
         return [ms, -1]
     }
+
+    // public generateMasterKey(): Uint8Array {
+    //     webassembly_generate_master_keys(policy_bytes)
+    // }
 }

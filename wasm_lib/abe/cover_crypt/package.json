@@ -5,7 +5,7 @@
     "Bruno Grieder <bruno.grieder@cosmian.com>"
   ],
   "description": "Key Policy attribute encryption based on subset cover",
-  "version": "1.0.3",
+  "version": "3.1.0",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",
