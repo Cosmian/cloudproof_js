@@ -8,24 +8,227 @@
 // then navigate to http://locahost:8080
 
 
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
 import { CoverCryptHybridDecryption } from "../crypto/abe/hybrid_crypto/cover_crypt/decryption"
 import { CoverCryptDemoKeys } from "../crypto/abe/hybrid_crypto/cover_crypt/demo_keys"
 import { CoverCryptHybridEncryption } from "../crypto/abe/hybrid_crypto/cover_crypt/encryption"
+import { EncryptionDecryptionDemo } from "../crypto/abe/hybrid_crypto/demo_hybrid_crypto"
 import { GpswHybridDecryption } from "../crypto/abe/hybrid_crypto/gpsw/decryption"
 import { GpswDemoKeys } from "../crypto/abe/hybrid_crypto/gpsw/demo_keys"
 import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryption"
-import * as lib from "../lib"
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
+import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
+import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
+import { DBInterface } from "../interface/db/dbInterface"
+import { Findex } from '../interface/findex/findex'
+import * as lib from "../lib"
+import { aliceKey, bobKey, charlieKey, k1, k2 } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
-import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
-import { EncryptionDecryptionDemo } from "../crypto/abe/hybrid_crypto/demo_hybrid_crypto"
-import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
-import { Findex } from "../interface/findex/findex"
-import { DBInterface } from "../interface/db/dbInterface"
-import axios, { AxiosResponse, AxiosInstance } from 'axios';
-import { bobKey, aliceKey } from "./../utils/demo_keys"
 
+class DB implements DBInterface {
+  instance: AxiosInstance = axios.create({
+    baseURL: process.env.SERVER,
+    timeout: 15000,
+  });
+
+  responseBody = (response: AxiosResponse) => response.data;
+
+  requests = {
+    get: (url: string) => this.instance.get(url).then(this.responseBody),
+  };
+
+  getEntryTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
+    return this.requests.get(`/index_chain?UID=in.(${uids})`)
+  }
+
+
+  getChainTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
+    return this.requests.get(`/index_entry?UID=in.(${uids})`)
+  }
+
+  getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+    return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
+  }
+
+  getFirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+    const config = {
+      headers: {
+        "Range-Unit": "items",
+        "Range": "0-4",
+      }
+    };
+    return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
+  }
+
+  getFirstUsers(): Promise<object[]> {
+    const config = {
+      headers: {
+        "Range-Unit": "items",
+        "Range": "0-4",
+      }
+    };
+    return this.instance.get(`/users`, config).then(this.responseBody)
+  }
+}
+
+async function loadData() {
+  const db = new DB();
+  const users = await db.getFirstUsers();
+  const encryptedUsers = await db.getFirstEncryptedDirectoryEntries();
+  const clearDb = document.getElementById("clear_db");
+  const encDb = document.getElementById("enc_db");
+  if (clearDb && encDb) {
+    if (clearDb.innerHTML || encDb.innerHTML) {
+      clearDb.innerHTML = "";
+      encDb.innerHTML = "";
+    }
+    else {
+      displayInTab(users, clearDb);
+      displayInTab(encryptedUsers, encDb);
+    }
+  }
+};
+(window as any).loadData = loadData
+
+/**
+ * Display an array of simple JS objects into a an array in HTML
+ * @param array array to display
+ * @param parent HTML parent element to insert the line in
+ * @returns void
+ */
+function displayInTab(array: object[], parent: HTMLElement) {
+  array.forEach((item, index) => {
+    if (item) {
+      if (index === 0) {
+        const columns = document.createElement('div');
+        columns.setAttribute('class', "item columns");
+        const keys = Object.keys(item);
+        for (const key of keys) {
+          const column = document.createElement('div');
+          column.setAttribute("class", "cell");
+          column.innerHTML = key;
+          columns.appendChild(column);
+        }
+        parent.appendChild(columns);
+      }
+      const line = document.createElement('div');
+      line.setAttribute("class", "item");
+      const values = Object.values(item);
+      for (const value of values) {
+        const cell = document.createElement('div');
+        cell.setAttribute("class", "cell");
+        cell.innerHTML = value;
+        line.appendChild(cell);
+      }
+      parent.appendChild(line);
+    }
+  });
+}
+
+/**
+ * Display No result in div
+ * @param parent HTML parent element to insert the line in
+ * @returns void
+ */
+function displayNoResult(parent: HTMLElement) {
+  const line = document.createElement('div');
+  line.setAttribute("class", "item");
+  line.innerHTML = "No results";
+  parent.appendChild(line);
+}
+
+/**
+ * Remove accents and uppercase to query word
+ * @param str string to sanitize
+ * @returns string initial string without accents and uppercase
+ */
+function sanitizeString(str: string): string {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
+}
+
+//
+/**
+ * Search terms with Findex implementation
+ * @param words string of all searched terms separated by a space character
+ * @param role chosen role to decrypt result
+ * @param logicalSwitch boolean to select OR (false) AND (true) operator
+ * @returns void
+ */
+async function search(words: string, role: string, logicalSwitch: boolean) {
+  type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string };
+  type ClearValue = { User: string, HR_Elements: string, Security_Elements: string };
+
+  const result = document.getElementById("result");
+  const content = document.getElementById("content");
+  if (result == null || content == null) {
+    return
+  }
+  result.style.visibility = "visible";
+  content.innerHTML = "";
+  try {
+    const db = new DB();
+    const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
+    let searchedUids;
+    if (logicalSwitch && words.length > 1) {
+      searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[]);
+    } else {
+      searchedUids = queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]);
+    }
+    if (queryResults) {
+      const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(searchedUids);
+      let key = "";
+      if (res && res.length) {
+        switch (role) {
+          case "charlie":
+            key = charlieKey;
+            break;
+          case "alice":
+            key = aliceKey;
+            break;
+          case "bob":
+            key = bobKey;
+        }
+        const hybridDecryption = new GpswHybridDecryption(hexDecode(key));
+        const clearValues: ClearValue[] = [];
+        res.filter((item) => { return item !== null }).forEach((item) => {
+          const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" };
+          const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[];
+          const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
+          for (let index = 0; index < clearKeys.length; index++) {
+            try {
+              const itemKey = encryptedKeys[index * 2 + 1];
+              const clearKey = clearKeys[index];
+              const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)));
+              const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g);
+              if (value) {
+                clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ");
+              }
+            }
+            catch (e) {
+              logger.log(() => "Unable to decrypt");
+            }
+          }
+          if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
+            clearValues.push(clearValue);
+          }
+        }
+        );
+        if (clearValues.length) {
+          displayInTab(clearValues, content);
+        } else {
+          displayNoResult(content);
+        }
+        hybridDecryption.destroyInstance();
+      } else {
+        displayNoResult(content);
+      }
+    }
+  } catch {
+    displayNoResult(content);
+  }
+}
+(window as any).search = search
 
 //
 // ----------------------------------------------------
