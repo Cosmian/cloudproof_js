@@ -1,6 +1,42 @@
 /* tslint:disable:max-classes-per-file */
 import { logger } from "../../../utils/logger"
 
+const MAX_ATTRIBUTE_VALUE: number = 2 ^ 32 - 1
+
+
+export class Attribute {
+    private axis: string
+    private name: string
+
+    /**
+     *
+     */
+    constructor(axis: string, name: string) {
+        this.axis = axis
+        this.name = name
+    }
+
+    public toString(): string {
+        return this.axis + '::' + this.name
+    }
+
+    public static parse(fullName: string): Attribute {
+        const parts: string[] = fullName.split('::')
+        if (parts.length !== 2) {
+            throw new Error("invalid attribute: " + fullName)
+        }
+        const axis: string = parts[0].trim()
+        if (axis.length === 0) {
+            throw new Error("invalid axis in attribute: " + fullName)
+        }
+        const name: string = parts[1].trim()
+        if (name.length === 0) {
+            throw new Error("invalid name in attribute: " + fullName)
+        }
+        return new Attribute(axis, name)
+    }
+}
+
 export class PolicyAxis {
     private _name: string
     private _attributes: string[]
@@ -35,16 +71,32 @@ export class PolicyAxis {
 }
 
 export class Policy {
-    private _axis: PolicyAxis[]
-    private _maxAttributeValue: number
-    private _lastAttributeValue?: number
-    private _attributeToInt?: {}
+    private store: { [axis: string]: { names: string[], hierarchical: boolean } }
+    private maxAttributeValue: number
+    private lastAttributeValue: number
+    private attributeToInt: { [attribute: string]: number[] }
 
-    constructor(axis: PolicyAxis[], maxAttributeValue: number, lastAttributeValue?: number, attributeToInt?: {}) {
-        this._axis = axis
-        this._maxAttributeValue = maxAttributeValue
-        this._lastAttributeValue = lastAttributeValue
-        this._attributeToInt = attributeToInt
+
+    constructor(maxAttributeValue?: number) {
+        if (typeof maxAttributeValue === 'undefined' || maxAttributeValue > MAX_ATTRIBUTE_VALUE) {
+            this.maxAttributeValue = MAX_ATTRIBUTE_VALUE
+        } else {
+            this.maxAttributeValue = maxAttributeValue
+        }
+        this.lastAttributeValue = 0
+        this.store = {}
+        this.attributeToInt = {}
+    }
+
+    public addAxis(axis: string, attributeNames: string[], hierarchical?: boolean): this {
+        //TODO: check if empty and existing axis ?
+        this.store[axis] = { names: attributeNames, hierarchical: hierarchical || false }
+        for (let name of attributeNames) {
+            const attribute = new Attribute(axis, name)
+            this.attributeToInt[attribute.toString()] = [this.lastAttributeValue]
+            this.lastAttributeValue += 1
+        }
+        return this
     }
 
     // Convert this `Policy` to JSON. Output example:
@@ -101,36 +153,32 @@ export class Policy {
     //         "Security Level::High Secret": [
     //         4
     //         ]
-    //     }
+    //     } 
     // }
     public toJsonEncoded(): Uint8Array {
         const policy: any = {}
         policy.store = {}
         policy.attribute_to_int = {}
-        if (this._lastAttributeValue === undefined && this._lastAttributeValue === undefined) {
+        if (this.lastAttributeValue === undefined && this.lastAttributeValue === undefined) {
             let attributeNb = 1
-            this._axis.forEach((axis: PolicyAxis) => {
+            this.axes.forEach((axis: PolicyAxis) => {
                 policy.store[axis.name] = [axis.attributes, axis.hierarchical]
                 axis.attributes.forEach((attr: string) => {
-                    policy.attribute_to_int[axis.name + "::" + attr] = [attributeNb]
-                    attributeNb++;
+                    policy.attribute_to_int[new Attribute(axis.name, attr).toString()] = [attributeNb]
+                    attributeNb++
                 })
             })
             policy.last_attribute_value = attributeNb
 
         } else {
-            policy.last_attribute_value = this._lastAttributeValue
-            policy.attribute_to_int = this._attributeToInt
-            this._axis.forEach((axis: PolicyAxis) => {
+            policy.last_attribute_value = this.lastAttributeValue
+            policy.attribute_to_int = this.attributeToInt
+            this.axes.forEach((axis: PolicyAxis) => {
                 policy.store[axis.name] = [axis.attributes, axis.hierarchical]
             })
-
         }
-        policy.max_attribute_value = this._maxAttributeValue
-
-        logger.log(() => "policy (JSON)" + policy)
-        const result = new TextEncoder().encode(JSON.stringify(policy))
-        return result
+        policy.max_attribute_value = this.maxAttributeValue
+        return new TextEncoder().encode(JSON.stringify(policy))
     }
 
     public static fromJsonEncoded(policy: string): Policy {
@@ -138,14 +186,12 @@ export class Policy {
         const policyJson = JSON.parse(policy)
 
         // Fill Policy Axis
-        const axis: PolicyAxis[] = []
-        for (const e of Object.keys(policyJson.store)) {
-            const value = policyJson.store[e]
-            logger.log(() => "Axis name: " + e)
-            logger.log(() => "Axis value: " + value[0])
-            axis.push(new PolicyAxis(e, value[0], value[1]))
+        const axes: PolicyAxis[] = []
+        for (const name of Object.keys(policyJson.store)) {
+            const value = policyJson.store[name]
+            axes.push(new PolicyAxis(name, value[0], value[1]))
         }
-        return new Policy(axis,
+        return new Policy(axes,
             policyJson.max_attribute_value,
             policyJson.last_attribute_value,
             policyJson.attribute_to_int)

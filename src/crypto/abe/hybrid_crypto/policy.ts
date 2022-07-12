@@ -1,39 +1,5 @@
 
-const MAX_ATTRIBUTE_VALUE: number = 2 ^ 32 - 1
 
-
-export class Attribute {
-    private axis: string
-    private name: string
-
-    /**
-     *
-     */
-    constructor(axis: string, name: string) {
-        this.axis = axis
-        this.name = name
-    }
-
-    public toString(): string {
-        return this.axis + '::' + this.name
-    }
-
-    public static parse(fullName: string): Attribute {
-        const parts: string[] = fullName.split('::')
-        if (parts.length !== 2) {
-            throw new Error("invalid attribute: " + fullName)
-        }
-        const axis: string = parts[0].trim()
-        if (axis.length === 0) {
-            throw new Error("invalid axis in attribute: " + fullName)
-        }
-        const name: string = parts[1].trim()
-        if (name.length === 0) {
-            throw new Error("invalid name in attribute: " + fullName)
-        }
-        return new Attribute(axis, name)
-    }
-}
 
 export class Policy {
     private lastAttributeValue: number

@@ -3,7 +3,7 @@ import {
 } from "../../../../../wasm_lib/abe/cover_crypt"
 import { logger } from "../../../../utils/logger"
 import { hexEncode } from "../../../../utils/utils"
-import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto"
+import { EncryptedHeader, HybridEncryption } from "../../hybrid_crypto/hybrid_crypto"
 import { AbeEncryptionParameters } from "../encryption_parameters"
 import { Metadata } from "../metadata"
 
