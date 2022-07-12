@@ -168,10 +168,13 @@ async function search(words: string, role: string, logicalSwitch: boolean) {
   content.innerHTML = "";
   try {
     const db = new DB();
-    const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100);
-    let searchedUids;
-    if (logicalSwitch && words.length > 1) {
-      searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[]);
+    const wordsArray = words.split(" ");
+    const queryResults = await Findex.query(k1, k2, wordsArray.map(word => sanitizeString(word)), db, 100);
+    let searchedUids: string[] = [];
+    if (logicalSwitch && wordsArray.length > 1) {
+      if (queryResults.length === wordsArray.length) {
+        searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[]);
+      }
     } else {
       searchedUids = queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[]);
     }
