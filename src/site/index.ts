@@ -373,6 +373,7 @@ function sanitizeString(str: string): string {
  * @returns void
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 async function search(words: string, role: string, logicalSwitch: boolean) {
   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
@@ -438,6 +439,8 @@ async function search(words: string, role: string, logicalSwitch: boolean) {
               logger.log(() => "Unable to decrypt")
             }
 =======
+=======
+>>>>>>> 4835aff (progressing on policy ipl)
 async function search(words: string, role: string) {
   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
@@ -493,50 +496,36 @@ async function search(words: string, role: string) {
                     clearValues.push(clearValue)
                   }
                 }
-              }
-              )
+              })
               if (clearValues.length) {
                 displayInTab(clearValues, content)
               } else {
                 displayNoResult(content)
               }
               hybridDecryption.destroyInstance()
->>>>>>> 5f85b23 (re-importing from old repo)
           }
-          if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
-            clearValues.push(clearValue)
-          }
-        }
-        )
-        if (clearValues.length) {
-          displayInTab(clearValues, content)
         } else {
           displayNoResult(content)
         }
-        hybridDecryption.destroyInstance()
       } else {
         displayNoResult(content)
       }
-<<<<<<< HEAD
-=======
     } catch {
       displayNoResult(content)
->>>>>>> 5f85b23 (re-importing from old repo)
     }
-  } catch {
-    displayNoResult(content)
   }
 }
-(window as any).search = search
-
 <<<<<<< HEAD
-//
+(window as any).search = search
 =======
+>>>>>>> 5036a76 (progressing on policy ipl)
+
 
 // ----------------------------------------------------
 // Local files encryption and decryption
 // ----------------------------------------------------
 
+<<<<<<< HEAD
 
 
 async function encrypt_files(files: File[]) {
@@ -605,6 +594,14 @@ async function decrypt_file(file: File): Promise<void> {
 
 >>>>>>> 5f85b23 (re-importing from old repo)
 >>>>>>> 54f95b8 (re-importing from old repo)
+=======
+(window as any).search = search;
+(window as any).encrypt_file = encrypt_file;
+(window as any).decrypt_files = decrypt_files;
+(window as any).decrypt_file = decrypt_file
+
+
+>>>>>>> 5036a76 (progressing on policy ipl)
 // ----------------------------------------------------
 // TEST PURPOSES
 // ----------------------------------------------------
@@ -831,6 +828,7 @@ const displayError = (err: string) => {
   wnElement.innerHTML = "ERROR: " + err
 }
 
+<<<<<<< HEAD
 // // run demo scenario for ABE implementation
 // function abeDemo(): string {
 //   if (!isGpswImplementation()) {
@@ -865,6 +863,42 @@ const displayError = (err: string) => {
 //   return "OK"
 // }
 (window as any).abeDemo = undefined // abeDemo
+=======
+// run demo scenario for ABE implementation
+function abeDemo(): string {
+  if (!isGpswImplementation()) {
+    // const policy =     new CoverCryptPolicy(100)
+    //   .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+    //   .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
+
+    const keyGeneration = new CoverCryptMasterKeyGeneration()
+    const demoKeys = new CoverCryptDemoKeys()
+    const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+    const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
+    const encryptionDemo = new EncryptionDecryptionDemo(policy,
+      keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+    )
+    encryptionDemo.run()
+    // CoverCryptHybridEncryptionDemo.run()
+  } else {
+
+    const policy = new CoverCryptPolicy(100)
+      .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+      .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
+    const keyGeneration = new GpswMasterKeyGeneration()
+    const demoKeys = new GpswDemoKeys()
+    const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+    const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
+    const encryptionDemo = new EncryptionDecryptionDemo(policy,
+      keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+    )
+    encryptionDemo.run()
+    // GpswHybridEncryptionDemo.run()
+  }
+  return "OK"
+}
+(window as any).abeDemo = abeDemo
+>>>>>>> 5036a76 (progressing on policy ipl)
 
 function elementSetValue(id: string, value: Uint8Array | string) {
   const box = document.getElementById(id)

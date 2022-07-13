@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // /* tslint:disable:max-classes-per-file */
 // import {
 //   webassembly_generate_master_keys,
@@ -8,6 +9,18 @@
 // import { fromBeBytes, hexDecode } from "../../../../utils/utils"
 // import { AbeKeyGeneration, AbeMasterKey } from "../keygen"
 // import { Policy } from "../../policy"
+=======
+/* tslint:disable:max-classes-per-file */
+import {
+  webassembly_generate_master_keys,
+  webassembly_generate_user_private_key,
+  webassembly_rotate_attributes
+} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
+import { logger } from "../../../../utils/logger"
+import { fromBeBytes, hexDecode } from "../../../../utils/utils"
+import { AbeKeyGeneration, AbeMasterKey } from "../keygen"
+import { Policy } from "../../policy"
+>>>>>>> 5036a76 (progressing on policy ipl)
 
 // export class GpswMasterKey extends AbeMasterKey {
 
@@ -40,4 +53,8 @@
 
 
 
+<<<<<<< HEAD
 // }
+=======
+}
+>>>>>>> 5036a76 (progressing on policy ipl)
