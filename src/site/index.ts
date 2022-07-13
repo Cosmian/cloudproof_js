@@ -32,6 +32,7 @@ import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
 import { CoverCryptDecryptionTS } from "../files/transformers/CoverCryptDecryptionTS"
 import { DoNothingTS } from "../files/transformers/DoNothingTS"
 import { decrypt_file, decrypt_files, encrypt_file, encrypt_files } from "./index_files"
+import { CoverCryptPolicy } from "../crypto/abe/hybrid_crypto/cover_crypt/cover_crypt_policy"
 
 
 logger.on = true
@@ -48,20 +49,12 @@ class DB implements DBInterface {
     get: (url: string) => this.instance.get(url).then(this.responseBody),
   };
 
-<<<<<<< HEAD
-  getEntryTableEntries(uids: string[]): Promise<{ UID: string; Value: string }[]> {
-=======
   getEntryTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
->>>>>>> 5f85b23 (re-importing from old repo)
     return this.requests.get(`/index_chain?UID=in.(${uids})`)
   }
 
 
-<<<<<<< HEAD
-  getChainTableEntries(uids: string[]): Promise<{ UID: string; Value: string }[]> {
-=======
   getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
->>>>>>> 5f85b23 (re-importing from old repo)
     return this.requests.get(`/index_entry?UID=in.(${uids})`)
   }
 
@@ -90,21 +83,12 @@ class DB implements DBInterface {
   }
 }
 
-<<<<<<< HEAD
 async function loadData() {
   const db = new DB()
   const users = await db.getFirstUsers()
   const encryptedUsers = await db.getFirstEncryptedDirectoryEntries()
   const clearDb = document.getElementById("clear_db")
   const encDb = document.getElementById("enc_db")
-=======
-async function load_data() {
-  const db = new DB()
-  const users = await db.getfirstUsers()
-  const encryptedUsers = await db.getfirstEncryptedDirectoryEntries()
-  const clearDb = document.getElementById("clear_db")
-  const encDb = document.getElementById("enc_db")
->>>>>>> 5f85b23 (re-importing from old repo)
   if (clearDb && encDb) {
     if (clearDb.innerHTML || encDb.innerHTML) {
       clearDb.innerHTML = ""
@@ -182,61 +166,6 @@ function sanitizeString(str: string): string {
  * @param logicalSwitch boolean to select OR (false) AND (true) operator
  * @returns void
  */
-<<<<<<< HEAD
-async function search(words: string, role: string, logicalSwitch: boolean) {
-  type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
-  type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
-
-  const result = document.getElementById("result")
-  const content = document.getElementById("content")
-  if (result == null || content == null) {
-    return
-  }
-  result.style.visibility = "visible"
-  content.innerHTML = ""
-  try {
-    const db = new DB()
-    const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100)
-    let searchedUids
-    if (logicalSwitch && words.length > 1) {
-      searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[])
-    } else {
-      searchedUids = queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[])
-    }
-    if (queryResults) {
-      const res: EncryptedValue[] = await db.getEncryptedDirectoryEntries(searchedUids)
-      let key = ""
-      if (res && res.length) {
-        switch (role) {
-          case "charlie":
-            key = charlieKey
-            break
-          case "alice":
-            key = aliceKey
-            break
-          case "bob":
-            key = bobKey
-        }
-        const hybridDecryption = new GpswHybridDecryption(hexDecode(key))
-        const clearValues: ClearValue[] = []
-        res.filter((item) => { return item !== null }).forEach((item) => {
-          const clearValue: ClearValue = { User: "", HR_Elements: "", Security_Elements: "" }
-          const clearKeys = Object.keys(clearValue) as (keyof ClearValue)[]
-          const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[]
-          for (let index = 0; index < clearKeys.length; index++) {
-            try {
-              const itemKey = encryptedKeys[index * 2 + 1]
-              const clearKey = clearKeys[index]
-              const clearText = hybridDecryption.decrypt(hexDecode(item[itemKey].substring(2)))
-              const value = new TextDecoder().decode(clearText).match(/'([^']+)'/g)
-              if (value) {
-                clearValue[clearKey] = value.map(val => { return val.slice(1, -1) }).join(" | ")
-              }
-            }
-            catch (e) {
-              logger.log(() => "Unable to decrypt")
-            }
-=======
 async function search(words: string, role: string) {
   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
@@ -292,57 +221,37 @@ async function search(words: string, role: string) {
                     clearValues.push(clearValue)
                   }
                 }
-              }
-              )
+              })
               if (clearValues.length) {
                 displayInTab(clearValues, content)
               } else {
                 displayNoResult(content)
               }
               hybridDecryption.destroyInstance()
->>>>>>> 5f85b23 (re-importing from old repo)
           }
-          if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
-            clearValues.push(clearValue)
-          }
-        }
-        )
-        if (clearValues.length) {
-          displayInTab(clearValues, content)
         } else {
           displayNoResult(content)
         }
-        hybridDecryption.destroyInstance()
       } else {
         displayNoResult(content)
       }
-<<<<<<< HEAD
-=======
     } catch {
       displayNoResult(content)
->>>>>>> 5f85b23 (re-importing from old repo)
     }
-  } catch {
-    displayNoResult(content)
   }
 }
-(window as any).search = search;
 
-<<<<<<< HEAD
-//
-=======
 
 // ----------------------------------------------------
 // Local files encryption and decryption
 // ----------------------------------------------------
 
-(window as any).encrypt_files = encrypt_files;
+(window as any).search = search;
 (window as any).encrypt_file = encrypt_file;
 (window as any).decrypt_files = decrypt_files;
 (window as any).decrypt_file = decrypt_file
 
 
->>>>>>> 5f85b23 (re-importing from old repo)
 // ----------------------------------------------------
 // TEST PURPOSES
 // ----------------------------------------------------
@@ -572,21 +481,29 @@ const displayError = (err: string) => {
 // run demo scenario for ABE implementation
 function abeDemo(): string {
   if (!isGpswImplementation()) {
+    // const policy =     new CoverCryptPolicy(100)
+    //   .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+    //   .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
+
     const keyGeneration = new CoverCryptMasterKeyGeneration()
     const demoKeys = new CoverCryptDemoKeys()
     const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
     const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
-    const encryptionDemo = new EncryptionDecryptionDemo(
+    const encryptionDemo = new EncryptionDecryptionDemo(policy,
       keyGeneration, demoKeys, hybridEncryption, hybridDecryption
     )
     encryptionDemo.run()
     // CoverCryptHybridEncryptionDemo.run()
   } else {
+
+    const policy = new CoverCryptPolicy(100)
+      .addAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true)
+      .addAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
     const keyGeneration = new GpswMasterKeyGeneration()
     const demoKeys = new GpswDemoKeys()
     const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
     const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
-    const encryptionDemo = new EncryptionDecryptionDemo(
+    const encryptionDemo = new EncryptionDecryptionDemo(policy,
       keyGeneration, demoKeys, hybridEncryption, hybridDecryption
     )
     encryptionDemo.run()

@@ -3,7 +3,7 @@ import { webassembly_generate_master_keys, webassembly_generate_user_private_key
 import { logger } from "../../../../utils/logger"
 import { fromBeBytes } from "../../../../utils/utils"
 import { AbeKeyGeneration, AbeMasterKey } from "../keygen"
-import { Policy } from "../policy"
+import { Policy } from "../../policy"
 
 export class CoverCryptMasterKey extends AbeMasterKey {
 
@@ -34,15 +34,5 @@ export class CoverCryptMasterKeyGeneration extends AbeKeyGeneration {
     return userPrivateKey
   }
 
-  public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    logger.log(() => "attributes: " + attributes)
-    logger.log(() => "policy: " + policy)
-
-    const policyBytes = policy.toJsonEncoded()
-    const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
-    const newPolicyString = webassembly_rotate_attributes(attributesBytes, policyBytes)
-
-    return Policy.fromJsonEncoded(newPolicyString)
-  }
 
 }

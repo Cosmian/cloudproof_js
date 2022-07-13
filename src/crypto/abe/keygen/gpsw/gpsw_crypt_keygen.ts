@@ -7,7 +7,7 @@ import {
 import { logger } from "../../../../utils/logger"
 import { fromBeBytes, hexDecode } from "../../../../utils/utils"
 import { AbeKeyGeneration, AbeMasterKey } from "../keygen"
-import { Policy } from "../policy"
+import { Policy } from "../../policy"
 
 export class GpswMasterKey extends AbeMasterKey {
 
@@ -38,16 +38,6 @@ export class GpswMasterKeyGeneration extends AbeKeyGeneration {
     return userPrivateKey
   }
 
-  public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    logger.log(() => "attributes: " + attributes)
-    logger.log(() => "policy: " + policy)
 
-    const policyBytes = policy.toJsonEncoded()
-    const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
-    const newPolicyBytes = webassembly_rotate_attributes(attributesBytes, policyBytes)
-
-    const newPolicyString = new TextDecoder().decode(hexDecode(newPolicyBytes))
-    return Policy.fromJsonEncoded(newPolicyString)
-  }
 
 }

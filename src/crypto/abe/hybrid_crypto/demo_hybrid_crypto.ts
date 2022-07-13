@@ -2,7 +2,7 @@
 
 import { logger } from "../../../utils/logger"
 import { AbeKeyGeneration } from "../keygen/keygen"
-import { Policy, PolicyAxis } from "../keygen/policy"
+import { Attribute, Policy } from "../policy"
 import { HybridDecryption, HybridEncryption } from "./hybrid_crypto"
 
 
@@ -34,12 +34,14 @@ export class DemoKeys {
 }
 
 export class EncryptionDecryptionDemo {
+  public policy: Policy
   public keyGenerator: AbeKeyGeneration
   public demoKeys: DemoKeys
   public hybridEncryption: HybridEncryption
   public hybridDecryption: HybridDecryption
 
-  constructor(keyGenerator: AbeKeyGeneration, demoKeys: DemoKeys, hybridEncryption: HybridEncryption, hybridDecryption: HybridDecryption) {
+  constructor(policy: Policy, keyGenerator: AbeKeyGeneration, demoKeys: DemoKeys, hybridEncryption: HybridEncryption, hybridDecryption: HybridDecryption) {
+    this.policy = policy
     this.keyGenerator = keyGenerator
     this.demoKeys = demoKeys
     this.hybridEncryption = hybridEncryption
@@ -51,37 +53,33 @@ export class EncryptionDecryptionDemo {
     this.nonRegressionTests()
 
     // Demo of key generation
-    const policy = new Policy([
-      new PolicyAxis("Security Level", ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"], true),
-      new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
-    ], 100)
     // Generate master keys
-    const masterKeys = this.keyGenerator.generateMasterKey(policy)
+    const masterKeys = this.keyGenerator.generateMasterKey(this.policy)
 
     // set all keys values
-    this.demoKeys.policy = policy.toJsonEncoded()
+    this.demoKeys.policy = this.policy.toJsonEncoded()
     this.demoKeys.publicKey = masterKeys.publicKey
     this.demoKeys.privateKey = masterKeys.privateKey
-    this.demoKeys.topSecretMkgFinUser = this.keyGenerator.generateUserPrivateKey(masterKeys.privateKey, DemoKeys.topSecretMkgFinUserAccessPolicy, policy)
-    this.demoKeys.mediumSecretMkgUser = this.keyGenerator.generateUserPrivateKey(masterKeys.privateKey, DemoKeys.mediumSecretMkgUserAccessPolicy, policy)
-    this.hybridEncryption.policy = policy.toJsonEncoded()
+    this.demoKeys.topSecretMkgFinUser = this.keyGenerator.generateUserPrivateKey(masterKeys.privateKey, DemoKeys.topSecretMkgFinUserAccessPolicy, this.policy)
+    this.demoKeys.mediumSecretMkgUser = this.keyGenerator.generateUserPrivateKey(masterKeys.privateKey, DemoKeys.mediumSecretMkgUserAccessPolicy, this.policy)
+    this.hybridEncryption.policy = this.policy.toJsonEncoded()
     this.hybridEncryption.publicKey = masterKeys.publicKey
 
     // Run demo scenario (encryption + decryption)
     this.encryptionDemo()
 
     // Rotate attribute
-    const newPolicy = this.keyGenerator.rotateAttributes(['Security Level::Low Secret', 'Department::MKG'], policy)
+    this.policy.rotate([new Attribute('Security Level', 'Low Secret'), new Attribute('Department', 'MKG')])
     // Refresh master keys (only needed by CoverCrypt)
-    const newMasterKeys = this.keyGenerator.generateMasterKey(newPolicy)
+    const newMasterKeys = this.keyGenerator.generateMasterKey(this.policy)
 
     // set all keys values
-    this.demoKeys.policy = newPolicy.toJsonEncoded()
+    this.demoKeys.policy = this.policy.toJsonEncoded()
     this.demoKeys.publicKey = newMasterKeys.publicKey
     this.demoKeys.privateKey = newMasterKeys.privateKey
-    this.demoKeys.topSecretMkgFinUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.topSecretMkgFinUserAccessPolicy, newPolicy)
-    this.demoKeys.mediumSecretMkgUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.mediumSecretMkgUserAccessPolicy, newPolicy)
-    this.hybridEncryption.policy = newPolicy.toJsonEncoded()
+    this.demoKeys.topSecretMkgFinUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.topSecretMkgFinUserAccessPolicy, this.policy)
+    this.demoKeys.mediumSecretMkgUser = this.keyGenerator.generateUserPrivateKey(newMasterKeys.privateKey, DemoKeys.mediumSecretMkgUserAccessPolicy, this.policy)
+    this.hybridEncryption.policy = this.policy.toJsonEncoded()
     this.hybridEncryption.publicKey = newMasterKeys.publicKey
 
     // and restart again demo scenario

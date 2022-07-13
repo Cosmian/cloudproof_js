@@ -1,5 +1,5 @@
 /* tslint:disable:max-classes-per-file */
-import { Policy } from "./policy"
+import { Policy } from "../policy"
 
 
 export class AbeMasterKey {
@@ -31,6 +31,5 @@ export class AbeMasterKey {
 export abstract class AbeKeyGeneration {
   public abstract generateMasterKey(policy: Policy): AbeMasterKey
   public abstract generateUserPrivateKey(privateKey: Uint8Array, accessPolicy: string, policy: Policy): Uint8Array
-  public abstract rotateAttributes(attributes: string[], policy: Policy): Policy
 
 }
