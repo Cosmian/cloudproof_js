@@ -6,3 +6,8 @@ export const charlieKey = "00000003814bddce96accaeed2c1516d65c695b35b3876af99415
 
 export const k1 = "0ad38b86c3ea854a50a3f4cdc12e4a5313339ae2f6a60b340b5b8eaaccd1a666"
 export const k2 = "2faacade22095bf0fdf62410d7ca330542552e44ce90f7f9ba5e2d7ec0d2bf19"
+
+export const masterKeys = {
+  "k": "+vkNzKSmgGljmtCFlNRGGG1Azq4BrtabZR0V8hTrC2o=",
+  "k_star": "LZ+7mLCF16TKs9v3RuMGPRAIfMXnVC9FmfN6fwsaPQ0="
+}

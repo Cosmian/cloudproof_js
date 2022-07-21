@@ -22,7 +22,7 @@ import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_ke
 import { DBInterface } from "../interface/db/dbInterface"
 import { Findex } from '../interface/findex/findex'
 import * as lib from "../lib"
-import { aliceKey, bobKey, charlieKey, k1, k2 } from "./../utils/demo_keys"
+import { aliceKey, bobKey, charlieKey, k1, k2, masterKeys } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
 
@@ -36,15 +36,15 @@ class DB implements DBInterface {
 
   requests = {
     get: (url: string) => this.instance.get(url).then(this.responseBody),
+    post: (url: string, content: { UID: string, Value: string}[]) => this.instance.post(url, content).then(this.responseBody),
   };
 
   getEntryTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
-    return this.requests.get(`/index_chain?UID=in.(${uids})`)
+    return this.requests.get(`/index_entry?UID=in.(${uids})`)
   }
 
-
   getChainTableEntries(uids: string[]): Promise<{ UID: string; Value: string; }[]> {
-    return this.requests.get(`/index_entry?UID=in.(${uids})`)
+    return this.requests.get(`/index_chain?UID=in.(${uids})`)
   }
 
   getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
@@ -70,6 +70,18 @@ class DB implements DBInterface {
     };
     return this.instance.get(`/users`, config).then(this.responseBody)
   }
+
+  getUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+    return this.instance.get(`/users`).then(this.responseBody)
+  }
+
+  upsertEntryTableEntries(entries: { UID: string, Value: string }[]): Promise<number> {
+    return this.requests.post(`/index_entry`, entries);
+  }
+
+  upsertChainTableEntries(entries: { UID: string, Value: string }[]): Promise<number> {
+    return this.requests.post(`/index_chain`, entries);
+  }
 }
 
 async function loadData() {
@@ -90,6 +102,21 @@ async function loadData() {
   }
 };
 (window as any).loadData = loadData
+
+async function loadUsers() {
+  const db = new DB();
+  const users = await db.getFirstUsers();
+  const clearDb = document.getElementById("clear_db");
+  if (clearDb) {
+    if (clearDb.innerHTML) {
+      clearDb.innerHTML = "";
+    }
+    else {
+      displayInTab(users, clearDb);
+    }
+  }
+};
+(window as any).loadUsers = loadUsers
 
 /**
  * Display an array of simple JS objects into a an array in HTML
@@ -146,6 +173,14 @@ function displayNoResult(parent: HTMLElement) {
 function sanitizeString(str: string): string {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
 }
+
+async function upsert() {
+  const db = new DB();
+  const users = await db.getUsers();
+  const res = await Findex.upsert(db, masterKeys, users);
+  // console.log("res", JSON.parse(res));
+}
+(window as any).upsert = upsert
 
 //
 /**

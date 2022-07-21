@@ -1,8 +1,56 @@
+import { compute_entry_uids_aes256 } from "../../../wasm_lib/findex/findex";
 import { EntryTableUnchainedValue, Sse } from "../../crypto/sse/sse";
 import { DBInterface } from "../db/dbInterface";
 import { hexDecode, hexEncode } from "./../../utils/utils";
 
 export class Findex {
+
+  public static async upsert(db: DBInterface, masterKeys: Object, users: { id?: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]): Promise<any> {
+
+    const fetchEntry = async (uids_json: string): Promise<string> => {
+      const uids = JSON.parse(uids_json);
+      const result = await db.getEntryTableEntries(uids);
+      const formattedResult = result.reduce((acc, el) => {
+        return {...acc };
+      }, {})
+      return JSON.stringify(formattedResult);
+    }
+
+    const upsertEntry = async (x: string): Promise<number> => {
+      const elements: { UID: string,  Value: string } = JSON.parse(x);
+      let formattedElements: { UID: string, Value: string}[]  = [];
+      for (const [key, value] of Object.entries(elements)) {
+        formattedElements= [...formattedElements, { 'UID': key, 'Value': value}]
+      }
+      await db.upsertEntryTableEntries(formattedElements);
+      console.log("POST", formattedElements)
+      return formattedElements.length;
+    }
+
+    const upsertChain = async (x: string): Promise<number> => {
+      const elements: { UID: string, Value: string } = JSON.parse(x);
+      let formattedElements: { UID: string, Value: string }[] = [];
+      for (const [key, value] of Object.entries(elements)) {
+        formattedElements = [...formattedElements, { 'UID': key, 'Value': value }]
+      }
+      await db.upsertChainTableEntries(formattedElements);
+      console.log("POST", formattedElements)
+      return formattedElements.length;
+    }
+
+    let dbUsers = {};
+    users.map((user) => {
+      const userId = user.id;
+      delete user.id;
+      dbUsers = {
+        ...dbUsers,
+        ...(userId ? { [userId]: [user.firstName, user.lastName, user.phone, user.email, user.country, user.region, user.employeeNumber, user.security ] } : {})
+      };
+    });
+    const res = compute_entry_uids_aes256(JSON.stringify(masterKeys), JSON.stringify(dbUsers), fetchEntry, upsertEntry, upsertChain);
+    return res;
+  }
+
   public static async query(k1: string, k2: string, words: string[], db: DBInterface, loopIterationLimit: number): Promise<{ word: string; dbUids: string[]; }[]> {
     const entryTableUids: string[] = words.map((word: string) => hexEncode(Sse.computeEntryTableUid(hexDecode(k1), word)));
 
