@@ -240,16 +240,8 @@
 
     <h3>Search elements</h3>
     <form class="block"
-      onSubmit="search(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); return false">
+      onSubmit="search(document.getElementById('query').value); return false">
       <div class="search">
-        <div style="display: flex; align-items: center; margin: 20px;">
-          <h5>OR</h5>
-          <label class="switch">
-            <input type="checkbox" id="switch">
-            <span class="slider"></span>
-          </label>
-          <h5>AND</h5>
-        </div>
         <input type="text" id="query" name="query" class="textInput" placeholder="Words to query... ex: Félix Paul">
         <br />
         <button type="submit" value="Submit">Search</button>

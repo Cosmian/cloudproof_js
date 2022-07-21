@@ -1,3 +1,4 @@
+
 /**
  * Hex encode an array of bytes
  * @param array the bytes
@@ -59,4 +60,78 @@ export function toBeBytes(myNumber: number): Uint8Array {
     const view = new DataView(arr);
     view.setUint32(0, myNumber, false);
     return new Uint8Array(arr, 0)
+}
+
+export function deserializeList(serializedItems: Uint8Array): any[] {
+    const leb = require('leb128');
+    const items: Uint8Array[] = [];
+    while (serializedItems.length > 1) {
+        const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10);
+        const item = serializedItems.slice(1, 1 + itemLen);
+        serializedItems = serializedItems.slice(1 + itemLen);
+        items.push(item);
+    }
+    return items;
+}
+
+export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Array, value: Uint8Array }[] {
+    const leb = require('leb128');
+    const items: {
+        key: Uint8Array, value: Uint8Array
+    }[] = [];
+    while (serializedItems.length > 1) {
+        const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10);
+        const key = serializedItems.slice(1, 1 + keyLen);
+        serializedItems = serializedItems.slice(1 + keyLen);
+
+        if (key.length > 1) {
+            const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10);
+            const value = serializedItems.slice(1, 1 + valueLen);
+            const item: { key: Uint8Array, value: Uint8Array } = { key: new Uint8Array(), value: new Uint8Array() };
+            if (value.length > 0) {
+                item.key = key;
+                item.value = value;
+            }
+            items.push(item);
+            serializedItems = serializedItems.slice(1 + valueLen);
+        }
+    }
+    return items;
+}
+
+export function serializeList(list: Uint8Array[]): Uint8Array {
+    const leb = require('leb128');
+    let serializedData = new Uint8Array();
+    for (const item of list) {
+        const itemLen = leb.unsigned.encode(item.length);
+        serializedData = Uint8Array.from([...serializedData, ...itemLen, ...item])
+    }
+    serializedData = Uint8Array.from([...serializedData, 0])
+    return serializedData;
+}
+
+export function serializeHashMap(hashMap: { uid: Uint8Array, value: Uint8Array}[]): Uint8Array {
+    const leb = require('leb128');
+    let serializedData = new Uint8Array();
+    for (const item of hashMap) {
+        const keyLen = leb.unsigned.encode(item.uid.length);
+        const valueLen = leb.unsigned.encode(item.value.length);
+        serializedData = Uint8Array.from([...serializedData, ...keyLen, ...item.uid, ...valueLen, ...item.value])
+    }
+    serializedData = Uint8Array.from([...serializedData, 0])
+    return serializedData;
+}
+
+export function hexEncodeBytes(bytes: Uint8Array): string {
+    const encodedBytes = bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
+    return encodedBytes;
+}
+
+export function hexDecodeBytes(hexString: string): Uint8Array {
+    const matching = hexString.match(/.{1,2}/g)
+    if (matching) {
+        const bytes = Uint8Array.from(matching.map((byte) => parseInt(byte, 16)));
+        return bytes;
+    }
+    return new Uint8Array();
 }
