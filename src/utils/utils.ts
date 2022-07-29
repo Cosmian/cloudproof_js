@@ -62,7 +62,13 @@ export function toBeBytes(myNumber: number): Uint8Array {
     return new Uint8Array(arr, 0)
 }
 
-export function deserializeList(serializedItems: Uint8Array): any[] {
+/**
+ * Deserialize Uint8Array as a list of Uint8Array
+ *
+ * @param serializedItems Uint8Array of serialized data
+ * @returns an array of deserialized items
+ */
+export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
     const leb = require('leb128');
     const items: Uint8Array[] = [];
     while (serializedItems.length > 1) {
@@ -74,6 +80,12 @@ export function deserializeList(serializedItems: Uint8Array): any[] {
     return items;
 }
 
+/**
+ * Deserialize Uint8Array as an array of objects with key and value
+ *
+ * @param serializedItems Uint8Array of serialized data
+ * @returns an array of objects with key and value properties as Uint8Array
+ */
 export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Array, value: Uint8Array }[] {
     const leb = require('leb128');
     const items: {
@@ -99,6 +111,12 @@ export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Arr
     return items;
 }
 
+/**
+ * Serialize a list of Uint8Array as a Uint8Array
+ *
+ * @param list an array of deserialized item
+ * @returns Uint8Array of serialized data
+ */
 export function serializeList(list: Uint8Array[]): Uint8Array {
     const leb = require('leb128');
     let serializedData = new Uint8Array();
@@ -110,28 +128,20 @@ export function serializeList(list: Uint8Array[]): Uint8Array {
     return serializedData;
 }
 
-export function serializeHashMap(hashMap: { uid: Uint8Array, value: Uint8Array}[]): Uint8Array {
+/**
+ * Serialize an array of uids and values as a Uint8Array
+ *
+ * @param data an array of objects containing uids and values
+ * @returns Uint8Array of serialized data
+ */
+export function serializeHashMap(data: { uid: Uint8Array, value: Uint8Array}[]): Uint8Array {
     const leb = require('leb128');
     let serializedData = new Uint8Array();
-    for (const item of hashMap) {
+    for (const item of data) {
         const keyLen = leb.unsigned.encode(item.uid.length);
         const valueLen = leb.unsigned.encode(item.value.length);
         serializedData = Uint8Array.from([...serializedData, ...keyLen, ...item.uid, ...valueLen, ...item.value])
     }
     serializedData = Uint8Array.from([...serializedData, 0])
     return serializedData;
-}
-
-export function hexEncodeBytes(bytes: Uint8Array): string {
-    const encodedBytes = bytes.reduce((str, byte) => str + byte.toString(16).padStart(2, '0'), '');
-    return encodedBytes;
-}
-
-export function hexDecodeBytes(hexString: string): Uint8Array {
-    const matching = hexString.match(/.{1,2}/g)
-    if (matching) {
-        const bytes = Uint8Array.from(matching.map((byte) => parseInt(byte, 16)));
-        return bytes;
-    }
-    return new Uint8Array();
 }

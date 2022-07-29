@@ -18,34 +18,54 @@ import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryptio
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
+import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy"
+import { coverCryptDecrypt, coverCryptEncrypt, generateMasterKeys } from "../interface/cover_crypt/cover_crypt"
 import { DB } from "../interface/db/dbInterface"
 import { Findex } from '../interface/findex/findex'
 import * as lib from "../lib"
-import { masterKeys } from "./../utils/demo_keys"
+import { masterKeysFindex } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
-import { hexDecode } from "./../utils/utils"
+import { hexDecode, hexEncode } from "./../utils/utils"
 
-async function loadData() {
+/**
+ * Index users contained in DB with Findex upsert
+ *  @param location string naming the key of location to index
+ *  @returns void
+ */
+async function upsert(location: string) {
+  const button = document.getElementById("index_button");
+  if (button) {
+    button.innerHTML = "Indexes creation...";
+  }
+  type User = { [key: string]: string; };
   const db = new DB();
-  const users = await db.getFirstUsers();
-  const encryptedUsers = await db.getFirstEncryptedDirectoryEntries();
-  const clearDb = document.getElementById("clear_db");
-  const encDb = document.getElementById("enc_db");
-  if (clearDb && encDb) {
-    if (clearDb.innerHTML || encDb.innerHTML) {
-      clearDb.innerHTML = "";
-      encDb.innerHTML = "";
+  await db.deleteAllChainTableEntries();
+  await db.deleteAllEntryTableEntries();
+  const users: User[] = await db.getUsers();
+  const sanitizedUsers: User[] = users.map((user) => {
+    Object.keys(user).forEach((key) => { user[key] = sanitizeString(user[key]) });
+    return user;
+  })
+  const findex = new Findex(db);
+  try {
+    await findex.upsert(masterKeysFindex, sanitizedUsers, location);
+    if (button) {
+      button.innerHTML = "Indexes created !";
     }
-    else {
-      displayInTab(users, clearDb);
-      displayInTab(encryptedUsers, encDb);
+  } catch {
+    if (button) {
+      button.innerHTML = "Error indexing";
     }
   }
-};
-(window as any).loadData = loadData
+}
 
-async function loadUsers() {
+/**
+ * Findex upsert users and display them
+ * @returns void
+ */
+async function IndexAndloadUsers() {
   const db = new DB();
+  await upsert('id');
   const users = await db.getFirstUsers();
   const clearDb = document.getElementById("clear_db");
   if (clearDb) {
@@ -57,7 +77,196 @@ async function loadUsers() {
     }
   }
 };
-(window as any).loadUsers = loadUsers
+(window as any).IndexAndloadUsers = IndexAndloadUsers
+
+/**
+ * Encrypt users table with CoverCrypt, Findex upsert encypted users and display them
+ * @returns void
+ */
+async function IndexAndLoadEncryptedUsers() {
+  const button = document.getElementById("index_button");
+  if (button) {
+    button.innerHTML = "Encrypt users...";
+  }
+
+  const db = new DB();
+  await db.deleteAllEncryptedUsers();
+
+  const policy = new Policy([
+    new PolicyAxis("department", ["marketing", "HR", "security"], false),
+    new PolicyAxis("country", ["France", "Spain", "Germany"], false)
+  ], 100)
+  const masterKeysCoverCrypt = generateMasterKeys(policy);
+  const policyBytes = policy.toJsonEncoded();
+  sessionStorage.setItem('policy', hexEncode(policyBytes));
+  sessionStorage.setItem('coverCryptPublicKey', hexEncode(masterKeysCoverCrypt.publicKey));
+  sessionStorage.setItem('coverCryptPrivateKey', hexEncode(masterKeysCoverCrypt.privateKey));
+
+  const users = await db.getUsers();
+  for (const user of users) {
+    const encryptedBasic = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::marketing`, `country::${user.country}`], JSON.stringify({ firstName: user.firstName, lastName: user.lastName, country: user.country, region: user.region }))
+    const encryptedHr = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::HR`, `country::${user.country}`], JSON.stringify({ email: user.email, phone: user.phone, employeeNumber: user.employeeNumber }))
+    const encryptedSecurity = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::security`, `country::${user.country}`], JSON.stringify({ security: user.security }))
+    const upsertedEncUser = await db.upsertEncryptedUser({
+      enc_basic: hexEncode(encryptedBasic),
+      enc_hr: hexEncode(encryptedHr),
+      enc_security: hexEncode(encryptedSecurity)
+    });
+    await db.upsertUserEncUidById(user.id, { enc_uid: upsertedEncUser[0].uid });
+  };
+
+  await upsert('enc_uid');
+
+  const firstUsers = await db.getFirstUsers();
+  const firstEncryptedUsers = await db.getFirstEncryptedUsers();
+  const clearDb = document.getElementById("clear_db");
+  const encDb = document.getElementById("enc_db");
+  if (clearDb && encDb) {
+    if (clearDb.innerHTML || encDb.innerHTML) {
+      clearDb.innerHTML = "";
+      encDb.innerHTML = "";
+    }
+    else {
+      displayInTab(firstUsers, clearDb);
+      displayInTab(firstEncryptedUsers, encDb);
+    }
+  }
+};
+(window as any).IndexAndLoadEncryptedUsers = IndexAndLoadEncryptedUsers
+
+/**
+ * Search terms with Findex implementation
+ * @param words string of all searched terms separated by a space character
+ * @param logicalSwitch boolean to specify OR / AND search
+ * @returns void
+ */
+async function search(words: string, logicalSwitch: boolean) {
+  type User = { [key: string]: string; };
+
+  const result = document.getElementById("result");
+  const content = document.getElementById("content");
+  if (result == null || content == null) {
+    return
+  }
+  result.style.visibility = "visible";
+  content.innerHTML = "";
+  try {
+    const db = new DB();
+    const wordsArray = words.split(" ");
+    const findex = new Findex(db);
+    let queryResults: string[] = [];
+    if (!logicalSwitch) {
+      queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)));
+    } else {
+      await Promise.all(wordsArray.map(async (word, index) => {
+        const partialResults = await findex.search(masterKeysFindex, [word])
+        if (index) {
+          queryResults = queryResults.filter(location => partialResults.includes(location))
+        } else {
+          queryResults = [ ...partialResults ]
+        }
+      }))
+    }
+    if (queryResults.length) {
+      const users: User[] = await db.getUsersById(queryResults);
+      displayInTab(users, content);
+    } else {
+      displayNoResult(content);
+    }
+  } catch {
+    displayNoResult(content);
+  }
+}
+(window as any).search = search
+
+/**
+ * Search terms with Findex implementation
+ * @param words string of all searched terms separated by a space character
+ * @param role string naming the selected user for decryption
+ * @param logicalSwitch boolean to specify OR / AND search
+ * @returns void
+ */
+async function searchAndDecrypt(words: string, role: string, logicalSwitch: boolean) {
+  type EncryptedValue = { uid: string, enc_basic: string, enc_hr: string, enc_security: string };
+
+  const result = document.getElementById("result");
+  const content = document.getElementById("content");
+  if (result == null || content == null) {
+    return
+  }
+  result.style.visibility = "visible";
+  content.innerHTML = "";
+  try {
+    const db = new DB();
+    const wordsArray = words.split(" ");
+    const findex = new Findex(db);
+    let queryResults: string[] = [];
+    if (!logicalSwitch) {
+      queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)));
+    } else {
+      await Promise.all(wordsArray.map(async (word, index) => {
+        const partialResults = await findex.search(masterKeysFindex, [word])
+        if (index) {
+          queryResults = queryResults.filter(location => partialResults.includes(location))
+        } else {
+          queryResults = [...partialResults]
+        }
+      }))
+    }
+    if (queryResults.length) {
+      const res = await db.getEncryptedUsersById(queryResults);
+      const policy = sessionStorage.getItem('policy');
+      const masterPrivateKey = sessionStorage.getItem('coverCryptPrivateKey');
+      let accessPolicy = "";
+      if (res && res.length && policy && masterPrivateKey) {
+        switch (role) {
+          case "charlie":
+            accessPolicy = "(country::France || country::Spain) && (department::HR || department::marketing)";
+            break;
+          case "alice":
+            accessPolicy = "country::France && department::marketing";
+            break;
+          case "bob":
+            accessPolicy = "country::Spain && (department::HR || department::marketing)";
+        }
+        const clearValues: Object[] = [];
+        res.filter((item) => { return item !== null }).forEach((item) => {
+          const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
+          let encryptedUser = {}
+          for (let index = 0; index < encryptedKeys.length; index++) {
+            try {
+              const itemKey = encryptedKeys[index + 1];
+              const encryptedElement = hexDecode(item[itemKey]);
+              const clearText = coverCryptDecrypt(hexDecode(policy), hexDecode(masterPrivateKey), accessPolicy, encryptedElement);
+              if (clearText.length) {
+                encryptedUser = { ...encryptedUser, ...JSON.parse(clearText) }
+              }
+            }
+            catch (e) {
+              logger.log(() => "Unable to decrypt");
+            }
+          }
+          if (Object.keys(encryptedUser).length !== 0) {
+            clearValues.push(encryptedUser)
+          }
+        }
+        );
+        if (clearValues.length) {
+          displayInTab(clearValues, content);
+        } else {
+          displayNoResult(content);
+        }
+      } else {
+        displayNoResult(content);
+      }
+    } else {
+      displayNoResult(content);
+    }
+  } catch {
+    displayNoResult(content);
+  }
+}
+(window as any).searchAndDecrypt = searchAndDecrypt
 
 /**
  * Display an array of simple JS objects into a an array in HTML
@@ -114,50 +323,6 @@ function displayNoResult(parent: HTMLElement) {
 function sanitizeString(str: string): string {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
 }
-
-async function upsert() {
-  type User = { [key: string]: string; };
-  const db = new DB();
-  const users: User[] = await db.getUsers();
-  const sanitizedUsers: User[] = users.map((user) => {
-    Object.keys(user).forEach((key) => { user[key] = sanitizeString(user[key]) });
-    return user;
-  })
-  const findex = new Findex(db);
-  await findex.upsert(masterKeys, sanitizedUsers);
-}
-(window as any).upsert = upsert
-
-//
-/**
- * Search terms with Findex implementation
- * @param words string of all searched terms separated by a space character
- * @returns void
- */
-async function search(words: string) {
-  type User = { [key: string]: string; };
-
-  const result = document.getElementById("result");
-  const content = document.getElementById("content");
-  if (result == null || content == null) {
-    return
-  }
-  result.style.visibility = "visible";
-  content.innerHTML = "";
-  try {
-    const db = new DB();
-    const wordsArray = words.split(" ");
-    const findex = new Findex(db);
-    const queryResults: string[] = await findex.search(masterKeys, wordsArray.map(word => sanitizeString(word)));
-    if (queryResults) {
-      const users: User[] = await db.getUsersById(queryResults);
-      displayInTab(users, content);
-    }
-  } catch {
-    displayNoResult(content);
-  }
-}
-(window as any).search = search
 
 //
 // ----------------------------------------------------

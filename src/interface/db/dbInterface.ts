@@ -2,17 +2,13 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
 export interface DBInterface {
 
-  getEntryTableEntries(uids: string[]): Promise<{ uid: string; value: string; }[]>
+  getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]>
 
-  getChainTableEntries(uids: string[]): Promise<{ uid: string; value: string; }[]>
+  getChainTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]>
 
   upsertEntryTableEntries(entries: { uid: string; value: string; }[]): Promise<number>
 
   upsertChainTableEntries(entries: { uid: string; value: string; }[]): Promise<number>
-
-  deleteAllEntryTableEntries(): Promise<number>
-
-  deleteAllChainTableEntries(): Promise<number>
 }
 
 export class DB implements DBInterface {
@@ -23,42 +19,30 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
-  requests = {
-    get: (url: string) => this.instance.get(url).then(this.responseBody),
-    post: (url: string, content: { uid: string, value: string }[]) => this.instance.post(url, content).then(this.responseBody),
-    delete: (url: string) => this.instance.delete(url).then(this.responseBody),
-  };
-
-  getEntryTableEntries(uids: string[]): Promise<{ uid: string; value: string; }[]> {
-    return this.requests.get(`/index_entry?uid=in.(${uids})`)
+  getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_entry?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getChainTableEntries(uids: string[]): Promise<{ uid: string; value: string; }[]> {
-    return this.requests.get(`/index_chain?uid=in.(${uids})`)
+  getChainTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_chain?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
-    return this.requests.get(`/encrypted_directory?uid=in.(${uids})`)
+  getEncryptedUsers(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+    return this.instance.get(`/encrypted_users)`).then(this.responseBody)
   }
 
-  getFirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+  getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+    return this.instance.get(`/encrypted_users?uid=in.(${uids})`).then(this.responseBody)
+  }
+
+  getFirstEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     const config = {
       headers: {
         "Range-Unit": "items",
         "Range": "0-4",
       }
     };
-    return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
-  }
-
-  getFirstUsers(): Promise<object[]> {
-    const config = {
-      headers: {
-        "Range-Unit": "items",
-        "Range": "0-4",
-      }
-    };
-    return this.instance.get(`/users`, config).then(this.responseBody)
+    return this.instance.get(`/encrypted_users?select=enc_basic,enc_hr,enc_security`, config).then(this.responseBody)
   }
 
   getUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
@@ -66,22 +50,49 @@ export class DB implements DBInterface {
   }
 
   getUsersById(uids: string[]): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
-    return this.requests.get(`/users?id=in.(${uids})`)
+    return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security&id=in.(${uids})`).then(this.responseBody)
+  }
+
+  getFirstUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+    const config = {
+      headers: {
+        "Range-Unit": "items",
+        "Range": "0-4",
+      }
+    };
+    return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security`, config).then(this.responseBody)
   }
 
   upsertEntryTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
-    return this.requests.post(`/index_entry`, entries);
+    return this.instance.post(`/index_entry`, entries).then(this.responseBody)
   }
 
   upsertChainTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
-    return this.requests.post(`/index_chain`, entries);
+    return this.instance.post(`/index_chain`, entries).then(this.responseBody)
+  }
+
+  upsertEncryptedUser(entry: { enc_basic: string, enc_hr: string, enc_security: string }): Promise<{ uid: string, enc_uid: string }[]> {
+    const config = {
+      headers: {
+        "Prefer": "return=representation"
+      }
+    };
+    return this.instance.post(`/encrypted_users`, entry, config).then(this.responseBody)
+  }
+
+  upsertUserEncUidById(id: string, encryptedUid: { enc_uid: string }): Promise<number> {
+    return this.instance.patch(`/users?id=eq.${id}`, encryptedUid).then(this.responseBody)
   }
 
   deleteAllEntryTableEntries(): Promise<number> {
-    return this.requests.delete(`index_entry?uid=neq.null`);
+    return this.instance.delete(`index_entry?uid=neq.null`).then(this.responseBody)
   }
 
   deleteAllChainTableEntries(): Promise<number> {
-    return this.requests.delete(`index_chain?uid=neq.null`);
+    return this.instance.delete(`index_chain?uid=neq.null`).then(this.responseBody)
+  }
+
+  deleteAllEncryptedUsers(): Promise<number> {
+    return this.instance.delete(`encrypted_users?uid=neq.null`).then(this.responseBody)
   }
 }
