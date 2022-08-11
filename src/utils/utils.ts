@@ -1,4 +1,3 @@
-
 /**
  * Hex encode an array of bytes
  * @param array the bytes

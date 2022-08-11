@@ -1,6 +1,6 @@
 import { webassembly_search, webassembly_upsert } from "../../../wasm_lib/findex/findex";
 import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap, serializeList } from "../../utils/utils";
-import { DBInterface } from "../db/dbInterface";
+import { DBInterface } from "./dbInterface";
 
 type MasterKeys = {
     k: string,

@@ -20,12 +20,12 @@ import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy"
 import { coverCryptDecrypt, coverCryptEncrypt, generateMasterKeys } from "../interface/cover_crypt/cover_crypt"
-import { DB, DBInterface } from "../interface/db/dbInterface"
+import { DBInterface } from "../interface/findex/dbInterface"
 import { Findex } from '../interface/findex/findex'
-import * as lib from "../lib"
-import { masterKeysFindex } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode } from "./../utils/utils"
+import { DB } from "./demo_db"
+import { masterKeysFindex } from "./demo_keys"
 
 /**
  * Index elements contained in DB with Findex upsert
@@ -127,9 +127,9 @@ async function IndexAndLoadEncryptedElements() {
 
     const elements = await db.getUsers();
     for (const element of elements) {
-        const encryptedBasic = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::marketing`, `country::${element.country}`], JSON.stringify({ firstName: element.firstName, lastName: element.lastName, country: element.country, region: element.region }))
-        const encryptedHr = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::HR`, `country::${element.country}`], JSON.stringify({ email: element.email, phone: element.phone, employeeNumber: element.employeeNumber }))
-        const encryptedSecurity = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, [`department::security`, `country::${element.country}`], JSON.stringify({ security: element.security }))
+        const encryptedBasic = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::marketing`, `country::${element.country}`], JSON.stringify({ firstName: element.firstName, lastName: element.lastName, country: element.country, region: element.region }))
+        const encryptedHr = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::HR`, `country::${element.country}`], JSON.stringify({ email: element.email, phone: element.phone, employeeNumber: element.employeeNumber }))
+        const encryptedSecurity = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::security`, `country::${element.country}`], JSON.stringify({ security: element.security }))
         const upsertedEncElement = await db.upsertEncryptedUser({
         enc_basic: hexEncode(encryptedBasic),
         enc_hr: hexEncode(encryptedHr),
@@ -426,7 +426,7 @@ function hybridEncryptionTest(publicKey: string, policy: string, attributes: str
     const loops = 100
     for (let i = 0; i < loops; i++) {
         const ct = hybridCrypto.encrypt(attributes, uidBytes, plaintextBytes)
-        logger.log(() => "ct:" + lib.hexEncode(ct))
+        logger.log(() => "ct:" + hexEncode(ct))
     }
     const endDate = new Date().getTime()
     const milliseconds = (endDate - startDate) / (loops)
@@ -506,8 +506,8 @@ const decryptUsingWorker = (): void => {
 
     for (let index = 0; index < NUM_ENTRIES; index++) {
         encryptedEntries.push({
-            uidHex: lib.hexEncode(demoUid),
-            ciphertextHex: lib.hexEncode(demoEncryptedData)
+            uidHex: hexEncode(demoUid),
+            ciphertextHex: hexEncode(demoEncryptedData)
         })
     }
 
@@ -520,7 +520,7 @@ const decryptUsingWorker = (): void => {
         wrnElt.innerHTML = "...running..."
         const startDate = new Date().getTime()
         workerPool.decrypt(
-            lib.hexEncode(demoTopSecretMkgFinUser),
+            hexEncode(demoTopSecretMkgFinUser),
             encryptedEntries,
             isGpsw
         ).then(
@@ -603,7 +603,7 @@ function elementSetValue(id: string, value: Uint8Array | string) {
         return
     }
     if (value.constructor === Uint8Array) {
-        box.setAttribute("value", lib.hexEncode(value))
+        box.setAttribute("value", hexEncode(value))
     } else if (value.constructor === String) {
         box.setAttribute("value", value)
     } else {
