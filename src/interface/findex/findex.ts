@@ -7,6 +7,10 @@ type MasterKeys = {
     k_star: string,
 }
 
+/**
+ * Findex class implementing callbacks using DbInterface and upsert and search functions
+ * @param db DB Interface, implementing the minimal DB requests for Findex algorithm
+ */
 export class Findex {
     db: DBInterface;
 
@@ -57,17 +61,7 @@ export class Findex {
         return formattedElements.length;
     }
 
-    public async upsert(masterKeys: MasterKeys, users: { [key: string]: string; }[], location: string): Promise<any> {
-        let locationAndWords = {};
-        users.map((user) => {
-            const userId = user[location];
-            delete user.id;
-            delete user.enc_uid;
-            locationAndWords = {
-                ...locationAndWords,
-                ...(userId ? { [userId]: [user.firstName, user.lastName, user.phone, user.email, user.country, user.region, user.employeeNumber, user.security ] } : {})
-            };
-        });
+    public async upsert(masterKeys: MasterKeys, locationAndWords: { [key: string]: string[]; }): Promise<any> {
         try {
             const res = await webassembly_upsert(JSON.stringify(masterKeys), JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
             console.log("Elements upserted.")

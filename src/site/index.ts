@@ -46,9 +46,19 @@ async function upsert(location: string) {
         Object.keys(element).forEach((key) => {element[key] = sanitizeString(element[key]) });
         return element;
     })
+    let locationAndWords = {};
+    sanitizedElements.map((element) => {
+        const elementId = element[location];
+        delete element.id;
+        delete element.enc_uid;
+        locationAndWords = {
+            ...locationAndWords,
+            ...(elementId ? { [elementId]: [element.firstName, element.lastName, element.phone, element.email, element.country, element.region, element.employeeNumber, element.security] } : {})
+        };
+    });
     const findex = new Findex(db);
     try {
-        await findex.upsert(masterKeysFindex, sanitizedElements, location);
+        await findex.upsert(masterKeysFindex, locationAndWords);
         if (button) {
             button.innerHTML = "Indexes created !";
             button.style.backgroundColor = '#4CAF50';
