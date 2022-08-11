@@ -94,20 +94,6 @@
         align-items: center;
     }
 
-    .users {
-        display: flex;
-        justify-content: space-between;
-        width: 60%;
-        margin: 40px;
-    }
-
-    .user {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 100%;
-    }
-
     .picto {
         width: 80%;
     }
@@ -177,7 +163,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background-color: #ccc;
+        background-color: #e3431a;
         -webkit-transition: .4s;
         transition: .4s;
         border-radius: 24px;
@@ -219,8 +205,8 @@
         <h2>Findex</h2>
     </div>
     <div class="demo">
-        <h3>Users database</h3>
-        <button  id="index_button" onclick="IndexAndloadUsers(); return false">Upsert and display users</button>
+        <h3>Employees database</h3>
+        <button  id="index_button" onclick="IndexAndloadElements(); return false">Display and upsert employees</button>
         <div class="block">
         <img class="picto" src="./assets/Cleartext database.png">
         <div id="clear_db" class="tab"></div>
@@ -228,7 +214,7 @@
 
         <h3>Search elements</h3>
         <form class="block"
-        onSubmit="search(document.getElementById('query').value, document.getElementById('switch').checked); return false">
+        onSubmit="searchElements(document.getElementById('query').value, document.getElementById('switch').checked); return false">
         <div class="search">
             <div style="display: flex; align-items: center; margin: 20px;">
             <h5>OR</h5>

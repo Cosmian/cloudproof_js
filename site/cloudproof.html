@@ -185,7 +185,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #ccc;
+            background-color: #e3431a;
             -webkit-transition: .4s;
             transition: .4s;
             border-radius: 24px;
@@ -236,32 +236,32 @@
         </div>
         <br/>
         <h3>Encrypt elements</h3>
-        <button id="index_button" onclick="IndexAndLoadEncryptedUsers(); return false">Encrypt and upsert users</button>
-        <h4>Clear Users</h4>
+        <button id="index_button" onclick="IndexAndLoadEncryptedElements(); return false">Encrypt and upsert employees</button>
+        <h4>Clear Employees</h4>
         <div class="block">
             <img class="picto" src="./assets/Cleartext database.png">
             <div id="clear_db" class="tab"></div>
         </div>
-        <h4>Encrypted Users</h4>
+        <h4>Encrypted Employees</h4>
         <div  class="block">
             <img class="picto" src="./assets/Encrypted database.png">
             <div id="enc_db" class="tab"></div>
         </div>
         <h3>Search elements</h3>
-            <form class="block" onSubmit="searchAndDecrypt(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); return false">
+            <form class="block" onSubmit="searchAndDecryptElements(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); return false">
                 <div class="users">
-                <div class="user">
-                    <img class="picto" src="./assets/Alice.png">
-                    <input type="radio" id="alice" name="user" value="alice" class="radio">
-                </div>
-                <div class="user">
-                    <img class="picto" src="./assets/Bob.png">
-                    <input type="radio" id="bob" name="user" value="bob" class="radio">
-                </div>
-                <div class="user">
-                    <img class="picto" src="./assets/Charlie.png">
-                    <input type="radio" id="charlie" name="user" value="charlie" class="radio" checked>
-                </div>
+                    <div class="user">
+                        <img class="picto" src="./assets/Alice.png">
+                        <input type="radio" id="alice" name="user" value="alice" class="radio" onclick="if (document.getElementById('query').value.length > 0) { searchAndDecryptElements(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); }; return true">
+                    </div>
+                    <div class="user">
+                        <img class="picto" src="./assets/Bob.png">
+                        <input type="radio" id="bob" name="user" value="bob" class="radio" onclick="if (document.getElementById('query').value.length > 0) { searchAndDecryptElements(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); }; return true">
+                    </div>
+                    <div class="user">
+                        <img class="picto" src="./assets/Charlie.png">
+                        <input type="radio" id="charlie" name="user" value="charlie" class="radio" checked onclick="if (document.getElementById('query').value.length > 0) { searchAndDecryptElements(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); }; return true">
+                    </div>
                 </div>
                 <div class="search">
                     <div style="display: flex; align-items: center; margin: 20px;">
