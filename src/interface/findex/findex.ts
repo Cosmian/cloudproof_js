@@ -74,7 +74,11 @@ export class Findex {
     public async search(masterKeys: MasterKeys, words: string[]): Promise<any> {
         try {
             const res = await webassembly_search(JSON.stringify(masterKeys), JSON.stringify(words), 100, this.fetchEntry, this.fetchChain);
-            const queryUids = JSON.parse(res);
+            const queryUidsBytes = deserializeList(res)
+            let queryUids: string[] = []
+            for (const dbUid of queryUidsBytes) {
+                queryUids = [...queryUids, new TextDecoder().decode(dbUid)]
+            }
             return queryUids;
         } catch (e) {
             console.log("Error searching : ", e)
