@@ -43,7 +43,11 @@ async function upsert(location: string) {
     await db.deleteAllEntryTableEntries();
     const elements: Element[] = await db.getUsers();
     const sanitizedElements: Element[] = elements.map((element) => {
-        Object.keys(element).forEach((key) => {element[key] = sanitizeString(element[key]) });
+        Object.keys(element).forEach((key) => {
+            if (element[key]) {
+                element[key] = sanitizeString(element[key])
+            }
+        });
         return element;
     })
     let locationAndWords = {};
@@ -165,10 +169,10 @@ async function search(db: DBInterface, words: string, logicalSwitch: boolean): P
     const findex = new Findex(db);
     let queryResults: string[] = [];
     if (!logicalSwitch) {
-        queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)));
+        queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), 1000);
     } else {
         await Promise.all(wordsArray.map(async (word, index) => {
-            const partialResults = await findex.search(masterKeysFindex, [word])
+            const partialResults = await findex.search(masterKeysFindex, [word], 1000)
             if (index) {
                 queryResults = queryResults.filter(location => partialResults.includes(location))
             } else {

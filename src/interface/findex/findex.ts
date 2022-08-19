@@ -71,9 +71,9 @@ export class Findex {
         }
     }
 
-    public async search(masterKeys: MasterKeys, words: string[]): Promise<any> {
+    public async search(masterKeys: MasterKeys, words: string[], loop_iteration_limit: number): Promise<any> {
         try {
-            const res = await webassembly_search(JSON.stringify(masterKeys), JSON.stringify(words), 100, this.fetchEntry, this.fetchChain);
+            const res = await webassembly_search(JSON.stringify(masterKeys), JSON.stringify(words), loop_iteration_limit, this.fetchEntry, this.fetchChain);
             const queryUidsBytes = deserializeList(res)
             let queryUids: string[] = []
             for (const dbUid of queryUidsBytes) {
