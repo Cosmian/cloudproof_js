@@ -11,6 +11,7 @@
         "test": "node --experimental-vm-modules node_modules/.bin/jest"
     },
     "dependencies": {
+        "@ccor/hello-wasm": "^0.1.0",
         "axios": "^0.27.2",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "^0.0.5",
