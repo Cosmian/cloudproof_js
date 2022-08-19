@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ---
 ## [1.0.2] - 2022-08-19
 ### Added
-- Add findex wasm implementation using `findex` v.3.1
+- Add findex wasm implementation using `findex` v.0.3.0
 ### Changed
 - Demo split in two : findex only, findex using covercrypt
 - Depends on `abe_gpsw` v0.8.0 and `cover_crypt` v3.0.1
