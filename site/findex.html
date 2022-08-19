@@ -6,299 +6,239 @@
     <meta name="viewport" content="width=device-width, user-scalable=no" />
     <link
         href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
-        rel="stylesheet"
-    />
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/brands.min.css"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/brands.min.css"
         integrity="sha512-lCU0XyQA8yobR7ychVxEOU5rcxs0+aYh/9gNDLaybsgW9hdrtqczjfKVNIS5doY0Y5627/+3UVuoGv7p8QsUFw=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"
-    />
-    <link
-        rel="icon"
-        href="https://raw.githubusercontent.com/Cosmian/Files/main/cosmian-c-orange-42x50.svg"
-        type="image/png"
-        sizes="192x192"
-    />
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" href="https://raw.githubusercontent.com/Cosmian/Files/main/cosmian-c-orange-42x50.svg"
+        type="image/png" sizes="192x192" />
     <meta http-equiv="x-dns-prefetch-control" content="off" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <base href="/" />
     <title>Cosmian JS Lib</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            margin: 0;
-            font-family: sans-serif;
-        }
+  <style>
+    body {
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        font-family: Montserrat;
+    }
 
-        button {
-            height: 40px;
-            width: 200px;
-            margin: 20px;
-            background: #e3431a;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-        }
+    button {
+        height: 40px;
+        width: 200px;
+        margin: 20px;
+        background: #e3431a;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+    }
 
-        img {
-          width: 133px;
-          margin-right: 50px;
-        }
+    img {
+        width: 200px;
+        margin-right: 50px;
+    }
 
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-around;
-            width: 100%;
-        }
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        width: 100%;
+    }
 
-        .block {
-            background-color: #fff;
-            border: 1px solid #d9d9d9;
-            border-radius: 5px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    .block {
+        background-color: #fff;
+        border: 1px solid #d9d9d9;
+        border-radius: 5px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        .textInput {
-            height: 32px;
-            flex-grow: 2;
-            border-radius: 5px;
-        }
+    .textInput {
+      height: 32px;
+      flex-grow: 2;
+      border-radius: 5px;
+    }
 
-        h3 {
-          width: 100%;
-          margin-top: 30px;
-        }
+    h3 {
+      width: 100%;
+      margin-top: 30px;
+    }
 
-        footer {
-            color: #fff;
-            background-color: #320099;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-        }
+    .header {
+        max-width: 100%;
+        height: 60px;
+        border-bottom: 1px solid #d9d9d9;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        color: #1B2631;
+    }
 
-        .header {
-            max-width: 100%;
-            height: 60px;
-            border-bottom: 1px solid #d9d9d9;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            color: #320099;
-        }
+    .demo {
+        margin-left: 10%;
+        margin-right: 10%;
+        border-left: 1px solid #F2F2F2;
+        border-right: 1px solid #F2F2F2;
+        padding: 30px;
+        background-color: #fafafa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        .demo {
-            margin-left: 10%;
-            margin-right: 10%;
-            border-left: 1px solid #d9d9d9;
-            border-right: 1px solid #d9d9d9;
-            padding: 30px;
-            background-color: #fafafa;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+    .picto {
+        width: 80%;
+    }
 
-        .users {
-            display: flex;
-            justify-content: space-between;
-            width: 60%;
-            margin: 40px;
-        }
+    .radio {
+        width: 20px;
+        height: 20px;
+        margin: 20px;
+    }
 
-        .user {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            height: 100%;
-        }
+    .search {
+        display: flex;
+        align-items: center;
+        width: 70%;
+    }
 
-        .picto {
-            width: 80%;
-        }
+    .columns {
+        background: #F2F2F2;
+        border-bottom: 1px solid rgb(201, 200, 200);
+        border-radius: 2px;
+        flex: 1;
+        font-weight: 500;
+    }
 
-        .radio {
-            width: 20px;
-            height: 20px;
-            margin: 20px;
-        }
+    .item {
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0px;
+        margin: 10px 0px;
+        font-weight: 200;
+        width: 100%;
+        border-bottom: 1px solid #F2F2F2;
+    }
 
-        .search {
-            display: flex;
-            align-items: center;
-            width: 70%;
-        }
+    .cell {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0px 10px;
+    }
 
-        .columns {
-            background: #d9d9d9;
-            border-bottom: 1px solid rgb(201, 200, 200);
-            border-radius: 2px;
-            flex: 1;
-            font-weight: 500;
-        }
+    .tab {
+        width: 100%;
+    }
 
-        .item {
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0px;
-            margin: 10px;
-            font-weight: 200;
-            width: 95%;
-        }
+    /* The switch - the box around the slider */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin: 10px;
+    }
 
-        .cell {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding: 0px 10px;
-            border-bottom: 1px solid #d9d9d9;
-        }
+    /* Hide default HTML checkbox */
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
 
-        .tab {
-            width: 100%;
-        }
-         /* The switch - the box around the slider */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-            margin: 10px;
-        }
+    /* The slider */
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #e3431a;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 24px;
+    }
 
-        /* Hide default HTML checkbox */
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+        border-radius: 50%;
+    }
 
-        /* The slider */
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 24px;
-        }
+    input:checked+.slider {
+        background-color: #e3431a;
+    }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 16px;
-            width: 16px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-            border-radius: 50%;
-        }
+    input:focus+.slider {
+        box-shadow: 0 0 1px #e3431a;
+    }
 
-        input:checked + .slider {
-            background-color: #e3431a;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px  #e3431a;
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(26px);
-            -ms-transform: translateX(26px);
-            transform: translateX(26px);
-        }
-    </style>
+    input:checked+.slider:before {
+        -webkit-transform: translateX(26px);
+        -ms-transform: translateX(26px);
+        transform: translateX(26px);
+    }
+  </style>
 </head>
 
 <body>
     <script src="./main.js"></script>
     <div class="header">
-        <img src="./assets/cosmian-logo-color-234x50.svg" onclick="location.href='index.html';">
-        <h2>Findex & Covercrypt</h2>
+        <img src="./assets/DOCS logo@2x.png" onclick="location.href='index.html';">
+        <h2>Findex</h2>
     </div>
     <div class="demo">
-        <h3>Findex & Covercrypt</h3>
-        <div class="tab">
-            <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <b>Findex</b>.</p>
-            <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
-            <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained under NDA.</p>
-            <p>In this demo, it is combined with an attribute-based encryption scheme : <b>Covercrypt</b>.</p>
-        </div>
-        <br/>
-        <button onclick="loadData(); return false">Toggle tables</button>
-        <h3>Users database</h3>
+        <h3>Employees database</h3>
+        <button  id="index_button" onclick="IndexAndloadElements(); return false">Display and upsert employees</button>
         <div class="block">
-            <img class="picto" src="./assets/Cleartext database.png">
-            <div id="clear_db" class="tab"></div>
+        <img class="picto" src="./assets/Cleartext database.png">
+        <div id="clear_db" class="tab"></div>
         </div>
-        <h3>Encrypted directory</h3>
-        <div  class="block">
-            <img class="picto" src="./assets/Encrypted database.png">
-            <div id="enc_db" class="tab"></div>
-        </div>
+
         <h3>Search elements</h3>
-            <form class="block" onSubmit="search(document.getElementById('query').value, document.querySelector('input[name=\'user\']:checked').value, document.getElementById('switch').checked); return false">
-                <div class="users">
-                <div class="user">
-                    <img class="picto" src="./assets/Alice.png">
-                    <input type="radio" id="alice" name="user" value="alice" class="radio">
-                </div>
-                <div class="user">
-                    <img class="picto" src="./assets/Bob.png">
-                    <input type="radio" id="bob" name="user" value="bob" class="radio">
-                </div>
-                <div class="user">
-                    <img class="picto" src="./assets/Charlie.png">
-                    <input type="radio" id="charlie" name="user" value="charlie" class="radio" checked>
-                </div>
-                </div>
-                <div class="search">
-                    <div style="display: flex; align-items: center; margin: 20px;">
-                        <h5>OR</h5>
-                        <label class="switch">
-                            <input type="checkbox" id="switch">
-                            <span class="slider"></span>
-                        </label>
-                        <h5>AND</h5>
-                    </div>
-                    <input type="text" id="query" name="query" class="textInput" placeholder="Words to query... ex: Félix Paul">
-                    <br/>
-                    <button type="submit" value="Submit">Search</button>
-                </div>
-            </form>
-            <div id="result" style="visibility: hidden; width: 100%;">
-                <h3>Result</h3>
-                <div class="block" id="content"></div>
+        <form class="block"
+        onSubmit="searchElements(document.getElementById('query').value, document.getElementById('switch').checked); return false">
+        <div class="search">
+            <div style="display: flex; align-items: center; margin: 20px;">
+            <h5>OR</h5>
+            <label class="switch">
+                <input type="checkbox" id="switch">
+                <span class="slider"></span>
+            </label>
+            <h5>AND</h5>
             </div>
+            <input type="text" id="query" name="query" class="textInput" placeholder="Words to query... ex: Félix Paul">
+            <br />
+            <button type="submit" value="Submit">Search</button>
+        </div>
+        </form>
+        <div id="result" style="visibility: hidden; width: 100%;">
+        <h3>Result</h3>
+        <div class="block" id="content"></div>
+        </div>
         </form>
         <div id="result" class="tab" style="visibility: hidden;">
-            <h3>Result</h3>
-            <div class="block tab" id="content"></div>
+        <h3>Result</h3>
+        <div class="block tab" id="content"></div>
         </div>
     </div>
-
-    <footer>
-        <img src="./assets/cosmian-logo-white-234x50.svg">
-    </footer>
 </body>
 
 </html>

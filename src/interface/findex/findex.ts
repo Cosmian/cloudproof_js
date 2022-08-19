@@ -1,40 +1,87 @@
-import { EntryTableUnchainedValue, Sse } from "../../crypto/sse/sse";
-import { DBInterface } from "../db/dbInterface";
-import { hexDecode, hexEncode } from "./../../utils/utils";
+import { webassembly_search, webassembly_upsert } from "../../../wasm_lib/findex/findex";
+import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap, serializeList } from "../../utils/utils";
+import { DBInterface } from "./dbInterface";
 
+type MasterKeys = {
+    k: string,
+    k_star: string,
+}
+
+/**
+ * Findex class implementing callbacks using DbInterface and upsert and search functions
+ * @param db DB Interface, implementing the minimal DB requests for Findex algorithm
+ */
 export class Findex {
-  public static async query(k1: string, k2: string, words: string[], db: DBInterface, loopIterationLimit: number): Promise<{ word: string; dbUids: string[]; }[]> {
-    const entryTableUids: string[] = words.map((word: string) => hexEncode(Sse.computeEntryTableUid(hexDecode(k1), word)));
+    db: DBInterface;
 
-    const entryTableValues: ({ UID: string; Value: string; } | null)[] = await db.getEntryTableEntries(entryTableUids);
-    const entryElements: ({ UID: string; Value: string; word: string; } | null)[] = entryTableValues.map(element => element ? {...element, word: words[entryTableUids.indexOf(element.UID)] } : null);
+    constructor(db: DBInterface) {
+        this.db = db;
+    }
 
-    const unchainedValues: (EntryTableUnchainedValue | null)[] = entryElements.map((entry) => {
-      if (!entry || !entry.Value) {
-        return null;
-      }
-      return Sse.unchainEntryTableValue(entry.word, hexDecode(k2), hexDecode(entry.Value), loopIterationLimit);
-    });
+    fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+        const uids: Uint8Array[] = deserializeList(serializedUids);
+        const uidsHex = uids.map(uid => hexEncode(uid));
+        const result = await this.db.getEntryTableEntriesById(uidsHex);
+        const formattedResult: { uid: Uint8Array, value: Uint8Array}[] = result.reduce((acc: { uid: Uint8Array, value: Uint8Array }[], el) => {
+            const uid: Uint8Array = hexDecode(el.uid);
+            const value: Uint8Array = hexDecode(el.value);
+            return [...acc, { uid, value} ];
+        }, []);
+        return serializeHashMap(formattedResult);
+    }
 
-    let chainTableEntries: { word: string, kword: Uint8Array, chainTableValues: Uint8Array[] }[] = [];
-    for (const [index, values] of unchainedValues.entries()) {
-      const word = words[index];
-      const kword = unchainedValues[index]?.kWord;
-      if (values) {
-        const chainTableEntriesStr: { UID: string; Value: string; }[] = await db.getChainTableEntries(values.chainTableUids.filter(value => value).map(uid => hexEncode(uid)))
-        const chainTableValues: Uint8Array[] = chainTableEntriesStr.map(entry => hexDecode(entry.Value));
-        if (word && kword && chainTableValues) {
-          chainTableEntries = [...chainTableEntries, ...[{ word, kword, chainTableValues }]];
+    fetchChain = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+        const uids = deserializeList(serializedUids);
+        const uidsHex = uids.map(uid => hexEncode(uid));
+        const result = await this.db.getChainTableEntriesById(uidsHex);
+        const formattedResult = result.reduce((acc: Uint8Array[], el) => {
+            const value: Uint8Array = hexDecode(el.value);
+            return [...acc, value];
+        }, []);
+        return serializeList(formattedResult);
+    }
+
+    upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
+        const items = deserializeHashMap(serializedEntries)
+        let formattedElements: { uid: string, value: string }[] = [];
+        for (const item of items) {
+            formattedElements = [...formattedElements, { 'uid': hexEncode(item.key), 'value': hexEncode(item.value) }]
         }
-      }
-    };
+        await this.db.upsertEntryTableEntries(formattedElements);
+        return formattedElements.length;
+    }
 
-    const uids: { word: string, dbUids: string[] }[] = chainTableEntries.reduce((acc, entry) => {
-      const dbUids: string[] = Sse.getDatabaseUids(entry.kword, entry.chainTableValues).map(uid => hexEncode(uid));
-      const word: string = entry.word;
-      return [...acc, ...[{ word, dbUids }]];
-    }, [] as { word: string, dbUids: string[] }[])
+    upsertChain = async (serializedEntries: Uint8Array): Promise<number> => {
+        const items = deserializeHashMap(serializedEntries)
+        let formattedElements: { uid: string, value: string }[] = [];
+        for (const item of items) {
+            formattedElements = [...formattedElements, { 'uid': hexEncode(item.key), 'value': hexEncode(item.value) }]
+        }
+        await this.db.upsertChainTableEntries(formattedElements);
+        return formattedElements.length;
+    }
 
-    return uids;
-  };
+    public async upsert(masterKeys: MasterKeys, locationAndWords: { [key: string]: string[]; }): Promise<any> {
+        try {
+            const res = await webassembly_upsert(JSON.stringify(masterKeys), JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
+            console.log("Elements upserted.")
+            return res;
+        } catch (e) {
+            console.log("Error upserting : ", e)
+        }
+    }
+
+    public async search(masterKeys: MasterKeys, words: string[], loop_iteration_limit: number): Promise<any> {
+        try {
+            const res = await webassembly_search(JSON.stringify(masterKeys), JSON.stringify(words), loop_iteration_limit, this.fetchEntry, this.fetchChain);
+            const queryUidsBytes = deserializeList(res)
+            let queryUids: string[] = []
+            for (const dbUid of queryUidsBytes) {
+                queryUids = [...queryUids, new TextDecoder().decode(dbUid)]
+            }
+            return queryUids;
+        } catch (e) {
+            console.log("Error searching : ", e)
+        }
+    }
 }

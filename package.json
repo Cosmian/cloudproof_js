@@ -1,6 +1,6 @@
 {
     "name": "cosmian_js_lib",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "license": "MIT",
     "description": "Cosmian javascript client library",
     "main": "dist/lib.js",
@@ -11,8 +11,10 @@
         "test": "node --experimental-vm-modules node_modules/.bin/jest"
     },
     "dependencies": {
+        "@ccor/hello-wasm": "^0.1.0",
         "axios": "^0.27.2",
         "js-crypto-hmac": "^1.0.4",
+        "leb128": "^0.0.5",
         "reflect-metadata": "^0.1.13",
         "tslint": "^6.1.3"
     },
