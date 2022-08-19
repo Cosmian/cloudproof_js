@@ -39,6 +39,8 @@ ALTER DATABASE app_db OWNER TO app_user;
 
 \connect app_db
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 
 SET default_tablespace = '';
 
@@ -85,7 +87,6 @@ ALTER TABLE public.index_entry OWNER TO app_user;
 --
 -- Name: users; Type: TABLE; Schema: public; Owner: app_user
 --
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE public.users (
     id uuid,

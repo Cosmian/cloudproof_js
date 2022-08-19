@@ -1,6 +1,6 @@
 {
     "name": "cosmian_js_lib",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "license": "MIT",
     "description": "Cosmian javascript client library",
     "main": "dist/lib.js",
