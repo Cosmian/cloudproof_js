@@ -13,11 +13,7 @@
   },
   "files": [
     "cover_crypt_bg.wasm",
-    "cover_crypt.js",
-    "cover_crypt_bg.js",
-    "cover_crypt.d.ts"
+    "cover_crypt.js"
   ],
-  "module": "cover_crypt.js",
-  "types": "cover_crypt.d.ts",
-  "sideEffects": false
+  "main": "cover_crypt.js"
 }
