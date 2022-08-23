@@ -164,21 +164,21 @@ async function IndexAndLoadEncryptedElements() {
  * @param logicalSwitch boolean to specify OR / AND search
  * @returns a promise containing results from query
  */
-async function search(db: DBInterface, words: string, logicalSwitch: boolean): Promise<string[]> {
+async function search(db: DBInterface, words: string, logicalSwitch: boolean, loopIterationLimit: number): Promise<string[]> {
     const wordsArray = words.split(" ");
     const findex = new Findex(db);
     let queryResults: string[] = [];
     if (!logicalSwitch) {
-        queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), 1000);
+        queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), loopIterationLimit);
     } else {
-        await Promise.all(wordsArray.map(async (word, index) => {
-            const partialResults = await findex.search(masterKeysFindex, [word], 1000)
+        for (const [index, word] of wordsArray.entries()) {
+            const partialResults = await findex.search(masterKeysFindex, [sanitizeString(word)], loopIterationLimit)
             if (index) {
                 queryResults = queryResults.filter(location => partialResults.includes(location))
             } else {
                 queryResults = [ ...partialResults ]
             }
-        }))
+        }
     }
     return queryResults;
 }
@@ -202,8 +202,9 @@ async function searchElements(words: string, logicalSwitch: boolean) {
 
     try {
         const db = new DB();
+        const loopIterationLimit = 1000;
 
-        const queryResults = await search(db, words, logicalSwitch);
+        const queryResults = await search(db, words, logicalSwitch, loopIterationLimit);
         if (queryResults.length) {
             const elements: Element[] = await db.getUsersById(queryResults);
             displayInTab(elements, content);
@@ -235,8 +236,9 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
     content.innerHTML = "";
     try {
         const db = new DB();
+        const loopIterationLimit = 1000;
 
-        const queryResults = await search(db, words, logicalSwitch);
+        const queryResults = await search(db, words, logicalSwitch, loopIterationLimit);
         if (queryResults.length) {
             const res = await db.getEncryptedUsersById(queryResults);
             const policy = sessionStorage.getItem('policy');
