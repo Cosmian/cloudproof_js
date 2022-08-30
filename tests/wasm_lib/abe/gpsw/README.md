@@ -192,10 +192,3 @@ This KP-ABE implementation is based on the crate [cosmian_bls12_381](https://cra
 ... yielding two **source groups** G<sub>1</sub> and G<sub>2</sub>, each of 255-bit prime order `q`, such that an efficiently computable non-degenerate bilinear pairing function `e` exists into a third **target group** G<sub>T</sub>. Specifically, G<sub>1</sub> is the `q`-order subgroup of E(F<sub>p</sub>) : y<sup>2</sup> = x<sup>3</sup> + 4 and G<sub>2</sub> is the `q`-order subgroup of E'(F<sub>p<sup>2</sup></sub>) : y<sup>2</sup> = x<sup>3</sup> + 4(u + 1) where the extension field F<sub>p<sup>2</sup></sub> is defined as F<sub>p</sub>(u) / (u<sup>2</sup> + 1).
 
 BLS12-381 is chosen so that `z` has small Hamming weight (to improve pairing performance) and also so that `GF(q)` has a large 2<sup>32</sup> primitive root of unity for performing radix-2 fast Fourier transforms for efficient multi-point evaluation and interpolation. It is also chosen so that it exists in a particularly efficient and rigid subfamily of BLS12 curves.
-
-# Publish to NPM
-
-wasm-pack build --target nodejs --release --features wasm_bindgen && cp -r pkg/* ~/Cosmian/github/cosmian_js_lib/tests/wasm_lib/abe/cover_crypt/
-wasm-pack build --release --features wasm_bindgen
-wasm-pack pack
-wasm-pack publish

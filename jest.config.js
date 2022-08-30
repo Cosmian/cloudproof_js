@@ -10,4 +10,5 @@ module.exports = {
     },
   },
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  modulePathIgnorePatterns: ["<rootDir>/tests/kms"]
 };

@@ -17,6 +17,7 @@
         "cover_crypt": "^3.1.0",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "^0.0.5",
+        "cosmian_findex": "^0.4.0",
         "reflect-metadata": "^0.1.13",
         "tslint": "^6.1.3"
     },

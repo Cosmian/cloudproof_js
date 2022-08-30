@@ -1,4 +1,4 @@
-import { fromBeBytes, hexDecode, hexEncode, toBeBytes } from "../../utils/utils"
+import { fromBeBytes, hexDecode, hexEncode, toBeBytes } from "../../src/utils/utils"
 
 test('hexEncode+hexDecode', () => {
     const s = "ça va être la fête"

@@ -1,0 +1,52 @@
+image: node:16
+
+variables:
+  CARGO_HOME: ${CI_PROJECT_DIR}/.cargo/
+  SCCACHE_DIR: ${CI_PROJECT_DIR}/.cache/sccache
+
+stages:
+  - prebuild
+  - build
+  - publish
+
+tslint:
+  stage: prebuild
+  script:
+    - npm install -g tslint
+    - tslint -c tslint.json 'src/**'
+  allow_failure: true
+
+build_node_12:
+  stage: build
+  image: node:12
+  script:
+    - npm install
+    - npm test
+
+build_node_14:
+  stage: build
+  image: node:14
+  script:
+    - npm install
+    - npm test
+
+build_node_16:
+  stage: build
+  image: node:16
+  script:
+    - npm install
+    - npm test
+
+build_node_18:
+  stage: build
+  image: node:18
+  script:
+    - npm install
+    - npm test
+
+publish:
+  stage: build
+  script:
+    - npm publish
+  only:
+    - tags
