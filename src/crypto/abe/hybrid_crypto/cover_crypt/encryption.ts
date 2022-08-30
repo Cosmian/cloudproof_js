@@ -1,6 +1,4 @@
-import {
-    webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header
-} from "../../../../../wasm_lib/abe/cover_crypt";
+import { webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header } from "cover_crypt";
 import { logger } from "../../../../utils/logger";
 import { hexEncode } from "../../../../utils/utils";
 import { AbeEncryptionParameters } from "../encryption_parameters";

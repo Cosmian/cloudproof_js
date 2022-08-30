@@ -11,7 +11,7 @@
 
 # II) Deploy project
 
-- Build new image from frontend with the Dockefile example (put it one level above the cosmian_js_lib to run it correctly) `docker build -f Dockerfile -t frontend .`
+- Build new image from frontend with the Dockerfile example (put it one level above the cosmian_js_lib to run it correctly) `docker build -f Dockerfile -t frontend .`
 
 - Save this image `docker save frontend > frontend.tar`
 

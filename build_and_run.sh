@@ -30,7 +30,7 @@ build_wasm_bindgen() {
 
 rm -rf ${JSLIB_DIR}/wasm_lib
 build_wasm_bindgen ${WASM_LIBS_DIR}/abe_gpsw ${JSLIB_DIR}/wasm_lib/abe/gpsw v0.8.0
-build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v3.0.1
+build_wasm_bindgen ${WASM_LIBS_DIR}/cover_crypt ${JSLIB_DIR}/wasm_lib/abe/cover_crypt v3.1.0
 build_wasm_bindgen ${WASM_LIBS_DIR}/findex ${JSLIB_DIR}/wasm_lib/findex v0.3.0
 
 cd ${JSLIB_DIR}

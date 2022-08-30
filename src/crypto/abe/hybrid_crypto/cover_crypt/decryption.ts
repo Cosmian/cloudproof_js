@@ -1,7 +1,5 @@
 /* tslint:disable:max-classes-per-file */
-import {
-    webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size
-} from "../../../../../wasm_lib/abe/cover_crypt"
+import { webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size } from "cover_crypt"
 import { logger } from "../../../../utils/logger"
 import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
 

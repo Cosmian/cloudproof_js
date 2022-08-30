@@ -16,10 +16,8 @@
   "files": [
     "abe_gpsw_bg.wasm",
     "abe_gpsw.js",
-    "abe_gpsw_bg.js",
     "abe_gpsw.d.ts"
   ],
-  "module": "abe_gpsw.js",
-  "types": "abe_gpsw.d.ts",
-  "sideEffects": false
+  "main": "abe_gpsw.js",
+  "types": "abe_gpsw.d.ts"
 }

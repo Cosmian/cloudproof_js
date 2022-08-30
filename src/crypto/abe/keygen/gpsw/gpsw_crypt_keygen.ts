@@ -3,7 +3,7 @@ import {
   webassembly_generate_master_keys,
   webassembly_generate_user_private_key,
   webassembly_rotate_attributes
-} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
+} from "abe_gpsw"
 import { logger } from "../../../../utils/logger"
 import { fromBeBytes, hexDecode } from "../../../../utils/utils"
 import { AbeKeyGeneration, AbeMasterKey } from "../keygen"

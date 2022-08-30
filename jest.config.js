@@ -10,7 +10,4 @@ module.exports = {
     },
   },
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
-  modulePaths: [
-    "<rootDir>/wasm_lib/abe/cover_crypt"
-  ],
 };
