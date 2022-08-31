@@ -1,5 +1,5 @@
 /* tslint:disable:max-classes-per-file */
-import { webassembly_generate_master_keys, webassembly_generate_user_private_key, webassembly_rotate_attributes } from "../../../../../wasm_lib/abe/cover_crypt"
+import { webassembly_generate_master_keys, webassembly_generate_user_private_key, webassembly_rotate_attributes } from "cover_crypt"
 import { logger } from "../../../../utils/logger"
 import { fromBeBytes } from "../../../../utils/utils"
 import { AbeKeyGeneration, AbeMasterKey } from "../keygen"

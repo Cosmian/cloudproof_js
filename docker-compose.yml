@@ -1,8 +1,9 @@
 # docker-compose.yml
 
-version: '3'
+version: "3"
 services:
   server:
+    container_name: server
     image: postgrest/postgrest
     ports:
       - "3000:3000"
@@ -14,6 +15,7 @@ services:
     depends_on:
       - db
   db:
+    container_name: db
     image: postgres
     ports:
       - "5432:5432"
@@ -22,9 +24,10 @@ services:
       POSTGRES_USER: app_user
       POSTGRES_PASSWORD: password
     volumes:
-       - "./pgdata:/var/lib/postgresql/data"
+      - "./pgdata:/var/lib/postgresql/data"
 
   frontend:
+    container_name: frontend
     image: frontend:latest
     environment:
       SERVER: http://127.0.0.1:3000

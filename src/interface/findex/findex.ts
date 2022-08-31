@@ -1,4 +1,4 @@
-import { webassembly_search, webassembly_upsert } from "../../../wasm_lib/findex/findex";
+import { webassembly_search, webassembly_upsert } from "cosmian_findex";
 import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap, serializeList } from "../../utils/utils";
 import { DBInterface } from "./dbInterface";
 

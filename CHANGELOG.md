@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.0.3] - 2022-08-30
+### Added
+- Enable JEST tests. WASM libraries are tested from `nodejs` WASM build.
+- Enable Github & Gitlab CI
+### Changed
+- Update `CoverCrypt` to `3.1.0`
+- Use npm packages for WASM libraries
+### Fixed
+### Removed
+
+---
 ## [1.0.2] - 2022-08-19
 ### Added
 - Add findex wasm implementation using `findex` v.0.3.0

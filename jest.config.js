@@ -1,15 +1,14 @@
 module.exports = {
+  preset: 'ts-jest',
   verbose: true,
   transform: {
-    '^.+\\.[j|t]sx?$': 'ts-jest',
+    '^.+\\.ts?$': 'ts-jest',
   },
-  // see https://jestjs.io/docs/ecmascript-modules
-  // see https://jestjs.io/docs/configuration#extensionstotreatasesm-arraystring
-  // this seems very buggy 
-  extensionsToTreatAsEsm: [".ts"],
   globals: {
     'ts-jest': {
       useESM: true,
     },
   },
+  transformIgnorePatterns: ['<rootDir>/node_modules/'],
+  modulePathIgnorePatterns: ["<rootDir>/tests/kms"]
 };

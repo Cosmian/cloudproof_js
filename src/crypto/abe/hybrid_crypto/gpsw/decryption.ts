@@ -1,7 +1,7 @@
 /* tslint:disable:max-classes-per-file */
 import {
     webassembly_create_decryption_cache, webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_decrypt_hybrid_header_using_cache, webassembly_destroy_decryption_cache, webassembly_get_encrypted_header_size
-} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
+} from "abe_gpsw"
 import { logger } from "../../../../utils/logger"
 import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
 

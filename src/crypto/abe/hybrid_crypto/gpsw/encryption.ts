@@ -1,6 +1,6 @@
 import {
     webassembly_create_encryption_cache, webassembly_destroy_encryption_cache, webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header, webassembly_encrypt_hybrid_header_using_cache
-} from "../../../../../wasm_lib/abe/gpsw/abe_gpsw"
+} from "abe_gpsw"
 import { logger } from "../../../../utils/logger"
 import { AbeEncryptionParameters } from "../encryption_parameters"
 import { EncryptedHeader, HybridEncryption } from "../hybrid_crypto"

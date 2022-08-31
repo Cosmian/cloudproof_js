@@ -1,4 +1,4 @@
-import { webassembly_generate_master_keys, webassembly_generate_user_private_key } from "../../../wasm_lib/abe/cover_crypt/cover_crypt";
+import { webassembly_generate_master_keys, webassembly_generate_user_private_key } from "cover_crypt";
 import { CoverCryptHybridDecryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/decryption";
 import { CoverCryptHybridEncryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/encryption";
 import { AbeMasterKey } from "../../crypto/abe/keygen/keygen";
