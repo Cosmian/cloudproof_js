@@ -26,9 +26,8 @@ export function webassembly_generate_user_private_key(master_private_key_bytes: 
 * Rotate attributes, changing their underlying values with that of an unused
 * slot
 *
-* - `attributes_bytes`           : user access policy (boolean expression as
-*   string)
-* - `policy_bytes`                : global policy (serialized from JSON)
+* - `attributes_bytes`    : user access policy (boolean expression as string)
+* - `policy_bytes`        : global policy (serialized from JSON)
 * @param {Uint8Array} attributes_bytes
 * @param {Uint8Array} policy_bytes
 * @returns {string}

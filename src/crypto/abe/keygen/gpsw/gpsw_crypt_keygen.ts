@@ -44,9 +44,9 @@ export class GpswMasterKeyGeneration extends AbeKeyGeneration {
 
     const policyBytes = policy.toJsonEncoded()
     const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
-    const newPolicyBytes = webassembly_rotate_attributes(attributesBytes, policyBytes)
+    const newPolicyString = webassembly_rotate_attributes(attributesBytes, policyBytes)
+    logger.log(() => "new policy: " + newPolicyString)
 
-    const newPolicyString = new TextDecoder().decode(hexDecode(newPolicyBytes))
     return Policy.fromJsonEncoded(newPolicyString)
   }
 

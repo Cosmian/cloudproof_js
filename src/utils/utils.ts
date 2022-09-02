@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 /**
  * Hex encode an array of bytes
  * @param array the bytes
@@ -5,7 +7,7 @@
  */
 export function hexEncode(array: Uint8Array): string {
     return array.reduce((prev, current) => {
-        return prev + current.toString(16).padStart(2,'0')
+        return prev + current.toString(16).padStart(2, '0')
     }, "")
 
 }
@@ -62,6 +64,30 @@ export function toBeBytes(myNumber: number): Uint8Array {
 }
 
 /**
+ * Return the number of bytes for encoding the number of bytes of the deserialized item
+ *
+ * @param stream Array being deserialized when using LEB128 deserialization
+ * @returns number of bytes
+ */
+function getSizeNumberOfBytes(stream: Uint8Array) {
+    const a: number[] = [];
+
+    for (const element of stream) {
+        const b = element;
+        a.push(b);
+
+        logger.log(() => "a : " + a + " b: " + b);
+        // tslint:disable-next-line: no-bitwise
+        if ((b & 0x80) === 0) {
+            logger.log(() => "break")
+            break;
+        }
+    }
+
+    return a.length;
+}
+
+/**
  * Deserialize Uint8Array as a list of Uint8Array
  *
  * @param serializedItems Uint8Array of serialized data
@@ -72,8 +98,13 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
     const items: Uint8Array[] = [];
     while (serializedItems.length > 1) {
         const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10);
-        const item = serializedItems.slice(1, 1 + itemLen);
-        serializedItems = serializedItems.slice(1 + itemLen);
+        const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems);
+        logger.log(() => "deserializeList: sizeNumberOfBytes: " + sizeNumberOfBytes);
+
+        const item = serializedItems.slice(sizeNumberOfBytes, sizeNumberOfBytes + itemLen);
+        serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen);
+        logger.log(() => "deserializeList: itemLen: " + itemLen);
+        logger.log(() => "deserializeList: item: " + item);
         items.push(item);
     }
     return items;
@@ -92,19 +123,23 @@ export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Arr
     }[] = [];
     while (serializedItems.length > 1) {
         const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10);
-        const key = serializedItems.slice(1, 1 + keyLen);
-        serializedItems = serializedItems.slice(1 + keyLen);
+        const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems);
+        logger.log(() => "deserializeHashMap: sizeNumberOfBytes: " + sizeNumberOfBytes);
+        const key = serializedItems.slice(sizeNumberOfBytes, sizeNumberOfBytes + keyLen);
+        serializedItems = serializedItems.slice(sizeNumberOfBytes + keyLen);
 
         if (key.length > 1) {
             const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10);
-            const value = serializedItems.slice(1, 1 + valueLen);
+            const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems);
+            logger.log(() => "deserializeHashMap: sizeNumberOfBytes(2): " + sizeNumberOfBytes);
+            const value = serializedItems.slice(sizeNumberOfBytes, sizeNumberOfBytes + valueLen);
             const item: { key: Uint8Array, value: Uint8Array } = { key: new Uint8Array(), value: new Uint8Array() };
             if (value.length > 0) {
                 item.key = key;
                 item.value = value;
             }
             items.push(item);
-            serializedItems = serializedItems.slice(1 + valueLen);
+            serializedItems = serializedItems.slice(sizeNumberOfBytes + valueLen);
         }
     }
     return items;
@@ -133,7 +168,7 @@ export function serializeList(list: Uint8Array[]): Uint8Array {
  * @param data an array of objects containing uids and values
  * @returns Uint8Array of serialized data
  */
-export function serializeHashMap(data: { uid: Uint8Array, value: Uint8Array}[]): Uint8Array {
+export function serializeHashMap(data: { uid: Uint8Array, value: Uint8Array }[]): Uint8Array {
     const leb = require('leb128');
     let serializedData = new Uint8Array();
     for (const item of data) {

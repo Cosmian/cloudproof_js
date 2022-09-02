@@ -32,7 +32,8 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
      */
     public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
         const cleartextHeader = webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
-        return ClearTextHeader.parseJson(cleartextHeader)
+        logger.log(() => "decryptHybridHeader: " + cleartextHeader)
+        return ClearTextHeader.parseLEB128(cleartextHeader)
     }
 
     /**

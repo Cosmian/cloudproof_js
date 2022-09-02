@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.0.4] - 2022-09-05
+### Added
+### Changed
+- Update `CoverCrypt` to 6.0.1
+- Update `AbeGPSW` to 2.0.1
+- Update Policy to conform new format
+### Fixed
+- LEB128 serialization
+### Removed
+
+---
 ## [1.0.3] - 2022-08-30
 ### Added
 - Enable JEST tests. WASM libraries are tested from `nodejs` WASM build.

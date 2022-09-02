@@ -1,6 +1,6 @@
 {
     "name": "cosmian_js_lib",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "license": "MIT",
     "description": "Cosmian javascript client library",
     "main": "dist/lib.js",
@@ -12,9 +12,9 @@
     },
     "dependencies": {
         "@ccor/hello-wasm": "^0.1.0",
-        "abe_gpsw": "^0.8.0",
+        "abe_gpsw": "^2.0.1",
         "axios": "^0.27.2",
-        "cover_crypt": "^3.1.0",
+        "cover_crypt": "^6.0.1",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "^0.0.5",
         "cosmian_findex": "^0.4.0",
