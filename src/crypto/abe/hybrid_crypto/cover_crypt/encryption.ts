@@ -18,7 +18,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
         this.policy = policy
         this.publicKey = publicKey
-     }
+    }
 
 
     /**
@@ -40,9 +40,10 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
             this.policy,
             new TextEncoder().encode(JSON.stringify(parameters.attributes)),
             this.publicKey)
-        logger.log(() => "hybrid header succeeded");
 
-        return EncryptedHeader.parse(encryptedHeaderBytes)
+        logger.log(() => "hybrid header succeeded: " + encryptedHeaderBytes);
+
+        return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
     }
 
     /**
@@ -95,6 +96,8 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
         encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray)
         encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize)
         encryptedData.set(ciphertext, headerSize + hybridHeader.encryptedSymmetricKey.length)
+        logger.log(() => "encrypt: encryptedData: " + encryptedData)
+
         return encryptedData
     }
 

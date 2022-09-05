@@ -36,13 +36,13 @@ export class PolicyAxis {
 
 export class Policy {
     private _axis: PolicyAxis[]
-    private _maxAttributeValue: number
+    private _maxAttributeCreations: number
     private _lastAttributeValue?: number
     private _attributeToInt?: {}
 
-    constructor(axis: PolicyAxis[], maxAttributeValue: number, lastAttributeValue?: number, attributeToInt?: {}) {
+    constructor(axis: PolicyAxis[], maxAttributeCreations: number, lastAttributeValue?: number, attributeToInt?: {}) {
         this._axis = axis
-        this._maxAttributeValue = maxAttributeValue
+        this._maxAttributeCreations = maxAttributeCreations
         this._lastAttributeValue = lastAttributeValue
         this._attributeToInt = attributeToInt
     }
@@ -50,8 +50,8 @@ export class Policy {
     // Convert this `Policy` to JSON. Output example:
     // {
     //     "last_attribute_value": 10,
-    //     "max_attribute_value": 100,
-    //     "store": {
+    //     "max_attribute_creations": 100,
+    //     "axes": {
     //         "Security Level": [
     //         [
     //             "Protected",
@@ -105,12 +105,12 @@ export class Policy {
     // }
     public toJsonEncoded(): Uint8Array {
         const policy: any = {}
-        policy.store = {}
+        policy.axes = {}
         policy.attribute_to_int = {}
         if (this._lastAttributeValue === undefined && this._lastAttributeValue === undefined) {
             let attributeNb = 1
             this._axis.forEach((axis: PolicyAxis) => {
-                policy.store[axis.name] = [axis.attributes, axis.hierarchical]
+                policy.axes[axis.name] = [axis.attributes, axis.hierarchical]
                 axis.attributes.forEach((attr: string) => {
                     policy.attribute_to_int[axis.name + "::" + attr] = [attributeNb]
                     attributeNb++;
@@ -122,11 +122,11 @@ export class Policy {
             policy.last_attribute_value = this._lastAttributeValue
             policy.attribute_to_int = this._attributeToInt
             this._axis.forEach((axis: PolicyAxis) => {
-                policy.store[axis.name] = [axis.attributes, axis.hierarchical]
+                policy.axes[axis.name] = [axis.attributes, axis.hierarchical]
             })
 
         }
-        policy.max_attribute_value = this._maxAttributeValue
+        policy.max_attribute_creations = this._maxAttributeCreations
 
         logger.log(() => "policy (JSON)" + policy)
         const result = new TextEncoder().encode(JSON.stringify(policy))
@@ -139,14 +139,14 @@ export class Policy {
 
         // Fill Policy Axis
         const axis: PolicyAxis[] = []
-        for (const e of Object.keys(policyJson.store)) {
-            const value = policyJson.store[e]
+        for (const e of Object.keys(policyJson.axes)) {
+            const value = policyJson.axes[e]
             logger.log(() => "Axis name: " + e)
             logger.log(() => "Axis value: " + value[0])
             axis.push(new PolicyAxis(e, value[0], value[1]))
         }
         return new Policy(axis,
-            policyJson.max_attribute_value,
+            policyJson.max_attribute_creations,
             policyJson.last_attribute_value,
             policyJson.attribute_to_int)
     }

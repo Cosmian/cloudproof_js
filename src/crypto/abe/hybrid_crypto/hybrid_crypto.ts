@@ -1,6 +1,6 @@
 /* tslint:disable:max-classes-per-file */
 import { logger } from "../../../utils/logger"
-import { fromBeBytes, toBeBytes } from "../../../utils/utils"
+import { deserializeList, fromBeBytes, toBeBytes } from "../../../utils/utils"
 import { Metadata } from "./metadata"
 
 const SYMMETRIC_KEY_SIZE = 32
@@ -59,6 +59,33 @@ export class EncryptedHeader {
 
     const encryptedHeader = new EncryptedHeader(encryptedHeaderJson.symmetric_key, encryptedHeaderJson.header_bytes)
     logger.log(() => "encryptedHeader: " + encryptedHeader)
+
+    return encryptedHeader;
+  }
+
+
+  /**
+   * Deserialize a encrypted header.
+   *
+   * @param encryptedHeaderBytes an encrypted header
+   * @returns the object deserialized
+   */
+  public static parseLEB128(encryptedHeaderBytes: Uint8Array): EncryptedHeader {
+    logger.log(() => "parseLEB128: encryptedHeaderBytes: " + encryptedHeaderBytes)
+
+    const symmetricKey = encryptedHeaderBytes.slice(0, SYMMETRIC_KEY_SIZE);
+    const headerBytes = encryptedHeaderBytes.slice(SYMMETRIC_KEY_SIZE, encryptedHeaderBytes.length);
+
+    const encryptedHeaderVec = deserializeList(headerBytes);
+    if (encryptedHeaderVec.length !== 1) {
+      throw new Error("Incorrect deserialized asymmetric encrypted header")
+    }
+
+    logger.log(() => "parseLEB128: encryptedHeaderVec: " + encryptedHeaderVec)
+
+    const encryptedHeader = new EncryptedHeader(symmetricKey, encryptedHeaderVec[0])
+    logger.log(() => "parseLEB128: encryptedHeader.encryptedSymmetricKey: " + encryptedHeader.encryptedSymmetricKey)
+    logger.log(() => "parseLEB128: encryptedHeader.symmetricKey: " + encryptedHeader.symmetricKey)
 
     return encryptedHeader;
   }
@@ -159,6 +186,28 @@ export class ClearTextHeader {
     logger.log(() => "additional_data: " + clearTextHeaderJson.meta_data.additional_data)
 
     return new ClearTextHeader(clearTextHeaderJson.symmetric_key, clearTextHeaderJson.meta_data)
+  }
+
+  /**
+   * Deserialize a clear text header.
+   *
+   * @param cleartextHeader a raw header
+   * @returns the object deserialized
+   */
+  public static parseLEB128(cleartextHeader: Uint8Array): ClearTextHeader {
+    const symmetricKey = cleartextHeader.slice(0, SYMMETRIC_KEY_SIZE);
+    const leftover = cleartextHeader.slice(SYMMETRIC_KEY_SIZE, cleartextHeader.length);
+    const cleartextHeaderVec = deserializeList(leftover);
+    if (cleartextHeaderVec.length !== 1) {
+      throw new Error("Incorrect deserialized cleartext header")
+    }
+
+    const metadata = cleartextHeaderVec[0];
+    const metadataSize = fromBeBytes(metadata.slice(0, 4))
+    const uid = metadata.slice(4, 4 + metadataSize)
+    const additionalData = metadata.slice(4 + metadataSize, metadata.length)
+
+    return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
   }
 
   public static parseRaw(cleartextHeader: Uint8Array): ClearTextHeader {

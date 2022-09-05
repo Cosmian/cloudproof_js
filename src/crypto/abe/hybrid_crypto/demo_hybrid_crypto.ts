@@ -1,6 +1,7 @@
 /* tslint:disable:max-classes-per-file */
 
 import { logger } from "../../../utils/logger"
+import { hexEncode } from "../../../utils/utils"
 import { AbeKeyGeneration } from "../keygen/keygen"
 import { Policy, PolicyAxis } from "../keygen/policy"
 import { HybridDecryption, HybridEncryption } from "./hybrid_crypto"
@@ -90,14 +91,14 @@ export class EncryptionDecryptionDemo {
 
   public nonRegressionTests() {
     const assert = (x: Uint8Array, y: Uint8Array): void => {
-      if (new TextDecoder().decode(x) !== new TextDecoder().decode(y)) throw new Error("Items MUST be equal (left: " + x + " right: " + y + ")")
+      if (new TextDecoder().decode(x) !== new TextDecoder().decode(y))
+        throw new Error("Items MUST be equal (left: " + x + " right: " + y + ")")
     }
 
     this.hybridDecryption.renew_key(this.demoKeys.topSecretMkgFinUser)
     const cleartext = this.hybridDecryption.decrypt(this.demoKeys.encryptedData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(this.demoKeys.plaintext, cleartext)
-
 
     this.encryptionDemo()
   }
@@ -108,7 +109,7 @@ export class EncryptionDecryptionDemo {
     const lowSecretMkgData = this.hybridEncryption.encrypt(['Security Level::Low Secret', 'Department::MKG'], this.demoKeys.uid, this.demoKeys.plaintext)
     const topSecretMkgData = this.hybridEncryption.encrypt(['Security Level::Top Secret', ' Department::MKG'], this.demoKeys.uid, this.demoKeys.plaintext)
     const lowSecretFinData = this.hybridEncryption.encrypt(['Security Level::Low Secret', 'Department::FIN'], this.demoKeys.uid, this.demoKeys.plaintext)
-    logger.log(() => "lowSecretFinData: " + lowSecretFinData)
+    logger.log(() => "lowSecretMkgData: " + hexEncode(lowSecretMkgData))
 
     // Finish with cache destroying
     this.hybridEncryption.destroyInstance()

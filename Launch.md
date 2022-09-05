@@ -3,6 +3,10 @@
 - Launch DB (Postgre) and PostgREST (small backend exposing directly DB as a REST API)  `docker-compose up server db`
 
 - When the DB is launched, you must build the db, the tables and fill users table. For this, you can use the sql file : `cat dump_db_demo.sql | docker exec -i NAME_OF_YOUR_DB_CONTAINER psql -U app_user -d app_db`
+Example:
+```bash
+cat dump_db_demo.sql | docker exec -i db psql -U app_user -d app_db
+```
 
 - Launch frontend with : `npx webpack serve`
 

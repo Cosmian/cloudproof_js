@@ -1,6 +1,46 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* Extract header from encrypted bytes
+* @param {Uint8Array} encrypted_bytes
+* @returns {number}
+*/
+export function webassembly_get_encrypted_header_size(encrypted_bytes: Uint8Array): number;
+/**
+* Decrypt with a user decryption key an encrypted header
+* of a resource encrypted using an hybrid crypto scheme.
+* @param {Uint8Array} user_decryption_key_bytes
+* @param {Uint8Array} encrypted_header_bytes
+* @returns {Uint8Array}
+*/
+export function webassembly_decrypt_hybrid_header(user_decryption_key_bytes: Uint8Array, encrypted_header_bytes: Uint8Array): Uint8Array;
+/**
+* Prepare decryption cache (avoiding user decryption key deserialization)
+* @param {Uint8Array} user_decryption_key
+* @returns {number}
+*/
+export function webassembly_create_decryption_cache(user_decryption_key: Uint8Array): number;
+/**
+* @param {number} cache_handle
+*/
+export function webassembly_destroy_decryption_cache(cache_handle: number): void;
+/**
+* Decrypt ABE header
+* @param {number} cache_handle
+* @param {Uint8Array} encrypted_header
+* @returns {Uint8Array}
+*/
+export function webassembly_decrypt_hybrid_header_using_cache(cache_handle: number, encrypted_header: Uint8Array): Uint8Array;
+/**
+* Symmetrically Decrypt encrypted data in a block.
+* @param {Uint8Array} symmetric_key_bytes
+* @param {Uint8Array | undefined} uid_bytes
+* @param {number | undefined} block_number
+* @param {Uint8Array} encrypted_bytes
+* @returns {Uint8Array}
+*/
+export function webassembly_decrypt_hybrid_block(symmetric_key_bytes: Uint8Array, uid_bytes: Uint8Array | undefined, block_number: number | undefined, encrypted_bytes: Uint8Array): Uint8Array;
+/**
 * Generate the master authority keys for supplied Policy
 *
 *  - `policy` : Policy to use to generate the keys (serialized from JSON)
@@ -70,43 +110,3 @@ export function webassembly_encrypt_hybrid_header_using_cache(cache_handle: numb
 * @returns {Uint8Array}
 */
 export function webassembly_encrypt_hybrid_block(symmetric_key_bytes: Uint8Array, uid_bytes: Uint8Array | undefined, block_number: number | undefined, data_bytes: Uint8Array): Uint8Array;
-/**
-* Extract header from encrypted bytes
-* @param {Uint8Array} encrypted_bytes
-* @returns {number}
-*/
-export function webassembly_get_encrypted_header_size(encrypted_bytes: Uint8Array): number;
-/**
-* Decrypt with a user decryption key an encrypted header
-* of a resource encrypted using an hybrid crypto scheme.
-* @param {Uint8Array} user_decryption_key_bytes
-* @param {Uint8Array} encrypted_header_bytes
-* @returns {Uint8Array}
-*/
-export function webassembly_decrypt_hybrid_header(user_decryption_key_bytes: Uint8Array, encrypted_header_bytes: Uint8Array): Uint8Array;
-/**
-* Prepare decryption cache (avoiding user decryption key deserialization)
-* @param {Uint8Array} user_decryption_key
-* @returns {number}
-*/
-export function webassembly_create_decryption_cache(user_decryption_key: Uint8Array): number;
-/**
-* @param {number} cache_handle
-*/
-export function webassembly_destroy_decryption_cache(cache_handle: number): void;
-/**
-* Decrypt ABE header
-* @param {number} cache_handle
-* @param {Uint8Array} encrypted_header
-* @returns {Uint8Array}
-*/
-export function webassembly_decrypt_hybrid_header_using_cache(cache_handle: number, encrypted_header: Uint8Array): Uint8Array;
-/**
-* Symmetrically Decrypt encrypted data in a block.
-* @param {Uint8Array} symmetric_key_bytes
-* @param {Uint8Array | undefined} uid_bytes
-* @param {number | undefined} block_number
-* @param {Uint8Array} encrypted_bytes
-* @returns {Uint8Array}
-*/
-export function webassembly_decrypt_hybrid_block(symmetric_key_bytes: Uint8Array, uid_bytes: Uint8Array | undefined, block_number: number | undefined, encrypted_bytes: Uint8Array): Uint8Array;
