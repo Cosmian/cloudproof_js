@@ -130,16 +130,16 @@ export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Arr
 
         if (key.length > 1) {
             const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10);
-            const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems);
-            logger.log(() => "deserializeHashMap: sizeNumberOfBytes(2): " + sizeNumberOfBytes);
-            const value = serializedItems.slice(sizeNumberOfBytes, sizeNumberOfBytes + valueLen);
+            const lengthNbBytes = getSizeNumberOfBytes(serializedItems);
+            logger.log(() => "deserializeHashMap: sizeNumberOfBytes(2): " + lengthNbBytes);
+            const value = serializedItems.slice(lengthNbBytes, lengthNbBytes + valueLen);
             const item: { key: Uint8Array, value: Uint8Array } = { key: new Uint8Array(), value: new Uint8Array() };
             if (value.length > 0) {
                 item.key = key;
                 item.value = value;
             }
             items.push(item);
-            serializedItems = serializedItems.slice(sizeNumberOfBytes + valueLen);
+            serializedItems = serializedItems.slice(lengthNbBytes + valueLen);
         }
     }
     return items;
@@ -178,4 +178,13 @@ export function serializeHashMap(data: { uid: Uint8Array, value: Uint8Array }[])
     }
     serializedData = Uint8Array.from([...serializedData, 0])
     return serializedData;
+}
+
+/**
+ * Remove accents and uppercase to query word
+ * @param str string to sanitize
+ * @returns string initial string without accents and uppercase
+ */
+export function sanitizeString(str: string): string {
+    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
 }

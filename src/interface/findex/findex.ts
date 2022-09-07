@@ -64,7 +64,6 @@ export class Findex {
     public async upsert(masterKeys: MasterKeys, locationAndWords: { [key: string]: string[]; }): Promise<any> {
         try {
             const res = await webassembly_upsert(JSON.stringify(masterKeys), JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
-            console.log("Elements upserted.")
             return res;
         } catch (e) {
             console.log("Error upserting : ", e)

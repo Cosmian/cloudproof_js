@@ -18,14 +18,21 @@ import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryptio
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
-import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy"
-import { coverCryptDecrypt, coverCryptEncrypt, generateMasterKeys } from "../interface/cover_crypt/cover_crypt"
-import { DBInterface } from "../interface/findex/dbInterface"
-import { Findex } from '../interface/findex/findex'
+import { PolicyAxis } from "../crypto/abe/keygen/policy"
+import { FindexDemo } from "../demos/findex"
 import { logger } from "./../utils/logger"
-import { hexDecode, hexEncode } from "./../utils/utils"
+import { hexDecode, hexEncode, sanitizeString } from "./../utils/utils"
 import { DB } from "./demo_db"
-import { masterKeysFindex } from "./demo_keys"
+
+const DB_UTILS = new DB();
+const FINDEX_DEMO = new FindexDemo(DB_UTILS, [
+    new PolicyAxis("department",
+        ["marketing", "HR", "security"], false),
+    new PolicyAxis("country",
+        ["France", "Spain", "Germany"],
+        false)
+], 100,);
+const LOOP_ITERATION_LIMIT = 1000;
 
 /**
  * Index elements contained in DB with Findex upsert
@@ -37,32 +44,9 @@ async function upsert(location: string) {
     if (button) {
         button.innerHTML = "Indexes creation...";
     }
-    type Element = { [key: string]: string; };
-    const db = new DB();
-    await db.deleteAllChainTableEntries();
-    await db.deleteAllEntryTableEntries();
-    const elements: Element[] = await db.getUsers();
-    const sanitizedElements: Element[] = elements.map((element) => {
-        Object.keys(element).forEach((key) => {
-            if (element[key]) {
-                element[key] = sanitizeString(element[key])
-            }
-        });
-        return element;
-    })
-    let locationAndWords = {};
-    sanitizedElements.map((element) => {
-        const elementId = element[location];
-        delete element.id;
-        delete element.enc_uid;
-        locationAndWords = {
-            ...locationAndWords,
-            ...(elementId ? { [elementId]: [element.firstName, element.lastName, element.phone, element.email, element.country, element.region, element.employeeNumber, element.security] } : {})
-        };
-    });
-    const findex = new Findex(db);
+
     try {
-        await findex.upsert(masterKeysFindex, locationAndWords);
+        await FINDEX_DEMO.resetAndUpsert(location);
         if (button) {
             button.innerHTML = "Indexes created !";
             button.style.backgroundColor = '#4CAF50';
@@ -79,9 +63,8 @@ async function upsert(location: string) {
  * Findex upsert elements and display them
  * @returns void
  */
-async function IndexAndloadElements() {
-    const db = new DB();
-    const elements = await db.getFirstUsers();
+async function IndexAndLoadElements() {
+    const elements = await DB_UTILS.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -93,10 +76,10 @@ async function IndexAndloadElements() {
     }
     await upsert('id');
 };
-(window as any).IndexAndloadElements = IndexAndloadElements
+(window as any).IndexAndLoadElements = IndexAndLoadElements
 
 /**
- * Encrypt elements table with CoverCrypt, Findex upsert encypted elements and display them
+ * Encrypt elements table with CoverCrypt, Findex upsert encrypted elements and display them
  * @returns void
  */
 async function IndexAndLoadEncryptedElements() {
@@ -104,9 +87,8 @@ async function IndexAndLoadEncryptedElements() {
     if (button) {
         button.innerHTML = "Encrypt elements...";
     }
-    const db = new DB();
 
-    const firstElements = await db.getFirstUsers();
+    const firstElements = await DB_UTILS.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -117,32 +99,11 @@ async function IndexAndLoadEncryptedElements() {
         }
     }
 
-    await db.deleteAllEncryptedUsers();
+    await DB_UTILS.deleteAllEncryptedUsers();
+    await FINDEX_DEMO.encryptUsers("00000001");
+    const encryptedUsers = await FINDEX_DEMO.db.getEncryptedUsers();
 
-    const policy = new Policy([
-        new PolicyAxis("department", ["marketing", "HR", "security"], false),
-        new PolicyAxis("country", ["France", "Spain", "Germany"], false)
-    ], 100)
-    const masterKeysCoverCrypt = generateMasterKeys(policy);
-    const policyBytes = policy.toJsonEncoded();
-    sessionStorage.setItem('policy', hexEncode(policyBytes));
-    sessionStorage.setItem('coverCryptPublicKey', hexEncode(masterKeysCoverCrypt.publicKey));
-    sessionStorage.setItem('coverCryptPrivateKey', hexEncode(masterKeysCoverCrypt.privateKey));
-
-    const elements = await db.getUsers();
-    for (const element of elements) {
-        const encryptedBasic = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::marketing`, `country::${element.country}`], JSON.stringify({ firstName: element.firstName, lastName: element.lastName, country: element.country, region: element.region }))
-        const encryptedHr = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::HR`, `country::${element.country}`], JSON.stringify({ email: element.email, phone: element.phone, employeeNumber: element.employeeNumber }))
-        const encryptedSecurity = coverCryptEncrypt(policyBytes, masterKeysCoverCrypt.publicKey, '00000001', [`department::security`, `country::${element.country}`], JSON.stringify({ security: element.security }))
-        const upsertedEncElement = await db.upsertEncryptedUser({
-        enc_basic: hexEncode(encryptedBasic),
-        enc_hr: hexEncode(encryptedHr),
-        enc_security: hexEncode(encryptedSecurity)
-        });
-        await db.upsertUserEncUidById(element.id, { enc_uid: upsertedEncElement[0].uid });
-    };
-
-    const firstEncryptedElements = await db.getFirstEncryptedUsers();
+    const firstEncryptedElements = await DB_UTILS.getFirstEncryptedUsers();
     const encDb = document.getElementById("enc_db");
     if (encDb) {
         if (encDb.innerHTML) {
@@ -157,31 +118,6 @@ async function IndexAndLoadEncryptedElements() {
 };
 (window as any).IndexAndLoadEncryptedElements = IndexAndLoadEncryptedElements
 
-/**
- * Search terms with Findex implementation
- * @param db instanciated DbInterface
- * @param words string of all searched terms separated by a space character
- * @param logicalSwitch boolean to specify OR / AND search
- * @returns a promise containing results from query
- */
-async function search(db: DBInterface, words: string, logicalSwitch: boolean, loopIterationLimit: number): Promise<string[]> {
-    const wordsArray = words.split(" ");
-    const findex = new Findex(db);
-    let queryResults: string[] = [];
-    if (!logicalSwitch) {
-        queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), loopIterationLimit);
-    } else {
-        for (const [index, word] of wordsArray.entries()) {
-            const partialResults = await findex.search(masterKeysFindex, [sanitizeString(word)], loopIterationLimit)
-            if (index) {
-                queryResults = queryResults.filter(location => partialResults.includes(location))
-            } else {
-                queryResults = [ ...partialResults ]
-            }
-        }
-    }
-    return queryResults;
-}
 
 /**
  * Search terms with Findex implementation
@@ -201,12 +137,9 @@ async function searchElements(words: string, logicalSwitch: boolean) {
     content.innerHTML = "";
 
     try {
-        const db = new DB();
-        const loopIterationLimit = 1000;
-
-        const queryResults = await search(db, words, logicalSwitch, loopIterationLimit);
+        const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
         if (queryResults.length) {
-            const elements: Element[] = await db.getUsersById(queryResults);
+            const elements: Element[] = await DB_UTILS.getUsersById(queryResults);
             displayInTab(elements, content);
         } else {
             displayNoResult(content);
@@ -235,55 +168,15 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
     result.style.visibility = "visible";
     content.innerHTML = "";
     try {
-        const db = new DB();
-        const loopIterationLimit = 1000;
+        const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
+        if (queryResults.length === 0) {
+            displayNoResult(content);
+            return;
+        }
 
-        const queryResults = await search(db, words, logicalSwitch, loopIterationLimit);
-        if (queryResults.length) {
-            const res = await db.getEncryptedUsersById(queryResults);
-            const policy = sessionStorage.getItem('policy');
-            const masterPrivateKey = sessionStorage.getItem('coverCryptPrivateKey');
-            let accessPolicy = "";
-            if (res && res.length && policy && masterPrivateKey) {
-                switch (role) {
-                case "charlie":
-                    accessPolicy = "(country::France || country::Spain) && (department::HR || department::marketing)";
-                    break;
-                case "alice":
-                    accessPolicy = "country::France && department::marketing";
-                    break;
-                case "bob":
-                    accessPolicy = "country::Spain && (department::HR || department::marketing)";
-                }
-                const clearValues: Object[] = [];
-                res.filter((item) => { return item !== null }).forEach((item) => {
-                    const encryptedKeys = Object.keys(item) as (keyof EncryptedValue)[];
-                    let encryptedElement = {}
-                    for (let index = 0; index < encryptedKeys.length; index++) {
-                        try {
-                            const itemKey = encryptedKeys[index + 1];
-                            const encryptedText = hexDecode(item[itemKey]);
-                            const clearText = coverCryptDecrypt(hexDecode(policy), hexDecode(masterPrivateKey), accessPolicy, encryptedText);
-                            if (clearText.length) {
-                                encryptedElement = { ...encryptedElement, ...JSON.parse(clearText) }
-                            }
-                        }
-                        catch (e) {
-                            logger.log(() => "Unable to decrypt");
-                        }
-                    }
-                    if (Object.keys(encryptedElement).length !== 0) {
-                        clearValues.push(encryptedElement)
-                    }
-                });
-                if (clearValues.length) {
-                    displayInTab(clearValues, content);
-                } else {
-                    displayNoResult(content);
-                }
-            } else {
-                displayNoResult(content);
-            }
+        const clearValues = await FINDEX_DEMO.decryptUsers(queryResults, role);
+        if (clearValues.length) {
+            displayInTab(clearValues, content);
         } else {
             displayNoResult(content);
         }
@@ -307,7 +200,7 @@ function displayInTab(array: object[], parent: HTMLElement) {
                 columns.setAttribute('class', "item columns");
                 const keys = Object.keys(item);
                 for (const key of keys) {
-                const column = document.createElement('div');
+                    const column = document.createElement('div');
                     column.setAttribute("class", "cell");
                     column.innerHTML = key;
                     columns.appendChild(column);
@@ -340,14 +233,6 @@ function displayNoResult(parent: HTMLElement) {
     parent.appendChild(line);
 }
 
-/**
- * Remove accents and uppercase to query word
- * @param str string to sanitize
- * @returns string initial string without accents and uppercase
- */
-function sanitizeString(str: string): string {
-    return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-');
-}
 
 //
 // ----------------------------------------------------
@@ -583,7 +468,7 @@ function abeDemo(): string {
         const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
         const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
         const encryptionDemo = new EncryptionDecryptionDemo(
-        keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+            keyGeneration, demoKeys, hybridEncryption, hybridDecryption
         )
         encryptionDemo.run()
         // CoverCryptHybridEncryptionDemo.run()
@@ -603,7 +488,7 @@ function abeDemo(): string {
 (window as any).abeDemo = abeDemo
 
 function elementSetValue(id: string, value: Uint8Array | string) {
-  const box = document.getElementById(id);
+    const box = document.getElementById(id);
     if (box == null) {
         // console.error(id + " not found")
         return

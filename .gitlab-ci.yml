@@ -1,8 +1,19 @@
 image: node:16
 
 variables:
-  CARGO_HOME: ${CI_PROJECT_DIR}/.cargo/
   SCCACHE_DIR: ${CI_PROJECT_DIR}/.cache/sccache
+  NODE_OPTIONS: --max-http-header-size=128000
+  # Postgres
+  POSTGRES_DB: app_db
+  POSTGRES_USER: app_user
+  POSTGRES_PASSWORD: password
+  # Postgrest
+  PGRST_SERVER_HOST: localhost
+  PGRST_SERVER_PORT: 3000
+  PGRST_DB_URI: postgres://app_user:password@localhost:5432/app_db
+  PGRST_DB_SCHEMA: public
+  PGRST_DB_ANON_ROLE: app_user
+  PGRST_OPENAPI_SERVER_PROXY_URI: http://localhost:3000
 
 stages:
   - prebuild
@@ -16,23 +27,18 @@ tslint:
     - tslint -c tslint.json 'src/**'
   allow_failure: true
 
-build_node_12:
-  stage: build
-  image: node:12
-  script:
-    - npm install
-    - npm test
-
-build_node_14:
-  stage: build
-  image: node:14
-  script:
-    - npm install
-    - npm test
-
 build_node_16:
   stage: build
   image: node:16
+  services:
+    - name: postgres
+      alias: db
+    - name: postgrest/postgrest
+      alias: server
+  before_script:
+    - apt update && apt install -y postgresql
+    - export PGPASSWORD=$POSTGRES_PASSWORD
+    - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
   script:
     - npm install
     - npm test
@@ -40,6 +46,15 @@ build_node_16:
 build_node_18:
   stage: build
   image: node:18
+  services:
+    - name: postgres
+      alias: db
+    - name: postgrest/postgrest
+      alias: server
+  before_script:
+    - apt update && apt install -y postgresql
+    - export PGPASSWORD=$POSTGRES_PASSWORD
+    - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
   script:
     - npm install
     - npm test

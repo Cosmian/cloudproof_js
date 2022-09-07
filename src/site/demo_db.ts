@@ -9,6 +9,10 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
+  getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_entry`).then(this.responseBody)
+  }
+
   getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_entry?uid=in.(${uids})`).then(this.responseBody)
   }
@@ -17,8 +21,12 @@ export class DB implements DBInterface {
     return this.instance.get(`/index_chain?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getEncryptedUsers(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
-    return this.instance.get(`/encrypted_users)`).then(this.responseBody)
+  getChainTableEntries(): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_chain`).then(this.responseBody)
+  }
+
+  getEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+    return this.instance.get("/encrypted_users").then(this.responseBody)
   }
 
   getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {

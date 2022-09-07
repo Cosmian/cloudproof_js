@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.0.5] - 2022-09-07
+### Added
+- CI tests on Findex: upsert+search using Findex WASM package
+### Changed
+### Fixed
+### Removed
+
+---
 ## [1.0.4] - 2022-09-05
 ### Added
 ### Changed
