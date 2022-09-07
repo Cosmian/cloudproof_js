@@ -1,11 +1,11 @@
-import { AbeMasterKey } from "../crypto/abe/keygen/keygen";
-import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy";
-import { generateMasterKeys, coverCryptEncrypt, coverCryptDecrypt } from "../interface/cover_crypt/cover_crypt";
-import { Findex } from "../interface/findex/findex";
-import { DB } from "../site/demo_db";
-import { masterKeysFindex } from "../site/demo_keys";
-import { logger } from "../utils/logger";
-import { hexDecode, hexEncode, sanitizeString } from "../utils/utils";
+import { AbeMasterKey } from "../../crypto/abe/keygen/keygen";
+import { Policy, PolicyAxis } from "../../crypto/abe/keygen/policy";
+import { generateMasterKeys, coverCryptEncrypt, coverCryptDecrypt } from "../abe/cover_crypt/cover_crypt";
+import { Findex } from "../../interface/findex/findex";
+import { DB } from "./demo_db";
+import { masterKeysFindex } from "./demo_keys";
+import { logger } from "../../utils/logger";
+import { hexDecode, hexEncode, sanitizeString } from "../../utils/utils";
 
 export class FindexDemo {
   private _db: DB;

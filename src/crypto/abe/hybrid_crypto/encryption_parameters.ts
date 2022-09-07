@@ -1,5 +1,8 @@
-import { EncryptionParameters } from "./hybrid_crypto";
+import { EncryptionParameters } from "./interfaces/encryption_parameters";
 import { Metadata } from "./metadata";
+
+export const SYMMETRIC_KEY_SIZE = 32
+
 
 export class AbeEncryptionParameters extends EncryptionParameters {
   // ABE attributes as a string: for example: ["Department::FIN" , "Security Level::Confidential"]

@@ -5,8 +5,8 @@ services:
   server:
     container_name: server
     image: postgrest/postgrest
-    # ports:
-    #   - "3000:3000"
+    ports:
+      - "3000:3000"
     environment:
       PGRST_DB_URI: postgres://app_user:password@db:5432/app_db
       PGRST_DB_SCHEMA: public

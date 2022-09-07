@@ -1,7 +1,8 @@
 /* tslint:disable:max-classes-per-file */
 import { webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size } from "cover_crypt"
 import { logger } from "../../../../utils/logger"
-import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
+import { ClearTextHeader } from "../cleartext_header"
+import {  HybridDecryption } from "../interfaces/decryption"
 
 /**
  * This class exposes the ABE primitives.

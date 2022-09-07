@@ -1,10 +1,11 @@
 /* tslint:disable:max-classes-per-file */
 
-import { logger } from "../../../utils/logger"
-import { hexEncode } from "../../../utils/utils"
-import { AbeKeyGeneration } from "../keygen/keygen"
-import { Policy, PolicyAxis } from "../keygen/policy"
-import { HybridDecryption, HybridEncryption } from "./hybrid_crypto"
+import { logger } from "../../utils/logger"
+import { hexEncode } from "../../utils/utils"
+import { AbeKeyGeneration } from "../../crypto/abe/keygen/keygen"
+import { Policy, PolicyAxis } from "../../crypto/abe/keygen/policy"
+import { HybridDecryption } from "../../crypto/abe/hybrid_crypto/interfaces/decryption"
+import { HybridEncryption } from "../../crypto/abe/hybrid_crypto/interfaces/encryption"
 
 
 export class DemoKeys {

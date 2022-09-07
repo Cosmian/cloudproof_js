@@ -1,4 +1,4 @@
-import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "./hybrid_crypto"
+import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "./interfaces/decryption"
 import { logger } from "../../../utils/logger"
 import { hexDecode } from "../../../utils/utils"
 import { CoverCryptHybridDecryption } from "./cover_crypt/decryption"

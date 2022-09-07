@@ -1,10 +1,9 @@
 import axios from "axios";
 import { logger } from "../../../src/utils/logger";
-import { DB } from "../../../src/site/demo_db";
 import { Policy, PolicyAxis } from "../../../src/crypto/abe/keygen/policy";
-import { coverCryptEncrypt, generateMasterKeys } from "../../../src/interface/cover_crypt/cover_crypt";
 import { hexEncode } from "../../../src/utils/utils";
-import { FindexDemo } from "../../../src/demos/findex";
+import { FindexDemo } from "../../../src/demos/findex/findex";
+import { DB } from "../../../src/demos/findex/demo_db";
 
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'

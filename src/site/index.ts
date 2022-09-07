@@ -9,20 +9,20 @@
 
 
 import { CoverCryptHybridDecryption } from "../crypto/abe/hybrid_crypto/cover_crypt/decryption"
-import { CoverCryptDemoKeys } from "../crypto/abe/hybrid_crypto/cover_crypt/demo_keys"
 import { CoverCryptHybridEncryption } from "../crypto/abe/hybrid_crypto/cover_crypt/encryption"
-import { EncryptionDecryptionDemo } from "../crypto/abe/hybrid_crypto/demo_hybrid_crypto"
+import { EncryptionDecryptionDemo } from "../demos/abe/demo_hybrid_crypto"
 import { GpswHybridDecryption } from "../crypto/abe/hybrid_crypto/gpsw/decryption"
-import { GpswDemoKeys } from "../crypto/abe/hybrid_crypto/gpsw/demo_keys"
 import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryption"
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 import { PolicyAxis } from "../crypto/abe/keygen/policy"
-import { FindexDemo } from "../demos/findex"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode, sanitizeString } from "./../utils/utils"
-import { DB } from "./demo_db"
+import { DB } from "../demos/findex/demo_db"
+import { FindexDemo } from "../demos/findex/findex"
+import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
+import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
 
 const DB_UTILS = new DB();
 const FINDEX_DEMO = new FindexDemo(DB_UTILS, [

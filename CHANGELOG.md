@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - CI tests on Findex: upsert+search using Findex WASM package
 ### Changed
+- Source tree reorganization, splitting demos apart
 ### Fixed
 ### Removed
 

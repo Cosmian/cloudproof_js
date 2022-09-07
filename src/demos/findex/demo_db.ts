@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { DBInterface } from '../interface/findex/dbInterface';
+import { DBInterface } from '../../interface/findex/dbInterface';
 
 export class DB implements DBInterface {
   instance: AxiosInstance = axios.create({
