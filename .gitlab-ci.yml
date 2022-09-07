@@ -27,34 +27,45 @@ tslint:
     - tslint -c tslint.json 'src/**'
   allow_failure: true
 
-build_node_16:
-  stage: build
-  image: node:16
+.services:
   services:
     - name: postgres
       alias: db
     - name: postgrest/postgrest
       alias: server
   before_script:
-    - apt update && apt install -y postgresql
+    - apt update && apt install -y postgresql libpq-dev
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
+
+build_node_12:
+  extends: .services
+  stage: build
+  image: node:12
+  script:
+    - npm install
+    - npm test
+
+build_node_14:
+  extends: .services
+  stage: build
+  image: node:14
+  script:
+    - npm install
+    - npm test
+
+build_node_16:
+  extends: .services
+  stage: build
+  image: node:16
   script:
     - npm install
     - npm test
 
 build_node_18:
+  extends: .services
   stage: build
   image: node:18
-  services:
-    - name: postgres
-      alias: db
-    - name: postgrest/postgrest
-      alias: server
-  before_script:
-    - apt update && apt install -y postgresql
-    - export PGPASSWORD=$POSTGRES_PASSWORD
-    - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
   script:
     - npm install
     - npm test

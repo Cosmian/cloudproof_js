@@ -8,7 +8,7 @@
     "types": "dist/lib.d.ts",
     "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>",
     "scripts": {
-        "test": "jest"
+        "test": "NODE_OPTIONS=\"--max-http-header-size=128000\" jest"
     },
     "dependencies": {
         "abe_gpsw": "^2.0.1",

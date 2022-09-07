@@ -1,5 +1,4 @@
 import { ClearTextHeader } from "../cleartext_header"
-import { EncryptedHeader } from "../encrypted_header"
 
 
 
@@ -17,7 +16,7 @@ export abstract class HybridDecryption {
     this._asymmetricDecryptionKey = asymmetricDecryptionKey
   }
 
-  public abstract renew_key(userDecryptionKey: Uint8Array): void
+  public abstract renewKey(userDecryptionKey: Uint8Array): void
 
   public abstract destroyInstance(): void
 

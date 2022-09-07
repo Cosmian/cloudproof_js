@@ -13,6 +13,6 @@ module.exports = {
   modulePathIgnorePatterns: [
     "<rootDir>/tests/kms",
   ],
-  testTimeout: 20000,
+  testTimeout: 30000,
   detectOpenHandles: true
 };

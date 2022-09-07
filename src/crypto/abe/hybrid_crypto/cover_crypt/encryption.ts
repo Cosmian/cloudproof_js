@@ -16,7 +16,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
         super(policy, publicKey)
     }
 
-    public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
+    public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
         this.policy = policy
         this.publicKey = publicKey
     }

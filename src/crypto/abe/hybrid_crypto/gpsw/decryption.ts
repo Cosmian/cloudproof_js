@@ -22,7 +22,7 @@ export class GpswHybridDecryption extends HybridDecryption {
         this._cache = webassembly_create_decryption_cache(userDecryptionKey)
     }
 
-    public renew_key(userDecryptionKey: Uint8Array): void {
+    public renewKey(userDecryptionKey: Uint8Array): void {
         // Create decryption cache. This number is linked to the user decryption key
         this._cache = webassembly_create_decryption_cache(userDecryptionKey)
 

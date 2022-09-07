@@ -24,7 +24,7 @@ export abstract class HybridEncryption {
     this._policy = policy
     this._publicKey = publicKey
   }
-  public abstract renew_key(policy: Uint8Array, publicKey: Uint8Array): void
+  public abstract renewKey(policy: Uint8Array, publicKey: Uint8Array): void
 
   public abstract destroyInstance(): void
 

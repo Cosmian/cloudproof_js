@@ -23,7 +23,7 @@ export class GpswHybridEncryption extends HybridEncryption {
         this._cache = webassembly_create_encryption_cache(policy, publicKey)
     }
 
-    public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
+    public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
         // Create encryption cache. This number is linked to the public key and policy
         this._cache = webassembly_create_encryption_cache(policy, publicKey)
     }

@@ -1,7 +1,5 @@
 import axios from "axios";
-import { logger } from "../../../src/utils/logger";
-import { Policy, PolicyAxis } from "../../../src/crypto/abe/keygen/policy";
-import { hexEncode } from "../../../src/utils/utils";
+import { PolicyAxis } from "../../../src/crypto/abe/keygen/policy";
 import { FindexDemo } from "../../../src/demos/findex/findex";
 import { DB } from "../../../src/demos/findex/demo_db";
 
