@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 ## [1.0.5] - 2022-09-07
 ### Added
 - CI tests on Findex: upsert+search using Findex WASM package
+- Auto-deploy demo on tags to cloudproof-cosmian.com
 ### Changed
 - Source tree reorganization, splitting demos apart
 ### Fixed

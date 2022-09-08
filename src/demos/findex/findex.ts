@@ -28,31 +28,31 @@ export class FindexDemo {
     return this._masterKeysCoverCrypt;
   }
 
-  async encryptUsers(metadataUid: string) {
+  async encryptUsers(metadataUid: Uint8Array) {
     const policyBytes = this._policy.toJsonEncoded();
 
-    const elements = await this._db.getUsers();
-    for (const element of elements) {
+    const users = await this._db.getUsers();
+    for (const user of users) {
       const encryptedBasic = coverCryptEncrypt(
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
         metadataUid,
-        [`department::marketing`, `country::${element.country}`],
+        [`department::marketing`, `country::${user.country}`],
         JSON.stringify({
-          firstName: element.firstName,
-          lastName: element.lastName,
-          country: element.country,
-          region: element.region
+          firstName: user.firstName,
+          lastName: user.lastName,
+          country: user.country,
+          region: user.region
         }))
 
       const encryptedHr = coverCryptEncrypt(
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
         metadataUid,
-        [`department::HR`, `country::${element.country}`], JSON.stringify({
-          email: element.email,
-          phone: element.phone,
-          employeeNumber: element.employeeNumber
+        [`department::HR`, `country::${user.country}`], JSON.stringify({
+          email: user.email,
+          phone: user.phone,
+          employeeNumber: user.employeeNumber
         })
       )
 
@@ -60,8 +60,8 @@ export class FindexDemo {
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
         metadataUid,
-        [`department::security`, `country::${element.country}`], JSON.stringify({
-          security: element.security
+        [`department::security`, `country::${user.country}`], JSON.stringify({
+          security: user.security
         }))
 
       const upsertedEncElement = await this._db.upsertEncryptedUser({
@@ -70,32 +70,46 @@ export class FindexDemo {
         enc_security: hexEncode(encryptedSecurity)
       });
 
-      await this._db.upsertUserEncUidById(element.id, { enc_uid: upsertedEncElement[0].uid });
+      await this._db.upsertUserEncUidById(user.id, { enc_uid: upsertedEncElement[0].uid });
     };
 
   }
 
+  /**
+   * Reset all indexes and upsert new ones
+   *
+   * @param location location string naming the key of location to index
+   */
   async resetAndUpsert(location: string) {
     await this._db.deleteAllChainTableEntries();
     await this._db.deleteAllEntryTableEntries();
-    type Element = { [key: string]: string; };
-    const elements: Element[] = await this._db.getUsers();
-    const sanitizedElements: Element[] = elements.map((element) => {
-      Object.keys(element).forEach((key) => {
-        if (element[key]) {
-          element[key] = sanitizeString(element[key])
+    type User = { [key: string]: string; };
+    const users: User[] = await this._db.getUsers();
+    const sanitizedElements = users.map((user) => {
+      let key: keyof typeof user;
+      for (key in user) {
+        if (user[key]) {
+          user[key] = sanitizeString(user[key])
         }
-      });
-      return element;
+      }
+      return user;
     })
     let locationAndWords = {};
-    sanitizedElements.map((element) => {
-      const elementId = element[location];
-      delete element.id;
-      delete element.enc_uid;
+    sanitizedElements.map((user) => {
+      const userId = user[location];
       locationAndWords = {
         ...locationAndWords,
-        ...(elementId ? { [elementId]: [element.firstName, element.lastName, element.phone, element.email, element.country, element.region, element.employeeNumber, element.security] } : {})
+        ...(userId ? {
+          [userId]: [
+            user.firstName,
+            user.lastName,
+            user.phone,
+            user.email,
+            user.country,
+            user.region,
+            user.employeeNumber,
+            user.security]
+        } : {})
       };
     });
     const findex = new Findex(this._db);

@@ -1,6 +1,3 @@
-#
-
-
 #!/bin/sh
 set -exEu
 

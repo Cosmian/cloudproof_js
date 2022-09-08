@@ -30,8 +30,8 @@ module.exports = {
         asyncWebAssembly: true,
     },
     plugins: [
-      new webpack.EnvironmentPlugin({
-        SERVER: 'http://localhost:3000', // default backend URI
-      }),
+        new webpack.EnvironmentPlugin({
+            SERVER: 'http://localhost:3000', // default backend URI
+        }),
     ]
 }

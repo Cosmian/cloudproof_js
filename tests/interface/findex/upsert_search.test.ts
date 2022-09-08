@@ -2,6 +2,7 @@ import axios from "axios";
 import { PolicyAxis } from "../../../src/crypto/abe/keygen/policy";
 import { FindexDemo } from "../../../src/demos/findex/findex";
 import { DB } from "../../../src/demos/findex/demo_db";
+import { hexDecode } from "../../../src/utils/utils";
 
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'
@@ -16,7 +17,7 @@ test('upsert+search', async () => {
     // Encrypt all users data
     //
     await db.deleteAllEncryptedUsers();
-    await findexDemo.encryptUsers("00000001");
+    await findexDemo.encryptUsers(hexDecode("00000001"));
 
     //
     // Display

@@ -29,8 +29,8 @@ export abstract class HybridDecryption {
   /**
    * Decrypts a hybrid block
    *
-   * @param symmetricKey symmetric key
-   * @param encryptedBytes encrypted data
+   * @param symmetricKey key used in symmetric cipher
+   * @param encryptedBytes ciphertext
    * @param uid uid used as additional data
    * @param blockNumber
    * @returns the cleartext if everything succeeded
@@ -54,12 +54,7 @@ export abstract class HybridDecryption {
 }
 
 export type DecryptionWorkerMessage = {
-  name:
-  'INIT' |
-  'DESTROY' |
-  'DECRYPT' |
-  'SUCCESS' |
-  'ERROR',
+  name: 'INIT' | 'DESTROY' | 'DECRYPT' | 'SUCCESS' | 'ERROR',
   isGpswImplementation: boolean
   error?: string
   value?: any

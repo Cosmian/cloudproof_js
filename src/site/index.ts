@@ -100,8 +100,7 @@ async function IndexAndLoadEncryptedElements() {
     }
 
     await DB_UTILS.deleteAllEncryptedUsers();
-    await FINDEX_DEMO.encryptUsers("00000001");
-    const encryptedUsers = await FINDEX_DEMO.db.getEncryptedUsers();
+    await FINDEX_DEMO.encryptUsers(hexDecode("00000001"));
 
     const firstEncryptedElements = await DB_UTILS.getFirstEncryptedUsers();
     const encDb = document.getElementById("enc_db");
@@ -158,8 +157,6 @@ async function searchElements(words: string, logicalSwitch: boolean) {
  * @returns void
  */
 async function searchAndDecryptElements(words: string, role: string, logicalSwitch: boolean) {
-    type EncryptedValue = { uid: string, enc_basic: string, enc_hr: string, enc_security: string };
-
     const result = document.getElementById("result");
     const content = document.getElementById("content");
     if (result == null || content == null) {

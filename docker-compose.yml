@@ -23,8 +23,6 @@ services:
       POSTGRES_DB: app_db
       POSTGRES_USER: app_user
       POSTGRES_PASSWORD: password
-    volumes:
-      - "./pgdata:/var/lib/postgresql/data"
 
   frontend:
     container_name: frontend
@@ -33,4 +31,3 @@ services:
       SERVER: http://127.0.0.1:3000
     ports:
       - 8080:8080
-    command: npx webpack serve --host 0.0.0.0 --disable-host-check

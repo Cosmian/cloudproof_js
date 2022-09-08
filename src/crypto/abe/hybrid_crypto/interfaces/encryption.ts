@@ -56,15 +56,8 @@ export abstract class HybridEncryption {
   public abstract encrypt(attributes: string[], uid: Uint8Array, plaintext: Uint8Array): Uint8Array
 }
 
-
-
 export type EncryptionWorkerMessage = {
-  name:
-  'INIT' |
-  'DESTROY' |
-  'ENCRYPT' |
-  'SUCCESS' |
-  'ERROR',
+  name: 'INIT' | 'DESTROY' | 'ENCRYPT' | 'SUCCESS' | 'ERROR',
   error?: string
   value?: any
 }

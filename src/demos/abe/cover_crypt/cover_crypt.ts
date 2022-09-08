@@ -18,13 +18,12 @@ export function generateMasterKeys(policy: Policy): AbeMasterKey {
     return masterKeys;
 }
 
-export function coverCryptEncrypt(policy: Uint8Array, publicMasterKey: Uint8Array, uid: string, attributes: string[], plainData: string) {
+export function coverCryptEncrypt(policy: Uint8Array, publicMasterKey: Uint8Array, uid: Uint8Array, attributes: string[], plainData: string) {
     const hybridCryptoEncrypt = new CoverCryptHybridEncryption(policy, publicMasterKey);
 
-    const uidBytes = hexDecode(uid);
     const plainTextBytes = new TextEncoder().encode(plainData);
 
-    const encryptedData= hybridCryptoEncrypt.encrypt(attributes, uidBytes, plainTextBytes);
+    const encryptedData= hybridCryptoEncrypt.encrypt(attributes, uid, plainTextBytes);
 
     hybridCryptoEncrypt.destroyInstance();
     return encryptedData;

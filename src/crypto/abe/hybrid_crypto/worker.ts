@@ -1,8 +1,9 @@
-import { ClearTextHeader, DecryptionWorkerMessage, HybridDecryption } from "./interfaces/decryption"
+import { DecryptionWorkerMessage, HybridDecryption } from "./interfaces/decryption"
 import { logger } from "../../../utils/logger"
 import { hexDecode } from "../../../utils/utils"
 import { CoverCryptHybridDecryption } from "./cover_crypt/decryption"
 import { GpswHybridDecryption } from "./gpsw/decryption"
+import { ClearTextHeader } from "./cleartext_header"
 
 const ctx: Worker = self as any
 
