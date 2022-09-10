@@ -28,7 +28,7 @@ test('upsert+search', async () => {
     //
     // Upsert Indexes
     //
-    await findexDemo.resetAndUpsert('enc_uid');
+    await findexDemo.resetAndUpsert("enc_uid");
     const entries = await findexDemo.db.getEntryTableEntries();
     const chains = await findexDemo.db.getChainTableEntries();
     expect(entries.length).toBe(577)

@@ -3,7 +3,7 @@ import { CoverCryptHybridDecryption } from "../../../crypto/abe/hybrid_crypto/co
 import { CoverCryptHybridEncryption } from "../../../crypto/abe/hybrid_crypto/cover_crypt/encryption";
 import { AbeMasterKey } from "../../../crypto/abe/keygen/keygen";
 import { Policy } from "../../../crypto/abe/keygen/policy";
-import { fromBeBytes, hexDecode } from "../../../utils/utils";
+import { fromBeBytes } from "../../../utils/utils";
 
 export function generateMasterKeys(policy: Policy): AbeMasterKey {
     const policyBytes: Uint8Array = policy.toJsonEncoded();

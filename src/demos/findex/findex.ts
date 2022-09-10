@@ -2,7 +2,7 @@ import { AbeMasterKey } from "../../crypto/abe/keygen/keygen";
 import { Policy, PolicyAxis } from "../../crypto/abe/keygen/policy";
 import { generateMasterKeys, coverCryptEncrypt, coverCryptDecrypt } from "../abe/cover_crypt/cover_crypt";
 import { Findex } from "../../interface/findex/findex";
-import { DB } from "./demo_db";
+import { DB, User } from "./demo_db";
 import { masterKeysFindex } from "./demo_keys";
 import { logger } from "../../utils/logger";
 import { hexDecode, hexEncode, sanitizeString } from "../../utils/utils";
@@ -83,7 +83,6 @@ export class FindexDemo {
   async resetAndUpsert(location: string) {
     await this._db.deleteAllChainTableEntries();
     await this._db.deleteAllEntryTableEntries();
-    type User = { [key: string]: string; };
     const users: User[] = await this._db.getUsers();
     const sanitizedElements = users.map((user) => {
       let key: keyof typeof user;
@@ -94,23 +93,23 @@ export class FindexDemo {
       }
       return user;
     })
-    let locationAndWords = {};
+    const locationAndWords: { [key: string]: string[]; } = {};
     sanitizedElements.map((user) => {
-      const userId = user[location];
-      locationAndWords = {
-        ...locationAndWords,
-        ...(userId ? {
-          [userId]: [
-            user.firstName,
-            user.lastName,
-            user.phone,
-            user.email,
-            user.country,
-            user.region,
-            user.employeeNumber,
-            user.security]
-        } : {})
-      };
+      let userId = user.id;
+      if (location === "enc_uid") {
+        userId = user.enc_uid;
+      }
+      if (userId) {
+        locationAndWords[userId] = [
+          user.firstName,
+          user.lastName,
+          user.phone,
+          user.email,
+          user.country,
+          user.region,
+          user.employeeNumber,
+          user.security]
+      }
     });
     const findex = new Findex(this._db);
     await findex.upsert(masterKeysFindex, locationAndWords);

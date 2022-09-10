@@ -1,6 +1,10 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { DBInterface } from '../../interface/findex/dbInterface';
 
+export interface User {
+  id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string, enc_uid: string
+}
+
 export class DB implements DBInterface {
   instance: AxiosInstance = axios.create({
     baseURL: process.env.SERVER,
@@ -43,15 +47,15 @@ export class DB implements DBInterface {
     return this.instance.get(`/encrypted_users?select=enc_basic,enc_hr,enc_security`, config).then(this.responseBody)
   }
 
-  getUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getUsers(): Promise<User[]> {
     return this.instance.get(`/users`).then(this.responseBody)
   }
 
-  getUsersById(uids: string[]): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getUsersById(uids: string[]): Promise<User[]> {
     return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security&id=in.(${uids})`).then(this.responseBody)
   }
 
-  getFirstUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getFirstUsers(): Promise<User[]> {
     const config = {
       headers: {
         "Range-Unit": "items",

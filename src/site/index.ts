@@ -19,7 +19,7 @@ import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_ke
 import { PolicyAxis } from "../crypto/abe/keygen/policy"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode } from "./../utils/utils"
-import { DB } from "../demos/findex/demo_db"
+import { DB, User } from "../demos/findex/demo_db"
 import { FindexDemo } from "../demos/findex/findex"
 import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
 import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
@@ -125,8 +125,6 @@ async function IndexAndLoadEncryptedElements() {
  * @returns void
  */
 async function searchElements(words: string, logicalSwitch: boolean) {
-    type Element = { [key: string]: string; };
-
     const result = document.getElementById("result");
     const content = document.getElementById("content");
     if (result == null || content == null) {
@@ -138,8 +136,8 @@ async function searchElements(words: string, logicalSwitch: boolean) {
     try {
         const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
         if (queryResults.length) {
-            const elements: Element[] = await DB_UTILS.getUsersById(queryResults);
-            displayInTab(elements, content);
+            const users: User[] = await DB_UTILS.getUsersById(queryResults);
+            displayInTab(users, content);
         } else {
             displayNoResult(content);
         }

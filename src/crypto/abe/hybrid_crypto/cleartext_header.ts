@@ -60,20 +60,26 @@ export class ClearTextHeader {
     }
     const headerSize = fromBeBytes(cleartextHeader.slice(0, 4))
     if (headerSize === 0) {
-      throw new Error("Parse cleartextHeader failed. Header size must be strictly positive")
+      throw new Error("Parse cleartextHeader failed. Header size is null and must be strictly positive")
+    }
+    if (cleartextHeader.length < 4 + headerSize) {
+      throw new Error("cleartextHeader length is less than " + (4 + headerSize).toString());
     }
     const symmetricKey = cleartextHeader.slice(4, 4 + headerSize)
-    const metadata = cleartextHeader.slice(4 + headerSize)
-    logger.log(() => "metadata: " + metadata)
-    if (metadata.length < 4) {
+    const serializedMetadata = cleartextHeader.slice(4 + headerSize)
+    logger.log(() => "metadata: " + serializedMetadata)
+    if (serializedMetadata.length < 4) {
       throw new Error("Parse metadata failed. Length must be at least 4 bytes")
     }
-    const metadataSize = fromBeBytes(metadata.slice(0, 4))
+    const metadataSize = fromBeBytes(serializedMetadata.slice(0, 4))
     if (metadataSize === 0) {
       throw new Error("Metadata length cannot be 0")
     }
-    const uid = metadata.slice(4, 4 + metadataSize)
-    const additionalData = metadata.slice(4 + metadataSize)
+    if (serializedMetadata.length < 4 + metadataSize) {
+      throw new Error("serializedMetadata length is less than: " + (4 + metadataSize).toString())
+    }
+    const uid = serializedMetadata.slice(4, 4 + metadataSize)
+    const additionalData = serializedMetadata.slice(4 + metadataSize)
     logger.log(() => "uid: " + uid)
     logger.log(() => "additionalData: " + additionalData)
 
