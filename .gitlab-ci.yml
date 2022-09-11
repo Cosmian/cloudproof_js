@@ -76,5 +76,5 @@ deploy:
     - docker save frontend > frontend.tar
     - scp docker-compose.yml frontend.tar run-demo.sh dump_db_demo.* cosmian@demo-cloudproof.cosmian.com:~/demo_cloudproof/
     - ssh cosmian@demo-cloudproof.cosmian.com 'bash ~/demo_cloudproof/run-demo.sh'
-  #rules:
-  #  - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
