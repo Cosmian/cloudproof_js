@@ -28,6 +28,9 @@ services:
     container_name: frontend
     image: frontend:latest
     environment:
-      SERVER: http://127.0.0.1:3000
+      SERVER: /server # to play behind a reverse proxy
+      # SERVER: http://127.0.0.1:3000 # to play locally
     ports:
       - 8080:8080
+    depends_on:
+      - server
