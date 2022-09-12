@@ -83,7 +83,7 @@ export class FindexDemo {
   async resetAndUpsert(location: string) {
     await this._db.deleteAllChainTableEntries();
     await this._db.deleteAllEntryTableEntries();
-    const users: User[] = await this._db.getUsers();
+    const users = await this._db.getUsers();
     const sanitizedElements = users.map((user) => {
       let key: keyof typeof user;
       for (key in user) {
@@ -109,6 +109,8 @@ export class FindexDemo {
           user.region,
           user.employeeNumber,
           user.security]
+      } else {
+        throw new Error("resetAndUpsert: userId cannot be null")
       }
     });
     const findex = new Findex(this._db);
