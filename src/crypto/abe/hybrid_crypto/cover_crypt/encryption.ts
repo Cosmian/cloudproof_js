@@ -1,8 +1,9 @@
 import { webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header } from "cover_crypt";
 import { logger } from "../../../../utils/logger";
 import { hexEncode } from "../../../../utils/utils";
+import { EncryptedHeader } from "../encrypted_header";
 import { AbeEncryptionParameters } from "../encryption_parameters";
-import { EncryptedHeader, HybridEncryption } from "../hybrid_crypto";
+import { HybridEncryption } from "../interfaces/encryption";
 import { Metadata } from "../metadata";
 
 
@@ -15,7 +16,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
         super(policy, publicKey)
     }
 
-    public renew_key(policy: Uint8Array, publicKey: Uint8Array): void {
+    public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
         this.policy = policy
         this.publicKey = publicKey
     }

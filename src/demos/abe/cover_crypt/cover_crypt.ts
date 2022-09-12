@@ -1,9 +1,9 @@
 import { webassembly_generate_master_keys, webassembly_generate_user_private_key } from "cover_crypt";
-import { CoverCryptHybridDecryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/decryption";
-import { CoverCryptHybridEncryption } from "../../crypto/abe/hybrid_crypto/cover_crypt/encryption";
-import { AbeMasterKey } from "../../crypto/abe/keygen/keygen";
-import { Policy } from "../../crypto/abe/keygen/policy";
-import { fromBeBytes, hexDecode } from "../../utils/utils";
+import { CoverCryptHybridDecryption } from "../../../crypto/abe/hybrid_crypto/cover_crypt/decryption";
+import { CoverCryptHybridEncryption } from "../../../crypto/abe/hybrid_crypto/cover_crypt/encryption";
+import { AbeMasterKey } from "../../../crypto/abe/keygen/keygen";
+import { Policy } from "../../../crypto/abe/keygen/policy";
+import { fromBeBytes } from "../../../utils/utils";
 
 export function generateMasterKeys(policy: Policy): AbeMasterKey {
     const policyBytes: Uint8Array = policy.toJsonEncoded();
@@ -18,13 +18,12 @@ export function generateMasterKeys(policy: Policy): AbeMasterKey {
     return masterKeys;
 }
 
-export function coverCryptEncrypt(policy: Uint8Array, publicMasterKey: Uint8Array, uid: string, attributes: string[], plainData: string) {
+export function coverCryptEncrypt(policy: Uint8Array, publicMasterKey: Uint8Array, uid: Uint8Array, attributes: string[], plainData: string) {
     const hybridCryptoEncrypt = new CoverCryptHybridEncryption(policy, publicMasterKey);
 
-    const uidBytes = hexDecode(uid);
     const plainTextBytes = new TextEncoder().encode(plainData);
 
-    const encryptedData= hybridCryptoEncrypt.encrypt(attributes, uidBytes, plainTextBytes);
+    const encryptedData= hybridCryptoEncrypt.encrypt(attributes, uid, plainTextBytes);
 
     hybridCryptoEncrypt.destroyInstance();
     return encryptedData;

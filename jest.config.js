@@ -12,5 +12,7 @@ module.exports = {
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
   modulePathIgnorePatterns: [
     "<rootDir>/tests/kms",
-  ]
+  ],
+  testTimeout: 30000,
+  detectOpenHandles: true
 };

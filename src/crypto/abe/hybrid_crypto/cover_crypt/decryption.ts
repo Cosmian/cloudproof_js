@@ -1,7 +1,8 @@
 /* tslint:disable:max-classes-per-file */
 import { webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size } from "cover_crypt"
 import { logger } from "../../../../utils/logger"
-import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
+import { ClearTextHeader } from "../cleartext_header"
+import { HybridDecryption } from "../interfaces/decryption"
 
 /**
  * This class exposes the ABE primitives.
@@ -13,7 +14,7 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
         super(userDecryptionKey)
     }
 
-    public renew_key(userDecryptionKey: Uint8Array): void {
+    public renewKey(userDecryptionKey: Uint8Array): void {
         this.asymmetricDecryptionKey = userDecryptionKey
     }
 

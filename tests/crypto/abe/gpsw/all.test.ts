@@ -1,8 +1,8 @@
-import { EncryptionDecryptionDemo } from "../../../../src/crypto/abe/hybrid_crypto/demo_hybrid_crypto"
+import { EncryptionDecryptionDemo } from "../../../../src/demos/abe/demo_hybrid_crypto"
 import { GpswHybridDecryption } from "../../../../src/crypto/abe/hybrid_crypto/gpsw/decryption"
-import { GpswDemoKeys } from "../../../../src/crypto/abe/hybrid_crypto/gpsw/demo_keys"
 import { GpswHybridEncryption } from "../../../../src/crypto/abe/hybrid_crypto/gpsw/encryption"
 import { GpswMasterKeyGeneration } from "../../../../src/crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
+import { GpswDemoKeys } from "../../../../src/demos/abe/gpsw/demo_keys"
 
 test('gpsw', async () => {
 

@@ -1,7 +1,6 @@
 import { PropertyMetadata } from "../decorators/function"
 import { FromTTLV } from "../deserialize/deserializer"
 import { KmipStruct } from "../json/KmipStruct"
-import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"
 import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier"
 import { LinkType } from "./LinkType"

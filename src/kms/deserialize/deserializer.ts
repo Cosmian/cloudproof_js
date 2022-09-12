@@ -1,5 +1,4 @@
 import { PropertyMetadata, METADATA_KEY } from "../decorators/interface"
-import { Create } from "../operations/Create"
 import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"
 import { JsonObject } from "./JSON"

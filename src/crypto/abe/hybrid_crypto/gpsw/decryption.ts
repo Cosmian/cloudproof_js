@@ -3,7 +3,8 @@ import {
     webassembly_create_decryption_cache, webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_decrypt_hybrid_header_using_cache, webassembly_destroy_decryption_cache, webassembly_get_encrypted_header_size
 } from "abe_gpsw"
 import { logger } from "../../../../utils/logger"
-import { ClearTextHeader, HybridDecryption } from "../hybrid_crypto"
+import { ClearTextHeader } from "../cleartext_header"
+import { HybridDecryption } from "../interfaces/decryption"
 
 
 /**
@@ -21,7 +22,7 @@ export class GpswHybridDecryption extends HybridDecryption {
         this._cache = webassembly_create_decryption_cache(userDecryptionKey)
     }
 
-    public renew_key(userDecryptionKey: Uint8Array): void {
+    public renewKey(userDecryptionKey: Uint8Array): void {
         // Create decryption cache. This number is linked to the user decryption key
         this._cache = webassembly_create_decryption_cache(userDecryptionKey)
 

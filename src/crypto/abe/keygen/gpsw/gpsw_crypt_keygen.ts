@@ -5,7 +5,7 @@ import {
   webassembly_rotate_attributes
 } from "abe_gpsw"
 import { logger } from "../../../../utils/logger"
-import { fromBeBytes, hexDecode } from "../../../../utils/utils"
+import { fromBeBytes } from "../../../../utils/utils"
 import { AbeKeyGeneration, AbeMasterKey } from "../keygen"
 import { Policy } from "../policy"
 

@@ -7,6 +7,13 @@ SET default_transaction_read_only = off;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 
+--
+-- Drop tables
+--
+DROP TABLE public.encrypted_users;
+DROP TABLE public.users;
+DROP TABLE public.index_chain;
+DROP TABLE public.index_entry;
 
 --
 -- Drop databases (except postgres and template1)

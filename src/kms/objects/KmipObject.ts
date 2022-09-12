@@ -1,8 +1,4 @@
 import { KmipStruct } from "../json/KmipStruct";
-import { ObjectType } from "../types/ObjectType";
-import { Certificate } from "./Certificate";
-import { CertificateRequest } from "./CertificateRequest";
-import { OpaqueObject } from "./OpaqueObject";
 
 export class KmipObject implements KmipStruct {
 

@@ -2,7 +2,6 @@ import { PropertyMetadata } from "../decorators/function"
 import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 import { Attributes } from "../types/Attributes"
-import { SecretDataType } from "../types/SecretDataType"
 
 /**
  * This operation requests the server to generate a new public/private key pair

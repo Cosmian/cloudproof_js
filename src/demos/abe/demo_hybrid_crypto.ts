@@ -1,10 +1,11 @@
 /* tslint:disable:max-classes-per-file */
 
-import { logger } from "../../../utils/logger"
-import { hexEncode } from "../../../utils/utils"
-import { AbeKeyGeneration } from "../keygen/keygen"
-import { Policy, PolicyAxis } from "../keygen/policy"
-import { HybridDecryption, HybridEncryption } from "./hybrid_crypto"
+import { HybridDecryption } from "../../crypto/abe/hybrid_crypto/interfaces/decryption"
+import { HybridEncryption } from "../../crypto/abe/hybrid_crypto/interfaces/encryption"
+import { AbeKeyGeneration } from "../../crypto/abe/keygen/keygen"
+import { Policy, PolicyAxis } from "../../crypto/abe/keygen/policy"
+import { logger } from "../../utils/logger"
+import { hexEncode } from "../../utils/utils"
 
 
 export class DemoKeys {
@@ -95,7 +96,7 @@ export class EncryptionDecryptionDemo {
         throw new Error("Items MUST be equal (left: " + x + " right: " + y + ")")
     }
 
-    this.hybridDecryption.renew_key(this.demoKeys.topSecretMkgFinUser)
+    this.hybridDecryption.renewKey(this.demoKeys.topSecretMkgFinUser)
     const cleartext = this.hybridDecryption.decrypt(this.demoKeys.encryptedData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(this.demoKeys.plaintext, cleartext)
@@ -105,7 +106,7 @@ export class EncryptionDecryptionDemo {
 
   public encryptionDemo() {
     // Init ABE decryption cache
-    this.hybridEncryption.renew_key(this.demoKeys.policy, this.demoKeys.publicKey)
+    this.hybridEncryption.renewKey(this.demoKeys.policy, this.demoKeys.publicKey)
     const lowSecretMkgData = this.hybridEncryption.encrypt(['Security Level::Low Secret', 'Department::MKG'], this.demoKeys.uid, this.demoKeys.plaintext)
     const topSecretMkgData = this.hybridEncryption.encrypt(['Security Level::Top Secret', ' Department::MKG'], this.demoKeys.uid, this.demoKeys.plaintext)
     const lowSecretFinData = this.hybridEncryption.encrypt(['Security Level::Low Secret', 'Department::FIN'], this.demoKeys.uid, this.demoKeys.plaintext)
@@ -119,7 +120,7 @@ export class EncryptionDecryptionDemo {
     }
 
     // The medium secret marketing user can successfully decrypt a low security marketing message :
-    this.hybridDecryption.renew_key(this.demoKeys.mediumSecretMkgUser)
+    this.hybridDecryption.renewKey(this.demoKeys.mediumSecretMkgUser)
     let cleartext = this.hybridDecryption.decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(this.demoKeys.plaintext, cleartext)
@@ -140,7 +141,7 @@ export class EncryptionDecryptionDemo {
 
     // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below
     // As expected, the top secret marketing financial user can successfully decrypt all messages
-    this.hybridDecryption.renew_key(this.demoKeys.topSecretMkgFinUser)
+    this.hybridDecryption.renewKey(this.demoKeys.topSecretMkgFinUser)
     cleartext = this.hybridDecryption.decrypt(lowSecretMkgData)
     logger.log(() => "Decryption succeed: " + new TextDecoder().decode(cleartext))
     assert(this.demoKeys.plaintext, cleartext)

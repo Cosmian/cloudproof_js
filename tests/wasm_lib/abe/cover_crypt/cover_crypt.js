@@ -326,10 +326,6 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
-module.exports.__wbg_log_02e3022e52b94071 = function(arg0, arg1) {
-    console.log(getStringFromWasm0(arg0, arg1));
-};
-
 module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
 };

@@ -1,5 +1,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { DBInterface } from '../interface/findex/dbInterface';
+import { DBInterface } from '../../interface/findex/dbInterface';
+
+export interface User {
+  id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string, enc_uid: string
+}
 
 export class DB implements DBInterface {
   instance: AxiosInstance = axios.create({
@@ -9,6 +13,10 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
+  getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_entry`).then(this.responseBody)
+  }
+
   getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_entry?uid=in.(${uids})`).then(this.responseBody)
   }
@@ -17,8 +25,12 @@ export class DB implements DBInterface {
     return this.instance.get(`/index_chain?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getEncryptedUsers(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
-    return this.instance.get(`/encrypted_users)`).then(this.responseBody)
+  getChainTableEntries(): Promise<{ uid: string; value: string; }[]> {
+    return this.instance.get(`/index_chain`).then(this.responseBody)
+  }
+
+  getEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+    return this.instance.get("/encrypted_users").then(this.responseBody)
   }
 
   getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
@@ -35,15 +47,15 @@ export class DB implements DBInterface {
     return this.instance.get(`/encrypted_users?select=enc_basic,enc_hr,enc_security`, config).then(this.responseBody)
   }
 
-  getUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getUsers(): Promise<User[]> {
     return this.instance.get(`/users`).then(this.responseBody)
   }
 
-  getUsersById(uids: string[]): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getUsersById(uids: string[]): Promise<User[]> {
     return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security&id=in.(${uids})`).then(this.responseBody)
   }
 
-  getFirstUsers(): Promise<{ id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[]> {
+  getFirstUsers(): Promise<User[]> {
     const config = {
       headers: {
         "Range-Unit": "items",
