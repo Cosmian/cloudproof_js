@@ -102,7 +102,7 @@ export class GpswHybridEncryption extends HybridEncryption {
      * @param blockNumber
      * @returns the cleartext if everything succeeded
      */
-    public encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
+    public encryptSymmetricBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
         return webassembly_encrypt_hybrid_block(
             symmetricKey,
             uid,
@@ -128,7 +128,7 @@ export class GpswHybridEncryption extends HybridEncryption {
         const hybridHeader = this.encryptHybridHeader(encryptionParameters)
         logger.log(() => "encrypt: symmetricKey:" + hybridHeader.symmetricKey)
         logger.log(() => "encrypt: encryptedSymmetricKeySizeAsArray:" + hybridHeader.encryptedSymmetricKeySizeAsArray)
-        const ciphertext = this.encryptHybridBlock(hybridHeader.symmetricKey, plaintext, uid, 0)
+        const ciphertext = this.encryptSymmetricBlock(hybridHeader.symmetricKey, plaintext, uid, 0)
 
         logger.log(() => "encrypt: header size : " + hybridHeader.encryptedSymmetricKeySizeAsArray)
         logger.log(() => "encrypt: encrypted symmetric key : " + hybridHeader.encryptedSymmetricKey)

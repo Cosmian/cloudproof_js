@@ -197,27 +197,6 @@ module.exports.webassembly_rotate_attributes = function(attributes_bytes, policy
 };
 
 /**
-* Extract header from encrypted bytes
-* @param {Uint8Array} encrypted_bytes
-* @returns {number}
-*/
-module.exports.webassembly_get_encrypted_header_size = function(encrypted_bytes) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_get_encrypted_header_size(retptr, addHeapObject(encrypted_bytes));
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        var r2 = getInt32Memory0()[retptr / 4 + 2];
-        if (r2) {
-            throw takeObject(r1);
-        }
-        return r0 >>> 0;
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-};
-
-/**
 * @param {Uint8Array} metadata_bytes
 * @param {Uint8Array} policy_bytes
 * @param {Uint8Array} attributes_bytes
@@ -243,14 +222,14 @@ module.exports.webassembly_encrypt_hybrid_header = function(metadata_bytes, poli
 /**
 * Decrypt with a user decryption key an encrypted header
 * of a resource encrypted using an hybrid crypto scheme.
-* @param {Uint8Array} user_decryption_key_bytes
+* @param {Uint8Array} usk_bytes
 * @param {Uint8Array} encrypted_header_bytes
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_hybrid_header = function(user_decryption_key_bytes, encrypted_header_bytes) {
+module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted_header_bytes) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(user_decryption_key_bytes), addHeapObject(encrypted_header_bytes));
+        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_header_bytes));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -263,21 +242,17 @@ module.exports.webassembly_decrypt_hybrid_header = function(user_decryption_key_
     }
 };
 
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
 /**
 * Symmetrically Encrypt plaintext data in a block.
 * @param {Uint8Array} symmetric_key_bytes
-* @param {Uint8Array | undefined} uid_bytes
-* @param {number | undefined} block_number
 * @param {Uint8Array} plaintext_bytes
+* @param {Uint8Array} associated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_hybrid_block = function(symmetric_key_bytes, uid_bytes, block_number, plaintext_bytes) {
+module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, associated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_encrypt_hybrid_block(retptr, addHeapObject(symmetric_key_bytes), isLikeNone(uid_bytes) ? 0 : addHeapObject(uid_bytes), !isLikeNone(block_number), isLikeNone(block_number) ? 0 : block_number, addHeapObject(plaintext_bytes));
+        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(associated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -293,15 +268,72 @@ module.exports.webassembly_encrypt_hybrid_block = function(symmetric_key_bytes, 
 /**
 * Symmetrically Decrypt encrypted data in a block.
 * @param {Uint8Array} symmetric_key_bytes
-* @param {Uint8Array | undefined} uid_bytes
-* @param {number | undefined} block_number
+* @param {Uint8Array} encrypted_bytes
+* @param {Uint8Array} associated_data
+* @returns {Uint8Array}
+*/
+module.exports.webassembly_decrypt_symmetric_block = function(symmetric_key_bytes, encrypted_bytes, associated_data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.webassembly_decrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(encrypted_bytes), addHeapObject(associated_data));
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+/**
+* Generates both a encrypted header and a DEM encryption of the `plaintext`,
+* with the header metadata as associated data.
+*
+* - `metadata_bytes`  : serialized metadata
+* - `policy_bytes`    : serialized policy
+* - `attribute_bytes` : serialized attributes to use in the encapsulation
+* - `pk`              : CoverCrypt public key
+* - `plaintext`       : message to encrypt with the DEM
+* @param {Uint8Array} metadata_bytes
+* @param {Uint8Array} policy_bytes
+* @param {Uint8Array} attributes_bytes
+* @param {Uint8Array} pk
+* @param {Uint8Array} plaintext
+* @returns {Uint8Array}
+*/
+module.exports.webassembly_hybrid_encrypt = function(metadata_bytes, policy_bytes, attributes_bytes, pk, plaintext) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.webassembly_hybrid_encrypt(retptr, addHeapObject(metadata_bytes), addHeapObject(policy_bytes), addHeapObject(attributes_bytes), addHeapObject(pk), addHeapObject(plaintext));
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+/**
+* Decrypt the DEM ciphertext with the header encapsulated symmetric key,
+* with the header metadata as associated data.
+*
+* - `usk_bytes`       : serialized user private key
+* - `encrypted_bytes` : concatenation of the encrypted header and the DEM ciphertext
+* @param {Uint8Array} usk_bytes
 * @param {Uint8Array} encrypted_bytes
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_hybrid_block = function(symmetric_key_bytes, uid_bytes, block_number, encrypted_bytes) {
+module.exports.webassembly_hybrid_decrypt = function(usk_bytes, encrypted_bytes) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_hybrid_block(retptr, addHeapObject(symmetric_key_bytes), isLikeNone(uid_bytes) ? 0 : addHeapObject(uid_bytes), !isLikeNone(block_number), isLikeNone(block_number) ? 0 : block_number, addHeapObject(encrypted_bytes));
+        wasm.webassembly_hybrid_decrypt(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_bytes));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -335,15 +367,15 @@ module.exports.__wbindgen_string_new = function(arg0, arg1) {
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_randomFillSync_91e2b39becca6147 = function() { return handleError(function (arg0, arg1, arg2) {
+module.exports.__wbg_randomFillSync_065afffde01daa66 = function() { return handleError(function (arg0, arg1, arg2) {
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
 }, arguments) };
 
-module.exports.__wbg_getRandomValues_b14734aa289bc356 = function() { return handleError(function (arg0, arg1) {
+module.exports.__wbg_getRandomValues_b99eec4244a475bb = function() { return handleError(function (arg0, arg1) {
     getObject(arg0).getRandomValues(getObject(arg1));
 }, arguments) };
 
-module.exports.__wbg_process_e56fd54cf6319b6c = function(arg0) {
+module.exports.__wbg_process_0cc2ada8524d6f83 = function(arg0) {
     const ret = getObject(arg0).process;
     return addHeapObject(ret);
 };
@@ -354,12 +386,12 @@ module.exports.__wbindgen_is_object = function(arg0) {
     return ret;
 };
 
-module.exports.__wbg_versions_77e21455908dad33 = function(arg0) {
+module.exports.__wbg_versions_c11acceab27a6c87 = function(arg0) {
     const ret = getObject(arg0).versions;
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_node_0dd25d832e4785d5 = function(arg0) {
+module.exports.__wbg_node_7ff1ce49caf23815 = function(arg0) {
     const ret = getObject(arg0).node;
     return addHeapObject(ret);
 };
@@ -369,32 +401,32 @@ module.exports.__wbindgen_is_string = function(arg0) {
     return ret;
 };
 
-module.exports.__wbg_crypto_b95d7173266618a9 = function(arg0) {
-    const ret = getObject(arg0).crypto;
-    return addHeapObject(ret);
-};
-
-module.exports.__wbg_msCrypto_5a86d77a66230f81 = function(arg0) {
-    const ret = getObject(arg0).msCrypto;
-    return addHeapObject(ret);
-};
-
-module.exports.__wbg_static_accessor_NODE_MODULE_26b231378c1be7dd = function() {
+module.exports.__wbg_static_accessor_NODE_MODULE_cf6401cc1091279e = function() {
     const ret = module;
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_require_0db1598d9ccecb30 = function() { return handleError(function (arg0, arg1, arg2) {
+module.exports.__wbg_require_a746e79b322b9336 = function() { return handleError(function (arg0, arg1, arg2) {
     const ret = getObject(arg0).require(getStringFromWasm0(arg1, arg2));
     return addHeapObject(ret);
 }, arguments) };
 
-module.exports.__wbg_newnoargs_971e9a5abe185139 = function(arg0, arg1) {
+module.exports.__wbg_crypto_2036bed7c44c25e7 = function(arg0) {
+    const ret = getObject(arg0).crypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_msCrypto_a21fc88caf1ecdc8 = function(arg0) {
+    const ret = getObject(arg0).msCrypto;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_newnoargs_b5b063fc6c2f0376 = function(arg0, arg1) {
     const ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_call_33d7bcddbbfa394a = function() { return handleError(function (arg0, arg1) {
+module.exports.__wbg_call_97ae9d8645dc388b = function() { return handleError(function (arg0, arg1) {
     const ret = getObject(arg0).call(getObject(arg1));
     return addHeapObject(ret);
 }, arguments) };
@@ -404,22 +436,22 @@ module.exports.__wbindgen_object_clone_ref = function(arg0) {
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_self_fd00a1ef86d1b2ed = function() { return handleError(function () {
+module.exports.__wbg_self_6d479506f72c6a71 = function() { return handleError(function () {
     const ret = self.self;
     return addHeapObject(ret);
 }, arguments) };
 
-module.exports.__wbg_window_6f6e346d8bbd61d7 = function() { return handleError(function () {
+module.exports.__wbg_window_f2557cc78490aceb = function() { return handleError(function () {
     const ret = window.window;
     return addHeapObject(ret);
 }, arguments) };
 
-module.exports.__wbg_globalThis_3348936ac49df00a = function() { return handleError(function () {
+module.exports.__wbg_globalThis_7f206bda628d5286 = function() { return handleError(function () {
     const ret = globalThis.globalThis;
     return addHeapObject(ret);
 }, arguments) };
 
-module.exports.__wbg_global_67175caf56f55ca9 = function() { return handleError(function () {
+module.exports.__wbg_global_ba75c50d1cf384f4 = function() { return handleError(function () {
     const ret = global.global;
     return addHeapObject(ret);
 }, arguments) };
@@ -429,36 +461,36 @@ module.exports.__wbindgen_is_undefined = function(arg0) {
     return ret;
 };
 
-module.exports.__wbg_buffer_34f5ec9f8a838ba0 = function(arg0) {
+module.exports.__wbg_buffer_3f3d764d4747d564 = function(arg0) {
     const ret = getObject(arg0).buffer;
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_newwithbyteoffsetandlength_88fdad741db1b182 = function(arg0, arg1, arg2) {
+module.exports.__wbg_newwithbyteoffsetandlength_d9aa266703cb98be = function(arg0, arg1, arg2) {
     const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_new_cda198d9dbc6d7ea = function(arg0) {
+module.exports.__wbg_new_8c3f0052272a457a = function(arg0) {
     const ret = new Uint8Array(getObject(arg0));
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_set_1a930cfcda1a8067 = function(arg0, arg1, arg2) {
+module.exports.__wbg_set_83db9690f9353e79 = function(arg0, arg1, arg2) {
     getObject(arg0).set(getObject(arg1), arg2 >>> 0);
 };
 
-module.exports.__wbg_length_51f19f73d6d9eff3 = function(arg0) {
+module.exports.__wbg_length_9e1ae1900cb0fbd5 = function(arg0) {
     const ret = getObject(arg0).length;
     return ret;
 };
 
-module.exports.__wbg_newwithlength_66e5530e7079ea1b = function(arg0) {
+module.exports.__wbg_newwithlength_f5933855e4f48a19 = function(arg0) {
     const ret = new Uint8Array(arg0 >>> 0);
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_subarray_270ff8dd5582c1ac = function(arg0, arg1, arg2) {
+module.exports.__wbg_subarray_58ad4efbb5bcb886 = function(arg0, arg1, arg2) {
     const ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
 };

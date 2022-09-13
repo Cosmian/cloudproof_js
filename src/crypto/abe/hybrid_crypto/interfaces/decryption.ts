@@ -41,12 +41,11 @@ export abstract class HybridDecryption {
    * Return the size of the header
    * @param encryptedBytes the hybrid encrypted bytes
    */
-  public abstract getHeaderSize(encryptedBytes: Uint8Array): number
+  public abstract getHeaderSize(encryptedBytes: Uint8Array): number | undefined
 
   /**
    * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
    *
-   * @param uid integrity parameter used when encrypting
    * @param encryptedData
    * @returns a list of cleartext values
    */

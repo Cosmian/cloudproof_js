@@ -43,7 +43,7 @@ export abstract class HybridEncryption {
    * @param blockNumber
    * @returns the ciphertext if everything succeeded
    */
-  public abstract encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
+  public abstract encryptSymmetricBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array
 
   /**
    * Hybrid encrypt wrapper: ABE encrypt then AES encrypt

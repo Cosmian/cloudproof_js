@@ -1,6 +1,6 @@
-import { webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header } from "cover_crypt";
+import { webassembly_encrypt_symmetric_block, webassembly_encrypt_hybrid_header, webassembly_hybrid_encrypt } from "cover_crypt";
 import { logger } from "../../../../utils/logger";
-import { hexEncode } from "../../../../utils/utils";
+import { toBeBytes } from "../../../../utils/utils";
 import { EncryptedHeader } from "../encrypted_header";
 import { AbeEncryptionParameters } from "../encryption_parameters";
 import { HybridEncryption } from "../interfaces/encryption";
@@ -47,6 +47,21 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
         return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
     }
 
+    toAssociatedData(uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
+
+        if (blockNumber == undefined) {
+            blockNumber = 0
+        }
+        if (uid == undefined) {
+            uid = new Uint8Array(0);
+        }
+        var bn = toBeBytes(blockNumber)
+        var associated_data = new Uint8Array(uid?.length + toBeBytes(blockNumber).length)
+        associated_data.set(uid)
+        associated_data.set(bn, uid.length)
+        return associated_data
+    }
+
     /**
      * Encrypts a AES256-GCM block
      *
@@ -56,12 +71,11 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
      * @param blockNumber
      * @returns the cleartext if everything succeeded
      */
-    public encryptHybridBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
-        return webassembly_encrypt_hybrid_block(
+    public encryptSymmetricBlock(symmetricKey: Uint8Array, plaintext: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
+        return webassembly_encrypt_symmetric_block(
             symmetricKey,
-            uid,
-            blockNumber,
-            plaintext)
+            plaintext,
+            this.toAssociatedData(uid, blockNumber))
     }
 
     /**
@@ -79,25 +93,12 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
         const encryptionParameters = new AbeEncryptionParameters(attributes, new Metadata(uid, new Uint8Array(1)))
-        const hybridHeader = this.encryptHybridHeader(encryptionParameters)
-        logger.log(() => "encrypt: symmetricKey:" + hybridHeader.symmetricKey)
-        logger.log(() => "encrypt: encryptedSymmetricKeySizeAsArray:" + hybridHeader.encryptedSymmetricKeySizeAsArray)
-        const ciphertext = this.encryptHybridBlock(hybridHeader.symmetricKey, plaintext,
-            uid,
-            0)
-
-        logger.log(() => "encrypt: header size : " + hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray))
-        logger.log(() => "encrypt: enc header size : " + hybridHeader.encryptedSymmetricKey.length)
-        logger.log(() => "encrypt: encrypted symmetric key : " + hybridHeader.encryptedSymmetricKey)
-        logger.log(() => "encrypt: ciphertext : " + ciphertext)
-
-        // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
-        const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length
-        const encryptedData = new Uint8Array(headerSize + hybridHeader.encryptedSymmetricKey.length + ciphertext.length)
-        encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray)
-        encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize)
-        encryptedData.set(ciphertext, headerSize + hybridHeader.encryptedSymmetricKey.length)
-        logger.log(() => "encrypt: encryptedData: " + encryptedData)
+        const encryptedData = webassembly_hybrid_encrypt(
+            encryptionParameters.metadata.toJsonEncoded(),
+            this.policy,
+            new TextEncoder().encode(JSON.stringify(encryptionParameters.attributes)),
+            this.publicKey,
+            plaintext)
 
         return encryptedData
     }
@@ -105,8 +106,6 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     /**
      * Bench ABE encryption
      *
-     * @param publicKey the master public key
-     * @param policy the policy serialized
      * @param attributes ABE attributes used for encryption
      * @param uid header integrity param
      * @returns timings for encryption

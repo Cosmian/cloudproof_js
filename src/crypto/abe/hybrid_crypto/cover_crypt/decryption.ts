@@ -1,6 +1,7 @@
 /* tslint:disable:max-classes-per-file */
-import { webassembly_decrypt_hybrid_block, webassembly_decrypt_hybrid_header, webassembly_get_encrypted_header_size } from "cover_crypt"
+import { webassembly_decrypt_symmetric_block, webassembly_decrypt_hybrid_header, webassembly_hybrid_decrypt } from "cover_crypt"
 import { logger } from "../../../../utils/logger"
+import { toBeBytes } from "../../../../utils/utils"
 import { ClearTextHeader } from "../cleartext_header"
 import { HybridDecryption } from "../interfaces/decryption"
 
@@ -25,6 +26,22 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
         logger.log(() => "DestroyInstance Abe")
     }
 
+    toAssociatedData(uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
+
+        if (blockNumber == undefined) {
+            blockNumber = 0
+        }
+        if (uid == undefined) {
+            uid = new Uint8Array(0);
+        }
+        var bn = toBeBytes(blockNumber)
+        var associated_data = new Uint8Array(uid?.length + toBeBytes(blockNumber).length)
+        associated_data.set(uid)
+        associated_data.set(bn, uid.length)
+        return associated_data
+    }
+
+
     /**
      * Decrypts an ABE ciphertext using the given user decryption key. Must return cleartext value if correct user key (meaning, the correct access policy) has been given.
      *
@@ -33,7 +50,6 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
      */
     public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
         const cleartextHeader = webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
-        logger.log(() => "decryptHybridHeader: " + cleartextHeader)
         return ClearTextHeader.parseLEB128(cleartextHeader)
     }
 
@@ -47,17 +63,15 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
      * @returns the cleartext if everything succeeded
      */
     public decryptHybridBlock(symmetricKey: Uint8Array, encryptedBytes: Uint8Array, uid: Uint8Array | undefined, blockNumber: number | undefined): Uint8Array {
-        return webassembly_decrypt_hybrid_block(
+        return webassembly_decrypt_symmetric_block(
             symmetricKey,
-            uid,
-            blockNumber,
+            this.toAssociatedData(uid, blockNumber),
             encryptedBytes)
     }
 
     /**
      * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
      *
-     * @param uid integrity parameter used when encrypting
      * @param encryptedData
      * @returns a list of cleartext values
      */
@@ -65,27 +79,10 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
         logger.log(() => "decrypt for encryptedData: " + encryptedData)
 
         // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-        const headerSize = webassembly_get_encrypted_header_size(encryptedData)
-        const asymmetricHeader = encryptedData.slice(4, 4 + headerSize)
-        const encryptedSymmetricBytes = encryptedData.slice(4 + headerSize, encryptedData.length)
-
-        //
-        logger.log(() => "decrypt for headerSize: " + headerSize)
-        logger.log(() => "decrypt for asymmetricHeader: " + asymmetricHeader)
-
-        // HEADER decryption: asymmetric decryption
-        const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
-        logger.log(() => "decrypt for cleartextHeader: " + cleartextHeader)
-
-
-        // AES_DATA: AES Symmetric part decryption
-        const cleartext = this.decryptHybridBlock(
-            cleartextHeader.symmetricKey,
-            encryptedSymmetricBytes,
-            cleartextHeader.metadata.uid,
-            0)
-        logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
-        return cleartext
+        return webassembly_hybrid_decrypt(
+            this.asymmetricDecryptionKey,
+            encryptedData,
+        )
     }
 
     /**
@@ -126,7 +123,7 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
         return [ms, -1]
     }
 
-    public getHeaderSize(encryptedBytes: Uint8Array): number {
-        return webassembly_get_encrypted_header_size(encryptedBytes)
+    public getHeaderSize(_encryptedBytes: Uint8Array): number | undefined {
+        return undefined
     }
 }
