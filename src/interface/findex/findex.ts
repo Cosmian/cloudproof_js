@@ -76,7 +76,7 @@ export class Findex {
             const queryUidsBytes = deserializeList(res)
             let queryUids: string[] = []
             for (const dbUid of queryUidsBytes) {
-                queryUids = [...queryUids, new TextDecoder().decode(dbUid)]
+                queryUids = [...queryUids, new TextDecoder().decode(dbUid).slice(1)]
             }
             return queryUids;
         } catch (e) {

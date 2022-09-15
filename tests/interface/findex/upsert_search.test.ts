@@ -4,19 +4,31 @@ import { FindexDemo } from "../../../src/demos/findex/findex";
 import { DB } from "../../../src/demos/findex/demo_db";
 import { hexDecode } from "../../../src/utils/utils";
 
+
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'
-    const db = new DB();
-    const findexDemo = new FindexDemo(db, [
+    const findexDemo = new FindexDemo(new DB(), [
         new PolicyAxis("department", ["marketing", "HR", "security"], false),
         new PolicyAxis("country", ["France", "Spain", "Germany"], false)
     ], 100,);
 
+    //
+    // Populate user data base
+    //
+    function delay(milliseconds: number) {
+        return new Promise(resolve => setTimeout(resolve, milliseconds));
+    }
+
+    await findexDemo.db.deleteAllUsers();
+    await findexDemo.insertUsers();
+    await delay(2000);
+    const dbUsers = await findexDemo.db.getUsers();
+    expect(dbUsers.length).toBe(99)
 
     //
     // Encrypt all users data
     //
-    await db.deleteAllEncryptedUsers();
+    await findexDemo.db.deleteAllEncryptedUsers();
     await findexDemo.encryptUsers(hexDecode("00000001"));
 
     //

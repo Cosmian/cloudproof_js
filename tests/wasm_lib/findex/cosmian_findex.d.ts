@@ -2,13 +2,13 @@
 /* eslint-disable */
 /**
 * @param {string} master_keys
-* @param {string} locations_and_words
+* @param {string} indexed_values_and_words
 * @param {Function} fetch_entry
 * @param {Function} upsert_entry
 * @param {Function} upsert_chain
 * @returns {Promise<void>}
 */
-export function webassembly_upsert(master_keys: string, locations_and_words: string, fetch_entry: Function, upsert_entry: Function, upsert_chain: Function): Promise<void>;
+export function webassembly_upsert(master_keys: string, indexed_values_and_words: string, fetch_entry: Function, upsert_entry: Function, upsert_chain: Function): Promise<void>;
 /**
 * @param {string} master_keys
 * @param {string} words
