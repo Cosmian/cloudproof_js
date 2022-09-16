@@ -18,6 +18,9 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
+	alias: {
+            process: "process/browser"
+        }
     },
     output: {
         filename: 'main.js',
@@ -32,6 +35,14 @@ module.exports = {
     plugins: [
         new webpack.EnvironmentPlugin({
             SERVER: 'http://localhost:3000', // default backend URI
+        }),
+        // Work around for Buffer is undefined:
+        // https://github.com/webpack/changelog-v5/issues/10
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        }),
+        new webpack.ProvidePlugin({
+            process: 'process/browser',
         }),
     ]
 }

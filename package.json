@@ -14,11 +14,13 @@
         "@types/uuid": "^8.3.4",
         "abe_gpsw": "^2.0.1",
         "axios": "^0.27.2",
-        "cosmian_findex": "^0.4.1",
+        "cosmian_findex": "^0.5.0",
         "cover_crypt": "^6.0.1",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
+        "process": "^0.11.10",
         "reflect-metadata": "^0.1.13",
+        "stream-browserify": "^3.0.0",
         "uuid": "^9.0.0"
     },
     "devDependencies": {

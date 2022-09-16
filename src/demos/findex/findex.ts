@@ -5,7 +5,7 @@ import { Findex } from "../../interface/findex/findex";
 import { DB, User } from "./demo_db";
 import { masterKeysFindex } from "./demo_keys";
 import { logger } from "../../utils/logger";
-import { fromBase64, hexDecode, hexEncode, toBase64 } from "../../utils/utils";
+import { fromBase64, hexDecode, hexEncode, sanitizeString, toBase64 } from "../../utils/utils";
 import { v4 as uuidv4 } from "uuid";
 import { users } from "./users"
 
@@ -157,10 +157,10 @@ export class FindexDemo {
     const findex = new Findex(this._db);
     let queryResults: string[] = [];
     if (!logicalSwitch) {
-      queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => word), loopIterationLimit);
+      queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), loopIterationLimit);
     } else {
       for (const [index, word] of wordsArray.entries()) {
-        const partialResults = await findex.search(masterKeysFindex, [word], loopIterationLimit)
+        const partialResults = await findex.search(masterKeysFindex, [sanitizeString(word)], loopIterationLimit)
         if (index) {
           queryResults = queryResults.filter(location => partialResults.includes(location))
         } else {
