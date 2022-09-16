@@ -1,13 +1,16 @@
 {
     "name": "cosmian_js_lib",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "license": "MIT",
     "description": "Cosmian javascript client library",
-    "main": "dist/lib.js",
-    "module": "dist/lib.js",
-    "types": "dist/lib.d.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>",
+    "files": [
+        "dist"
+    ],
     "scripts": {
+        "prepare": "tsc",
         "test": "NODE_OPTIONS=\"--max-http-header-size=128000\" jest"
     },
     "dependencies": {

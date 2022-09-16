@@ -1,7 +1,7 @@
 import axios from "axios";
 import { PolicyAxis } from "../../../src/crypto/abe/keygen/policy";
-import { FindexDemo } from "../../../src/demos/findex/findex";
-import { DB } from "../../../src/demos/findex/demo_db";
+import { FindexDemo } from "../../../src/demos/findex/postgrest/findex";
+import { DB } from "../../../src/demos/findex/postgrest/db";
 import { hexDecode } from "../../../src/utils/utils";
 
 
@@ -21,7 +21,7 @@ test('upsert+search', async () => {
 
     await findexDemo.db.deleteAllUsers();
     await findexDemo.insertUsers();
-    await delay(5000);
+    await delay(10000);
     const dbUsers = await findexDemo.db.getUsers();
     expect(dbUsers.length).toBe(99)
 

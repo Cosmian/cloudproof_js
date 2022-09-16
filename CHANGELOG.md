@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.0.8] - 2022-09-16
+### Added
+- Add README.md
+### Changed
+- Re-enable ABE demo via abe.html
+### Fixed
+- Fix packaging and exports all modules for Typescript/Javascript
+- [Findex tests/PostgREST] Increase again delay after users provisioning
+### Removed
+
+---
 ## [1.0.7] - 2022-09-16
 ### Added
 ### Changed

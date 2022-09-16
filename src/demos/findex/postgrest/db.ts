@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { DBInterface } from '../../interface/findex/dbInterface';
+import { DBInterface } from '../../../interface/findex/dbInterface';
 
 export interface User {
   id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string, enc_uid: string
@@ -13,8 +13,12 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
-  async insertUser(user: User): Promise<{uid: String, value: String}> {
-    	return this.instance.post(`/users`, user).then(this.responseBody)
+  async insertUser(user: User): Promise<{uid: string, value: string}> {
+    return this.instance.post(`/users`, user).then(this.responseBody)
+  }
+
+  async insertUsers(users: User[]): Promise<number> {
+    return this.instance.post(`/users`, users).then(this.responseBody)
   }
 
   async getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {

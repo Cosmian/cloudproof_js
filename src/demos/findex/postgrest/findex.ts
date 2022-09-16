@@ -1,13 +1,13 @@
-import { AbeMasterKey } from "../../crypto/abe/keygen/keygen";
-import { Policy, PolicyAxis } from "../../crypto/abe/keygen/policy";
-import { generateMasterKeys, coverCryptEncrypt, coverCryptDecrypt } from "../abe/cover_crypt/cover_crypt";
-import { Findex } from "../../interface/findex/findex";
-import { DB, User } from "./demo_db";
-import { masterKeysFindex } from "./demo_keys";
-import { logger } from "../../utils/logger";
-import { fromBase64, hexDecode, hexEncode, sanitizeString, toBase64 } from "../../utils/utils";
 import { v4 as uuidv4 } from "uuid";
-import { users } from "./users"
+import { AbeMasterKey } from "../../../crypto/abe/keygen/keygen";
+import { Policy, PolicyAxis } from "../../../crypto/abe/keygen/policy";
+import { Findex } from "../../../interface/findex/findex";
+import { logger } from "../../../utils/logger";
+import { hexDecode, hexEncode, sanitizeString, toBase64 } from "../../../utils/utils";
+import { coverCryptDecrypt, coverCryptEncrypt, generateMasterKeys } from "../../abe/cover_crypt/cover_crypt";
+import { DB, User } from "./db";
+import { masterKeysFindex } from "../keys";
+import { USERS } from "./users";
 
 export class FindexDemo {
   private _db: DB;
@@ -34,7 +34,8 @@ export class FindexDemo {
 
   /// Construct the encrypted users DB
   async insertUsers() {
-    users.map((val: any) => {
+    const users: User[] = [];
+    USERS.map((val: any) => {
       const user: User = {
         id: uuidv4(),
         firstName: val.firstName,
@@ -48,8 +49,11 @@ export class FindexDemo {
         enc_uid: "",
       }
       // create User objet here
-      this.db.insertUser(user);
+      // this.db.insertUser(user);
+      users.push(user)
     })
+    // insert all users in database
+    this.db.insertUsers(users);
   }
 
   /// Construct the encrypted users DB
@@ -100,7 +104,7 @@ export class FindexDemo {
 
       // Insert user encrypted data in the encrypted user DB
       await this._db.upsertEncryptedUser({
-        uid: uid,
+        uid,
         enc_basic: hexEncode(encryptedBasic),
         enc_hr: hexEncode(encryptedHr),
         enc_security: hexEncode(encryptedSecurity),

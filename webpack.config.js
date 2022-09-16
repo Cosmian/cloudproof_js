@@ -24,7 +24,7 @@ module.exports = {
     },
     output: {
         filename: 'main.js',
-        path: path.resolve(__dirname, 'site')
+        path: path.resolve(__dirname, 'dist')
     },
     devServer: {
         contentBase: './site',
