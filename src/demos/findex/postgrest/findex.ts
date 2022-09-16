@@ -13,11 +13,13 @@ export class FindexDemo {
   private _db: DB;
   private _policy: Policy;
   private _masterKeysCoverCrypt: AbeMasterKey;
+  private _publicLabelT: Uint8Array;
 
   constructor(db: DB, policyAxes: PolicyAxis[], maxAttributeCreations: number) {
     this._db = db;
     this._policy = new Policy(policyAxes, maxAttributeCreations)
     this._masterKeysCoverCrypt = generateMasterKeys(this._policy);
+    this._publicLabelT = new Uint8Array([1, 2, 3]);
   }
 
   public get db(): DB {
@@ -147,7 +149,7 @@ export class FindexDemo {
       }
     });
     const findex = new Findex(this._db);
-    await findex.upsert(masterKeysFindex, locationAndWords);
+    await findex.upsert(masterKeysFindex, this._publicLabelT, locationAndWords);
   }
 
   /**
@@ -161,10 +163,10 @@ export class FindexDemo {
     const findex = new Findex(this._db);
     let queryResults: string[] = [];
     if (!logicalSwitch) {
-      queryResults = await findex.search(masterKeysFindex, wordsArray.map(word => sanitizeString(word)), loopIterationLimit);
+      queryResults = await findex.search(masterKeysFindex, this._publicLabelT, wordsArray.map(word => sanitizeString(word)), loopIterationLimit);
     } else {
       for (const [index, word] of wordsArray.entries()) {
-        const partialResults = await findex.search(masterKeysFindex, [sanitizeString(word)], loopIterationLimit)
+        const partialResults = await findex.search(masterKeysFindex, this._publicLabelT, [sanitizeString(word)], loopIterationLimit)
         if (index) {
           queryResults = queryResults.filter(location => partialResults.includes(location))
         } else {
