@@ -24,15 +24,18 @@ import { FindexDemo } from "../demos/findex/findex"
 import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
 import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
 
-const DB_UTILS = new DB();
-const FINDEX_DEMO = new FindexDemo(DB_UTILS, [
+const FINDEX_DEMO = new FindexDemo(new DB(), [
     new PolicyAxis("department",
         ["marketing", "HR", "security"], false),
     new PolicyAxis("country",
         ["France", "Spain", "Germany"],
         false)
 ], 100,);
+
 const LOOP_ITERATION_LIMIT = 1000;
+
+FINDEX_DEMO.db.deleteAllUsers();
+FINDEX_DEMO.insertUsers();
 
 /**
  * Index elements contained in DB with Findex upsert
@@ -52,9 +55,10 @@ async function upsert(location: string) {
             button.style.backgroundColor = '#4CAF50';
             button.disabled = true;
         }
-    } catch {
+    } catch (error) {
         if (button) {
             button.innerHTML = "Error indexing";
+            console.log(error)
         }
     }
 }
@@ -64,7 +68,7 @@ async function upsert(location: string) {
  * @returns void
  */
 async function IndexAndLoadElements() {
-    const elements = await DB_UTILS.getFirstUsers();
+    const elements = await FINDEX_DEMO.db.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -88,7 +92,7 @@ async function IndexAndLoadEncryptedElements() {
         button.innerHTML = "Encrypt elements...";
     }
 
-    const firstElements = await DB_UTILS.getFirstUsers();
+    const firstElements = await FINDEX_DEMO.db.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -99,10 +103,10 @@ async function IndexAndLoadEncryptedElements() {
         }
     }
 
-    await DB_UTILS.deleteAllEncryptedUsers();
+    await FINDEX_DEMO.db.deleteAllEncryptedUsers();
     await FINDEX_DEMO.encryptUsers(hexDecode("00000001"));
 
-    const firstEncryptedElements = await DB_UTILS.getFirstEncryptedUsers();
+    const firstEncryptedElements = await FINDEX_DEMO.db.getFirstEncryptedUsers();
     const encDb = document.getElementById("enc_db");
     if (encDb) {
         if (encDb.innerHTML) {
@@ -136,13 +140,14 @@ async function searchElements(words: string, logicalSwitch: boolean) {
     try {
         const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
         if (queryResults.length) {
-            const users: User[] = await DB_UTILS.getUsersById(queryResults);
+            const users: User[] = await FINDEX_DEMO.db.getUsersById(queryResults);
             displayInTab(users, content);
         } else {
             displayNoResult(content);
         }
-    } catch {
+    } catch (error) {
         displayNoResult(content);
+        console.log(error)
     }
 }
 (window as any).searchElements = searchElements
@@ -175,8 +180,9 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
         } else {
             displayNoResult(content);
         }
-    } catch {
+    } catch (error) {
         displayNoResult(content);
+        console.log(error)
     }
 }
 (window as any).searchAndDecryptElements = searchAndDecryptElements

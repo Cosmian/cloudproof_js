@@ -13,31 +13,35 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
-  getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {
+  async insertUser(user: User): Promise<{uid: String, value: String}> {
+    	return this.instance.post(`/users`, user).then(this.responseBody)
+  }
+
+  async getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_entry`).then(this.responseBody)
   }
 
-  getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
+  async getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_entry?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getChainTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
+  async getChainTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_chain?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getChainTableEntries(): Promise<{ uid: string; value: string; }[]> {
+  async getChainTableEntries(): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_chain`).then(this.responseBody)
   }
 
-  getEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+  async getEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     return this.instance.get("/encrypted_users").then(this.responseBody)
   }
 
-  getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+  async getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     return this.instance.get(`/encrypted_users?uid=in.(${uids})`).then(this.responseBody)
   }
 
-  getFirstEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+  async getFirstEncryptedUsers(): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     const config = {
       headers: {
         "Range-Unit": "items",
@@ -47,15 +51,15 @@ export class DB implements DBInterface {
     return this.instance.get(`/encrypted_users?select=enc_basic,enc_hr,enc_security`, config).then(this.responseBody)
   }
 
-  getUsers(): Promise<User[]> {
+  async getUsers(): Promise<User[]> {
     return this.instance.get(`/users`).then(this.responseBody)
   }
 
-  getUsersById(uids: string[]): Promise<User[]> {
+  async getUsersById(uids: string[]): Promise<User[]> {
     return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security&id=in.(${uids})`).then(this.responseBody)
   }
 
-  getFirstUsers(): Promise<User[]> {
+  async getFirstUsers(): Promise<User[]> {
     const config = {
       headers: {
         "Range-Unit": "items",
@@ -65,15 +69,15 @@ export class DB implements DBInterface {
     return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security`, config).then(this.responseBody)
   }
 
-  upsertEntryTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
+  async upsertEntryTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
     return this.instance.post(`/index_entry`, entries).then(this.responseBody)
   }
 
-  upsertChainTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
+  async upsertChainTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
     return this.instance.post(`/index_chain`, entries).then(this.responseBody)
   }
 
-  upsertEncryptedUser(entry: { enc_basic: string, enc_hr: string, enc_security: string }): Promise<{ uid: string, enc_uid: string }[]> {
+  async upsertEncryptedUser(entry: { uid: string, enc_basic: string, enc_hr: string, enc_security: string }): Promise<{ uid: string, enc_uid: string }[]> {
     const config = {
       headers: {
         "Prefer": "return=representation"
@@ -82,19 +86,23 @@ export class DB implements DBInterface {
     return this.instance.post(`/encrypted_users`, entry, config).then(this.responseBody)
   }
 
-  upsertUserEncUidById(id: string, encryptedUid: { enc_uid: string }): Promise<number> {
+  async upsertUserEncUidById(id: string, encryptedUid: { enc_uid: string }): Promise<number> {
     return this.instance.patch(`/users?id=eq.${id}`, encryptedUid).then(this.responseBody)
   }
 
-  deleteAllEntryTableEntries(): Promise<number> {
+  async deleteAllEntryTableEntries(): Promise<number> {
     return this.instance.delete(`index_entry?uid=neq.null`).then(this.responseBody)
   }
 
-  deleteAllChainTableEntries(): Promise<number> {
+  async deleteAllChainTableEntries(): Promise<number> {
     return this.instance.delete(`index_chain?uid=neq.null`).then(this.responseBody)
   }
 
-  deleteAllEncryptedUsers(): Promise<number> {
+  async deleteAllUsers(): Promise<number> {
+    return this.instance.delete(`users?id=neq.null`).then(this.responseBody)
+  }
+
+  async deleteAllEncryptedUsers(): Promise<number> {
     return this.instance.delete(`encrypted_users?uid=neq.null`).then(this.responseBody)
   }
 }

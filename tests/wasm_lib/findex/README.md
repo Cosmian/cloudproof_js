@@ -89,7 +89,6 @@ Search function uses the indexed elements to retrieve uids from DB Table contain
 
 Takes as arguments:
 - K: key of 32 bytes - known by authorized users and Directory Authority
-- K*: key of 32 bytes - known by Directory Authority
 - Words: words to search
 - 2 callbacks:
     - fetch (uid, value) from Index Entry Table for specific uids
@@ -242,3 +241,49 @@ sequenceDiagram
 - `MasterKeys`  should hold `SymmetricCrypto::Key`s as properties, not `Vec<u8>`. Custome serializer and Deserializer should be implemented but ... do they really need to be serialized and deserialized ? (Derived Keys in particular)
 
 - As Generics can't be passed to const argument (for the hdkf function for example) - we had to define KEY_LENGTH as a const, and can't use the length directly from T::Key. This has to be changed when we'v decide what to do with hkdf function.
+
+
+
+## Benchmarks
+
+Indexing of 19948 first names in the [first_names.txt](datasets/first_names.txt) file in an in-memory database.
+The first names have an average size of 6 characters.
+
+First names are indexed from size 3 to full value e.g. `Martine: mar, mart, marti, martin, martine` (first names smaller than 3 are indexed as such e.g. `Al`)
+
+The resulting entry table size has 44488 records occupying a total size of 5387 kbytes (124 bytes per word).
+
+Searches: as an average, the search of a word (part or full) will return a number of results equal to 6 x the average number of locations per word. A location may be a database UID, a file name etc... where the word is present.
+
+
+#### Two indexing strategies:
+
+*Naive*: locations are indexed for all possible slices
+- `mar` -> {locations}
+- `mart` -> {locations}
+- `marti` -> {locations}
+- `martin` -> {locations}
+- `martine` -> {locations}
+
+*Graphs*: 
+- `mar` -> `mart`
+- `mart` -> `marti`
+- `marti` -> `martin`
+- `martin` -> `martine`
+- `martine` -> {locations}
+
+
+#### Graphs vs Naive:
+
+Disadvantage of graphs: more interactions between client and server: 4 average compared to 1 for the naive solution
+
+Advantage of graphs: optimal storage of the locations info: they are not repeated in the chain table:
+
+Avg locations | #records graphs | #records naive | ratio  | size (kb) graphs | size (kb) naive | ratio
+--------------|-----------------|----------------|--------|------------------|-----------------|-------
+   1          |    86018        |   86018        |  1.00  |   5605           |    5704         | 1.01
+   2          |   105966        |  172036        |  1.62  |   6994           |   11745         | 1.68
+   3          |   125914        |  258054        |  2.04  |   8344           |   17618         | 2.11
+   4          |   145862        |  244072        |  2.35  |   9694           |   23491         | 2.42
+   5          |   165810        |  430090        |  2.59  |  11044           |   29364         | 2.65
+

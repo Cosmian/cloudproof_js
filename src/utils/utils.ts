@@ -1,5 +1,14 @@
 import { logger } from "./logger";
 
+
+export function toBase64(val: string): string {
+    return Buffer.from(sanitizeString(val), 'binary').toString('base64')
+}
+
+export function fromBase64(val: string): string {
+    return Buffer.from(val, 'base64').toString('binary')
+}
+
 /**
  * Hex encode an array of bytes
  * @param array the bytes

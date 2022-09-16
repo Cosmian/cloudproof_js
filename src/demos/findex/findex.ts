@@ -5,7 +5,9 @@ import { Findex } from "../../interface/findex/findex";
 import { DB, User } from "./demo_db";
 import { masterKeysFindex } from "./demo_keys";
 import { logger } from "../../utils/logger";
-import { hexDecode, hexEncode, sanitizeString } from "../../utils/utils";
+import { fromBase64, hexDecode, hexEncode, sanitizeString, toBase64 } from "../../utils/utils";
+import { v4 as uuidv4 } from "uuid";
+import { users } from "./users"
 
 export class FindexDemo {
   private _db: DB;
@@ -21,18 +23,43 @@ export class FindexDemo {
   public get db(): DB {
     return this._db;
   }
+
   public get policy(): Policy {
     return this._policy;
   }
+
   public get masterKeysCoverCrypt(): AbeMasterKey {
     return this._masterKeysCoverCrypt;
   }
 
+  /// Construct the encrypted users DB
+  async insertUsers() {
+    users.map((val: any) => {
+      const user: User = {
+        id: uuidv4(),
+        firstName: val.firstName,
+        lastName: val.lastName,
+        region: val.region,
+        country: val.country,
+        employeeNumber: val.employeeNumber,
+        email: val.email,
+        phone: val.phone,
+        security: val.security,
+        enc_uid: "",
+      }
+      // create User objet here
+      this.db.insertUser(user);
+    })
+  }
+
+  /// Construct the encrypted users DB
   async encryptUsers(metadataUid: Uint8Array) {
     const policyBytes = this._policy.toJsonEncoded();
-
+    // Get all user information from the cleartext user DB
     const users = await this._db.getUsers();
     for (const user of users) {
+      // Encrypt user personal data for the marketing team
+      // of the corresponding country
       const encryptedBasic = coverCryptEncrypt(
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
@@ -45,6 +72,8 @@ export class FindexDemo {
           region: user.region
         }))
 
+      // Encrypt user contact information for the HR team of
+      // the corresponding country
       const encryptedHr = coverCryptEncrypt(
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
@@ -56,6 +85,8 @@ export class FindexDemo {
         })
       )
 
+      // Encrypt the user security level for the security
+      // team of the corresponding country
       const encryptedSecurity = coverCryptEncrypt(
         policyBytes,
         this._masterKeysCoverCrypt.publicKey,
@@ -64,13 +95,20 @@ export class FindexDemo {
           security: user.security
         }))
 
-      const upsertedEncElement = await this._db.upsertEncryptedUser({
+      // Generate a new UID
+      const uid = uuidv4();
+
+      // Insert user encrypted data in the encrypted user DB
+      await this._db.upsertEncryptedUser({
+        uid: uid,
         enc_basic: hexEncode(encryptedBasic),
         enc_hr: hexEncode(encryptedHr),
-        enc_security: hexEncode(encryptedSecurity)
+        enc_security: hexEncode(encryptedSecurity),
       });
 
-      await this._db.upsertUserEncUidById(user.id, { enc_uid: upsertedEncElement[0].uid });
+      // Update the cleartext user DB with the value of the
+      // enc_uid
+      await this._db.upsertUserEncUidById(user.id, { enc_uid: uid });
     };
 
   }
@@ -84,31 +122,22 @@ export class FindexDemo {
     await this._db.deleteAllChainTableEntries();
     await this._db.deleteAllEntryTableEntries();
     const users = await this._db.getUsers();
-    const sanitizedElements = users.map((user) => {
-      let key: keyof typeof user;
-      for (key in user) {
-        if (user[key]) {
-          user[key] = sanitizeString(user[key])
-        }
-      }
-      return user;
-    })
     const locationAndWords: { [key: string]: string[]; } = {};
-    sanitizedElements.map((user) => {
+    users.map((user) => {
       let userId = user.id;
       if (location === "enc_uid") {
         userId = user.enc_uid;
       }
       if (userId) {
-        locationAndWords[userId] = [
-          user.firstName,
-          user.lastName,
-          user.phone,
-          user.email,
-          user.country,
-          user.region,
-          user.employeeNumber,
-          user.security]
+        locationAndWords[toBase64('l' + userId)] = [
+          toBase64(user.firstName),
+          toBase64(user.lastName),
+          toBase64(user.phone),
+          toBase64(user.email),
+          toBase64(user.country),
+          toBase64(user.region),
+          toBase64(user.employeeNumber),
+          toBase64(user.security)]
       } else {
         throw new Error("resetAndUpsert: userId cannot be null")
       }
@@ -139,7 +168,7 @@ export class FindexDemo {
         }
       }
     }
-    return queryResults;
+    return queryResults
   }
 
   async decryptUsers(queryResults: string[], role: string): Promise<object[]> {
