@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [1.0.7] - 2022-09-16
+### Added
+### Changed
+### Fixed
+- Fixed docker-compose.yml behind a reverse proxy
+### Removed
+
+---
 ## [1.0.6] - 2022-09-15
 ### Added
 ### Changed

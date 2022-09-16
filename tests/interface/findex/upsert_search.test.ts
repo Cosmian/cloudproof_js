@@ -21,7 +21,7 @@ test('upsert+search', async () => {
 
     await findexDemo.db.deleteAllUsers();
     await findexDemo.insertUsers();
-    await delay(2000);
+    await delay(5000);
     const dbUsers = await findexDemo.db.getUsers();
     expect(dbUsers.length).toBe(99)
 
