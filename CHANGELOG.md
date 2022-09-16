@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ## [1.0.6] - 2022-09-15
 ### Added
 ### Changed
-- use Findex v0.5.0 in tests
+- update Findex to version v0.5.0
 ### Fixed
 ### Removed
 
