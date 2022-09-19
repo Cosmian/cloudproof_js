@@ -19,8 +19,8 @@ import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_ke
 import { PolicyAxis } from "../crypto/abe/keygen/policy"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode } from "./../utils/utils"
-import { DB, User } from "../demos/findex/demo_db"
-import { FindexDemo } from "../demos/findex/findex"
+import { DB, User } from "../demos/findex/postgrest/db"
+import { FindexDemo } from "../demos/findex/postgrest/findex"
 import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
 import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
 
