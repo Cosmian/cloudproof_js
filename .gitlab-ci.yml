@@ -64,6 +64,7 @@ publish:
   before_script:
     - npm install -g typescript
   script:
+    - npm install
     - echo "//registry.npmjs.org/:_authToken=$NPM_ACCESS_TOKEN" > ~/.npmrc
     - npm publish
   rules:
