@@ -61,6 +61,8 @@ build_node_18:
 
 publish:
   stage: publish
+  before_script:
+    - npm install -g typescript
   script:
     - echo "//registry.npmjs.org/:_authToken=$NPM_ACCESS_TOKEN" > ~/.npmrc
     - npm publish
