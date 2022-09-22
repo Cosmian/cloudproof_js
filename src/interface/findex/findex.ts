@@ -62,18 +62,18 @@ export class Findex {
         return formattedElements.length;
     }
 
-    public async upsert(masterKeys: MasterKeys, publicLabelT: Uint8Array, locationAndWords: { [key: string]: string[]; }): Promise<any> {
+    public async upsert(masterKeys: MasterKeys, label: Uint8Array, locationAndWords: { [key: string]: string[]; }): Promise<any> {
         try {
-            const res = await webassembly_upsert(JSON.stringify(masterKeys), publicLabelT, JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
+            const res = await webassembly_upsert(JSON.stringify(masterKeys), label, JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
             return res;
         } catch (e) {
             console.log("Error upserting : ", e)
         }
     }
 
-    public async search(masterKeys: MasterKeys, publicLabelT: Uint8Array, words: string[], loopIterationLimit: number): Promise<any> {
+    public async search(masterKeys: MasterKeys, label: Uint8Array, words: string[], loopIterationLimit: number): Promise<any> {
         try {
-            const res = await webassembly_search(JSON.stringify(masterKeys), publicLabelT, JSON.stringify(words), loopIterationLimit, this.fetchEntry, this.fetchChain);
+            const res = await webassembly_search(JSON.stringify(masterKeys), label, JSON.stringify(words), loopIterationLimit, this.fetchEntry, this.fetchChain);
             const queryUidsBytes = deserializeList(res)
             let queryUids: string[] = []
             for (const dbUid of queryUidsBytes) {

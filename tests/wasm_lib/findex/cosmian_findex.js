@@ -133,37 +133,37 @@ function passStringToWasm0(arg, malloc, realloc) {
 }
 /**
 * @param {string} master_keys
-* @param {Uint8Array} public_label_t_bytes
+* @param {Uint8Array} label_bytes
 * @param {string} indexed_values_and_words
 * @param {Function} fetch_entry
 * @param {Function} upsert_entry
 * @param {Function} upsert_chain
 * @returns {Promise<void>}
 */
-module.exports.webassembly_upsert = function(master_keys, public_label_t_bytes, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
+module.exports.webassembly_upsert = function(master_keys, label_bytes, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
     const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_upsert(ptr0, len0, addHeapObject(public_label_t_bytes), ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
+    const ret = wasm.webassembly_upsert(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
     return takeObject(ret);
 };
 
 /**
 * @param {string} master_keys
-* @param {Uint8Array} public_label_t_bytes
+* @param {Uint8Array} label_bytes
 * @param {string} words
 * @param {number} loop_iteration_limit
 * @param {Function} fetch_entry
 * @param {Function} fetch_chain
 * @returns {Promise<Uint8Array>}
 */
-module.exports.webassembly_search = function(master_keys, public_label_t_bytes, words, loop_iteration_limit, fetch_entry, fetch_chain) {
+module.exports.webassembly_search = function(master_keys, label_bytes, words, loop_iteration_limit, fetch_entry, fetch_chain) {
     const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(words, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_search(ptr0, len0, addHeapObject(public_label_t_bytes), ptr1, len1, loop_iteration_limit, addHeapObject(fetch_entry), addHeapObject(fetch_chain));
+    const ret = wasm.webassembly_search(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, loop_iteration_limit, addHeapObject(fetch_entry), addHeapObject(fetch_chain));
     return takeObject(ret);
 };
 
