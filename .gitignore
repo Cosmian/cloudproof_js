@@ -2,3 +2,4 @@ node_modules/
 site/*.js
 dist/
 pgdata/
+package-lock.json
