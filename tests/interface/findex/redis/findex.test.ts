@@ -4,6 +4,7 @@ import { RedisDB } from "../../../../src/demos/findex/redis/db";
 import { Users } from "../../../../src/demos/findex/users";
 import { Findex } from "../../../../src/interface/findex/findex";
 
+const LABEL = "label";
 
 test('upsert+search', async () => {
     const redisDb = new RedisDB("localhost", 6379);
@@ -18,7 +19,7 @@ test('upsert+search', async () => {
         expect(users.getUsers().length).toBe(99)
 
         await redisDb.instance.flushAll();
-        await findexDemo.upsertUsersIndexes(masterKeysFindex, users, "id");
+        await findexDemo.upsertUsersIndexes(masterKeysFindex, LABEL, users, "id");
 
         const entries = await redisDb.getEntryTableEntries();
         const chains = await redisDb.getChainTableEntries();
@@ -28,8 +29,8 @@ test('upsert+search', async () => {
         //
         // Search words
         //
-        const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, "france spain", false, 1000);
-        expect(queryResults.length).toBe(60);
+        const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france", false, 1000);
+        expect(queryResults.length).toBe(30);
         redisDb.instance.quit()
     } catch (error) {
         redisDb.instance.quit()

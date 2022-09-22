@@ -7,6 +7,8 @@ import { Users } from "../../../../src/demos/findex/users";
 import { hexDecode } from "../../../../src/utils/utils";
 import { CloudproofDemoPostgRest } from "../../../../src/demos/findex/postgrest/cloudproof"
 
+const LABEL = "label"
+
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'
     const abePolicy = new Policy([
@@ -42,15 +44,16 @@ test('upsert+search', async () => {
     //
     await findexDemo.postgrestDb.deleteAllChainTableEntries();
     await findexDemo.postgrestDb.deleteAllEntryTableEntries();
-    await findexDemo.upsertUsersIndexes(masterKeysFindex, users, "enc_uid");
+    await findexDemo.upsertUsersIndexes(masterKeysFindex, LABEL, users, "enc_uid");
     const entries = await findexDemo.postgrestDb.getEntryTableEntries();
     const chains = await findexDemo.postgrestDb.getChainTableEntries();
     expect(entries.length).toBe(577)
     expect(chains.length).toBe(792)
+
     //
     // Search words
     //
-    const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, "france spain", false, 1000);
+    const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
     expect(queryResults.length).toBe(60);
 
     //

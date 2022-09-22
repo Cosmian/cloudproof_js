@@ -17,7 +17,7 @@ export class PostgRestDB implements DBInterface {
   // Callbacks implementations
   //
   fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
-    const uids: Uint8Array[] = deserializeList(serializedUids);
+    const uids = deserializeList(serializedUids);
     const result = await this.getEntryTableEntriesById(uids);
     return serializeHashMap(result);
   }
@@ -25,11 +25,7 @@ export class PostgRestDB implements DBInterface {
   fetchChain = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
     const uids = deserializeList(serializedUids);
     const result = await this.getChainTableEntriesById(uids);
-    const formattedResult = result.reduce((acc: Uint8Array[], el) => {
-      const value: Uint8Array = el.value;
-      return [...acc, value];
-    }, []);
-    return serializeList(formattedResult);
+    return serializeHashMap(result);
   }
 
   upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
@@ -98,7 +94,7 @@ export class PostgRestDB implements DBInterface {
     return this.instance.get("/encrypted_users").then(this.responseBody)
   }
 
-  async getEncryptedUsersById(uids:string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+  async getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     return this.instance.get(`/encrypted_users?uid=in.(${uids})`).then(this.responseBody)
   }
 

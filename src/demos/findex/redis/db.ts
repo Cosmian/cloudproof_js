@@ -23,7 +23,7 @@ export class RedisDB implements DBInterface {
   // Callbacks implementations
   //
   fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
-    const uids: Uint8Array[] = deserializeList(serializedUids);
+    const uids = deserializeList(serializedUids);
     const result = await this.getEntryTableEntriesById(uids);
     return serializeHashMap(result);
   }
@@ -31,11 +31,7 @@ export class RedisDB implements DBInterface {
   fetchChain = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
     const uids = deserializeList(serializedUids);
     const result = await this.getChainTableEntriesById(uids);
-    const formattedResult = result.reduce((acc: Uint8Array[], el) => {
-      const value: Uint8Array = el.value;
-      return [...acc, value];
-    }, []);
-    return serializeList(formattedResult);
+    return serializeHashMap(result);
   }
 
   upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
@@ -137,12 +133,12 @@ export class RedisDB implements DBInterface {
   }
 
 
-  async getEncryptedUsersById(uids: Uint8Array[]): Promise<{uid: Uint8Array;value: Uint8Array;}[]> {
+  async getEncryptedUsersById(uids: Uint8Array[]): Promise<{ uid: Uint8Array; value: Uint8Array; }[]> {
     return this.getIndexById(uids, 3);
   }
 
   async getAllIndexes(redisPrefix: number): Promise<Uint8Array[]> {
-    const keysPrefix = this.formatKey(redisPrefix, Uint8Array.from(Buffer.from("*")));
+    const keysPrefix = this.formatKey(redisPrefix, Buffer.from("*"));
 
     const responses = await this.instance.keys(commandOptions({ returnBuffers: true }), keysPrefix);
     logger.log(() => "getAllIndexes: responses: " + responses.length);
@@ -150,7 +146,7 @@ export class RedisDB implements DBInterface {
     const result: Uint8Array[] = [];
     responses.map(element => {
       if (element !== null) {
-        result.push(Uint8Array.from(Buffer.from(element)));
+        result.push(Buffer.from(element));
       }
 
     });

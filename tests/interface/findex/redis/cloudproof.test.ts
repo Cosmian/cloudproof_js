@@ -6,6 +6,8 @@ import { RedisDB } from "../../../../src/demos/findex/redis/db";
 import { Users } from "../../../../src/demos/findex/users";
 import { hexDecode } from "../../../../src/utils/utils";
 
+const LABEL = "label";
+
 test('upsert+search', async () => {
     const redisDb = new RedisDB("localhost", 6379);
 
@@ -22,7 +24,7 @@ test('upsert+search', async () => {
     // Encrypt all users data
     //
     try {
-        const findexDemo = new CloudProofDemoRedis(new RedisDB("localhost", 6379),);
+        const findexDemo = new CloudProofDemoRedis(redisDb);
         await findexDemo.redisDb.instance.flushAll();
         await findexDemo.redisDb.deleteAllEncryptedUsers();
         users = await findexDemo.encryptUsers(
@@ -43,7 +45,7 @@ test('upsert+search', async () => {
         //
         await findexDemo.redisDb.deleteAllChainTableEntries();
         await findexDemo.redisDb.deleteAllEntryTableEntries();
-        await findexDemo.upsertUsersIndexes(masterKeysFindex, users, "enc_uid");
+        await findexDemo.upsertUsersIndexes(masterKeysFindex, LABEL, users, "enc_uid");
         const entries = await findexDemo.redisDb.getEntryTableEntries();
         const chains = await findexDemo.redisDb.getChainTableEntries();
         expect(entries.length).toBe(577)
@@ -52,7 +54,7 @@ test('upsert+search', async () => {
         //
         // Search words
         //
-        const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, "france spain", false, 1000);
+        const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
         expect(queryResults.length).toBe(60);
 
         //

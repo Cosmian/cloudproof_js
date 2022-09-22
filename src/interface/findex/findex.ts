@@ -23,7 +23,7 @@ export class Findex {
         try {
             const res = await webassembly_upsert(
                 JSON.stringify(masterKeys),
-		label,
+                label,
                 JSON.stringify(locationAndWords), this.db.fetchEntry,
                 this.db.upsertEntry,
                 this.db.upsertChain);
@@ -38,7 +38,7 @@ export class Findex {
         try {
             const res = await webassembly_search(
                 JSON.stringify(masterKeys),
-		label,
+                label,
                 JSON.stringify(words),
                 loopIterationLimit,
                 this.db.fetchEntry,
@@ -57,11 +57,8 @@ export class Findex {
      *
      * @param location location string naming the key of location to index
      */
-    async upsertUsersIndexes(masterKeysFindex: MasterKeys, users: Users, location: string) {
-        // const startDate = new Date().getTime()
+    async upsertUsersIndexes(masterKeysFindex: MasterKeys, label: string, users: Users, location: string) {
         const generatedUsers = await users.getUsers();
-        // let endDate = new Date().getTime()
-        // console.log("get users in: " + (endDate - startDate))
 
         const locationAndWords: { [key: string]: string[]; } = {};
         generatedUsers.map((user) => {
@@ -80,16 +77,11 @@ export class Findex {
                     toBase64(user.employeeNumber),
                     toBase64(user.security)]
             } else {
-                throw new Error("resetAndUpsert: userId cannot be null")
+                throw new Error("upsertUsersIndexes: userId cannot be null")
             }
         });
-        // endDate = new Date().getTime()
-        // console.log("generated users in: " + (endDate - startDate))
 
-        await this.upsert(masterKeysFindex, locationAndWords);
-
-        // endDate = new Date().getTime()
-        // console.log("upserted users in: " + (endDate - startDate))
+        await this.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
     }
 
     /**
@@ -98,21 +90,25 @@ export class Findex {
      * @param logicalSwitch boolean to specify OR / AND search
      * @returns a promise containing results from query
      */
-    async searchWithLogicalSwitch(masterKeysFindex: MasterKeys, words: string, logicalSwitch: boolean, loopIterationLimit: number): Promise<Uint8Array[]> {
+    async searchWithLogicalSwitch(masterKeysFindex: MasterKeys, label: string, words: string, logicalSwitch: boolean, loopIterationLimit: number): Promise<Uint8Array[]> {
         const wordsArray = words.split(" ");
         let indexedValues: string[] = [];
         if (!logicalSwitch) {
             const indexedValuesBytes = await this.search(
                 masterKeysFindex,
-                wordsArray.map(word => sanitizeString(word)), loopIterationLimit
+                Buffer.from(label),
+                wordsArray.map(word => sanitizeString(word)),
+                loopIterationLimit
             );
             indexedValues = indexedValuesBytes.map(iv => new TextDecoder().decode(iv));
         } else {
             for (const [index, word] of wordsArray.entries()) {
                 const partialIndexedValues = await this.search(
                     masterKeysFindex,
+                    Buffer.from(label),
                     [sanitizeString(word)],
-                    loopIterationLimit)
+                    loopIterationLimit
+                );
 
                 const partialIndexedValuesString = partialIndexedValues.map(iv => new TextDecoder().decode(iv));
                 if (index) {
