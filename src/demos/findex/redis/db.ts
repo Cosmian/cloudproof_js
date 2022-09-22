@@ -1,7 +1,7 @@
 import { createClient, commandOptions, RedisClientType } from 'redis';
 import { DBInterface } from '../../../interface/findex/dbInterface';
 import { logger } from '../../../utils/logger';
-import { deserializeHashMap, deserializeList, serializeHashMap, serializeList, toBeBytes } from '../../../utils/utils';
+import { deserializeHashMap, deserializeList, serializeHashMap, toBeBytes } from '../../../utils/utils';
 
 
 export class RedisDB implements DBInterface {

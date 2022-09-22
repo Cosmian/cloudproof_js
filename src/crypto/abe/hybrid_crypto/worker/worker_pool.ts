@@ -57,7 +57,7 @@ export async function runWorkers(workers: Worker[], decryptionKeyHex: string, en
     }
     // split the entries among workers
     const perWorker = encryptedEntries.length / workers.length
-    let promises: Promise<Uint8Array[]>[] = []
+    const promises: Promise<Uint8Array[]>[] = []
     for (let index = 0; index < workers.length; index++) {
         let entries: EncryptedEntry[]
         if (index == workers.length - 1) {
@@ -69,7 +69,7 @@ export async function runWorkers(workers: Worker[], decryptionKeyHex: string, en
         promises.push(runWorker(workers[index], decryptionKeyHex, entries, isGpswImplementation))
     }
     // wait for all workers to complete
-    let results = await Promise.all(promises)
+    const results = await Promise.all(promises)
     // flatten the results
     return results.flat()
 }

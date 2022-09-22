@@ -55,7 +55,7 @@ class DecryptWorker {
             try {
                 cleartextHeader = dec.decryptHybridHeader(asymmetricHeader)
             } catch (error) {
-                //TODO Handle additional ABE decryption errors if need be
+                // TODO Handle additional ABE decryption errors if need be
                 continue
             }
 
@@ -68,7 +68,7 @@ class DecryptWorker {
                     cleartextHeader.metadata.uid,
                     0)
             } catch (error) {
-                //TODO Handle AES decryption errors if need be
+                // TODO Handle AES decryption errors if need be
                 continue
             }
             cleartextValues.push(cleartext)

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { DBInterface } from '../../../interface/findex/dbInterface';
-import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap, serializeList } from '../../../utils/utils';
+import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap } from '../../../utils/utils';
 import { Users } from '../users';
 
 export class PostgRestDB implements DBInterface {
