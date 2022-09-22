@@ -17,7 +17,7 @@
         "@types/uuid": "^8.3.4",
         "abe_gpsw": "^2.0.1",
         "axios": "^0.27.2",
-        "cosmian_findex": "^0.5.0",
+        "cosmian_findex": "0.6.0",
         "cover_crypt": "^6.0.1",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
