@@ -19,13 +19,13 @@ export class Findex {
     }
 
     fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
-        const uids: Uint8Array[] = deserializeList(serializedUids);
+        const uids = deserializeList(serializedUids);
         const uidsHex = uids.map(uid => hexEncode(uid));
         const result = await this.db.getEntryTableEntriesById(uidsHex);
-        const formattedResult: { uid: Uint8Array, value: Uint8Array}[] = result.reduce((acc: { uid: Uint8Array, value: Uint8Array }[], el) => {
+        const formattedResult = result.reduce((acc: { uid: Uint8Array, value: Uint8Array }[], el) => {
             const uid: Uint8Array = hexDecode(el.uid);
             const value: Uint8Array = hexDecode(el.value);
-            return [...acc, { uid, value} ];
+            return [...acc, { uid, value }];
         }, []);
         return serializeHashMap(formattedResult);
     }
@@ -34,11 +34,12 @@ export class Findex {
         const uids = deserializeList(serializedUids);
         const uidsHex = uids.map(uid => hexEncode(uid));
         const result = await this.db.getChainTableEntriesById(uidsHex);
-        const formattedResult = result.reduce((acc: Uint8Array[], el) => {
+        const formattedResult = result.reduce((acc: { uid: Uint8Array, value: Uint8Array }[], el) => {
+            const uid: Uint8Array = hexDecode(el.uid);
             const value: Uint8Array = hexDecode(el.value);
-            return [...acc, value];
+            return [...acc, { uid, value }];
         }, []);
-        return serializeList(formattedResult);
+        return serializeHashMap(formattedResult);
     }
 
     upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
@@ -61,18 +62,18 @@ export class Findex {
         return formattedElements.length;
     }
 
-    public async upsert(masterKeys: MasterKeys, locationAndWords: { [key: string]: string[]; }): Promise<any> {
+    public async upsert(masterKeys: MasterKeys, label: Uint8Array, locationAndWords: { [key: string]: string[]; }): Promise<any> {
         try {
-            const res = await webassembly_upsert(JSON.stringify(masterKeys), JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
+            const res = await webassembly_upsert(JSON.stringify(masterKeys), label, JSON.stringify(locationAndWords), this.fetchEntry, this.upsertEntry, this.upsertChain);
             return res;
         } catch (e) {
             console.log("Error upserting : ", e)
         }
     }
 
-    public async search(masterKeys: MasterKeys, words: string[], loopIterationLimit: number): Promise<any> {
+    public async search(masterKeys: MasterKeys, label: Uint8Array, words: string[], loopIterationLimit: number): Promise<any> {
         try {
-            const res = await webassembly_search(JSON.stringify(masterKeys), JSON.stringify(words), loopIterationLimit, this.fetchEntry, this.fetchChain);
+            const res = await webassembly_search(JSON.stringify(masterKeys), label, JSON.stringify(words), loopIterationLimit, this.fetchEntry, this.fetchChain);
             const queryUidsBytes = deserializeList(res)
             let queryUids: string[] = []
             for (const dbUid of queryUidsBytes) {

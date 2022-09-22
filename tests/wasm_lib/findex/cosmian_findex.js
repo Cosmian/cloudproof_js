@@ -133,35 +133,37 @@ function passStringToWasm0(arg, malloc, realloc) {
 }
 /**
 * @param {string} master_keys
+* @param {Uint8Array} label_bytes
 * @param {string} indexed_values_and_words
 * @param {Function} fetch_entry
 * @param {Function} upsert_entry
 * @param {Function} upsert_chain
 * @returns {Promise<void>}
 */
-module.exports.webassembly_upsert = function(master_keys, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
+module.exports.webassembly_upsert = function(master_keys, label_bytes, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
     const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_upsert(ptr0, len0, ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
+    const ret = wasm.webassembly_upsert(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
     return takeObject(ret);
 };
 
 /**
 * @param {string} master_keys
+* @param {Uint8Array} label_bytes
 * @param {string} words
 * @param {number} loop_iteration_limit
 * @param {Function} fetch_entry
 * @param {Function} fetch_chain
 * @returns {Promise<Uint8Array>}
 */
-module.exports.webassembly_search = function(master_keys, words, loop_iteration_limit, fetch_entry, fetch_chain) {
+module.exports.webassembly_search = function(master_keys, label_bytes, words, loop_iteration_limit, fetch_entry, fetch_chain) {
     const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     const ptr1 = passStringToWasm0(words, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_search(ptr0, len0, ptr1, len1, loop_iteration_limit, addHeapObject(fetch_entry), addHeapObject(fetch_chain));
+    const ret = wasm.webassembly_search(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, loop_iteration_limit, addHeapObject(fetch_entry), addHeapObject(fetch_chain));
     return takeObject(ret);
 };
 
@@ -180,10 +182,6 @@ function __wbg_adapter_47(arg0, arg1, arg2, arg3) {
     wasm.wasm_bindgen__convert__closures__invoke2_mut__hb97a282e5876820e(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
-module.exports.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-};
-
 module.exports.__wbindgen_cb_drop = function(arg0) {
     const obj = takeObject(arg0).original;
     if (obj.cnt-- == 1) {
@@ -192,6 +190,10 @@ module.exports.__wbindgen_cb_drop = function(arg0) {
     }
     const ret = false;
     return ret;
+};
+
+module.exports.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
 };
 
 module.exports.__wbindgen_string_new = function(arg0, arg1) {

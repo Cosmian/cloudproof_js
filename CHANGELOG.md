@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [2.0.0] - 2022-09-22
+### Added
+- Indexes compaction for Findex
+### Changed
+### Fixed
+### Removed
+
+---
 ## [1.0.8] - 2022-09-16
 ### Added
 - Add README.md
