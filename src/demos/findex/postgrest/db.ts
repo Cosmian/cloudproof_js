@@ -1,11 +1,11 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { DBInterface } from '../../../interface/findex/dbInterface';
+import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap, serializeList } from '../../../utils/utils';
+import { Users } from '../users';
 
-export interface User {
-  id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string, enc_uid: string
-}
+export class PostgRestDB implements DBInterface {
+  users: Users = new Users();
 
-export class DB implements DBInterface {
   instance: AxiosInstance = axios.create({
     baseURL: process.env.SERVER,
     timeout: 15000,
@@ -13,24 +13,81 @@ export class DB implements DBInterface {
 
   responseBody = (response: AxiosResponse) => response.data;
 
-  async insertUser(user: User): Promise<{uid: string, value: string}> {
-    return this.instance.post(`/users`, user).then(this.responseBody)
+  //
+  // Callbacks implementations
+  //
+  fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+    const uids: Uint8Array[] = deserializeList(serializedUids);
+    const result = await this.getEntryTableEntriesById(uids);
+    return serializeHashMap(result);
   }
 
-  async insertUsers(users: User[]): Promise<number> {
-    return this.instance.post(`/users`, users).then(this.responseBody)
+  fetchChain = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+    const uids = deserializeList(serializedUids);
+    const result = await this.getChainTableEntriesById(uids);
+    const formattedResult = result.reduce((acc: Uint8Array[], el) => {
+      const value: Uint8Array = el.value;
+      return [...acc, value];
+    }, []);
+    return serializeList(formattedResult);
   }
 
+  upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
+    const items = deserializeHashMap(serializedEntries)
+    await this.upsertEntryTableEntries(items);
+    return items.length;
+  }
+
+  upsertChain = async (serializedEntries: Uint8Array): Promise<number> => {
+    const items = deserializeHashMap(serializedEntries)
+    await this.upsertChainTableEntries(items);
+    return items.length;
+  }
+
+  //
+  // DBInterface implementation
+  //
+  async getEntryTableEntriesById(uids: Uint8Array[]): Promise<{ uid: Uint8Array; value: Uint8Array; }[]> {
+    const uidsHex = uids.map(uid => hexEncode(uid));
+    const uidsAndValuesHex: { uid: string, value: string }[] = await this.instance.get(`/index_entry?uid=in.(${uidsHex})`).then(this.responseBody)
+    const uidsAndValues: { uid: Uint8Array, value: Uint8Array }[] = [];
+    uidsAndValuesHex.map(element => {
+      uidsAndValues.push({ uid: hexDecode(element.uid), value: hexDecode(element.value) });
+    });
+    return uidsAndValues;
+  }
+
+  async getChainTableEntriesById(uids: Uint8Array[]): Promise<{ uid: Uint8Array; value: Uint8Array; }[]> {
+    const uidsHex = uids.map(uid => hexEncode(uid));
+    const uidsAndValuesHex: { uid: string, value: string }[] = await this.instance.get(`/index_chain?uid=in.(${uidsHex})`).then(this.responseBody)
+    const uidsAndValues: { uid: Uint8Array, value: Uint8Array }[] = [];
+    uidsAndValuesHex.map(element => {
+      uidsAndValues.push({ uid: hexDecode(element.uid), value: hexDecode(element.value) });
+    });
+    return uidsAndValues;
+  }
+
+  async upsertEntryTableEntries(entries: { uid: Uint8Array, value: Uint8Array }[]): Promise<number> {
+    const uidsAndValuesHex: { uid: string, value: string }[] = [];
+    entries.map(element => {
+      uidsAndValuesHex.push({ uid: hexEncode(element.uid), value: hexEncode(element.value) });
+    });
+    return this.instance.post(`/index_entry`, uidsAndValuesHex).then(this.responseBody)
+  }
+
+  async upsertChainTableEntries(entries: { uid: Uint8Array, value: Uint8Array }[]): Promise<number> {
+    const uidsAndValuesHex: { uid: string, value: string }[] = [];
+    entries.map(element => {
+      uidsAndValuesHex.push({ uid: hexEncode(element.uid), value: hexEncode(element.value) });
+    });
+    return this.instance.post(`/index_chain`, uidsAndValuesHex).then(this.responseBody)
+  }
+
+  //
+  // Tests utilities
+  //
   async getEntryTableEntries(): Promise<{ uid: string; value: string; }[]> {
     return this.instance.get(`/index_entry`).then(this.responseBody)
-  }
-
-  async getEntryTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
-    return this.instance.get(`/index_entry?uid=in.(${uids})`).then(this.responseBody)
-  }
-
-  async getChainTableEntriesById(uids: string[]): Promise<{ uid: string; value: string; }[]> {
-    return this.instance.get(`/index_chain?uid=in.(${uids})`).then(this.responseBody)
   }
 
   async getChainTableEntries(): Promise<{ uid: string; value: string; }[]> {
@@ -41,7 +98,7 @@ export class DB implements DBInterface {
     return this.instance.get("/encrypted_users").then(this.responseBody)
   }
 
-  async getEncryptedUsersById(uids: string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
+  async getEncryptedUsersById(uids:string[]): Promise<{ uid: string, enc_basic: string, enc_hr: string, enc_security: string }[]> {
     return this.instance.get(`/encrypted_users?uid=in.(${uids})`).then(this.responseBody)
   }
 
@@ -55,32 +112,6 @@ export class DB implements DBInterface {
     return this.instance.get(`/encrypted_users?select=enc_basic,enc_hr,enc_security`, config).then(this.responseBody)
   }
 
-  async getUsers(): Promise<User[]> {
-    return this.instance.get(`/users`).then(this.responseBody)
-  }
-
-  async getUsersById(uids: string[]): Promise<User[]> {
-    return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security&id=in.(${uids})`).then(this.responseBody)
-  }
-
-  async getFirstUsers(): Promise<User[]> {
-    const config = {
-      headers: {
-        "Range-Unit": "items",
-        "Range": "0-4",
-      }
-    };
-    return this.instance.get(`/users?select=firstName,lastName,phone,email,country,region,employeeNumber,security`, config).then(this.responseBody)
-  }
-
-  async upsertEntryTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
-    return this.instance.post(`/index_entry`, entries).then(this.responseBody)
-  }
-
-  async upsertChainTableEntries(entries: { uid: string, value: string }[]): Promise<number> {
-    return this.instance.post(`/index_chain`, entries).then(this.responseBody)
-  }
-
   async upsertEncryptedUser(entry: { uid: string, enc_basic: string, enc_hr: string, enc_security: string }): Promise<{ uid: string, enc_uid: string }[]> {
     const config = {
       headers: {
@@ -90,20 +121,12 @@ export class DB implements DBInterface {
     return this.instance.post(`/encrypted_users`, entry, config).then(this.responseBody)
   }
 
-  async upsertUserEncUidById(id: string, encryptedUid: { enc_uid: string }): Promise<number> {
-    return this.instance.patch(`/users?id=eq.${id}`, encryptedUid).then(this.responseBody)
-  }
-
   async deleteAllEntryTableEntries(): Promise<number> {
     return this.instance.delete(`index_entry?uid=neq.null`).then(this.responseBody)
   }
 
   async deleteAllChainTableEntries(): Promise<number> {
     return this.instance.delete(`index_chain?uid=neq.null`).then(this.responseBody)
-  }
-
-  async deleteAllUsers(): Promise<number> {
-    return this.instance.delete(`users?id=neq.null`).then(this.responseBody)
   }
 
   async deleteAllEncryptedUsers(): Promise<number> {

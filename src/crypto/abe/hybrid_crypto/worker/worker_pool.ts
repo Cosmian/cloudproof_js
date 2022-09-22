@@ -1,6 +1,5 @@
-import { logger } from "../../../utils/logger"
-import { DecryptionWorkerMessage } from "./interfaces/decryption"
-
+import { logger } from "../../../../utils/logger"
+import { DecryptionWorkerMessage } from "../interfaces/decryption"
 
 export type EncryptedEntry = { uidHex: string, ciphertextHex: string }
 

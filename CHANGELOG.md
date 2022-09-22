@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 ## [2.0.0] - 2022-09-22
 ### Added
 - Indexes compaction for Findex
+- Also package for CommonJS/Node
+- Findex with Redis database
 ### Changed
 ### Fixed
+- Findex interface with `Uint8Array` in place of `string`
 ### Removed
 
 ---

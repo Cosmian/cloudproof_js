@@ -125,10 +125,10 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
  * @param serializedItems Uint8Array of serialized data
  * @returns an array of objects with key and value properties as Uint8Array
  */
-export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Array, value: Uint8Array }[] {
+export function deserializeHashMap(serializedItems: Uint8Array): { uid: Uint8Array, value: Uint8Array }[] {
     const leb = require('leb128');
     const items: {
-        key: Uint8Array, value: Uint8Array
+        uid: Uint8Array, value: Uint8Array
     }[] = [];
     while (serializedItems.length > 1) {
         const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10);
@@ -142,9 +142,9 @@ export function deserializeHashMap(serializedItems: Uint8Array): { key: Uint8Arr
             const lengthNbBytes = getSizeNumberOfBytes(serializedItems);
             logger.log(() => "deserializeHashMap: sizeNumberOfBytes(2): " + lengthNbBytes);
             const value = serializedItems.slice(lengthNbBytes, lengthNbBytes + valueLen);
-            const item: { key: Uint8Array, value: Uint8Array } = { key: new Uint8Array(), value: new Uint8Array() };
+            const item: { uid: Uint8Array, value: Uint8Array } = { uid: new Uint8Array(), value: new Uint8Array() };
             if (value.length > 0) {
-                item.key = key;
+                item.uid = key;
                 item.value = value;
             }
             items.push(item);

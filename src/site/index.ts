@@ -10,32 +10,32 @@
 
 import { CoverCryptHybridDecryption } from "../crypto/abe/hybrid_crypto/cover_crypt/decryption"
 import { CoverCryptHybridEncryption } from "../crypto/abe/hybrid_crypto/cover_crypt/encryption"
-import { EncryptionDecryptionDemo } from "../demos/abe/demo_hybrid_crypto"
 import { GpswHybridDecryption } from "../crypto/abe/hybrid_crypto/gpsw/decryption"
 import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryption"
-import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker_pool"
+import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
-import { PolicyAxis } from "../crypto/abe/keygen/policy"
+import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy"
+import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
+import { EncryptionDecryptionDemo } from "../demos/abe/demo_hybrid_crypto"
+import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
+import { masterKeysFindex } from "../demos/findex/keys"
+import { PostgRestDB } from "../demos/findex/postgrest/db"
+import { User, Users } from "../demos/findex/users"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode } from "./../utils/utils"
-import { DB, User } from "../demos/findex/postgrest/db"
-import { FindexDemo } from "../demos/findex/postgrest/findex"
-import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
-import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
+import { CloudproofDemoPostgRest } from "../demos/findex/postgrest/cloudproof"
+import { generateMasterKeys } from "../demos/abe/cover_crypt/cover_crypt"
 
-const FINDEX_DEMO = new FindexDemo(new DB(), [
-    new PolicyAxis("department",
-        ["marketing", "HR", "security"], false),
-    new PolicyAxis("country",
-        ["France", "Spain", "Germany"],
-        false)
-], 100,);
+const FINDEX_DEMO = new CloudproofDemoPostgRest(new PostgRestDB());
+const ABE_POLICY = new Policy([
+    new PolicyAxis("department", ["marketing", "HR", "security"], false),
+    new PolicyAxis("country", ["France", "Spain", "Germany"], false)
+], 100);
+const MASTER_KEYS_COVER_CRYPT = generateMasterKeys(ABE_POLICY);
+let USERS = new Users();
 
 const LOOP_ITERATION_LIMIT = 1000;
-
-FINDEX_DEMO.db.deleteAllUsers();
-FINDEX_DEMO.insertUsers();
 
 /**
  * Index elements contained in DB with Findex upsert
@@ -49,7 +49,7 @@ async function upsert(location: string) {
     }
 
     try {
-        await FINDEX_DEMO.resetAndUpsert(location);
+        await FINDEX_DEMO.upsertUsersIndexes(masterKeysFindex, USERS, location);
         if (button) {
             button.innerHTML = "Indexes created !";
             button.style.backgroundColor = '#4CAF50';
@@ -68,7 +68,7 @@ async function upsert(location: string) {
  * @returns void
  */
 async function IndexAndLoadElements() {
-    const elements = await FINDEX_DEMO.db.getFirstUsers();
+    const elements = USERS.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -92,7 +92,7 @@ async function IndexAndLoadEncryptedElements() {
         button.innerHTML = "Encrypt elements...";
     }
 
-    const firstElements = await FINDEX_DEMO.db.getFirstUsers();
+    const firstElements = await USERS.getFirstUsers();
     const clearDb = document.getElementById("clear_db");
     if (clearDb) {
         if (clearDb.innerHTML) {
@@ -103,10 +103,15 @@ async function IndexAndLoadEncryptedElements() {
         }
     }
 
-    await FINDEX_DEMO.db.deleteAllEncryptedUsers();
-    await FINDEX_DEMO.encryptUsers(hexDecode("00000001"));
+    await FINDEX_DEMO.postgrestDb.deleteAllEncryptedUsers();
+    USERS = await FINDEX_DEMO.encryptUsers(
+        USERS,
+        hexDecode("00000001"),
+        ABE_POLICY,
+        MASTER_KEYS_COVER_CRYPT.publicKey
+    );
 
-    const firstEncryptedElements = await FINDEX_DEMO.db.getFirstEncryptedUsers();
+    const firstEncryptedElements = await FINDEX_DEMO.postgrestDb.getFirstEncryptedUsers();
     const encDb = document.getElementById("enc_db");
     if (encDb) {
         if (encDb.innerHTML) {
@@ -138,9 +143,18 @@ async function searchElements(words: string, logicalSwitch: boolean) {
     content.innerHTML = "";
 
     try {
-        const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
-        if (queryResults.length) {
-            const users: User[] = await FINDEX_DEMO.db.getUsersById(queryResults);
+        const queryUidsBytes = await FINDEX_DEMO.searchWithLogicalSwitch(
+            masterKeysFindex,
+            words,
+            logicalSwitch,
+            LOOP_ITERATION_LIMIT
+        );
+        if (queryUidsBytes.length) {
+            const queryUids: string[] = []
+            for (const uid of queryUidsBytes) {
+                queryUids.push(new TextDecoder().decode(uid));
+            }
+            const users: User[] = await USERS.getUsersById(queryUids);
             displayInTab(users, content);
         } else {
             displayNoResult(content);
@@ -168,13 +182,23 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
     result.style.visibility = "visible";
     content.innerHTML = "";
     try {
-        const queryResults = await FINDEX_DEMO.search(words, logicalSwitch, LOOP_ITERATION_LIMIT);
+        const queryResults = await FINDEX_DEMO.searchWithLogicalSwitch(
+            masterKeysFindex,
+            words,
+            logicalSwitch,
+            LOOP_ITERATION_LIMIT
+        );
         if (queryResults.length === 0) {
             displayNoResult(content);
             return;
         }
 
-        const clearValues = await FINDEX_DEMO.decryptUsers(queryResults, role);
+        const clearValues = await FINDEX_DEMO.decryptUsers(
+            queryResults,
+            ABE_POLICY,
+            MASTER_KEYS_COVER_CRYPT.privateKey,
+            role,
+        );
         if (clearValues.length) {
             displayInTab(clearValues, content);
         } else {

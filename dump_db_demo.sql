@@ -11,7 +11,6 @@ SET standard_conforming_strings = on;
 -- Drop tables
 --
 DROP TABLE public.encrypted_users;
-DROP TABLE public.users;
 DROP TABLE public.index_chain;
 DROP TABLE public.index_entry;
 
@@ -90,30 +89,3 @@ CREATE TABLE public.index_entry (
 
 
 ALTER TABLE public.index_entry OWNER TO app_user;
-
---
--- Name: users; Type: TABLE; Schema: public; Owner: app_user
---
-
-CREATE TABLE public.users (
-    "id" text NOT NULL,
-    "firstName" text NOT NULL,
-    "lastName" text NOT NULL,
-    email text NOT NULL,
-    phone text NOT NULL,
-    country text NOT NULL,
-    region text NOT NULL,
-    "employeeNumber" text NOT NULL,
-    security text NOT NULL,
-    enc_uid text DEFAULT NULL
-);
-
-
-ALTER TABLE public.users OWNER TO app_user;
-
---
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: app_user
---
-
-ALTER TABLE ONLY public.users
-    ADD CONSTRAINT users_pkey PRIMARY KEY (id);

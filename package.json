@@ -3,25 +3,26 @@
     "version": "2.0.0",
     "license": "MIT",
     "description": "Cosmian javascript client library",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "dist/cjs/index.js",
+    "module": "dist/esm/index.js",
     "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>",
     "files": [
         "dist"
     ],
     "scripts": {
-        "prepare": "tsc",
+        "prepare": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
         "test": "NODE_OPTIONS=\"--max-http-header-size=128000\" jest"
     },
     "dependencies": {
         "@types/uuid": "^8.3.4",
         "abe_gpsw": "^2.0.1",
         "axios": "^0.27.2",
-        "cosmian_findex": "0.6.0",
+        "cosmian_findex": "^0.5.0",
         "cover_crypt": "^6.0.1",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
         "process": "^0.11.10",
+        "redis": "^4.3.1",
         "reflect-metadata": "^0.1.13",
         "stream-browserify": "^3.0.0",
         "uuid": "^9.0.0"
