@@ -1,21 +1,16 @@
 import axios from "axios";
-import { Policy, PolicyAxis } from "../../../../src/crypto/abe/keygen/policy";
-import { generateMasterKeys } from "../../../../src/demos/abe/cover_crypt/cover_crypt";
 import { masterKeysFindex } from "../../../../src/demos/findex/keys";
+import { CloudproofDemoPostgRest } from "../../../../src/demos/findex/postgrest/cloudproof";
+import { generateCoverCryptKeys } from "../../../../src/demos/findex/cover_crypt_keys";
 import { PostgRestDB } from "../../../../src/demos/findex/postgrest/db";
 import { Users } from "../../../../src/demos/findex/users";
 import { hexDecode } from "../../../../src/utils/utils";
-import { CloudproofDemoPostgRest } from "../../../../src/demos/findex/postgrest/cloudproof"
-
 const LABEL = "label"
 
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'
-    const abePolicy = new Policy([
-        new PolicyAxis("department", ["marketing", "HR", "security"], false),
-        new PolicyAxis("country", ["France", "Spain", "Germany"], false)
-    ], 100);
-    const masterKeysCoverCrypt = generateMasterKeys(abePolicy);
+
+    const keys = generateCoverCryptKeys();
 
     let users = new Users();
     expect(users.getUsers().length).toBe(99)
@@ -26,11 +21,11 @@ test('upsert+search', async () => {
     // Encrypt all users data
     //
     await findexDemo.postgrestDb.deleteAllEncryptedUsers();
-    users = await findexDemo.encryptUsers(
+    users = await findexDemo.encryptUsersPerCountryAndDepartment(
         users,
         hexDecode("00000001"),
-        abePolicy,
-        masterKeysCoverCrypt.publicKey
+        keys.abePolicy,
+        keys.masterKeysCoverCrypt.publicKey
     );
 
     //
@@ -53,22 +48,20 @@ test('upsert+search', async () => {
     //
     // Search words
     //
-    const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
-    expect(queryResults.length).toBe(60);
+    const locations = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
+    expect(locations.length).toBe(60);
 
     //
     // Decrypt users
     //
-    const clearValuesCharlie = await findexDemo.decryptUsers(
-        queryResults,
-        abePolicy,
-        masterKeysCoverCrypt.privateKey,
-        "charlie");
+    const clearValuesCharlie = await findexDemo.fetchAndDecryptUsers(
+        locations,
+        keys.charlie,
+    );
     expect(clearValuesCharlie.length).toBe(60);
-    const clearValuesBob = await findexDemo.decryptUsers(
-        queryResults,
-        abePolicy,
-        masterKeysCoverCrypt.privateKey,
-        "bob");
+    const clearValuesBob = await findexDemo.fetchAndDecryptUsers(
+        locations,
+        keys.bob
+    );
     expect(clearValuesBob.length).toBe(30);
 })

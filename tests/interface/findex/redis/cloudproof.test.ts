@@ -1,5 +1,5 @@
 import { Policy, PolicyAxis } from "../../../../src/crypto/abe/keygen/policy";
-import { generateMasterKeys } from "../../../../src/demos/abe/cover_crypt/cover_crypt";
+import { generateCoverCryptKeys } from "../../../../src/demos/findex/cover_crypt_keys";
 import { masterKeysFindex } from "../../../../src/demos/findex/keys";
 import { CloudProofDemoRedis } from "../../../../src/demos/findex/redis/cloudproof";
 import { RedisDB } from "../../../../src/demos/findex/redis/db";
@@ -11,11 +11,7 @@ const LABEL = "label";
 test('upsert+search', async () => {
     const redisDb = new RedisDB("localhost", 6379);
 
-    const abePolicy = new Policy([
-        new PolicyAxis("department", ["marketing", "HR", "security"], false),
-        new PolicyAxis("country", ["France", "Spain", "Germany"], false)
-    ], 100);
-    const masterKeysCoverCrypt = generateMasterKeys(abePolicy);
+    const keys = generateCoverCryptKeys();
 
     let users = new Users();
     expect(users.getUsers().length).toBe(99)
@@ -30,8 +26,8 @@ test('upsert+search', async () => {
         users = await findexDemo.encryptUsers(
             users,
             hexDecode("00000001"),
-            abePolicy,
-            masterKeysCoverCrypt.publicKey
+            keys.abePolicy,
+            keys.masterKeysCoverCrypt.publicKey
         );
 
         //
@@ -54,17 +50,16 @@ test('upsert+search', async () => {
         //
         // Search words
         //
-        const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
-        expect(queryResults.length).toBe(60);
+        const locations = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, "france spain", false, 1000);
+        expect(locations.length).toBe(60);
 
         //
         // Decrypt users
         //
-        const clearValuesCharlie = await findexDemo.decryptUsers(
-            queryResults,
-            abePolicy,
-            masterKeysCoverCrypt.privateKey,
-            "charlie");
+        const clearValuesCharlie = await findexDemo.fetchAndDecryptUsers(
+            locations,
+            keys.charlie,
+        );
         expect(clearValuesCharlie.length).toBe(60);
         findexDemo.redisDb.instance.quit()
     } catch (error) {

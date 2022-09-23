@@ -50,8 +50,7 @@ export class RedisDB implements DBInterface {
   // DBInterface implementation
   //
   async getIndexById(uids: Uint8Array[], redisPrefix: number): Promise<{ uid: Uint8Array; value: Uint8Array; }[]> {
-    const keys: Buffer[] = [];
-    uids.map(uid => keys.push(this.formatKey(redisPrefix, uid)));
+    const keys = uids.map(uid => this.formatKey(redisPrefix, uid));
     logger.log(() => "getIndexById: keys:" + keys.length);
 
     const responses = await this.instance.mGet(commandOptions({ returnBuffers: true }), keys);
@@ -143,13 +142,9 @@ export class RedisDB implements DBInterface {
     const responses = await this.instance.keys(commandOptions({ returnBuffers: true }), keysPrefix);
     logger.log(() => "getAllIndexes: responses: " + responses.length);
 
-    const result: Uint8Array[] = [];
-    responses.map(element => {
-      if (element !== null) {
-        result.push(Buffer.from(element));
-      }
-
-    });
+    const result = responses
+      .filter((element) => { return element != null })
+      .map(element => Buffer.from(element));
     return result;
   }
 
@@ -188,5 +183,15 @@ export class RedisDB implements DBInterface {
       this.instance.del(Buffer.from(encryptedUser));
     }
     return encryptedUsers.length;
+  }
+
+  async getKeyValue(keyPrefix: number, keySuffix: number): Promise<{ uid: Uint8Array; value: Uint8Array; }> {
+    const key = this.formatKey(keyPrefix, Uint8Array.from([keySuffix]));
+    const response = await this.instance.get(commandOptions({ returnBuffers: true }), key);
+    if (!response) {
+      throw new Error("unique response expected");
+    }
+    logger.log(() => "getKeyValue: " + keyPrefix + " response: " + response.length);
+    return { uid: key, value: Buffer.from(response) };
   }
 }

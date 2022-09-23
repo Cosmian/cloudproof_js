@@ -2,7 +2,7 @@ import { PolicyAxis } from "../../../../src/crypto/abe/keygen/policy";
 import { masterKeysFindex } from "../../../../src/demos/findex/keys";
 import { RedisDB } from "../../../../src/demos/findex/redis/db";
 import { Users } from "../../../../src/demos/findex/users";
-import { Findex } from "../../../../src/interface/findex/findex";
+import { FindexDemo } from "../../../../src/demos/findex/findexDemo";
 
 const LABEL = "label";
 
@@ -13,7 +13,7 @@ test('upsert+search', async () => {
     //
     try {
         redisDb.initInstance();
-        const findexDemo = new Findex(redisDb);
+        const findexDemo = new FindexDemo(redisDb);
 
         const users = new Users();
         expect(users.getUsers().length).toBe(99)

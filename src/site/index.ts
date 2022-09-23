@@ -15,24 +15,19 @@ import { GpswHybridEncryption } from "../crypto/abe/hybrid_crypto/gpsw/encryptio
 import { EncryptedEntry, WorkerPool } from "../crypto/abe/hybrid_crypto/worker/worker_pool"
 import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/cover_crypt_keygen"
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
-import { Policy, PolicyAxis } from "../crypto/abe/keygen/policy"
 import { CoverCryptDemoKeys } from "../demos/abe/cover_crypt/demo_keys"
 import { EncryptionDecryptionDemo } from "../demos/abe/demo_hybrid_crypto"
 import { GpswDemoKeys } from "../demos/abe/gpsw/demo_keys"
+import { generateCoverCryptKeys } from "../demos/findex/cover_crypt_keys"
 import { masterKeysFindex } from "../demos/findex/keys"
+import { CloudproofDemoPostgRest } from "../demos/findex/postgrest/cloudproof"
 import { PostgRestDB } from "../demos/findex/postgrest/db"
 import { User, Users } from "../demos/findex/users"
 import { logger } from "./../utils/logger"
 import { hexDecode, hexEncode } from "./../utils/utils"
-import { CloudproofDemoPostgRest } from "../demos/findex/postgrest/cloudproof"
-import { generateMasterKeys } from "../demos/abe/cover_crypt/cover_crypt"
 
 const FINDEX_DEMO = new CloudproofDemoPostgRest(new PostgRestDB());
-const ABE_POLICY = new Policy([
-    new PolicyAxis("department", ["marketing", "HR", "security"], false),
-    new PolicyAxis("country", ["France", "Spain", "Germany"], false)
-], 100);
-const MASTER_KEYS_COVER_CRYPT = generateMasterKeys(ABE_POLICY);
+const COVER_CRYPT_KEYS = generateCoverCryptKeys();
 const LABEL = "label";
 let USERS = new Users();
 
@@ -50,7 +45,7 @@ async function upsert(location: string) {
     }
 
     try {
-        await FINDEX_DEMO.upsertUsersIndexes(masterKeysFindex, LABEL ,USERS, location);
+        await FINDEX_DEMO.upsertUsersIndexes(masterKeysFindex, LABEL, USERS, location);
         if (button) {
             button.innerHTML = "Indexes created !";
             button.style.backgroundColor = '#4CAF50';
@@ -105,11 +100,11 @@ async function IndexAndLoadEncryptedElements() {
     }
 
     await FINDEX_DEMO.postgrestDb.deleteAllEncryptedUsers();
-    USERS = await FINDEX_DEMO.encryptUsers(
+    USERS = await FINDEX_DEMO.encryptUsersPerCountryAndDepartment(
         USERS,
         hexDecode("00000001"),
-        ABE_POLICY,
-        MASTER_KEYS_COVER_CRYPT.publicKey
+        COVER_CRYPT_KEYS.abePolicy,
+        COVER_CRYPT_KEYS.masterKeysCoverCrypt.publicKey
     );
 
     const firstEncryptedElements = await FINDEX_DEMO.postgrestDb.getFirstEncryptedUsers();
@@ -196,11 +191,20 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
             return;
         }
 
-        const clearValues = await FINDEX_DEMO.decryptUsers(
+        let userDecryptionKey = new Uint8Array();
+        switch (role) {
+            case "charlie":
+                userDecryptionKey = COVER_CRYPT_KEYS.charlie;
+                break;
+            case "alice":
+                userDecryptionKey = COVER_CRYPT_KEYS.alice;
+                break;
+            case "bob":
+                userDecryptionKey = COVER_CRYPT_KEYS.bob;
+        }
+        const clearValues = await FINDEX_DEMO.fetchAndDecryptUsers(
             queryResults,
-            ABE_POLICY,
-            MASTER_KEYS_COVER_CRYPT.privateKey,
-            role,
+            userDecryptionKey,
         );
         if (clearValues.length) {
             displayInTab(clearValues, content);

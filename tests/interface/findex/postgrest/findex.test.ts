@@ -2,14 +2,15 @@ import axios from "axios";
 import { masterKeysFindex } from "../../../../src/demos/findex/keys";
 import { PostgRestDB } from "../../../../src/demos/findex/postgrest/db";
 import { Users } from "../../../../src/demos/findex/users";
-import { Findex } from "../../../../src/interface/findex/findex";
+import { FindexDemo } from "../../../../src/demos/findex/findexDemo";
+
 
 const LABEL = "label";
 
 test('upsert+search', async () => {
     axios.defaults.baseURL = 'http://localhost:3000'
     const db = new PostgRestDB();
-    const findexDemo = new Findex(db);
+    const findexDemo = new FindexDemo(db);
 
     const users = new Users();
     expect(users.getUsers().length).toBe(99)
