@@ -33,6 +33,7 @@ const ABE_POLICY = new Policy([
     new PolicyAxis("country", ["France", "Spain", "Germany"], false)
 ], 100);
 const MASTER_KEYS_COVER_CRYPT = generateMasterKeys(ABE_POLICY);
+const LABEL = "label";
 let USERS = new Users();
 
 const LOOP_ITERATION_LIMIT = 1000;
@@ -49,7 +50,7 @@ async function upsert(location: string) {
     }
 
     try {
-        await FINDEX_DEMO.upsertUsersIndexes(masterKeysFindex, USERS, location);
+        await FINDEX_DEMO.upsertUsersIndexes(masterKeysFindex, LABEL ,USERS, location);
         if (button) {
             button.innerHTML = "Indexes created !";
             button.style.backgroundColor = '#4CAF50';
@@ -145,6 +146,7 @@ async function searchElements(words: string, logicalSwitch: boolean) {
     try {
         const queryUidsBytes = await FINDEX_DEMO.searchWithLogicalSwitch(
             masterKeysFindex,
+            LABEL,
             words,
             logicalSwitch,
             LOOP_ITERATION_LIMIT
@@ -184,6 +186,7 @@ async function searchAndDecryptElements(words: string, role: string, logicalSwit
     try {
         const queryResults = await FINDEX_DEMO.searchWithLogicalSwitch(
             masterKeysFindex,
+            LABEL,
             words,
             logicalSwitch,
             LOOP_ITERATION_LIMIT
