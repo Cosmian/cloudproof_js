@@ -30,8 +30,8 @@ stages:
 tslint:
   stage: prebuild
   script:
-    - npm install -g tslint
-    - tslint -c tslint.json 'src/**'
+    - npm install -g eslint
+    - eslint .
   allow_failure: true
 
 .services:
