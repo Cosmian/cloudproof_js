@@ -50,7 +50,7 @@ export class Certificate extends KmipObject {
         if (!(o instanceof Certificate)) {
             return false
         }
-        let certificate = o as Certificate
+        const certificate = o as Certificate
         return this.certificateType === certificate.certificateType
             && this.certificateValue === certificate.certificateValue
     }

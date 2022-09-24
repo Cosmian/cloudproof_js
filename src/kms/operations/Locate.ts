@@ -95,7 +95,7 @@ export class Locate implements KmipStruct {
         if (!(o instanceof Locate)) {
             return false
         }
-        let locate = o as Locate
+        const locate = o as Locate
         return this._maximum_items === locate.maximum_items && this._offset_items === locate.offset_items
             && this._storage_status_mask === locate.storage_status_mask
             && this._attributes === locate.attributes

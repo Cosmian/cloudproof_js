@@ -78,7 +78,7 @@ export class TransparentDHPublicKey implements KmipStruct {
         if (!(o instanceof TransparentDHPublicKey)) {
             return false
         }
-        let transparentDHPublicKey = o as TransparentDHPublicKey
+        const transparentDHPublicKey = o as TransparentDHPublicKey
         return this.p === transparentDHPublicKey.p && this.q === transparentDHPublicKey.q
             && this.g === transparentDHPublicKey.g && this.j === transparentDHPublicKey.j
             && this.y === transparentDHPublicKey.y

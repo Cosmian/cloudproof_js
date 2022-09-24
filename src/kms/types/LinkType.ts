@@ -36,8 +36,8 @@ export enum LinkType {
     /// For all object types: the previous object to this object.
     PreviousLink = 0x0000_010A,
     /// For all object types: the next object to this object.
-    NextLink = 0x0000_010B, 
-    PKCS12CertificateLink = 0x0000_010C, 
+    NextLink = 0x0000_010B,
+    PKCS12CertificateLink = 0x0000_010C,
     PKCS12PasswordLink = 0x0000_010D,
     /// For wrapped objects: the object that was used to wrap this object.
     WrappingKeyLink = 0x0000_010E,

@@ -91,7 +91,7 @@ export class KmipChoiceKey<C1, C2, C3, C4, C5, C6> {
         if (!(o instanceof KmipChoiceKey)) {
             return false
         }
-        let kmipChoice = o as KmipChoiceKey<any, any, any, any, any, any>
+        const kmipChoice = o as KmipChoiceKey<any, any, any, any, any, any>
         return this.c1 === kmipChoice.c1 && this.c2 === kmipChoice.c2
             && this.c3 === kmipChoice.c3 && this.c4 === kmipChoice.c4
             && this.c5 === kmipChoice.c5 && this.c6 === kmipChoice.c6

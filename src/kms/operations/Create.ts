@@ -80,7 +80,7 @@ export class Create implements KmipStruct {
         if (!(o instanceof Create)) {
             return false
         }
-        let create = o as Create
+        const create = o as Create
         return this._objectType === create.objectType && this._attributes === create.attributes
             && this._protection_storage_masks === create.protection_storage_masks
     }
@@ -91,7 +91,7 @@ export class Create implements KmipStruct {
     }
 
     public static from_ttlv(propertyName: string, ttlv: TTLV): Create {
-        let create: Create = FromTTLV.structure(Create)(propertyName, ttlv)
+        const create: Create = FromTTLV.structure(Create)(propertyName, ttlv)
         // postfix attribute type
         create._attributes.object_type = create._objectType
         return create

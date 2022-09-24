@@ -129,7 +129,7 @@ export class KeyWrappingData implements KmipStruct {
         if (!(o instanceof KeyWrappingData)) {
             return false
         }
-        let keyWrappingData = o as KeyWrappingData
+        const keyWrappingData = o as KeyWrappingData
         return this.wrapping_method === keyWrappingData.wrapping_method
             && this.encryption_key_information === keyWrappingData.encryption_key_information
             && this.mac_or_signature_key_information === keyWrappingData.mac_or_signature_key_information

@@ -13,7 +13,7 @@ export class VendorAttributeReference {
         type: TtlvType.TextString,
     })
      private _vendor_identification: string;
-    
+
      @PropertyMetadata({
         name: "AttributeName",
         type: TtlvType.TextString,
@@ -44,7 +44,7 @@ export class VendorAttributeReference {
         if (!(o instanceof VendorAttributeReference)) {
             return false;
         }
-        let vendorAttributeReference = o as VendorAttributeReference;
+        const vendorAttributeReference = o as VendorAttributeReference;
         return this._vendor_identification === vendorAttributeReference.vendor_identification
                 && this._attribute_name === vendorAttributeReference.attribute_name;
     }

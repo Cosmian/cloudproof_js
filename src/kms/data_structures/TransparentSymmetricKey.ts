@@ -3,7 +3,7 @@ import { KmipStruct } from "../json/KmipStruct";
 import { TtlvType } from "../serialize/TtlvType";
 
 export class TransparentSymmetricKey implements KmipStruct {
-    
+
     @PropertyMetadata({
         name: "Key",
         type: TtlvType.ByteString,
@@ -27,7 +27,7 @@ export class TransparentSymmetricKey implements KmipStruct {
         if (!(o instanceof TransparentSymmetricKey)) {
             return false;
         }
-        let transparentSymmetricKey = o as TransparentSymmetricKey;
+        const transparentSymmetricKey = o as TransparentSymmetricKey;
         return this.key === transparentSymmetricKey.key;
     }
 

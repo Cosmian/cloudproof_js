@@ -42,7 +42,7 @@ export class CreateKeyPairResponse implements KmipStruct {
         if (!(o instanceof CreateKeyPairResponse)) {
             return false;
         }
-        let createKeyPairResponse = o as CreateKeyPairResponse;
+        const createKeyPairResponse = o as CreateKeyPairResponse;
         return this._privateKeyUniqueIdentifier === createKeyPairResponse.privateKeyUniqueIdentifier
                 && this._publicKeyUniqueIdentifier === createKeyPairResponse.publicKeyUniqueIdentifier;
     }

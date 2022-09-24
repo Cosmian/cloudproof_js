@@ -41,7 +41,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
         if (!(o instanceof MacSignatureKeyInformation)) {
             return false
         }
-        let macSignatureKeyInformation = o as MacSignatureKeyInformation
+        const macSignatureKeyInformation = o as MacSignatureKeyInformation
         return this.unique_identifier === macSignatureKeyInformation.unique_identifier
             && this.cryptographic_parameters === macSignatureKeyInformation.cryptographic_parameters
     }

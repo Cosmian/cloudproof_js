@@ -43,7 +43,7 @@ export class SecretData extends KmipObject {
         if (!(o instanceof SecretData)) {
             return false
         }
-        let secretData = o as SecretData
+        const secretData = o as SecretData
         return this._secretDataType === secretData.secretDataType
             && this._keyBlock === secretData.keyBlock
     }

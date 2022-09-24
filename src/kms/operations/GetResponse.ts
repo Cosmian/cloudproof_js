@@ -59,7 +59,7 @@ export class GetResponse implements KmipStruct {
         if (!(o instanceof GetResponse)) {
             return false;
         }
-        let getResponse = o as GetResponse;
+        const getResponse = o as GetResponse;
         return this._objectType === getResponse.objectType
                 && this._uniqueIdentifier === getResponse.uniqueIdentifier
                 && this._object === getResponse.object;

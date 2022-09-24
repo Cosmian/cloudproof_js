@@ -54,7 +54,7 @@ export class PGPKey extends KmipObject {
         if (!(o instanceof PGPKey)) {
             return false
         }
-        let pGPKey = o as PGPKey
+        const pGPKey = o as PGPKey
         return this._pgp_key_version === pGPKey.pgp_key_version && this._keyBlock === pGPKey.keyBlock
     }
 

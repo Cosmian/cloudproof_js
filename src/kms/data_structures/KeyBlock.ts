@@ -102,7 +102,7 @@ export class KeyBlock implements KmipStruct {
         if (!(o instanceof KeyBlock)) {
             return false
         }
-        let keyBlock = o as KeyBlock
+        const keyBlock = o as KeyBlock
         return this.key_format_type === keyBlock.key_format_type
             && this.key_compression_type === keyBlock.key_compression_type
             && this.key_value == keyBlock.key_value

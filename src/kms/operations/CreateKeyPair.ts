@@ -134,7 +134,7 @@ export class CreateKeyPair implements KmipStruct {
         if (!(o instanceof CreateKeyPair)) {
             return false
         }
-        let createKeyPair = o as CreateKeyPair
+        const createKeyPair = o as CreateKeyPair
         return this._commonAttributes === createKeyPair.commonAttributes
             && this._privateKeyAttributes === createKeyPair.privateKeyAttributes
             && this._publicKeyAttributes === createKeyPair.publicKeyAttributes

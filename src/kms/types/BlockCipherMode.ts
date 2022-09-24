@@ -16,5 +16,5 @@ export enum BlockCipherMode {
     X9_102_AKW1 = (0x0000_0010),
     X9_102_AKW2 = (0x0000_0011),
     AEAD = (0x0000_0012),
-    
+
 }

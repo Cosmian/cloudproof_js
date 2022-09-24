@@ -41,7 +41,7 @@ export class EncryptionKeyInformation implements KmipStruct {
         if (!(o instanceof EncryptionKeyInformation)) {
             return false
         }
-        let encryptionKeyInformation = o as EncryptionKeyInformation
+        const encryptionKeyInformation = o as EncryptionKeyInformation
         return this.unique_identifier === encryptionKeyInformation.unique_identifier
             && this.cryptographic_parameters === encryptionKeyInformation.cryptographic_parameters
     }

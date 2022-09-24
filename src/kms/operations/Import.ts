@@ -49,7 +49,7 @@ export class Import implements KmipStruct {
 
     // If Not Wrapped then the server SHALL unwrap the object before storing it,
     // and return an error if the wrapping key is not available.
-    // Otherwise the server SHALL store the object as provided.    
+    // Otherwise the server SHALL store the object as provided.
     @PropertyMetadata({
         name: "KeyWrapType",
         type: TtlvType.Enumeration,

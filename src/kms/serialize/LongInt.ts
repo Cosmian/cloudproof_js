@@ -1,7 +1,7 @@
 export class LongInt {
-    
+
     private _bytes: number
-    
+
     constructor (value: Uint8Array[8]) {
         this._bytes = value;
     }
@@ -12,5 +12,5 @@ export class LongInt {
     public set bytes(value: Uint8Array[8]) {
         this._bytes = value
     }
-    
+
 }

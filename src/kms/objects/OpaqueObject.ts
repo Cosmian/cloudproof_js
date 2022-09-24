@@ -45,7 +45,7 @@ export class OpaqueObject extends KmipObject {
         if (!(o instanceof OpaqueObject)) {
             return false
         }
-        let opaqueObject = o as OpaqueObject
+        const opaqueObject = o as OpaqueObject
         return this.opaque_data_type === opaqueObject.opaque_data_type
             && this.opaque_data_value === opaqueObject.opaque_data_value
     }

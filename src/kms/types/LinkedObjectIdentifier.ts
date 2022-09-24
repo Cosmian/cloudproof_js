@@ -4,13 +4,13 @@ import { TtlvType } from "../serialize/TtlvType"
 
 /**
  * Either:
- * 
+ *
  * - String : Unique Identifier of a Managed Object
- * 
+ *
  * - Enumeration: Zero based nth Unique Identifier in the response. If negative
  * the count is backwards from the beginning of the current operation’s batch
  * item.
- * 
+ *
  * - Integer: Index
  */
 export class LinkedObjectIdentifier {
@@ -66,7 +66,7 @@ export class LinkedObjectIdentifier {
         if (!(o instanceof LinkedObjectIdentifier)) {
             return false
         }
-        let kmipChoice = o as LinkedObjectIdentifier
+        const kmipChoice = o as LinkedObjectIdentifier
         return this.str === kmipChoice._str &&
             this.num === kmipChoice._num &&
             this.uid === kmipChoice._uid

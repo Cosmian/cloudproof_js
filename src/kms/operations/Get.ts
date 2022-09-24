@@ -94,7 +94,7 @@ export class Get implements KmipStruct {
         if (!(o instanceof Get)) {
             return false
         }
-        let get = o as Get
+        const get = o as Get
         return this._unique_identifier === get.unique_identifier
             && this._key_format_type === get.key_format_type
             && this._key_wrap_type === get.key_wrap_type

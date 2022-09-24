@@ -55,7 +55,7 @@ export class KmipChoiceAttributeReference<C1, C2, C3> {
         if (!(o instanceof KmipChoiceAttributeReference)) {
             return false
         }
-        let kmipChoice = o as KmipChoiceAttributeReference<any, any, any>
+        const kmipChoice = o as KmipChoiceAttributeReference<any, any, any>
         return this.c1 === kmipChoice.c1 && this.c2 === kmipChoice.c2
     }
 

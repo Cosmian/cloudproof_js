@@ -41,7 +41,7 @@ export class CreateResponse implements KmipStruct {
         if (!(o instanceof CreateResponse)) {
             return false;
         }
-        let createResponse = o as CreateResponse;
+        const createResponse = o as CreateResponse;
         return this._objectType === createResponse.objectType
                 && this._uniqueIdentifier === createResponse.uniqueIdentifier;
     }

@@ -28,7 +28,7 @@ export class ImportResponse implements KmipStruct {
         if (!(o instanceof ImportResponse)) {
             return false
         }
-        let importResponse = o as ImportResponse
+        const importResponse = o as ImportResponse
         return this._uniqueIdentifier === importResponse.uniqueIdentifier
     }
 

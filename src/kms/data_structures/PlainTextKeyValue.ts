@@ -43,7 +43,7 @@ export class PlainTextKeyValue implements KmipStruct {
         if (!(o instanceof PlainTextKeyValue)) {
             return false
         }
-        let plainTextKeyValue = o as PlainTextKeyValue
+        const plainTextKeyValue = o as PlainTextKeyValue
         return this.keyMaterial === plainTextKeyValue.keyMaterial
             && this.attributes === plainTextKeyValue.attributes
     }

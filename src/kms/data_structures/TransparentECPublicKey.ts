@@ -42,7 +42,7 @@ export class TransparentECPublicKey implements KmipStruct {
         if (!(o instanceof TransparentECPublicKey)) {
             return false
         }
-        let transparentECPublicKey = o as TransparentECPublicKey
+        const transparentECPublicKey = o as TransparentECPublicKey
         return this.recommendedCurve === transparentECPublicKey.recommendedCurve
             && this.qString === transparentECPublicKey.qString
     }

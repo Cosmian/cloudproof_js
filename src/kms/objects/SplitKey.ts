@@ -97,7 +97,7 @@ export class SplitKey extends KmipObject {
         if (!(o instanceof SplitKey)) {
             return false
         }
-        let splitKey = o as SplitKey
+        const splitKey = o as SplitKey
         return this._split_key_parts === splitKey.split_key_parts && this._key_part_identifier === splitKey.key_part_identifier
             && this._split_key_threshold == splitKey.split_key_threshold && this._split_key_method == splitKey.split_key_method
             && this._prime_field_size == splitKey.prime_field_size && this._keyBlock == splitKey.keyBlock

@@ -77,7 +77,7 @@ export class VendorAttribute implements KmipStruct {
         if (!(o instanceof VendorAttribute)) {
             return false
         }
-        let vendorAttribute = o as VendorAttribute
+        const vendorAttribute = o as VendorAttribute
         return this.vendor_identification === vendorAttribute.vendor_identification
             && this.attribute_name === vendorAttribute.attribute_name
             && this.attribute_value === vendorAttribute.attribute_value

@@ -47,7 +47,7 @@ export class GetAttributes implements KmipStruct {
         if (!(o instanceof GetAttributes)) {
             return false
         }
-        let getAttributes = o as GetAttributes
+        const getAttributes = o as GetAttributes
         return this._unique_identifier === getAttributes.unique_identifier
             && this._attribute_references === getAttributes.attribute_references
     }

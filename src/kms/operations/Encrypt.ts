@@ -156,7 +156,7 @@ export class Encrypt implements KmipStruct {
     if (!(o instanceof Encrypt)) {
       return false
     }
-    let encrypt = o as Encrypt
+    const encrypt = o as Encrypt
     return (
       this._unique_identifier === encrypt.unique_identifier &&
       this._cryptographic_parameters === encrypt.cryptographic_parameters &&

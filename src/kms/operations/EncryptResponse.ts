@@ -102,7 +102,7 @@ export class EncryptResponse implements KmipStruct {
         if (!(o instanceof EncryptResponse)) {
             return false
         }
-        let encrypt = o as EncryptResponse
+        const encrypt = o as EncryptResponse
         return this._unique_identifier === encrypt.unique_identifier
             && this._data === encrypt.data && this._iv_counter_nonce === encrypt.iv_counter_nonce
             && this._correlation_value === encrypt.correlation_value

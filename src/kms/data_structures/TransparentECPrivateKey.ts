@@ -16,7 +16,7 @@ export class TransparentECPrivateKey implements KmipStruct {
         type: TtlvType.BigInteger,
     })
     private _d: BigInt;
-    
+
     public get recommendedCurve(): RecommendedCurve {
         return this._recommendedCurve;
     }
@@ -41,7 +41,7 @@ export class TransparentECPrivateKey implements KmipStruct {
         if (!(o instanceof TransparentECPrivateKey)) {
             return false;
         }
-        let transparentECPrivateKey = o as TransparentECPrivateKey;
+        const transparentECPrivateKey = o as TransparentECPrivateKey;
         return this.recommendedCurve === transparentECPrivateKey.recommendedCurve
             && this.d === transparentECPrivateKey.d;
     }

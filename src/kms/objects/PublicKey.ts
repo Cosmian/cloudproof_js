@@ -28,7 +28,7 @@ export class PublicKey extends KmipObject {
         if (!(o instanceof PublicKey)) {
             return false;
         }
-        let publicKey = o as PublicKey;
+        const publicKey = o as PublicKey;
         return this._keyBlock === publicKey.keyBlock;
     }
 

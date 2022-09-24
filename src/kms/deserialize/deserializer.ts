@@ -8,8 +8,8 @@ export function build_object_from_json(object: JsonObject): Object {
   const name: string = object.tag
   const type: string | undefined = object.type
 
-  let newObject = {}
-  let innerObject = {}
+  const newObject = {}
+  const innerObject = {}
 
   if (object.type === "Structure") {
     // TTLV: Structure
@@ -61,7 +61,7 @@ export class FromTTLV {
       throw new Error("Invalid value for structure " + ttlv.tag + ": it should be an array")
     }
 
-    let array: T[] = []
+    const array: T[] = []
     const ttlvValue = ttlv.value as TTLV[]
     for (const v of ttlvValue) {
       if (v.tag !== ttlv.tag) {
@@ -121,7 +121,7 @@ export class FromTTLV {
     throw new Error("Unknown TTLV Type: " + ttlv.type)
   }
 
-  public static structure<T extends Object>(type: { new(...args: any[]): T }, ...args: any[]): (propertyName: string, ttlv: TTLV) => T {
+  public static structure<T extends Object>(type: new(...args: any[]) => T, ...args: any[]): (propertyName: string, ttlv: TTLV) => T {
 
     return (propertyName: string, ttlv: TTLV): T => {
       const instance = new type(args)
@@ -156,14 +156,14 @@ export class FromTTLV {
           continue
         }
         // found a matching TTLV child
-        let value = this.parseValue(child, metadata, childPropertyName)
+        const value = this.parseValue(child, metadata, childPropertyName)
         Reflect.set(instance, childPropertyName, value)
       }
       return instance
     }
   }
 
-  public static choice<T extends Object>(type: { new(...args: any[]): T }, ...args: any[]): (propertyName: string, ttlv: TTLV) => T {
+  public static choice<T extends Object>(type: new(...args: any[]) => T, ...args: any[]): (propertyName: string, ttlv: TTLV) => T {
 
     return (propertyName: string, ttlv: TTLV): T => {
       const instance = new type(args)
@@ -171,14 +171,14 @@ export class FromTTLV {
       // the type to find in the properties of the instance
       const ttlvType = ttlv.type
 
-      //fin the appropriate type in the properties
+      // fin the appropriate type in the properties
       const propsMetadata = Reflect.getMetadata(METADATA_KEY, instance)
       for (const childPropertyName in propsMetadata) {
 
         const metadata: PropertyMetadata = propsMetadata[childPropertyName]
         if (metadata.type === ttlvType) {
           // found it
-          let value = this.parseValue(ttlv, metadata, childPropertyName)
+          const value = this.parseValue(ttlv, metadata, childPropertyName)
           Reflect.set(instance, childPropertyName, value)
           return instance
         }

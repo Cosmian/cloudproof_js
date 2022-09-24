@@ -58,7 +58,7 @@ export class Link implements KmipStruct {
         if (!(o instanceof Link)) {
             return false
         }
-        let link = o as Link
+        const link = o as Link
         return this.link_type === link.link_type
             && this.linked_object_identifier === link.linked_object_identifier
     }

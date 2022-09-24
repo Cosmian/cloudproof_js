@@ -67,7 +67,7 @@ export class CryptographicParameters {
         type: TtlvType.Integer,
     })
     public fixed_field_length?: number = undefined;
-    
+
     @PropertyMetadata({
         name: "DigitalSignatureAlgorithm",
         type: TtlvType.Enumeration,

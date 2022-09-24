@@ -155,7 +155,7 @@ export class Decrypt implements KmipStruct {
         if (!(o instanceof Decrypt)) {
             return false
         }
-        let decrypt = o as Decrypt
+        const decrypt = o as Decrypt
         return this._unique_identifier === decrypt.unique_identifier
             && this._cryptographic_parameters === decrypt.cryptographic_parameters
             && this._data === decrypt.data

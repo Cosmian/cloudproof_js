@@ -17,7 +17,7 @@ export class LocateResponse implements KmipStruct {
     })
     private _located_items?: number
 
-    /// The Unique Identifier of the located objects.    
+    /// The Unique Identifier of the located objects.
     @PropertyMetadata({
         name: "UniqueIdentifier",
         type: TtlvType.TextString,
@@ -48,7 +48,7 @@ export class LocateResponse implements KmipStruct {
         if (!(o instanceof LocateResponse)) {
             return false
         }
-        let locateResponse = o as LocateResponse
+        const locateResponse = o as LocateResponse
         return this._located_items === locateResponse.located_items
             && this._unique_identifier === locateResponse.unique_identifier
     }

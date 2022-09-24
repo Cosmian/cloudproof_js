@@ -20,11 +20,11 @@ export function to_ttlv(value: Object): TTLV {
 }
 function to_ttlv_inner(value: Object, metadata: PropertyMetadata): TTLV {
 
-  // The JSON representation of a TTLV 
+  // The JSON representation of a TTLV
   // is always a dictionary or an array
 
   if (typeof value !== "object") {
-    throw "Unknown type '" + (typeof value) + "' for value: " + JSON.stringify(value, null, 2)
+    throw new Error("Unknown type '" + (typeof value) + "' for value: " + JSON.stringify(value, null, 2))
   }
 
   if (value.constructor.name === "Array") {
@@ -35,9 +35,9 @@ function to_ttlv_inner(value: Object, metadata: PropertyMetadata): TTLV {
 }
 
 function processArray(value: Object, metadata: PropertyMetadata): TTLV {
-  let array = value as Object[]
-  let children: TTLV[] = []
-  for (let child of array) {
+  const array = value as Object[]
+  const children: TTLV[] = []
+  for (const child of array) {
     // same metadata for all children of the array which are all of the same type
     children.push(to_ttlv_inner(child, metadata))
   }
@@ -51,11 +51,11 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
 
 function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
 
-  //process all object properties as new TTLVs
-  let children: TTLV[] = parseChildren(value)
+  // process all object properties as new TTLVs
+  const children: TTLV[] = parseChildren(value)
 
-  let name: string = Reflect.get(metadata, "name")
-  let type: TtlvType = Reflect.get(metadata, "type")
+  const name: string = Reflect.get(metadata, "name")
+  const type: TtlvType = Reflect.get(metadata, "type")
 
   // handle the special case of Choices: there is only
   // one child which name is identical to that of the parent
@@ -74,8 +74,8 @@ function parseChildren(value: Object): TTLV[] {
 
   const childrenMetadata: { [propertyName: string]: PropertyMetadata } = Reflect.getMetadata(METADATA_KEY, value)
 
-  let children: TTLV[] = []
-  for (let pn of Object.getOwnPropertyNames(value)) {
+  const children: TTLV[] = []
+  for (const pn of Object.getOwnPropertyNames(value)) {
     const propertyName = pn as keyof typeof value
 
     let childValue = Reflect.get(value, propertyName)
@@ -83,13 +83,13 @@ function parseChildren(value: Object): TTLV[] {
       // skip processing  an undefine value
       continue
     }
-    let childMetadata: PropertyMetadata = childrenMetadata[propertyName]
+    const childMetadata: PropertyMetadata = childrenMetadata[propertyName]
     if (!childMetadata) {
       console.error("Serializer: child Metadata is not defined for " + propertyName + " in ", childrenMetadata)
       throw new Error("Serializer: child Metadata is not defined for " + propertyName)
     }
-    let childName = childMetadata.name
-    let childType = childMetadata.type
+    const childName = childMetadata.name
+    const childType = childMetadata.type
 
     if (childType === TtlvType.Structure || childType === TtlvType.Choice) {
       // it is a structure, recursively process the child

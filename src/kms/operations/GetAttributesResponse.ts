@@ -43,7 +43,7 @@ export class GetAttributesResponse implements KmipStruct {
         if (!(o instanceof GetAttributesResponse)) {
             return false
         }
-        let getAttributesResponse = o as GetAttributesResponse
+        const getAttributesResponse = o as GetAttributesResponse
         return this._uniqueIdentifier === getAttributesResponse.uniqueIdentifier
             && this._attributes === getAttributesResponse.attributes
     }

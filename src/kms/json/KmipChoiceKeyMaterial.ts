@@ -39,7 +39,7 @@ export class KmipChoiceKeyMaterial<C1, C2> {
         if (!(o instanceof KmipChoiceKeyMaterial)) {
             return false
         }
-        let kmipChoice = o as KmipChoiceKeyMaterial<any, any>
+        const kmipChoice = o as KmipChoiceKeyMaterial<any, any>
         return this.c1 === kmipChoice.c1 && this.c2 === kmipChoice.c2
     }
 

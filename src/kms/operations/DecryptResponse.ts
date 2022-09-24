@@ -61,7 +61,7 @@ export class DecryptResponse implements KmipStruct {
         if (!(o instanceof DecryptResponse)) {
             return false
         }
-        let decryptResponse = o as DecryptResponse
+        const decryptResponse = o as DecryptResponse
         return this._unique_identifier === decryptResponse.unique_identifier
             && this._data === decryptResponse.data
             && this._correlation_value === decryptResponse.correlation_value

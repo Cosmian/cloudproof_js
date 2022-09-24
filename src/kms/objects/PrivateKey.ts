@@ -28,7 +28,7 @@ export class PrivateKey extends KmipObject {
         if (!(o instanceof PrivateKey)) {
             return false
         }
-        let privateKey = o as PrivateKey
+        const privateKey = o as PrivateKey
         return this._keyBlock === privateKey.keyBlock
     }
 

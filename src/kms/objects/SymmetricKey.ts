@@ -22,13 +22,13 @@ export class SymmetricKey extends KmipObject {
   public set keyBlock(value) {
     this._keyBlock = value;
   }
-  
+
   public equals(o: any): boolean {
     if (o == this) return true;
     if (!(o instanceof SymmetricKey)) {
       return false;
     }
-    let symmetricKey = o as SymmetricKey;
+    const symmetricKey = o as SymmetricKey;
     return this.keyBlock === symmetricKey.keyBlock;
   }
 

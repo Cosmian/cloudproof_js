@@ -1,4 +1,4 @@
-// TODO: find correct types 
+// TODO: find correct types
 
 export class KmipEnumUtils {
 

@@ -7,5 +7,5 @@ export enum EncodingOption {
     No_Encoding = 0x0000_0001,
     /// the wrapped TTLV-encoded Key Value structure
     TTLV_Encoding = 0x0000_0002,
-    
+
 }
