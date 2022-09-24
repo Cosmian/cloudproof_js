@@ -1,15 +1,15 @@
-import { KmipStruct } from "../json/KmipStruct"
-import { CryptographicAlgorithm } from "./CryptographicAlgorithm"
-import { CryptographicDomainParameters } from "./CryptographicDomainParameters"
-import { CryptographicParameters } from "./CryptographicParameters"
-import { KeyFormatType } from "./KeyFormatType"
-import { Link } from "./Link"
-import { ObjectType } from "./ObjectType"
-import { VendorAttribute } from "./VendorAttribute"
-import { TtlvType } from "../serialize/TtlvType"
-import { TTLV } from "../serialize/Ttlv"
-import { FromTTLV } from "../deserialize/deserializer"
-import { PropertyMetadata } from "../decorators/function"
+import { KmipStruct } from '../json/KmipStruct'
+import { CryptographicAlgorithm } from './CryptographicAlgorithm'
+import { CryptographicDomainParameters } from './CryptographicDomainParameters'
+import { CryptographicParameters } from './CryptographicParameters'
+import { KeyFormatType } from './KeyFormatType'
+import { Link } from './Link'
+import { ObjectType } from './ObjectType'
+import { VendorAttribute } from './VendorAttribute'
+import { TtlvType } from '../serialize/TtlvType'
+import { TTLV } from '../serialize/Ttlv'
+import { FromTTLV } from '../deserialize/deserializer'
+import { PropertyMetadata } from '../decorators/function'
 
 /**
  * The following subsections describe the attributes that are associated with
@@ -37,7 +37,7 @@ import { PropertyMetadata } from "../decorators/function"
  * on the object type and server policy.
  */
 export class
-  Attributes implements KmipStruct {
+Attributes implements KmipStruct {
   /**
    * The Link attribute is a structure used to create a link from one Managed
    * Cryptographic Object to another, closely related target Managed Cryptographic
@@ -61,15 +61,15 @@ export class
    * server, where the corresponding private key is held in a different manner)
    */
   @PropertyMetadata({
-    name: "Link",
+    name: 'Link',
     type: TtlvType.Structure,
     from_ttlv: (propertyName: string, ttlv: TTLV): Object => {
       const elementMetadata = {
-        name: "Link",
+        name: 'Link',
         type: TtlvType.Structure,
         from_ttlv: FromTTLV.structure(Link)
       }
-      return FromTTLV.array(propertyName, ttlv, elementMetadata,)
+      return FromTTLV.array(propertyName, ttlv, elementMetadata)
     }
   })
   private _link?: Link[]
@@ -88,8 +88,8 @@ export class
    * added, adjusted, modified or deleted by the client.
    */
   @PropertyMetadata({
-    name: "VendorAttribute",
-    type: TtlvType.Structure,
+    name: 'VendorAttribute',
+    type: TtlvType.Structure
   })
   private _vendor_attributes?: VendorAttribute[]
 
@@ -101,9 +101,9 @@ export class
    */
 
   @PropertyMetadata({
-    name: "ObjectType",
+    name: 'ObjectType',
     type: TtlvType.Enumeration,
-    isEnum: ObjectType,
+    isEnum: ObjectType
   })
   private _object_type: ObjectType
 
@@ -117,8 +117,8 @@ export class
    */
 
   @PropertyMetadata({
-    name: "ActivationDate",
-    type: TtlvType.Integer,
+    name: 'ActivationDate',
+    type: TtlvType.Integer
   })
   private _activation_date?: number // epoch milliseconds
 
@@ -132,9 +132,9 @@ export class
    */
 
   @PropertyMetadata({
-    name: "CryptographicAlgorithm",
+    name: 'CryptographicAlgorithm',
     type: TtlvType.Enumeration,
-    isEnum: CryptographicAlgorithm,
+    isEnum: CryptographicAlgorithm
   })
   private _cryptographic_algorithm?: CryptographicAlgorithm
 
@@ -148,8 +148,8 @@ export class
    */
 
   @PropertyMetadata({
-    name: "CryptographicLength",
-    type: TtlvType.Integer,
+    name: 'CryptographicLength',
+    type: TtlvType.Integer
   })
   private _cryptographic_length?: number
 
@@ -162,8 +162,8 @@ export class
    */
 
   @PropertyMetadata({
-    name: "CryptographicDomainParameters",
-    type: TtlvType.Structure,
+    name: 'CryptographicDomainParameters',
+    type: TtlvType.Structure
   })
   private _cryptographic_domain_parameters?: CryptographicDomainParameters
 
@@ -172,8 +172,8 @@ export class
    */
   @PropertyMetadata({
 
-    name: "CryptographicParameters",
-    type: TtlvType.Structure,
+    name: 'CryptographicParameters',
+    type: TtlvType.Structure
   })
   private _cryptographic_parameters?: CryptographicParameters
 
@@ -187,8 +187,8 @@ export class
    */
 
   @PropertyMetadata({
-    name: "CryptographicUsageMask",
-    type: TtlvType.Integer,
+    name: 'CryptographicUsageMask',
+    type: TtlvType.Integer
   })
   private _cryptographic_usage_mask?: number
 
@@ -205,13 +205,13 @@ export class
    * non-default value is specified).
    */
   @PropertyMetadata({
-    name: "KeyFormatType",
+    name: 'KeyFormatType',
     type: TtlvType.Enumeration,
-    isEnum: KeyFormatType,
+    isEnum: KeyFormatType
   })
   private _key_format_type?: KeyFormatType
 
-  constructor(
+  constructor (
     object_type: ObjectType,
     link?: Link[],
     vendor_attributes?: VendorAttribute[],
@@ -235,67 +235,85 @@ export class
     this._vendor_attributes = vendor_attributes
   }
 
-  public get link(): Link[] | undefined {
+  public get link (): Link[] | undefined {
     return this._link
   }
-  public set link(value: Link[] | undefined) {
+
+  public set link (value: Link[] | undefined) {
     this._link = value
   }
-  public get vendor_attributes(): VendorAttribute[] | undefined {
+
+  public get vendor_attributes (): VendorAttribute[] | undefined {
     return this._vendor_attributes
   }
-  public set vendor_attributes(value: VendorAttribute[] | undefined) {
+
+  public set vendor_attributes (value: VendorAttribute[] | undefined) {
     this._vendor_attributes = value
   }
-  public get key_format_type(): KeyFormatType | undefined {
+
+  public get key_format_type (): KeyFormatType | undefined {
     return this._key_format_type
   }
-  public set key_format_type(value: KeyFormatType | undefined) {
+
+  public set key_format_type (value: KeyFormatType | undefined) {
     this._key_format_type = value
   }
-  public get cryptographic_usage_mask(): number | undefined {
+
+  public get cryptographic_usage_mask (): number | undefined {
     return this._cryptographic_usage_mask
   }
-  public set cryptographic_usage_mask(value: number | undefined) {
+
+  public set cryptographic_usage_mask (value: number | undefined) {
     this._cryptographic_usage_mask = value
   }
-  public get cryptographic_parameters(): CryptographicParameters | undefined {
+
+  public get cryptographic_parameters (): CryptographicParameters | undefined {
     return this._cryptographic_parameters
   }
-  public set cryptographic_parameters(value: CryptographicParameters | undefined) {
+
+  public set cryptographic_parameters (value: CryptographicParameters | undefined) {
     this._cryptographic_parameters = value
   }
-  public get cryptographic_domain_parameters(): CryptographicDomainParameters | undefined {
+
+  public get cryptographic_domain_parameters (): CryptographicDomainParameters | undefined {
     return this._cryptographic_domain_parameters
   }
-  public set cryptographic_domain_parameters(
+
+  public set cryptographic_domain_parameters (
     value: CryptographicDomainParameters | undefined
   ) {
     this._cryptographic_domain_parameters = value
   }
-  public get cryptographic_length(): number | undefined {
+
+  public get cryptographic_length (): number | undefined {
     return this._cryptographic_length
   }
-  public set cryptographic_length(value: number | undefined) {
+
+  public set cryptographic_length (value: number | undefined) {
     this._cryptographic_length = value
   }
-  public get cryptographic_algorithm(): CryptographicAlgorithm | undefined {
+
+  public get cryptographic_algorithm (): CryptographicAlgorithm | undefined {
     return this._cryptographic_algorithm
   }
-  public set cryptographic_algorithm(value: CryptographicAlgorithm | undefined) {
+
+  public set cryptographic_algorithm (value: CryptographicAlgorithm | undefined) {
     this._cryptographic_algorithm = value
   }
-  public get activation_date(): number | undefined {
+
+  public get activation_date (): number | undefined {
     return this._activation_date
   }
-  public set activation_date(value: number | undefined) {
+
+  public set activation_date (value: number | undefined) {
     this._activation_date = value
   }
-  public get object_type(): ObjectType {
+
+  public get object_type (): ObjectType {
     return this._object_type
   }
-  public set object_type(value: ObjectType) {
+
+  public set object_type (value: ObjectType) {
     this._object_type = value
   }
-
 }

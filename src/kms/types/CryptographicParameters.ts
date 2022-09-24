@@ -1,12 +1,12 @@
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
-import { BlockCipherMode } from "./BlockCipherMode";
-import { CryptographicAlgorithm } from "./CryptographicAlgorithm";
-import { DigitalSignatureAlgorithm } from "./DigitalSignatureAlgorithm";
-import { HashingAlgorithm } from "./HashingAlgorithm";
-import { KeyRoleType } from "./KeyRoleType";
-import { MaskGenerator } from "./MaskGenerator";
-import { PaddingMethod } from "./PaddingMethod";
+import { PropertyMetadata } from '../decorators/function'
+import { TtlvType } from '../serialize/TtlvType'
+import { BlockCipherMode } from './BlockCipherMode'
+import { CryptographicAlgorithm } from './CryptographicAlgorithm'
+import { DigitalSignatureAlgorithm } from './DigitalSignatureAlgorithm'
+import { HashingAlgorithm } from './HashingAlgorithm'
+import { KeyRoleType } from './KeyRoleType'
+import { MaskGenerator } from './MaskGenerator'
+import { PaddingMethod } from './PaddingMethod'
 
 /**
  * The Cryptographic Parameters attribute is a structure that contains a set of OPTIONAL fields that describe certain
@@ -33,130 +33,129 @@ import { PaddingMethod } from "./PaddingMethod";
  * Initial Counter Value is the starting counter value for CTR mode (for [RFC3686] it is 1).
  */
 export class CryptographicParameters {
+  @PropertyMetadata({
+    name: 'BlockCipherMode',
+    type: TtlvType.Enumeration,
+    isEnum: BlockCipherMode
+  })
+  public block_cipher_mode?: BlockCipherMode = undefined
 
-    @PropertyMetadata({
-        name: "BlockCipherMode",
-        type: TtlvType.Enumeration,
-        isEnum: BlockCipherMode,
-    })
-    public block_cipher_mode?: BlockCipherMode = undefined;
+  @PropertyMetadata({
+    name: 'PaddingMethod',
+    type: TtlvType.Enumeration,
+    isEnum: PaddingMethod
+  })
+  public padding_method?: PaddingMethod = undefined
 
-    @PropertyMetadata({
-        name: "PaddingMethod",
-        type: TtlvType.Enumeration,
-        isEnum: PaddingMethod,
-    })
-    public padding_method?: PaddingMethod = undefined;
+  @PropertyMetadata({
+    name: 'HashingAlgorithm',
+    type: TtlvType.Enumeration,
+    isEnum: HashingAlgorithm
+  })
+  public hashing_algorithm?: HashingAlgorithm = undefined
 
-    @PropertyMetadata({
-        name: "HashingAlgorithm",
-        type: TtlvType.Enumeration,
-        isEnum: HashingAlgorithm,
-    })
-    public hashing_algorithm?: HashingAlgorithm = undefined;
+  @PropertyMetadata({
+    name: 'KeyRoleType',
+    type: TtlvType.Enumeration,
+    isEnum: KeyRoleType
+  })
+  public key_role_type?: KeyRoleType = undefined
 
-    @PropertyMetadata({
-        name: "KeyRoleType",
-        type: TtlvType.Enumeration,
-        isEnum: KeyRoleType,
-    })
-    public key_role_type?: KeyRoleType = undefined;
+  @PropertyMetadata({
+    name: 'FixedFieldLenght',
+    type: TtlvType.Integer
+  })
+  public fixed_field_length?: number = undefined
 
-    @PropertyMetadata({
-        name: "FixedFieldLenght",
-        type: TtlvType.Integer,
-    })
-    public fixed_field_length?: number = undefined;
+  @PropertyMetadata({
+    name: 'DigitalSignatureAlgorithm',
+    type: TtlvType.Enumeration,
+    isEnum: DigitalSignatureAlgorithm
+  })
+  public digital_signature_algorithm?: DigitalSignatureAlgorithm = undefined
 
-    @PropertyMetadata({
-        name: "DigitalSignatureAlgorithm",
-        type: TtlvType.Enumeration,
-        isEnum: DigitalSignatureAlgorithm,
-    })
-    public digital_signature_algorithm?: DigitalSignatureAlgorithm = undefined;
+  @PropertyMetadata({
+    name: 'CryptographicAlgorithm',
+    type: TtlvType.Enumeration,
+    isEnum: CryptographicAlgorithm
+  })
+  public cryptographic_algorithm?: CryptographicAlgorithm = undefined
 
-    @PropertyMetadata({
-        name: "CryptographicAlgorithm",
-        type: TtlvType.Enumeration,
-        isEnum: CryptographicAlgorithm,
-    })
-    public cryptographic_algorithm?: CryptographicAlgorithm = undefined;
+  @PropertyMetadata({
+    name: 'RandomIv',
+    type: TtlvType.Boolean
+  })
+  public random_iv?: Boolean = undefined
 
-    @PropertyMetadata({
-        name: "RandomIv",
-        type: TtlvType.Boolean,
-    })
-    public random_iv?: Boolean = undefined;
+  @PropertyMetadata({
+    name: 'IvLength',
+    type: TtlvType.Integer
+  })
+  public iv_length?: number = undefined
 
-    @PropertyMetadata({
-        name: "IvLength",
-        type: TtlvType.Integer,
-    })
-    public iv_length?: number = undefined;
+  @PropertyMetadata({
+    name: 'TagLength',
+    type: TtlvType.Integer
+  })
+  public tag_length?: number = undefined
 
-    @PropertyMetadata({
-        name: "TagLength",
-        type: TtlvType.Integer,
-    })
-    public tag_length?: number = undefined;
+  @PropertyMetadata({
+    name: 'InvocationFieldLength',
+    type: TtlvType.Integer
+  })
+  public invocation_field_length?: number = undefined
 
-    @PropertyMetadata({
-        name: "InvocationFieldLength",
-        type: TtlvType.Integer,
-    })
-    public invocation_field_length?: number = undefined;
+  @PropertyMetadata({
+    name: 'CounterLength',
+    type: TtlvType.Integer
+  })
+  public counter_length?: number = undefined
 
-    @PropertyMetadata({
-        name: "CounterLength",
-        type: TtlvType.Integer,
-    })
-    public counter_length?: number = undefined;
-
-    @PropertyMetadata({
-        name: "InitialCounterValue",
-        type: TtlvType.Integer,
-    })
-    public initial_counter_value?: number = undefined;
+  @PropertyMetadata({
+    name: 'InitialCounterValue',
+    type: TtlvType.Integer
+  })
+  public initial_counter_value?: number = undefined
     /// if omitted, defaults to the block size of the Mask Generator Hashing Algorithm
     /// Cosmian extension: In AES: used as the number of additional data at the end of the
     /// submitted data that become part of the MAC calculation. These additional data are removed
     /// from the encrypted data
 
-    @PropertyMetadata({
-        name: "SaltLength",
-        type: TtlvType.Integer,
-    })
-    public salt_length?: number = undefined;
-    /// if omitted defaults to MGF1
-    @PropertyMetadata({
-        name: "MaskGenerator",
-        type: TtlvType.Enumeration,
-        isEnum: MaskGenerator,
-    })
-    public mask_generator?: MaskGenerator = undefined;
+  @PropertyMetadata({
+    name: 'SaltLength',
+    type: TtlvType.Integer
+  })
+  public salt_length?: number = undefined
 
-    /// if omitted defaults to SHA-1
-    @PropertyMetadata({
-        name: "MaskGeneratorHashingAlgorithm",
-        type: TtlvType.Enumeration,
-        isEnum: HashingAlgorithm
-    })
-    public mask_generator_hashing_algorithm?: HashingAlgorithm = undefined;
+  /// if omitted defaults to MGF1
+  @PropertyMetadata({
+    name: 'MaskGenerator',
+    type: TtlvType.Enumeration,
+    isEnum: MaskGenerator
+  })
+  public mask_generator?: MaskGenerator = undefined
 
-    @PropertyMetadata({
-        name: "PSource",
-        type: TtlvType.ByteString,
-    })
-    public p_source?: Uint8Array = undefined;
+  /// if omitted defaults to SHA-1
+  @PropertyMetadata({
+    name: 'MaskGeneratorHashingAlgorithm',
+    type: TtlvType.Enumeration,
+    isEnum: HashingAlgorithm
+  })
+  public mask_generator_hashing_algorithm?: HashingAlgorithm = undefined
 
-    @PropertyMetadata({
-        name: "TrailerField",
-        type: TtlvType.Integer,
-    })
-    public trailer_field?: number = undefined;
+  @PropertyMetadata({
+    name: 'PSource',
+    type: TtlvType.ByteString
+  })
+  public p_source?: Uint8Array = undefined
 
-    public static empty(): CryptographicParameters {
-        return new CryptographicParameters();
-    }
+  @PropertyMetadata({
+    name: 'TrailerField',
+    type: TtlvType.Integer
+  })
+  public trailer_field?: number = undefined
 
+  public static empty (): CryptographicParameters {
+    return new CryptographicParameters()
+  }
 }

@@ -28,4 +28,3 @@ export enum KeyFormatType {
   AbeUserDecryptionKey = 2290089994,
   AbeSymmetricKey = 2290089995,
 }
-

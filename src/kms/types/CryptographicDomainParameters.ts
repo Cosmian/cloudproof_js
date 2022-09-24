@@ -1,6 +1,6 @@
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
-import { RecommendedCurve } from "./RecommendedCurve";
+import { PropertyMetadata } from '../decorators/function'
+import { TtlvType } from '../serialize/TtlvType'
+import { RecommendedCurve } from './RecommendedCurve'
 
 /**
  * The Cryptographic Domain Parameters attribute (4.14) is a structure that contains fields that MAY need to be
@@ -18,21 +18,20 @@ import { RecommendedCurve } from "./RecommendedCurve";
  * Recommended Curve is applicable to elliptic curve algorithms such as ECDSA, ECDH, and ECMQV
  */
 export class CryptographicDomainParameters {
-    @PropertyMetadata({
-        name: "QLength",
-        type: TtlvType.Integer,
-    })
-    public q_length?: number;
+  @PropertyMetadata({
+    name: 'QLength',
+    type: TtlvType.Integer
+  })
+  public q_length?: number
 
-    @PropertyMetadata({
-        name: "RecommendedCurve",
-        type: TtlvType.Enumeration,
-        isEnum: RecommendedCurve,
-    })
-    public recommended_curve?: RecommendedCurve;
+  @PropertyMetadata({
+    name: 'RecommendedCurve',
+    type: TtlvType.Enumeration,
+    isEnum: RecommendedCurve
+  })
+  public recommended_curve?: RecommendedCurve
 
-    public static empty(): CryptographicDomainParameters {
-        return new CryptographicDomainParameters();
-    }
-
+  public static empty (): CryptographicDomainParameters {
+    return new CryptographicDomainParameters()
+  }
 }

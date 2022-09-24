@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add tests for Cloudproof or Findex only (for PostgRest and Redis)
 ### Changed
 - Reorganize code tree
+- Use and apply eslint standard style
 ### Fixed
 - Findex interface with `Uint8Array` in place of `string`
 ### Removed

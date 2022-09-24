@@ -1,20 +1,19 @@
-import { v4 as uuidv4 } from "uuid";
-import { USERS } from "./usersDataset";
-
+import { v4 as uuidv4 } from 'uuid'
+import { USERS } from './usersDataset'
 
 export interface User {
   id: string, firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string, enc_uid: string
 }
 
 export class Users {
-  private _users: User[];
+  private readonly _users: User[]
 
-  constructor() {
-    this._users = this.generateUsers();
+  constructor () {
+    this._users = this.generateUsers()
   }
 
-  generateUsers(): User[] {
-    const users: User[] = [];
+  generateUsers (): User[] {
+    const users: User[] = []
     USERS.map((val: any) => {
       const user: User = {
         id: uuidv4(),
@@ -26,26 +25,26 @@ export class Users {
         email: val.email,
         phone: val.phone,
         security: val.security,
-        enc_uid: "",
+        enc_uid: ''
       }
       // Add User objet here
       users.push(user)
     })
-    return users;
+    return users
   }
 
-  getUsers(): User[] {
-    return this._users;
+  getUsers (): User[] {
+    return this._users
   }
 
-  getUsersById(uids: string[]): User[] {
+  getUsersById (uids: string[]): User[] {
     return this._users.filter(element => {
-      return (uids.indexOf(element.id) > -1)
-    });
+      return (uids.includes(element.id))
+    })
   }
 
-  getFirstUsers(): { firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[] {
-    const firstUsers: { firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }[] = [];
+  getFirstUsers (): Array<{ firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }> {
+    const firstUsers: Array<{ firstName: string, lastName: string, phone: string, email: string, country: string, region: string, employeeNumber: string, security: string }> = []
     for (let i = 0; i < 5; i++) {
       firstUsers.push({
         firstName: this._users[i].firstName,
@@ -55,20 +54,20 @@ export class Users {
         country: this._users[i].country,
         region: this._users[i].region,
         employeeNumber: this._users[i].employeeNumber,
-        security: this._users[i].security,
-      });
+        security: this._users[i].security
+      })
     }
 
-    return firstUsers;
+    return firstUsers
   }
 
-  upsertUserEncUidById(id: string, encryptedUid: { enc_uid: string }): void {
+  upsertUserEncUidById (id: string, encryptedUid: { enc_uid: string }): void {
     for (let i = 0; i < this._users.length; i++) {
       if (this._users[i].id !== id) {
-        continue;
+        continue
       }
-      this._users[i].enc_uid = encryptedUid.enc_uid;
-      break;
+      this._users[i].enc_uid = encryptedUid.enc_uid
+      break
     }
   }
 }

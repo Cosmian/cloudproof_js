@@ -1,15 +1,15 @@
-import { TTLV } from "./Ttlv"
-import "reflect-metadata"
-import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
-import { TtlvType } from "./TtlvType"
-
+import { TTLV } from './Ttlv'
+import 'reflect-metadata'
+import { METADATA_KEY, PropertyMetadata } from '../decorators/interface'
+import { TtlvType } from './TtlvType'
 
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object
+ *
  * @param value the Json representation
  * @returns a TTLV
  */
-export function to_ttlv(value: Object): TTLV {
+export function to_ttlv (value: Object): TTLV {
   // there is no metadata available for the top level object
   // so we use the class name as name.
   // The top level object is always a structure
@@ -18,23 +18,32 @@ export function to_ttlv(value: Object): TTLV {
     type: TtlvType.Structure
   })
 }
-function to_ttlv_inner(value: Object, metadata: PropertyMetadata): TTLV {
-
+/**
+ *
+ * @param value
+ * @param metadata
+ */
+function to_ttlv_inner (value: Object, metadata: PropertyMetadata): TTLV {
   // The JSON representation of a TTLV
   // is always a dictionary or an array
 
-  if (typeof value !== "object") {
+  if (typeof value !== 'object') {
     throw new Error("Unknown type '" + (typeof value) + "' for value: " + JSON.stringify(value, null, 2))
   }
 
-  if (value.constructor.name === "Array") {
+  if (value.constructor.name === 'Array') {
     return processArray(value, metadata)
   }
 
   return processDictionary(value, metadata)
 }
 
-function processArray(value: Object, metadata: PropertyMetadata): TTLV {
+/**
+ *
+ * @param value
+ * @param metadata
+ */
+function processArray (value: Object, metadata: PropertyMetadata): TTLV {
   const array = value as Object[]
   const children: TTLV[] = []
   for (const child of array) {
@@ -43,35 +52,40 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   }
   return new TTLV(
     // there should always be meta data descriptions for arrays
-    Reflect.get(metadata, "name") as string,
+    Reflect.get(metadata, 'name') as string,
     TtlvType.Structure,
     children)
 }
 
-
-function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
-
+/**
+ *
+ * @param value
+ * @param metadata
+ */
+function processDictionary (value: Object, metadata: PropertyMetadata): TTLV {
   // process all object properties as new TTLVs
   const children: TTLV[] = parseChildren(value)
 
-  const name: string = Reflect.get(metadata, "name")
-  const type: TtlvType = Reflect.get(metadata, "type")
+  const name: string = Reflect.get(metadata, 'name')
+  const type: TtlvType = Reflect.get(metadata, 'type')
 
   // handle the special case of Choices: there is only
   // one child which name is identical to that of the parent
   // We need to flatten that to the type of the child
   // Exemple: LinkedObjectIdentifier
   if (type === TtlvType.Choice) {
-    console.log("FOUND A CHOICE ", children)
+    console.log('FOUND A CHOICE ', children)
     return children[0]
   }
 
   return new TTLV(name, type, children)
 }
 
-
-function parseChildren(value: Object): TTLV[] {
-
+/**
+ *
+ * @param value
+ */
+function parseChildren (value: Object): TTLV[] {
   const childrenMetadata: { [propertyName: string]: PropertyMetadata } = Reflect.getMetadata(METADATA_KEY, value)
 
   const children: TTLV[] = []
@@ -79,14 +93,14 @@ function parseChildren(value: Object): TTLV[] {
     const propertyName = pn as keyof typeof value
 
     let childValue = Reflect.get(value, propertyName)
-    if (typeof childValue === "undefined") {
+    if (typeof childValue === 'undefined') {
       // skip processing  an undefine value
       continue
     }
     const childMetadata: PropertyMetadata = childrenMetadata[propertyName]
     if (!childMetadata) {
-      console.error("Serializer: child Metadata is not defined for " + propertyName + " in ", childrenMetadata)
-      throw new Error("Serializer: child Metadata is not defined for " + propertyName)
+      console.error('Serializer: child Metadata is not defined for ' + propertyName + ' in ', childrenMetadata)
+      throw new Error('Serializer: child Metadata is not defined for ' + propertyName)
     }
     const childName = childMetadata.name
     const childType = childMetadata.type
@@ -106,7 +120,7 @@ function parseChildren(value: Object): TTLV[] {
         childValue = value[propertyName]
       }
     } else if (childType === TtlvType.ByteString) {
-      childValue = Buffer.from(childValue).toString("hex")
+      childValue = Buffer.from(childValue).toString('hex')
     } else if (childType === TtlvType.DateTimeExtended) {
       childValue = childValue.extendedDate
     } else if (childType === TtlvType.Interval) {
@@ -116,8 +130,8 @@ function parseChildren(value: Object): TTLV[] {
     } else if (childType === TtlvType.LongInteger) {
       childValue = childValue.bytes
     } else {
-      console.error("Serializer: unknown TTLV type: " + childType)
-      throw new Error("Serializer: unknown TTLV type: " + childType)
+      console.error('Serializer: unknown TTLV type: ' + childType)
+      throw new Error('Serializer: unknown TTLV type: ' + childType)
     }
 
     children.push(new TTLV(childName, childType, childValue))

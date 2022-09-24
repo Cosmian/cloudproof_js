@@ -1,5 +1,5 @@
-import { Hkdf } from "crypto/hkdf"
-import { hexDecode } from "utils/utils"
+import { Hkdf } from 'crypto/hkdf'
+import { hexDecode } from 'utils/utils'
 
 test('hkdf', async () => {
   const k = hexDecode('000000000000000000000000000000000000000000000000000000000000000')
