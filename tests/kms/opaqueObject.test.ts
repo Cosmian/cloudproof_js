@@ -1,5 +1,5 @@
-import { OpaqueObject } from "../../src/kms/objects/OpaqueObject"
-import { OpaqueDataType } from "../../src/kms/types/OpaqueDataType"
+import { OpaqueObject } from "kms/objects/OpaqueObject"
+import { OpaqueDataType } from "kms/types/OpaqueDataType"
 
 const oo = new OpaqueObject(OpaqueDataType.Unknown, 256)
 

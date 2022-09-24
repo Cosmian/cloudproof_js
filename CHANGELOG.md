@@ -7,8 +7,10 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Indexes compaction for Findex
 - Also package for CommonJS/Node
-- Findex with Redis database
+- Findex implementation with Redis database (upsert and search)
+- Add tests for Cloudproof or Findex only (for PostgRest and Redis)
 ### Changed
+- Reorganize code tree
 ### Fixed
 - Findex interface with `Uint8Array` in place of `string`
 ### Removed

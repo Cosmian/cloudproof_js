@@ -1,8 +1,8 @@
-import { KeyBlock } from "../../src/kms/data_structures/KeyBlock"
-import { KeyValue } from "../../src/kms/data_structures/KeyValue"
-import { PublicKey } from "../../src/kms/objects/PublicKey"
-import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
+import { KeyBlock } from "kms/data_structures/KeyBlock"
+import { KeyValue } from "kms/data_structures/KeyValue"
+import { PublicKey } from "kms/objects/PublicKey"
+import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
+import { KeyFormatType } from "kms/types/KeyFormatType"
 
 const byteArray = new TextEncoder().encode("toto")
 

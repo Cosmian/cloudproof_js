@@ -1,5 +1,5 @@
-import { logger } from "../../src/utils/logger"
-import { deserializeList, fromBeBytes, hexDecode, hexEncode, serializeList, toBeBytes } from "../../src/utils/utils"
+import { logger } from "utils/logger"
+import { deserializeList, fromBeBytes, hexDecode, hexEncode, serializeList, toBeBytes } from "utils/utils"
 
 test('hexEncode+hexDecode', () => {
     const s = "ça va être la fête"

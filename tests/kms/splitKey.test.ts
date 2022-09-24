@@ -1,9 +1,9 @@
-import { KeyBlock } from "../../src/kms/data_structures/KeyBlock"
-import { KeyValue } from "../../src/kms/data_structures/KeyValue"
-import { SplitKey } from "../../src/kms/objects/SplitKey"
-import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
-import { SplitKeyMethod } from "../../src/kms/types/SplitKeyMethod"
+import { KeyBlock } from "kms/data_structures/KeyBlock"
+import { KeyValue } from "kms/data_structures/KeyValue"
+import { SplitKey } from "kms/objects/SplitKey"
+import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
+import { KeyFormatType } from "kms/types/KeyFormatType"
+import { SplitKeyMethod } from "kms/types/SplitKeyMethod"
 
 const byteArray = new TextEncoder().encode("toto")
 

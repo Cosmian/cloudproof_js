@@ -1,9 +1,9 @@
-import { KeyBlock } from "../../src/kms/data_structures/KeyBlock"
-import { KeyValue } from "../../src/kms/data_structures/KeyValue"
-import { SecretData } from "../../src/kms/objects/SecretData"
-import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
-import { SecretDataType } from "../../src/kms/types/SecretDataType"
+import { KeyBlock } from "kms/data_structures/KeyBlock"
+import { KeyValue } from "kms/data_structures/KeyValue"
+import { SecretData } from "kms/objects/SecretData"
+import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
+import { KeyFormatType } from "kms/types/KeyFormatType"
+import { SecretDataType } from "kms/types/SecretDataType"
 
 const byteArray = new TextEncoder().encode("toto")
 

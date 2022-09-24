@@ -1,5 +1,5 @@
-import { Certificate } from "../../src/kms/objects/Certificate"
-import { CertificateType } from "../../src/kms/types/CertificateType"
+import { Certificate } from "kms/objects/Certificate"
+import { CertificateType } from "kms/types/CertificateType"
 
 const certificate = new Certificate(CertificateType.PGP, [8, 16, 64, 256])
 

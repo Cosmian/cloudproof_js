@@ -18,7 +18,8 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js'],
-	alias: {
+        modules: ["node_modules", 'src'],
+        alias: {
             process: "process/browser"
         }
     },
