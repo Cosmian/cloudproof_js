@@ -55,6 +55,9 @@ tslint:
 build_node_12:
   extends: .services
   image: node:12
+  script:
+    - npm install
+    - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
 
 build_node_14:
   extends: .services
