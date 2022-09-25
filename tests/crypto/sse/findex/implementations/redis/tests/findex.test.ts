@@ -1,4 +1,4 @@
-import { FindexDemo } from '../../common/findexDemo'
+import { FindexDemo } from '../../common/findex_demo'
 import { masterKeysFindex } from '../../common/keys'
 import { Users } from '../../common/users'
 import { RedisDB } from '../db'
@@ -11,7 +11,7 @@ test('upsert+search', async () => {
   // Upsert Indexes
   //
   try {
-    redisDb.initInstance()
+    await redisDb.initInstance()
     const findexDemo = new FindexDemo(redisDb)
 
     const users = new Users()
@@ -30,9 +30,9 @@ test('upsert+search', async () => {
     //
     const queryResults = await findexDemo.searchWithLogicalSwitch(masterKeysFindex, LABEL, 'france', false, 1000)
     expect(queryResults.length).toBe(30)
-    redisDb.instance.quit()
+    await redisDb.instance.quit()
   } catch (error) {
-    redisDb.instance.quit()
+    await redisDb.instance.quit()
     throw new Error('Redis test failed: ' + error)
   }
 })

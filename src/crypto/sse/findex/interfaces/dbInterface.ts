@@ -1,3 +1,5 @@
+import { Index } from '.'
+
 export interface DBInterface {
   // Callbacks abstract declaration
   fetchEntry: (serializedUids: Uint8Array) => Promise<Uint8Array>
@@ -6,8 +8,8 @@ export interface DBInterface {
   upsertChain: (serializedEntries: Uint8Array) => Promise<number>
 
   // DB main functions
-  getEntryTableEntriesById: (uids: Uint8Array[]) => Promise<Array<{ uid: Uint8Array, value: Uint8Array }>>
-  getChainTableEntriesById: (uids: Uint8Array[]) => Promise<Array<{ uid: Uint8Array, value: Uint8Array }>>
-  upsertEntryTableEntries: (entries: Array<{ uid: Uint8Array, value: Uint8Array }>) => Promise<number>
-  upsertChainTableEntries: (entries: Array<{ uid: Uint8Array, value: Uint8Array }>) => Promise<number>
+  getEntryTableEntriesById: (uids: Uint8Array[]) => Promise<Index[]>
+  getChainTableEntriesById: (uids: Uint8Array[]) => Promise<Index[]>
+  upsertEntryTableEntries: (entries: Index[]) => Promise<number>
+  upsertChainTableEntries: (entries: Index[]) => Promise<number>
 }

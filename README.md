@@ -33,3 +33,27 @@ This table shows the minimum versions correspondence between the various compone
 KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex
 -----------|----------------|----------|----------------|-------
 2.2.0      | 1.0.6          | 2.0.1    | 6.0.1          | 0.5.0
+
+
+## npm version
+
+{
+  cosmian_js_lib: '2.0.0',
+  npm: '6.14.17',
+  ares: '1.18.1',
+  brotli: '1.0.9',
+  cldr: '40.0',
+  icu: '70.1',
+  llhttp: '2.1.4',
+  modules: '83',
+  napi: '8',
+  nghttp2: '1.42.0',
+  node: '14.19.2',
+  openssl: '1.1.1n',
+  tz: '2021a3',
+  unicode: '14.0',
+  uv: '1.42.0',
+  v8: '8.4.371.23-node.87',
+  zlib: '1.2.11'
+}
+

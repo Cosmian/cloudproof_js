@@ -1,6 +1,6 @@
 import { GpswHybridDecryption } from 'crypto/abe/core/hybrid_crypto/gpsw/decryption'
 import { GpswHybridEncryption } from 'crypto/abe/core/hybrid_crypto/gpsw/encryption'
-import { GpswMasterKeyGeneration } from 'crypto/abe/core/keygen/gpsw_crypt_keygen'
+import { GpswMasterKeyGeneration } from 'crypto/abe/core/keygen/gpsw_crypt'
 import { EncryptionDecryptionDemo } from '../../common/demo_hybrid_crypto'
 import { GpswDemoKeys } from './demo_keys'
 

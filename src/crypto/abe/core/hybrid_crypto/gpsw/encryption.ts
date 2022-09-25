@@ -3,9 +3,8 @@ import {
 } from 'abe_gpsw'
 import { logger } from 'utils/logger'
 import { EncryptedHeader } from '../../../interfaces/encrypted_header'
-import { AbeEncryptionParameters } from '../../../interfaces/encryption_parameters'
+import { AbeEncryptionParameters, Metadata } from '../../../interfaces/encryption_parameters'
 import { HybridEncryption } from 'crypto/abe/interfaces/encryption'
-import { Metadata } from '../../../interfaces/metadata'
 
 /**
  * This class exposes the ABE primitives.
@@ -28,7 +27,7 @@ export class GpswHybridEncryption extends HybridEncryption {
   /**
    * Destroy encryption cache
    */
-  public destroyInstance () {
+  public destroyInstance (): void {
     logger.log(() => 'DestroyInstance Abe')
     webassembly_destroy_encryption_cache(this._cache)
   }
@@ -123,13 +122,11 @@ export class GpswHybridEncryption extends HybridEncryption {
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
     const encryptionParameters = new AbeEncryptionParameters(attributes, new Metadata(uid))
     const hybridHeader = this.encryptHybridHeader(encryptionParameters)
-    logger.log(() => 'encrypt: symmetricKey:' + hybridHeader.symmetricKey)
     logger.log(() => 'encrypt: encryptedSymmetricKeySizeAsArray:' + hybridHeader.encryptedSymmetricKeySizeAsArray)
     const ciphertext = this.encryptHybridBlock(hybridHeader.symmetricKey, plaintext, uid, 0)
 
     logger.log(() => 'encrypt: header size : ' + hybridHeader.encryptedSymmetricKeySizeAsArray)
     logger.log(() => 'encrypt: encrypted symmetric key : ' + hybridHeader.encryptedSymmetricKey)
-    logger.log(() => 'encrypt: symmetric key : ' + hybridHeader.symmetricKey)
     logger.log(() => 'encrypt: ciphertext : ' + ciphertext)
 
     // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
@@ -158,7 +155,7 @@ export class GpswHybridEncryption extends HybridEncryption {
     }
     let endDate = new Date().getTime()
     const msNoCache = (endDate - startDate) / (loops)
-    logger.log(() => 'webassembly-JS avg time (no cache): ' + msNoCache + 'ms')
+    logger.log(() => `webassembly-JS avg time (no cache): ${msNoCache}ms`)
 
     // With cache
     const cache = webassembly_create_encryption_cache(this.policy, this.publicKey)
@@ -168,7 +165,7 @@ export class GpswHybridEncryption extends HybridEncryption {
     }
     endDate = new Date().getTime()
     const msCache = (endDate - startDate) / (loops)
-    logger.log(() => 'webassembly-JS avg time (with cache): ' + msCache + 'ms')
+    logger.log(() => `webassembly-JS avg time (with cache): ${msCache}ms`)
     webassembly_destroy_encryption_cache(cache)
 
     return [msNoCache, msCache]

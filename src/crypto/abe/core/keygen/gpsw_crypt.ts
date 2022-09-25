@@ -13,14 +13,14 @@ export class GpswMasterKey extends AbeMasterKey {
 
 }
 
-export class GpswMasterKeyGeneration extends AbeKeyGeneration {
+export class GpswMasterKeyGeneration implements AbeKeyGeneration {
   public generateMasterKey (policy: Policy): AbeMasterKey {
-    logger.log(() => 'policy: ' + policy)
+    logger.log(() => `policy: ${policy.toJsonEncoded().toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
     const masterKeys = webassembly_generate_master_keys(policyBytes)
     const privateKeySize = fromBeBytes(masterKeys.slice(0, 4))
-    logger.log(() => 'private key size: ' + privateKeySize)
+    logger.log(() => `private key size: ${privateKeySize}`)
     return new AbeMasterKey(
       masterKeys.slice(4, 4 + privateKeySize),
       masterKeys.slice(4 + privateKeySize, masterKeys.length)
@@ -28,9 +28,9 @@ export class GpswMasterKeyGeneration extends AbeKeyGeneration {
   }
 
   public generateUserPrivateKey (privateKey: Uint8Array, accessPolicy: string, policy: Policy): Uint8Array {
-    logger.log(() => 'privateKey: ' + privateKey)
+    logger.log(() => `privateKey: ${privateKey.toString()}`)
     logger.log(() => 'accessPolicy: ' + accessPolicy)
-    logger.log(() => 'policy: ' + policy)
+    logger.log(() => `policy: ${policy.toJsonEncoded().toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
     const userPrivateKey = webassembly_generate_user_private_key(privateKey, accessPolicy, policyBytes)
@@ -39,8 +39,8 @@ export class GpswMasterKeyGeneration extends AbeKeyGeneration {
   }
 
   public rotateAttributes (attributes: string[], policy: Policy): Policy {
-    logger.log(() => 'attributes: ' + attributes)
-    logger.log(() => 'policy: ' + policy)
+    logger.log(() => `attributes: ${attributes.toString()}`)
+    logger.log(() => 'policy: ' + policy.toJsonEncoded().toString())
 
     const policyBytes = policy.toJsonEncoded()
     const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))

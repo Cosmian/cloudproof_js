@@ -1,4 +1,4 @@
-import { ClearTextHeader } from 'crypto/abe/interfaces/cleartext_header'
+import { ClearTextHeader } from './cleartext_header'
 
 export abstract class HybridDecryption {
   private _asymmetricDecryptionKey: Uint8Array

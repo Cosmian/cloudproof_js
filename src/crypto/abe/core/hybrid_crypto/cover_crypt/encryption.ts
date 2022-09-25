@@ -2,19 +2,14 @@ import { webassembly_encrypt_hybrid_block, webassembly_encrypt_hybrid_header } f
 import { logger } from 'utils/logger'
 import { hexEncode } from 'utils/utils'
 import { EncryptedHeader } from '../../../interfaces/encrypted_header'
-import { AbeEncryptionParameters } from '../../../interfaces/encryption_parameters'
+import { AbeEncryptionParameters, Metadata } from '../../../interfaces/encryption_parameters'
 import { HybridEncryption } from 'crypto/abe/interfaces/encryption'
-import { Metadata } from '../../../interfaces/metadata'
 
 /**
  * This class exposes the ABE primitives.
  *
  */
 export class CoverCryptHybridEncryption extends HybridEncryption {
-  constructor (policy: Uint8Array, publicKey: Uint8Array) {
-    super(policy, publicKey)
-  }
-
   public renewKey (policy: Uint8Array, publicKey: Uint8Array): void {
     this.policy = policy
     this.publicKey = publicKey
@@ -23,7 +18,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
   /**
    * Destroy encryption
    */
-  public destroyInstance () {
+  public destroyInstance (): void {
     logger.log(() => 'DestroyInstance Abe')
   }
 
@@ -78,7 +73,6 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
     const encryptionParameters = new AbeEncryptionParameters(attributes, new Metadata(uid, new Uint8Array(1)))
     const hybridHeader = this.encryptHybridHeader(encryptionParameters)
-    logger.log(() => 'encrypt: symmetricKey:' + hybridHeader.symmetricKey)
     logger.log(() => 'encrypt: encryptedSymmetricKeySizeAsArray:' + hybridHeader.encryptedSymmetricKeySizeAsArray)
     const ciphertext = this.encryptHybridBlock(hybridHeader.symmetricKey, plaintext,
       uid,
@@ -122,7 +116,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     }
     const endDate = new Date().getTime()
     const ms = (endDate - startDate) / (loops)
-    logger.log(() => 'webassembly-JS avg time: ' + ms + 'ms')
+    logger.log(() => `webassembly-JS avg time: ${ms}ms`)
 
     return [ms, -1]
   }

@@ -9,7 +9,7 @@ export class CoverCryptMasterKey extends AbeMasterKey {
 
 }
 
-export class CoverCryptMasterKeyGeneration extends AbeKeyGeneration {
+export class CoverCryptMasterKeyGeneration implements AbeKeyGeneration {
   public generateMasterKey (policy: Policy): AbeMasterKey {
     logger.log(() => 'policy: ' + policy)
 

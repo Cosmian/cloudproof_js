@@ -1,21 +1,22 @@
+import { Index } from 'crypto/sse/findex/interfaces'
 import { DBInterface } from 'crypto/sse/findex/interfaces/dbInterface'
 import { commandOptions, createClient, RedisClientType } from 'redis'
 import { logger } from 'utils/logger'
-import { deserializeList, serializeHashMap, deserializeHashMap, toBeBytes } from 'utils/utils'
+import { deserializeHashMap, deserializeList, serializeHashMap, toBeBytes } from 'utils/utils'
 
 export class RedisDB implements DBInterface {
   instance: RedisClientType
 
   constructor (localhost: string, port: number) {
     this.instance = createClient({
-      url: 'redis://localhost:' + port
+      url: `redis://localhost:${port}`
     })
 
-    this.instance.on('error', (err: any) => logger.log(() => 'Redis Client Error' + err))
+    this.instance.on('error', (err: string) => logger.log(() => `Redis Client Error: ${err}`))
   }
 
-  async initInstance () {
-    await this.instance.connect()
+  async initInstance (): Promise<void> {
+    return await this.instance.connect()
   }
 
   //
@@ -48,13 +49,13 @@ export class RedisDB implements DBInterface {
   //
   // DBInterface implementation
   //
-  async getIndexById (uids: Uint8Array[], redisPrefix: number): Promise<Array<{ uid: Uint8Array, value: Uint8Array }>> {
+  async getIndexById (uids: Uint8Array[], redisPrefix: number): Promise<Index[]> {
     const keys = uids.map(uid => this.formatKey(redisPrefix, uid))
-    logger.log(() => 'getIndexById: keys:' + keys.length)
+    logger.log(() => `getIndexById: keys:${keys.length}`)
 
     const responses = await this.instance.mGet(commandOptions({ returnBuffers: true }), keys)
-    logger.log(() => 'getIndexById: ' + redisPrefix + ' responses: ' + responses.length)
-    const uidsAndValues: Array<{ uid: Uint8Array, value: Uint8Array }> = []
+    logger.log(() => `getIndexById: ${redisPrefix} responses: ${responses.length}`)
+    const uidsAndValues: Index[] = []
     if (uids.length !== responses.length) {
       throw new Error('uids length must be equal to responses length')
     }
@@ -66,8 +67,8 @@ export class RedisDB implements DBInterface {
       if (value === null) {
         continue
       }
-      logger.log(() => 'getIndexById: uid: ' + uid.length)
-      logger.log(() => 'getIndexById: value:' + value.length)
+      logger.log(() => `getIndexById: uid: ${uid.length}`)
+      logger.log(() => `getIndexById: value:${value.length}`)
       uidsAndValues.push({
         uid,
         value
@@ -77,20 +78,20 @@ export class RedisDB implements DBInterface {
     return uidsAndValues
   }
 
-  async getEntryTableEntriesById (uids: Uint8Array[]): Promise<Array<{ uid: Uint8Array, value: Uint8Array }>> {
+  async getEntryTableEntriesById (uids: Uint8Array[]): Promise<Index[]> {
     return await this.getIndexById(uids, 1)
   }
 
-  async getChainTableEntriesById (uids: Uint8Array[]): Promise<Array<{ uid: Uint8Array, value: Uint8Array }>> {
+  async getChainTableEntriesById (uids: Uint8Array[]): Promise<Index[]> {
     return await this.getIndexById(uids, 2)
   }
 
-  async upsertIndex (entries: Array<{ uid: Uint8Array, value: Uint8Array }>, redisPrefix: number): Promise<number> {
+  async upsertIndex (entries: Index[], redisPrefix: number): Promise<number> {
     const keysAndValuesFlatten: Buffer[] = []
     for await (const element of entries) {
       const key = this.formatKey(redisPrefix, element.uid)
       const value = Buffer.from(element.value)
-      logger.log(() => 'upsertIndex: ' + redisPrefix + ': value: ' + value.length)
+      logger.log(() => `upsertIndex: ${redisPrefix}: value: ${value.length}`)
       keysAndValuesFlatten.push(key)
       keysAndValuesFlatten.push(value)
     }
@@ -98,11 +99,11 @@ export class RedisDB implements DBInterface {
     return inserted.length
   }
 
-  async upsertEntryTableEntries (entries: Array<{ uid: Uint8Array, value: Uint8Array }>): Promise<number> {
+  async upsertEntryTableEntries (entries: Index[]): Promise<number> {
     return await this.upsertIndex(entries, 1)
   }
 
-  async upsertChainTableEntries (entries: Array<{ uid: Uint8Array, value: Uint8Array }>): Promise<number> {
+  async upsertChainTableEntries (entries: Index[]): Promise<number> {
     return await this.upsertIndex(entries, 2)
   }
 
@@ -118,11 +119,11 @@ export class RedisDB implements DBInterface {
     key.set(numberBytes, prefixCosmianBytes.byteLength)
     key.set(uid, prefixCosmianBytes.byteLength + numberBytes.byteLength)
 
-    logger.log(() => 'formatKey: key.length: ' + key.length)
+    logger.log(() => `formatKey: key.length: ${key.length}`)
     return Buffer.from(key)
   }
 
-  async upsertEncryptedUser (uid: Uint8Array, encryptedValue: Uint8Array) {
+  async upsertEncryptedUser (uid: Uint8Array, encryptedValue: Uint8Array): Promise<void> {
     const key = this.formatKey(3, uid)
     const inserts = await this.instance.set(
       key,
@@ -130,7 +131,7 @@ export class RedisDB implements DBInterface {
     logger.log(() => 'upsertEncryptedUser: inserts: ' + inserts)
   }
 
-  async getEncryptedUsersById (uids: Uint8Array[]): Promise<Array<{ uid: Uint8Array, value: Uint8Array }>> {
+  async getEncryptedUsersById (uids: Uint8Array[]): Promise<Index[]> {
     return await this.getIndexById(uids, 3)
   }
 
@@ -138,7 +139,7 @@ export class RedisDB implements DBInterface {
     const keysPrefix = this.formatKey(redisPrefix, Buffer.from('*'))
 
     const responses = await this.instance.keys(commandOptions({ returnBuffers: true }), keysPrefix)
-    logger.log(() => 'getAllIndexes: responses: ' + responses.length)
+    logger.log(() => `getAllIndexes: responses: ${responses.length}`)
 
     const result = responses
       .filter((element) => { return element != null })
@@ -161,7 +162,7 @@ export class RedisDB implements DBInterface {
   async deleteAllEntryTableEntries (): Promise<number> {
     const entryTableEntries = await this.getEntryTableEntries()
     for await (const iet of entryTableEntries) {
-      this.instance.del(Buffer.from(iet))
+      await this.instance.del(Buffer.from(iet))
     }
     return entryTableEntries.length
   }
@@ -169,7 +170,7 @@ export class RedisDB implements DBInterface {
   async deleteAllChainTableEntries (): Promise<number> {
     const chainTableEntries = await this.getChainTableEntries()
     for await (const ict of chainTableEntries) {
-      this.instance.del(Buffer.from(ict))
+      await this.instance.del(Buffer.from(ict))
     }
     return chainTableEntries.length
   }
@@ -177,7 +178,7 @@ export class RedisDB implements DBInterface {
   async deleteAllEncryptedUsers (): Promise<number> {
     const encryptedUsers = await this.getChainTableEntries()
     for await (const encryptedUser of encryptedUsers) {
-      this.instance.del(Buffer.from(encryptedUser))
+      await this.instance.del(Buffer.from(encryptedUser))
     }
     return encryptedUsers.length
   }
@@ -188,7 +189,7 @@ export class RedisDB implements DBInterface {
     if (response == null) {
       throw new Error('unique response expected')
     }
-    logger.log(() => 'getKeyValue: ' + keyPrefix + ' response: ' + response.length)
+    logger.log(() => `getKeyValue: ${keyPrefix} response: ${response.length}`)
     return { uid: key, value: Buffer.from(response) }
   }
 }

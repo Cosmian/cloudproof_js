@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { FindexDemo } from '../../common/findexDemo'
+import { FindexDemo } from '../../common/findex_demo'
 import { masterKeysFindex } from '../../common/keys'
 import { Users } from '../../common/users'
 import { PostgRestDB } from '../db'

@@ -27,15 +27,7 @@ stages:
   - publish
   - deploy
 
-tslint:
-  stage: prebuild
-  script:
-    - npm install -g eslint
-    - eslint .
-  allow_failure: true
-
 .services:
-  stage: build
   services:
     - name: postgres
       alias: db
@@ -52,23 +44,38 @@ tslint:
     - npm install
     - npm test
 
-build_node_12:
+.test:
+  stage: build
   extends: .services
+  script:
+    - npm install
+    - npm test
+
+eslint:
+  extends: .services
+  stage: prebuild
+  script:
+    - npm install -g eslint
+    - eslint .
+  allow_failure: true
+
+build_node_12:
+  extends: .test
   image: node:12
   script:
     - npm install
     - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
 
 build_node_14:
-  extends: .services
+  extends: .test
   image: node:14
 
 build_node_16:
-  extends: .services
+  extends: .test
   image: node:16
 
 build_node_18:
-  extends: .services
+  extends: .test
   image: node:18
 
 publish:

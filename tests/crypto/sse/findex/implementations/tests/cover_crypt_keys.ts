@@ -1,4 +1,4 @@
-import { CoverCryptMasterKeyGeneration } from 'crypto/abe/core/keygen/cover_crypt_keygen'
+import { CoverCryptMasterKeyGeneration } from 'crypto/abe/core/keygen/cover_crypt'
 import { Policy, PolicyAxis } from 'crypto/abe/interfaces/policy'
 
 /**

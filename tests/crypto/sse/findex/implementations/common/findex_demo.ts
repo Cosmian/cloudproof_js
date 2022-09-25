@@ -1,4 +1,3 @@
-import { DBInterface } from 'crypto/sse/findex/interfaces/dbInterface'
 import { Findex } from 'crypto/sse/findex/interfaces/findex'
 import { MasterKeys } from 'crypto/sse/findex/interfaces/master_keys'
 import { sanitizeString, toBase64 } from 'utils/utils'
@@ -10,10 +9,6 @@ import { Users } from './users'
  * @param db DB Interface, implementing the minimal DB requests for Findex algorithm
  */
 export class FindexDemo extends Findex {
-  constructor (db: DBInterface) {
-    super(db)
-  }
-
   /**
    * Reset all indexes and upsert new ones
    *
@@ -22,8 +17,8 @@ export class FindexDemo extends Findex {
    * @param users
    * @param location location string naming the key of location to index
    */
-  async upsertUsersIndexes (masterKeysFindex: MasterKeys, label: string, users: Users, location: string) {
-    const generatedUsers = await users.getUsers()
+  async upsertUsersIndexes (masterKeysFindex: MasterKeys, label: string, users: Users, location: string): Promise<void> {
+    const generatedUsers = users.getUsers()
 
     const locationAndWords: { [key: string]: string[] } = {}
     generatedUsers.map((user) => {
@@ -31,7 +26,7 @@ export class FindexDemo extends Findex {
       if (location === 'enc_uid') {
         userId = user.enc_uid
       }
-      if (userId) {
+      if (userId.length > 0) {
         locationAndWords[toBase64('l' + userId)] = [
           toBase64(user.firstName),
           toBase64(user.lastName),

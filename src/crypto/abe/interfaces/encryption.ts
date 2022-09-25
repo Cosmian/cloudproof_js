@@ -1,5 +1,5 @@
-import { EncryptedHeader } from 'crypto/abe/interfaces/encrypted_header'
-import { AbeEncryptionParameters } from 'crypto/abe/interfaces/encryption_parameters'
+import { EncryptedHeader } from './encrypted_header'
+import { AbeEncryptionParameters } from './encryption_parameters'
 
 export abstract class HybridEncryption {
   private _publicKey: Uint8Array

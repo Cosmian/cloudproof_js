@@ -60,9 +60,9 @@ test('upsert+search', async () => {
       keys.charlie
     )
     expect(clearValuesCharlie.length).toBe(60)
-    findexDemo.redisDb.instance.quit()
+    await findexDemo.redisDb.instance.quit()
   } catch (error) {
-    redisDb.instance.quit()
+    await redisDb.instance.quit()
     throw new Error('Redis test failed: ' + error)
   }
 })

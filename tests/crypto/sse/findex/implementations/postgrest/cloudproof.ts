@@ -4,7 +4,7 @@ import { Policy } from 'crypto/abe/interfaces/policy'
 import { logger } from 'utils/logger'
 import { hexEncode, hexDecode } from 'utils/utils'
 import { v4 as uuidv4 } from 'uuid'
-import { FindexDemo } from '../common/findexDemo'
+import { FindexDemo } from '../common/findex_demo'
 import { Users } from '../common/users'
 import { PostgRestDB } from './db'
 
@@ -100,7 +100,7 @@ export class CloudproofDemoPostgRest extends FindexDemo {
           const clearText = hybridCryptoDecrypt.decrypt(
             encryptedText
           )
-          if (clearText.length) {
+          if (clearText.length > 0) {
             encryptedElement = { ...encryptedElement, ...JSON.parse(new TextDecoder('utf-8').decode(clearText)) }
           }
         } catch (e) {

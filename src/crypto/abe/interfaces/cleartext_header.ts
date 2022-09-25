@@ -1,7 +1,6 @@
 import { logger } from 'utils/logger'
 import { deserializeList, fromBeBytes } from 'utils/utils'
-import { SYMMETRIC_KEY_SIZE } from 'crypto/abe/interfaces/encryption_parameters'
-import { Metadata } from './metadata'
+import { Metadata, SYMMETRIC_KEY_SIZE } from './encryption_parameters'
 
 export class ClearTextHeader {
   private _symmetricKey: Uint8Array
@@ -70,7 +69,7 @@ export class ClearTextHeader {
     }
     const symmetricKey = cleartextHeader.slice(4, 4 + headerSize)
     const serializedMetadata = cleartextHeader.slice(4 + headerSize)
-    logger.log(() => 'metadata: ' + serializedMetadata)
+    logger.log(() => `metadata: ${serializedMetadata.toString()}`)
     if (serializedMetadata.length < 4) {
       throw new Error('Parse metadata failed. Length must be at least 4 bytes')
     }
@@ -83,8 +82,8 @@ export class ClearTextHeader {
     }
     const uid = serializedMetadata.slice(4, 4 + metadataSize)
     const additionalData = serializedMetadata.slice(4 + metadataSize)
-    logger.log(() => 'uid: ' + uid)
-    logger.log(() => 'additionalData: ' + additionalData)
+    logger.log(() => `uid: ${uid.toString()}`)
+    logger.log(() => `additionalData: ${additionalData.toString()}`)
 
     return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
   }

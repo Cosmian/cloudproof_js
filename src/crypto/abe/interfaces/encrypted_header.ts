@@ -47,7 +47,7 @@ export class EncryptedHeader {
    */
   public static parseLEB128 (encryptedHeaderBytes: Uint8Array): EncryptedHeader {
     if (encryptedHeaderBytes.length < SYMMETRIC_KEY_SIZE) {
-      throw new Error('Serialized encrypted header must be at least ' + SYMMETRIC_KEY_SIZE + ' bytes')
+      throw new Error(`Serialized encrypted header must be at least ${SYMMETRIC_KEY_SIZE} bytes`)
     }
     const symmetricKey = encryptedHeaderBytes.slice(0, SYMMETRIC_KEY_SIZE)
     const headerBytes = encryptedHeaderBytes.slice(SYMMETRIC_KEY_SIZE)

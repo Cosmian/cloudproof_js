@@ -1,6 +1,6 @@
 import { CoverCryptHybridDecryption } from 'crypto/abe/core/hybrid_crypto/cover_crypt/decryption'
 import { CoverCryptHybridEncryption } from 'crypto/abe/core/hybrid_crypto/cover_crypt/encryption'
-import { CoverCryptMasterKeyGeneration } from 'crypto/abe/core/keygen/cover_crypt_keygen'
+import { CoverCryptMasterKeyGeneration } from 'crypto/abe/core/keygen/cover_crypt'
 import { EncryptionDecryptionDemo } from '../../common/demo_hybrid_crypto'
 import { CoverCryptDemoKeys } from './demo_keys'
 
