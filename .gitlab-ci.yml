@@ -40,15 +40,12 @@ stages:
     - apt update && apt install -y postgresql libpq-dev
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
-  script:
     - npm install
-    - npm test
 
 .test:
   stage: build
   extends: .services
   script:
-    - npm install
     - npm test
 
 eslint:
@@ -63,7 +60,6 @@ build_node_12:
   extends: .test
   image: node:12
   script:
-    - npm install
     - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
 
 build_node_14:
