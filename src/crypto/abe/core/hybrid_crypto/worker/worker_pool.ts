@@ -13,7 +13,7 @@ export class WorkerPool {
    */
   constructor (numWorkers: number) {
     if (numWorkers <= 0) {
-      throw new Error('Invalid number of workers: ' + numWorkers)
+      throw new Error(`Invalid number of workers: ${numWorkers}`)
     }
     this.workers = []
     for (let index = 0; index < numWorkers; index++) {
@@ -39,7 +39,7 @@ export class WorkerPool {
    * Terminate all workers
    * Tis pool is no more usable
    */
-  public terminate () {
+  public terminate (): void {
     this.workers.forEach((w) => w.terminate())
   }
 }
@@ -54,17 +54,20 @@ export class WorkerPool {
  * @returns an array of the results that could be decrypted
  */
 export async function runWorkers (workers: Worker[], decryptionKeyHex: string, encryptedEntries: EncryptedEntry[], isGpswImplementation: boolean): Promise<Uint8Array[]> {
-  logger.log(() => 'NUM WORKERS: ' + workers.length)
+  logger.log(() => `NUM WORKERS: ${workers.length}`)
+  if (workers.length === 0) {
+    throw new Error('At least 1 worker must have been created')
+  }
   if (workers.length === 1) {
-    // let us kep this simple then
+    // let us keep this simple then
     return await runWorker(workers[0], decryptionKeyHex, encryptedEntries, isGpswImplementation)
   }
   // split the entries among workers
   const perWorker = encryptedEntries.length / workers.length
-  const promises: Array<Promise<Uint8Array[]>> = []
+  const promises = []
   for (let index = 0; index < workers.length; index++) {
     let entries: EncryptedEntry[]
-    if (index == workers.length - 1) {
+    if (index === workers.length - 1) {
       // the last worker needs the division remainder as well
       entries = encryptedEntries.slice(index * perWorker)
     } else {

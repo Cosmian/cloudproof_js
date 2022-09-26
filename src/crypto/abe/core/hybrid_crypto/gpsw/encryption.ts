@@ -5,6 +5,7 @@ import { logger } from 'utils/logger'
 import { EncryptedHeader } from '../../../interfaces/encrypted_header'
 import { AbeEncryptionParameters, Metadata } from '../../../interfaces/encryption_parameters'
 import { HybridEncryption } from 'crypto/abe/interfaces/encryption'
+import { fromBeBytes } from 'utils/utils'
 
 /**
  * This class exposes the ABE primitives.
@@ -19,6 +20,12 @@ export class GpswHybridEncryption extends HybridEncryption {
     this._cache = webassembly_create_encryption_cache(policy, publicKey)
   }
 
+  /**
+   * Renew GPSW public key
+   *
+   * @param {Uint8Array} policy the GPSW policy
+   * @param {Uint8Array} publicKey the GPSW master public key
+   */
   public renewKey (policy: Uint8Array, publicKey: Uint8Array): void {
     // Create encryption cache. This number is linked to the public key and policy
     this._cache = webassembly_create_encryption_cache(policy, publicKey)
@@ -34,12 +41,12 @@ export class GpswHybridEncryption extends HybridEncryption {
 
   attributes_array_to_attributes_string (attrs: string[]): string {
     let attributes = ''
-    for (let i = 0; i < attrs.length; i++) {
+    for (let i = 0; i < attrs.length - 1; i++) {
       attributes += attrs[i]
-      if (i !== attrs.length - 1) {
-        attributes += ','
-      }
+      attributes += ','
     }
+    attributes += attrs[attrs.length - 1]
+
     logger.log(() => 'attributes concat: ' + attributes)
     return attributes
   }
@@ -52,23 +59,10 @@ export class GpswHybridEncryption extends HybridEncryption {
    * @returns an encrypted header witch contains the clear and encrypted symmetric key
    */
   public encryptHybridHeader (parameters: AbeEncryptionParameters): EncryptedHeader {
-    // logger.log(() => "cache: " + this._cache)
     const attributes = this.attributes_array_to_attributes_string(parameters.attributes)
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header_using_cache(this._cache, attributes, parameters.metadata.uid)
     const encryptedHeaderSizeAsArray = encryptedHeaderBytes.slice(0, 4)
-
-    // Create a buffer
-    const buf = new ArrayBuffer(4)
-    // Create a data view of it
-    const view = new DataView(buf)
-    // set bytes
-    encryptedHeaderSizeAsArray.forEach((b: any, i: any) => {
-      view.setUint8(i, b)
-    })
-
-    // Read the bits as a float; note that by doing this, we're implicitly
-    // converting it from a 32-bit float into JavaScript's native 64-bit double
-    const symmetricKeySize = view.getUint32(0)
+    const symmetricKeySize = fromBeBytes(encryptedHeaderSizeAsArray)
 
     const encryptedHeader = new EncryptedHeader(
       encryptedHeaderBytes.slice(4, 4 + symmetricKeySize),

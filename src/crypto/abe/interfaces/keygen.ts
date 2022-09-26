@@ -1,4 +1,3 @@
-/* tslint:disable:max-classes-per-file */
 import { Policy } from './policy'
 
 export class AbeMasterKey {

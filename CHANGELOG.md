@@ -3,7 +3,7 @@
 All notable changes to this project will be documented in this file.
 
 ---
-## [2.0.0] - 2022-09-22
+## [2.0.0] - 2022-09-26
 ### Added
 - Indexes compaction for Findex
 - Also package for CommonJS/Node

@@ -107,15 +107,15 @@ export class KeyBlock implements KmipStruct {
   }
 
   public equals (o: any): boolean {
-    if (o == this) { return true }
+    if (o === this) { return true }
     if (!(o instanceof KeyBlock)) {
       return false
     }
     const keyBlock = o
     return this.key_format_type === keyBlock.key_format_type &&
             this.key_compression_type === keyBlock.key_compression_type &&
-            this.key_value == keyBlock.key_value &&
-            this.cryptographic_algorithm == keyBlock.cryptographic_algorithm &&
+            this.key_value === keyBlock.key_value &&
+            this.cryptographic_algorithm === keyBlock.cryptographic_algorithm &&
             this.cryptographic_length === keyBlock.cryptographic_length &&
             this.key_wrapping_data === keyBlock.key_wrapping_data
   }

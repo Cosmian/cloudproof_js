@@ -21,7 +21,7 @@ class DecryptWorker {
   /**
    * Destroy the hybrid decryption crypto
    */
-  destroy () {
+  destroy (): void {
     if (this.hybridDecryption == null) {
       return
     }
@@ -29,13 +29,11 @@ class DecryptWorker {
   }
 
   decrypt (encryptedEntries: Array<{ ciphertextHex: string }>): Uint8Array[] {
-    let dec: HybridDecryption
     if (this.hybridDecryption === null) {
       // TODO handle hybrid crypto not initialized here if needed
       throw new Error('The hybrid decryption scheme is not initialized')
-    } else {
-      dec = this.hybridDecryption
     }
+    const dec: HybridDecryption = this.hybridDecryption
 
     const cleartextValues: Uint8Array[] = []
     for (let index = 0; index < encryptedEntries.length; index++) {

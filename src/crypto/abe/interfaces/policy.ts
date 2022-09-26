@@ -52,67 +52,16 @@ export class Policy {
     this._attributeToInt = attributeToInt
   }
 
-  // Convert this `Policy` to JSON. Output example:
-  // {
-  //     "last_attribute_value": 10,
-  //     "max_attribute_creations": 100,
-  //     "axes": {
-  //         "Security Level": [
-  //         [
-  //             "Protected",
-  //             "Low Secret",
-  //             "Medium Secret",
-  //             "High Secret",
-  //             "Top Secret"
-  //         ],
-  //         true
-  //         ],
-  //         "Department": [
-  //         [
-  //             "R&D",
-  //             "HR",
-  //             "MKG",
-  //             "FIN"
-  //         ],
-  //         false
-  //         ]
-  //     },
-  //     "attribute_to_int": {
-  //         "Security Level::Low Secret": [
-  //         2
-  //         ],
-  //         "Department::MKG": [
-  //         8
-  //         ],
-  //         "Security Level::Medium Secret": [
-  //         3
-  //         ],
-  //         "Security Level::Top Secret": [
-  //         5
-  //         ],
-  //         "Security Level::Protected": [
-  //         1
-  //         ],
-  //         "Department::FIN": [
-  //         10,
-  //         9
-  //         ],
-  //         "Department::HR": [
-  //         7
-  //         ],
-  //         "Department::R&D": [
-  //         6
-  //         ],
-  //         "Security Level::High Secret": [
-  //         4
-  //         ]
-  //     }
-  // }
+  /**
+   * This function convert a Policy to JSON format and returns the corresponding bytes
+   *
+   * @returns {Uint8Array} a byte array of the JSON encoding Policy
+   */
   public toJsonEncoded (): Uint8Array {
     const policy: any = {}
     policy.axes = {}
     policy.attribute_to_int = {}
-    if (this._lastAttributeValue === undefined && this._lastAttributeValue === undefined) {
+    if (this._lastAttributeValue === undefined) {
       let attributeNb = 1
       this._axis.forEach((axis: PolicyAxis) => {
         policy.axes[axis.name] = [axis.attributes, axis.hierarchical]
@@ -131,8 +80,9 @@ export class Policy {
     }
     policy.max_attribute_creations = this._maxAttributeCreations
 
-    logger.log(() => 'policy (JSON)' + policy)
-    const result = new TextEncoder().encode(JSON.stringify(policy))
+    const json = JSON.stringify(policy)
+    logger.log(() => `policy (JSON)${json}`)
+    const result = new TextEncoder().encode(json)
     return result
   }
 

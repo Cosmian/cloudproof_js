@@ -4,7 +4,7 @@ class Logger {
     this.on = on
   }
 
-  public log (expr: () => string) {
+  public log (expr: () => string): void {
     if (this.on) {
       console.log(expr())
     }
