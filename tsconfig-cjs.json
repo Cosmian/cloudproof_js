@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "outDir": "./dist/cjs"
+  },
+  "exclude": [
+    "src/crypto/abe/core/hybrid_crypto/worker", // import.meta.url not allowed
+    "src/site",
+    "node_modules",
+    "**/__tests__/*"
+  ]
+}

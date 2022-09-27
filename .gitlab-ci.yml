@@ -14,6 +14,12 @@ variables:
   PGRST_DB_SCHEMA: public
   PGRST_DB_ANON_ROLE: app_user
   PGRST_OPENAPI_SERVER_PROXY_URI: http://localhost:3000
+  # KMS
+  COSMIAN_SERVER_URL: http://localhost:9998
+  KMS_PUBLIC_PATH: /tmp
+  KMS_PRIVATE_PATH: /tmp
+  KMS_SHARED_PATH: /tmp
+
 
 stages:
   - prebuild
@@ -21,42 +27,50 @@ stages:
   - publish
   - deploy
 
-tslint:
-  stage: prebuild
-  script:
-    - npm install -g tslint
-    - tslint -c tslint.json 'src/**'
-  allow_failure: true
-
 .services:
-  stage: build
   services:
     - name: postgres
       alias: db
     - name: postgrest/postgrest
       alias: server
+    - name: gitlab.cosmian.com:5000/core/kms:2.2.0_ci
+      alias: kms_ci
+    - redis:latest
   before_script:
     - apt update && apt install -y postgresql libpq-dev
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
-  script:
     - npm install
+
+.test:
+  stage: build
+  extends: .services
+  script:
     - npm test
 
-build_node_12:
+eslint:
   extends: .services
+  stage: prebuild
+  script:
+    - npm run format
+  allow_failure: true
+
+build_node_12:
+  extends: .test
   image: node:12
+  script:
+    - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
 
 build_node_14:
-  extends: .services
+  extends: .test
   image: node:14
 
 build_node_16:
-  extends: .services
+  extends: .test
   image: node:16
 
 build_node_18:
-  extends: .services
+  extends: .test
   image: node:18
 
 publish:
@@ -81,3 +95,4 @@ deploy:
     - ssh cosmian@demo-cloudproof.cosmian.com 'bash ~/demo_cloudproof/run-demo.sh'
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
+  when: manual

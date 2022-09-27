@@ -1,10 +1,10 @@
-import { KmipStruct } from "../json/KmipStruct"
-import { EncodingOption } from "../types/EncodingOption"
-import { EncryptionKeyInformation } from "../types/EncryptionKeyInformation"
-import { MacSignatureKeyInformation } from "../types/MacSignatureKeyInformation"
-import { WrappingMethod } from "../types/WrappingMethod"
-import { PropertyMetadata } from "../decorators/function"
-import { TtlvType } from "../serialize/TtlvType"
+import { KmipStruct } from "../json/KmipStruct";
+import { EncodingOption } from "../types/EncodingOption";
+import { EncryptionKeyInformation } from "../types/EncryptionKeyInformation";
+import { MacSignatureKeyInformation } from "../types/MacSignatureKeyInformation";
+import { WrappingMethod } from "../types/WrappingMethod";
+import { PropertyMetadata } from "../decorators/function";
+import { TtlvType } from "../serialize/TtlvType";
 
 /**
  * The Key Block MAY also supply OPTIONAL information about a cryptographic key wrapping mechanism used to wrap the Key
@@ -36,114 +36,157 @@ import { TtlvType } from "../serialize/TtlvType"
  * MAC/Signature Key Information (or both) in the Key Wrapping Data structure SHALL be specified.
  */
 export class KeyWrappingData implements KmipStruct {
+  @PropertyMetadata({
+    name: "WrappingMethod",
+    type: TtlvType.Enumeration,
+    isEnum: WrappingMethod,
+  })
+  private _wrapping_method: WrappingMethod;
 
-    @PropertyMetadata({
-        name: "WrappingMethod",
-        type: TtlvType.Enumeration,
-        isEnum: WrappingMethod
-    })
-    private _wrapping_method: WrappingMethod
+  @PropertyMetadata({
+    name: "EncryptionKeyInformation",
+    type: TtlvType.Structure,
+  })
+  private _encryption_key_information?: EncryptionKeyInformation;
 
-    @PropertyMetadata({
-        name: "EncryptionKeyInformation",
-        type: TtlvType.Structure,
-    })
-    private _encryption_key_information?: EncryptionKeyInformation
+  @PropertyMetadata({
+    name: "MacOrSignatureKeyInformation",
+    type: TtlvType.Structure,
+  })
+  private _mac_or_signature_key_information?: MacSignatureKeyInformation;
 
-    @PropertyMetadata({
-        name: "MacOrSignatureKeyInformation",
-        type: TtlvType.Structure,
-    })
-    private _mac_or_signature_key_information?: MacSignatureKeyInformation
+  @PropertyMetadata({
+    name: "MacOrSignature",
+    type: TtlvType.ByteString,
+  })
+  private _mac_or_signature?: Uint8Array;
 
-    @PropertyMetadata({
-        name: "MacOrSignature",
-        type: TtlvType.ByteString,
-    })
-    private _mac_or_signature?: Uint8Array
+  @PropertyMetadata({
+    name: "IvCounterNonce",
+    type: TtlvType.ByteString,
+  })
+  private _iv_counter_nonce?: Uint8Array;
 
-    @PropertyMetadata({
-        name: "IvCounterNonce",
-        type: TtlvType.ByteString,
-    })
-    private _iv_counter_nonce?: Uint8Array
+  /**
+   * Specifies the encoding of the Key Value Byte String. If not present, the wrapped Key Value structure SHALL be
+   * TTLV encoded.
+   */
+  private _encoding_option?: EncodingOption;
 
-    /**
-     * Specifies the encoding of the Key Value Byte String. If not present, the wrapped Key Value structure SHALL be
-     * TTLV encoded.
-     */
-    private _encoding_option?: EncodingOption
+  constructor(
+    wrapping_method: WrappingMethod,
+    encryption_key_information?: EncryptionKeyInformation,
+    mac_or_signature_key_information?: MacSignatureKeyInformation,
+    mac_or_signature?: Uint8Array,
+    iv_counter_nonce?: Uint8Array,
+    encoding_option?: EncodingOption
+  ) {
+    this._wrapping_method = wrapping_method;
+    this._encryption_key_information = encryption_key_information;
+    this._mac_or_signature_key_information = mac_or_signature_key_information;
+    this._mac_or_signature = mac_or_signature;
+    this._iv_counter_nonce = iv_counter_nonce;
+    this._encoding_option = encoding_option;
+  }
 
-    constructor(wrapping_method: WrappingMethod,
-        encryption_key_information?: EncryptionKeyInformation,
-        mac_or_signature_key_information?: MacSignatureKeyInformation, mac_or_signature?: Uint8Array,
-        iv_counter_nonce?: Uint8Array, encoding_option?: EncodingOption) {
-        this._wrapping_method = wrapping_method
-        this._encryption_key_information = encryption_key_information
-        this._mac_or_signature_key_information = mac_or_signature_key_information
-        this._mac_or_signature = mac_or_signature
-        this._iv_counter_nonce = iv_counter_nonce
-        this._encoding_option = encoding_option
-    }
+  public get wrapping_method(): WrappingMethod {
+    return this._wrapping_method;
+  }
 
-    public get wrapping_method(): WrappingMethod {
-        return this._wrapping_method
-    }
-    public set wrapping_method(value: WrappingMethod) {
-        this._wrapping_method = value
-    }
-    public get encryption_key_information(): EncryptionKeyInformation | undefined {
-        return this._encryption_key_information
-    }
-    public set encryption_key_information(value: EncryptionKeyInformation | undefined) {
-        this._encryption_key_information = value
-    }
-    public get mac_or_signature_key_information(): MacSignatureKeyInformation | undefined {
-        return this._mac_or_signature_key_information
-    }
-    public set mac_or_signature_key_information(value: MacSignatureKeyInformation | undefined) {
-        this._mac_or_signature_key_information = value
-    }
-    public get mac_or_signature(): Uint8Array | undefined {
-        return this._mac_or_signature
-    }
-    public set mac_or_signature(value: Uint8Array | undefined) {
-        this._mac_or_signature = value
-    }
-    public get iv_counter_nonce(): Uint8Array | undefined {
-        return this._iv_counter_nonce
-    }
-    public set iv_counter_nonce(value: Uint8Array | undefined) {
-        this._iv_counter_nonce = value
-    }
-    public get encoding_option(): EncodingOption | undefined {
-        return this._encoding_option
-    }
-    public set encoding_option(value: EncodingOption | undefined) {
-        this._encoding_option = value
-    }
+  public set wrapping_method(value: WrappingMethod) {
+    this._wrapping_method = value;
+  }
 
-    public equals(o: any): boolean {
-        if (o == this)
-            return true
-        if (!(o instanceof KeyWrappingData)) {
-            return false
-        }
-        let keyWrappingData = o as KeyWrappingData
-        return this.wrapping_method === keyWrappingData.wrapping_method
-            && this.encryption_key_information === keyWrappingData.encryption_key_information
-            && this.mac_or_signature_key_information === keyWrappingData.mac_or_signature_key_information
-            && this.mac_or_signature === keyWrappingData.mac_or_signature
-            && this.iv_counter_nonce === keyWrappingData.iv_counter_nonce
-            && this.encoding_option === keyWrappingData.encoding_option
-    }
+  public get encryption_key_information():
+    | EncryptionKeyInformation
+    | undefined {
+    return this._encryption_key_information;
+  }
 
-    public toString(): string {
-        return "{" + " wrapping_method='" + this.wrapping_method + "'" + ", encryption_key_information='"
-            + this.encryption_key_information + "'" + ", mac_or_signature_key_information='"
-            + this.mac_or_signature_key_information + "'" + ", mac_or_signature='" + this.mac_or_signature + "'"
-            + ", iv_counter_nonce='" + this.iv_counter_nonce + "'" + ", encoding_option='" + this.encoding_option + "'"
-            + "}"
-    }
+  public set encryption_key_information(
+    value: EncryptionKeyInformation | undefined
+  ) {
+    this._encryption_key_information = value;
+  }
 
+  public get mac_or_signature_key_information():
+    | MacSignatureKeyInformation
+    | undefined {
+    return this._mac_or_signature_key_information;
+  }
+
+  public set mac_or_signature_key_information(
+    value: MacSignatureKeyInformation | undefined
+  ) {
+    this._mac_or_signature_key_information = value;
+  }
+
+  public get mac_or_signature(): Uint8Array | undefined {
+    return this._mac_or_signature;
+  }
+
+  public set mac_or_signature(value: Uint8Array | undefined) {
+    this._mac_or_signature = value;
+  }
+
+  public get iv_counter_nonce(): Uint8Array | undefined {
+    return this._iv_counter_nonce;
+  }
+
+  public set iv_counter_nonce(value: Uint8Array | undefined) {
+    this._iv_counter_nonce = value;
+  }
+
+  public get encoding_option(): EncodingOption | undefined {
+    return this._encoding_option;
+  }
+
+  public set encoding_option(value: EncodingOption | undefined) {
+    this._encoding_option = value;
+  }
+
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
+    }
+    if (!(o instanceof KeyWrappingData)) {
+      return false;
+    }
+    const keyWrappingData = o;
+    return (
+      this.wrapping_method === keyWrappingData.wrapping_method &&
+      this.encryption_key_information ===
+        keyWrappingData.encryption_key_information &&
+      this.mac_or_signature_key_information ===
+        keyWrappingData.mac_or_signature_key_information &&
+      this.mac_or_signature === keyWrappingData.mac_or_signature &&
+      this.iv_counter_nonce === keyWrappingData.iv_counter_nonce &&
+      this.encoding_option === keyWrappingData.encoding_option
+    );
+  }
+
+  public toString(): string {
+    return (
+      "{" +
+      " wrapping_method='" +
+      this.wrapping_method +
+      "'" +
+      ", encryption_key_information='" +
+      this.encryption_key_information +
+      "'" +
+      ", mac_or_signature_key_information='" +
+      this.mac_or_signature_key_information +
+      "'" +
+      ", mac_or_signature='" +
+      this.mac_or_signature +
+      "'" +
+      ", iv_counter_nonce='" +
+      this.iv_counter_nonce +
+      "'" +
+      ", encoding_option='" +
+      this.encoding_option +
+      "'" +
+      "}"
+    );
+  }
 }

@@ -3,11 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
-## [2.0.0] - 2022-09-22
+## [2.0.0] - 2022-09-26
 ### Added
 - Indexes compaction for Findex
+- Also package for CommonJS/Node
+- Findex implementation with Redis database (upsert and search)
+- Add tests for Cloudproof or Findex only (for PostgRest and Redis)
 ### Changed
+- Reorganize code tree
+- Use and apply eslint standard style
 ### Fixed
+- Findex interface with `Uint8Array` in place of `string`
 ### Removed
 
 ---

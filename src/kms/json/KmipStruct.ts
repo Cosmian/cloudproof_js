@@ -1,3 +1,1 @@
-export interface KmipStruct {
-
-}
+export interface KmipStruct {}

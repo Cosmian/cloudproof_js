@@ -2,6 +2,16 @@
 
 version: "3"
 services:
+  kms:
+    container_name: kms
+    image: gitlab.cosmian.com:5000/core/kms:2.2.0_ci
+    environment:
+      - KMS_HOSTNAME=0.0.0.0
+      - KMS_PUBLIC_PATH=/tmp
+      - KMS_PRIVATE_PATH=/tmp
+      - KMS_SHARED_PATH=/tmp
+    ports:
+      - "9998:9998"
   server:
     container_name: server
     image: postgrest/postgrest
@@ -14,6 +24,7 @@ services:
       PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
     depends_on:
       - db
+      - redis
   db:
     container_name: db
     image: postgres
@@ -34,3 +45,8 @@ services:
       - 8080:8080
     depends_on:
       - server
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"

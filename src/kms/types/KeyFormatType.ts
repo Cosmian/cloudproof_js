@@ -8,10 +8,10 @@ export enum KeyFormatType {
   TransparentSymmetricKey = 0x07,
   TransparentDSAPrivateKey = 0x08,
   TransparentDSAPublicKey = 0x09,
-  TransparentRSAPrivateKey = 0x0A,
-  TransparentRSAPublicKey = 0x0B,
-  TransparentDHPrivateKey = 0x0C,
-  TransparentDHPublicKey = 0x0D,
+  TransparentRSAPrivateKey = 0x0a,
+  TransparentRSAPublicKey = 0x0b,
+  TransparentDHPrivateKey = 0x0c,
+  TransparentDHPublicKey = 0x0d,
   TransparentECPrivateKey = 0x14,
   TransparentECPublicKey = 0x15,
   PKCS12 = 0x016,
@@ -28,4 +28,3 @@ export enum KeyFormatType {
   AbeUserDecryptionKey = 2290089994,
   AbeSymmetricKey = 2290089995,
 }
-
