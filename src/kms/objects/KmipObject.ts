@@ -1,7 +1,6 @@
-import { KmipStruct } from '../json/KmipStruct'
+import { KmipStruct } from "../json/KmipStruct";
 
 export class KmipObject implements KmipStruct {
-
   // public static getObjectClass(objectType: ObjectType): KmipObject{
   //     if (objectType.equals(ObjectType.Certificate)) {
   //         return Certificate;
@@ -32,5 +31,4 @@ export class KmipObject implements KmipStruct {
   //     }
   //     throw new Error("Unsupported Object Type " + objectType + " for a KMIP Object");
   // }
-
 }

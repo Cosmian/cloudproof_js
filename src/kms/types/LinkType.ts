@@ -1,5 +1,4 @@
 export enum LinkType {
-
   /// For Certificate objects: the parent certificate for a certificate in a
   /// certificate chain. For Public Key objects: the corresponding certificate(s),
   /// containing the same public key.
@@ -34,12 +33,11 @@ export enum LinkType {
   /// corresponding to the object.
   ChildLink = 0x0000_0109,
   /// For all object types: the previous object to this object.
-  PreviousLink = 0x0000_010A,
+  PreviousLink = 0x0000_010a,
   /// For all object types: the next object to this object.
-  NextLink = 0x0000_010B,
-  PKCS12CertificateLink = 0x0000_010C,
-  PKCS12PasswordLink = 0x0000_010D,
+  NextLink = 0x0000_010b,
+  PKCS12CertificateLink = 0x0000_010c,
+  PKCS12PasswordLink = 0x0000_010d,
   /// For wrapped objects: the object that was used to wrap this object.
-  WrappingKeyLink = 0x0000_010E,
-
+  WrappingKeyLink = 0x0000_010e,
 }

@@ -1,54 +1,67 @@
-import { PropertyMetadata } from '../decorators/function'
-import { KmipStruct } from '../json/KmipStruct'
-import { TtlvType } from '../serialize/TtlvType'
-import { RecommendedCurve } from '../types/RecommendedCurve'
+import { PropertyMetadata } from "../decorators/function";
+import { KmipStruct } from "../json/KmipStruct";
+import { TtlvType } from "../serialize/TtlvType";
+import { RecommendedCurve } from "../types/RecommendedCurve";
 
 export class TransparentECPrivateKey implements KmipStruct {
   @PropertyMetadata({
-    name: 'RecommendedCurve',
+    name: "RecommendedCurve",
     type: TtlvType.Enumeration,
-    isEnum: RecommendedCurve
+    isEnum: RecommendedCurve,
   })
-  private _recommendedCurve: RecommendedCurve
+  private _recommendedCurve: RecommendedCurve;
 
   @PropertyMetadata({
-    name: 'D',
-    type: TtlvType.BigInteger
+    name: "D",
+    type: TtlvType.BigInteger,
   })
-  private _d: BigInt
+  private _d: BigInt;
 
-  public get recommendedCurve (): RecommendedCurve {
-    return this._recommendedCurve
+  public get recommendedCurve(): RecommendedCurve {
+    return this._recommendedCurve;
   }
 
-  public set recommendedCurve (value: RecommendedCurve) {
-    this._recommendedCurve = value
+  public set recommendedCurve(value: RecommendedCurve) {
+    this._recommendedCurve = value;
   }
 
-  public get d (): BigInt {
-    return this._d
+  public get d(): BigInt {
+    return this._d;
   }
 
-  public set d (value: BigInt) {
-    this._d = value
+  public set d(value: BigInt) {
+    this._d = value;
   }
 
-  public constructor (recommendedCurve: RecommendedCurve, d: BigInt) {
-    this._recommendedCurve = recommendedCurve
-    this._d = d
+  public constructor(recommendedCurve: RecommendedCurve, d: BigInt) {
+    this._recommendedCurve = recommendedCurve;
+    this._d = d;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof TransparentECPrivateKey)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const transparentECPrivateKey = o
-    return this.recommendedCurve === transparentECPrivateKey.recommendedCurve &&
-            this.d === transparentECPrivateKey.d
+    if (!(o instanceof TransparentECPrivateKey)) {
+      return false;
+    }
+    const transparentECPrivateKey = o;
+    return (
+      this.recommendedCurve === transparentECPrivateKey.recommendedCurve &&
+      this.d === transparentECPrivateKey.d
+    );
   }
 
-  public toString (): string {
-    return '{' + " recommendedCurve='" + this.recommendedCurve + "'" + ", d='" + this.d + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " recommendedCurve='" +
+      this.recommendedCurve +
+      "'" +
+      ", d='" +
+      this.d +
+      "'" +
+      "}"
+    );
   }
 }

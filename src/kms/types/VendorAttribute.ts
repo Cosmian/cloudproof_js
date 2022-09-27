@@ -1,6 +1,6 @@
-import { PropertyMetadata } from '../decorators/function'
-import { KmipStruct } from '../json/KmipStruct'
-import { TtlvType } from '../serialize/TtlvType'
+import { PropertyMetadata } from "../decorators/function";
+import { KmipStruct } from "../json/KmipStruct";
+import { TtlvType } from "../serialize/TtlvType";
 
 /**
  * A vendor specific Attribute is a structure used for sending and receiving a
@@ -25,22 +25,22 @@ export class VendorAttribute implements KmipStruct {
    */
 
   @PropertyMetadata({
-    name: 'VendorIdentification',
-    type: TtlvType.TextString
+    name: "VendorIdentification",
+    type: TtlvType.TextString,
   })
-  private _vendor_identification: string
+  private _vendor_identification: string;
 
   @PropertyMetadata({
-    name: 'AttributeName',
-    type: TtlvType.TextString
+    name: "AttributeName",
+    type: TtlvType.TextString,
   })
-  private _attribute_name: string
+  private _attribute_name: string;
 
   @PropertyMetadata({
-    name: 'AttributeValue',
-    type: TtlvType.ByteString
+    name: "AttributeValue",
+    type: TtlvType.ByteString,
   })
-  private _attribute_value: Uint8Array
+  private _attribute_value: Uint8Array;
 
   /**
    *
@@ -48,49 +48,68 @@ export class VendorAttribute implements KmipStruct {
    * @param attribute_name
    * @param attribute_value
    */
-  constructor (vendor_identification: string, attribute_name: string, attribute_value: Uint8Array) {
-    this._vendor_identification = vendor_identification
-    this._attribute_name = attribute_name
-    this._attribute_value = attribute_value
+  constructor(
+    vendor_identification: string,
+    attribute_name: string,
+    attribute_value: Uint8Array
+  ) {
+    this._vendor_identification = vendor_identification;
+    this._attribute_name = attribute_name;
+    this._attribute_value = attribute_value;
   }
 
-  public get vendor_identification (): string {
-    return this._vendor_identification
+  public get vendor_identification(): string {
+    return this._vendor_identification;
   }
 
-  public set vendor_identification (value: string) {
-    this._vendor_identification = value
+  public set vendor_identification(value: string) {
+    this._vendor_identification = value;
   }
 
-  public get attribute_name (): string {
-    return this._attribute_name
+  public get attribute_name(): string {
+    return this._attribute_name;
   }
 
-  public set attribute_name (value: string) {
-    this._attribute_name = value
+  public set attribute_name(value: string) {
+    this._attribute_name = value;
   }
 
-  public get attribute_value (): Uint8Array {
-    return this._attribute_value
+  public get attribute_value(): Uint8Array {
+    return this._attribute_value;
   }
 
-  public set attribute_value (value: Uint8Array) {
-    this._attribute_value = value
+  public set attribute_value(value: Uint8Array) {
+    this._attribute_value = value;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof VendorAttribute)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const vendorAttribute = o
-    return this.vendor_identification === vendorAttribute.vendor_identification &&
-            this.attribute_name === vendorAttribute.attribute_name &&
-            this.attribute_value === vendorAttribute.attribute_value
+    if (!(o instanceof VendorAttribute)) {
+      return false;
+    }
+    const vendorAttribute = o;
+    return (
+      this.vendor_identification === vendorAttribute.vendor_identification &&
+      this.attribute_name === vendorAttribute.attribute_name &&
+      this.attribute_value === vendorAttribute.attribute_value
+    );
   }
 
-  public toString (): string {
-    return '{' + " vendor_identification='" + this.vendor_identification + "'" + ", attribute_name='" +
-            this.attribute_name + "'" + ", attribute_value='" + this.attribute_value + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " vendor_identification='" +
+      this.vendor_identification +
+      "'" +
+      ", attribute_name='" +
+      this.attribute_name +
+      "'" +
+      ", attribute_value='" +
+      this.attribute_value +
+      "'" +
+      "}"
+    );
   }
 }

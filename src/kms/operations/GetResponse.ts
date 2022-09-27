@@ -1,75 +1,94 @@
-import { PropertyMetadata } from '../decorators/function'
-import { KmipStruct } from '../json/KmipStruct'
-import { KmipObject } from '../objects/KmipObject'
-import { TtlvType } from '../serialize/TtlvType'
-import { ObjectType } from '../types/ObjectType'
+import { PropertyMetadata } from "../decorators/function";
+import { KmipStruct } from "../json/KmipStruct";
+import { KmipObject } from "../objects/KmipObject";
+import { TtlvType } from "../serialize/TtlvType";
+import { ObjectType } from "../types/ObjectType";
 
 export class GetResponse implements KmipStruct {
   // Determines the type of object being retrieved.
   @PropertyMetadata({
-    name: 'ObjectType',
+    name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType
+    isEnum: ObjectType,
   })
-  private _objectType: ObjectType
+  private _objectType: ObjectType;
 
   // The Unique Identifier of the object to be retrieved
   @PropertyMetadata({
-    name: 'Uniqueidentifier',
-    type: TtlvType.TextString
+    name: "Uniqueidentifier",
+    type: TtlvType.TextString,
   })
-  private _uniqueIdentifier: string
+  private _uniqueIdentifier: string;
 
   // The object being retrieved.
   @PropertyMetadata({
-    name: 'AuthenticatedEncryptionAdditionalData',
-    type: TtlvType.ByteString
+    name: "AuthenticatedEncryptionAdditionalData",
+    type: TtlvType.ByteString,
   })
-  private _object: KmipObject
+  private _object: KmipObject;
 
-  constructor (objectType: ObjectType, uniqueIdentifier: string, object: KmipObject) {
-    this._objectType = objectType
-    this._uniqueIdentifier = uniqueIdentifier
-    this._object = object
+  constructor(
+    objectType: ObjectType,
+    uniqueIdentifier: string,
+    object: KmipObject
+  ) {
+    this._objectType = objectType;
+    this._uniqueIdentifier = uniqueIdentifier;
+    this._object = object;
   }
 
-  public get objectType (): ObjectType {
-    return this._objectType
+  public get objectType(): ObjectType {
+    return this._objectType;
   }
 
-  public set objectType (value: ObjectType) {
-    this._objectType = value
+  public set objectType(value: ObjectType) {
+    this._objectType = value;
   }
 
-  public get uniqueIdentifier (): string {
-    return this._uniqueIdentifier
+  public get uniqueIdentifier(): string {
+    return this._uniqueIdentifier;
   }
 
-  public set uniqueIdentifier (value: string) {
-    this._uniqueIdentifier = value
+  public set uniqueIdentifier(value: string) {
+    this._uniqueIdentifier = value;
   }
 
-  public get object (): KmipObject {
-    return this._object
+  public get object(): KmipObject {
+    return this._object;
   }
 
-  public set object (value: KmipObject) {
-    this._object = value
+  public set object(value: KmipObject) {
+    this._object = value;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof GetResponse)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const getResponse = o
-    return this._objectType === getResponse.objectType &&
-                this._uniqueIdentifier === getResponse.uniqueIdentifier &&
-                this._object === getResponse.object
+    if (!(o instanceof GetResponse)) {
+      return false;
+    }
+    const getResponse = o;
+    return (
+      this._objectType === getResponse.objectType &&
+      this._uniqueIdentifier === getResponse.uniqueIdentifier &&
+      this._object === getResponse.object
+    );
   }
 
-  public toString (): string {
-    return '{' + " objectType='" + this._objectType + "'" + ", uniqueIdentifier='" + this._uniqueIdentifier + "'" +
-                ", object='" + this._object + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " objectType='" +
+      this._objectType +
+      "'" +
+      ", uniqueIdentifier='" +
+      this._uniqueIdentifier +
+      "'" +
+      ", object='" +
+      this._object +
+      "'" +
+      "}"
+    );
   }
 }

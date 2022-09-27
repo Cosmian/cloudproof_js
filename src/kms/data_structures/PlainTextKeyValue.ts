@@ -1,54 +1,67 @@
-import { PropertyMetadata } from '../decorators/function'
-import { KmipStruct } from '../json/KmipStruct'
-import { TtlvType } from '../serialize/TtlvType'
-import { Attributes } from '../types/Attributes'
-import { KeyMaterial } from './KeyMaterial'
+import { PropertyMetadata } from "../decorators/function";
+import { KmipStruct } from "../json/KmipStruct";
+import { TtlvType } from "../serialize/TtlvType";
+import { Attributes } from "../types/Attributes";
+import { KeyMaterial } from "./KeyMaterial";
 
 export class PlainTextKeyValue implements KmipStruct {
   @PropertyMetadata({
-    name: 'KeyMaterial',
-    type: TtlvType.Structure
+    name: "KeyMaterial",
+    type: TtlvType.Structure,
   })
-  private _key_material: KeyMaterial
+  private _key_material: KeyMaterial;
 
   @PropertyMetadata({
-    name: 'Attributes',
-    type: TtlvType.Structure
+    name: "Attributes",
+    type: TtlvType.Structure,
   })
-  private _attributes?: Attributes
+  private _attributes?: Attributes;
 
-  public constructor (keyMaterial: KeyMaterial, attributes?: Attributes) {
-    this._key_material = keyMaterial
-    this._attributes = attributes
+  public constructor(keyMaterial: KeyMaterial, attributes?: Attributes) {
+    this._key_material = keyMaterial;
+    this._attributes = attributes;
   }
 
-  public get keyMaterial (): KeyMaterial {
-    return this._key_material
+  public get keyMaterial(): KeyMaterial {
+    return this._key_material;
   }
 
-  public set keyMaterial (value: KeyMaterial) {
-    this._key_material = value
+  public set keyMaterial(value: KeyMaterial) {
+    this._key_material = value;
   }
 
-  public get attributes (): Attributes | undefined {
-    return this._attributes
+  public get attributes(): Attributes | undefined {
+    return this._attributes;
   }
 
-  public set attributes (value: Attributes | undefined) {
-    this._attributes = value
+  public set attributes(value: Attributes | undefined) {
+    this._attributes = value;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof PlainTextKeyValue)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const plainTextKeyValue = o
-    return this.keyMaterial === plainTextKeyValue.keyMaterial &&
-            this.attributes === plainTextKeyValue.attributes
+    if (!(o instanceof PlainTextKeyValue)) {
+      return false;
+    }
+    const plainTextKeyValue = o;
+    return (
+      this.keyMaterial === plainTextKeyValue.keyMaterial &&
+      this.attributes === plainTextKeyValue.attributes
+    );
   }
 
-  public toString (): string {
-    return '{' + " keyMaterial='" + this.keyMaterial + "'" + ", attributes='" + this.attributes + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " keyMaterial='" +
+      this.keyMaterial +
+      "'" +
+      ", attributes='" +
+      this.attributes +
+      "'" +
+      "}"
+    );
   }
 }

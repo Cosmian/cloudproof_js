@@ -8,96 +8,118 @@
  * this operation into the ID Placeholder variable.
  */
 
-import { PropertyMetadata } from '../decorators/function'
-import { FromTTLV } from '../deserialize/deserializer'
-import { KmipStruct } from '../json/KmipStruct'
-import { TTLV } from '../serialize/Ttlv'
-import { TtlvType } from '../serialize/TtlvType'
-import { Attributes } from '../types/Attributes'
-import { ObjectType } from '../types/ObjectType'
+import { PropertyMetadata } from "../decorators/function";
+import { FromTTLV } from "../deserialize/deserializer";
+import { KmipStruct } from "../json/KmipStruct";
+import { TTLV } from "../serialize/Ttlv";
+import { TtlvType } from "../serialize/TtlvType";
+import { Attributes } from "../types/Attributes";
+import { ObjectType } from "../types/ObjectType";
 
 export class Create implements KmipStruct {
   @PropertyMetadata({
-    name: 'ObjectType',
+    name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType
+    isEnum: ObjectType,
   })
   /// Determines the type of object to be created.
-  private _objectType: ObjectType
+  private _objectType: ObjectType;
 
   @PropertyMetadata({
-    name: 'Attributes',
+    name: "Attributes",
     type: TtlvType.Structure,
     // need to postfix the Object Type of the attributes
-    from_ttlv: FromTTLV.structure(Attributes, ObjectType.Certificate)
+    from_ttlv: FromTTLV.structure(Attributes, ObjectType.Certificate),
   })
   /// Specifies desired attributes to be associated with the new object.
-  private _attributes: Attributes
+  private _attributes: Attributes;
 
   @PropertyMetadata({
-    name: 'ProtectionStorageMasks',
-    type: TtlvType.Integer
+    name: "ProtectionStorageMasks",
+    type: TtlvType.Integer,
   })
   /// Specifies all permissible Protection Storage Mask selections for the new
   /// object
   /// @see ProtectionStorageMasks
-  private _protection_storage_masks?: number
+  private _protection_storage_masks?: number;
 
-  this () {
+  this() {}
 
+  constructor();
+  constructor(
+    objectType: ObjectType,
+    attributes: Attributes,
+    protection_storage_masks?: number
+  );
+  constructor(
+    objectType?: ObjectType,
+    attributes?: Attributes,
+    protection_storage_masks?: number
+  ) {
+    this._objectType = objectType ?? ObjectType.SymmetricKey;
+    this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey);
+    this._protection_storage_masks = protection_storage_masks;
   }
 
-  constructor ()
-  constructor (objectType: ObjectType, attributes: Attributes, protection_storage_masks?: number)
-  constructor (objectType?: ObjectType, attributes?: Attributes, protection_storage_masks?: number) {
-    this._objectType = objectType ?? ObjectType.SymmetricKey
-    this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey)
-    this._protection_storage_masks = protection_storage_masks
+  public get objectType(): ObjectType {
+    return this._objectType;
   }
 
-  public get objectType (): ObjectType {
-    return this._objectType
+  public set objectType(value: ObjectType) {
+    this._objectType = value;
   }
 
-  public set objectType (value: ObjectType) {
-    this._objectType = value
+  public get attributes(): Attributes {
+    return this._attributes;
   }
 
-  public get attributes (): Attributes {
-    return this._attributes
+  public set attributes(value: Attributes) {
+    this._attributes = value;
   }
 
-  public set attributes (value: Attributes) {
-    this._attributes = value
+  public get protection_storage_masks(): number | undefined {
+    return this._protection_storage_masks;
   }
 
-  public get protection_storage_masks (): number | undefined {
-    return this._protection_storage_masks
+  public set protection_storage_masks(value: number | undefined) {
+    this._protection_storage_masks = value;
   }
 
-  public set protection_storage_masks (value: number | undefined) {
-    this._protection_storage_masks = value
-  }
-
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof Create)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const create = o
-    return this._objectType === create.objectType && this._attributes === create.attributes &&
-            this._protection_storage_masks === create.protection_storage_masks
+    if (!(o instanceof Create)) {
+      return false;
+    }
+    const create = o;
+    return (
+      this._objectType === create.objectType &&
+      this._attributes === create.attributes &&
+      this._protection_storage_masks === create.protection_storage_masks
+    );
   }
 
-  public toString (): string {
-    return '{' + " objectType='" + this._objectType + "'" + ", attributes='" + this._attributes + "'" +
-            ", protection_storage_masks='" + this._protection_storage_masks + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " objectType='" +
+      this._objectType +
+      "'" +
+      ", attributes='" +
+      this._attributes +
+      "'" +
+      ", protection_storage_masks='" +
+      this._protection_storage_masks +
+      "'" +
+      "}"
+    );
   }
 
-  public static from_ttlv (propertyName: string, ttlv: TTLV): Create {
-    const create: Create = FromTTLV.structure(Create)(propertyName, ttlv)
+  public static from_ttlv(propertyName: string, ttlv: TTLV): Create {
+    const create: Create = FromTTLV.structure(Create)(propertyName, ttlv);
     // postfix attribute type
-    create._attributes.object_type = create._objectType
-    return create
+    create._attributes.object_type = create._objectType;
+    return create;
   }
 }

@@ -1,5 +1,5 @@
-import { PlainTextKeyValue } from './PlainTextKeyValue'
-import { KmipChoiceKeyMaterial } from '../json/KmipChoiceKeyMaterial'
+import { PlainTextKeyValue } from "./PlainTextKeyValue";
+import { KmipChoiceKeyMaterial } from "../json/KmipChoiceKeyMaterial";
 
 /**
  * The Key Value is used only inside a Key Block and is either a Byte String or
@@ -16,16 +16,19 @@ import { KmipChoiceKeyMaterial } from '../json/KmipChoiceKeyMaterial'
  * structure, or the wrapped un-encoded value of the Byte String Key Material
  * field.
  */
-export class KeyValue extends KmipChoiceKeyMaterial<Uint8Array, PlainTextKeyValue> {
-  constructor (value1?: Uint8Array, value2?: PlainTextKeyValue) {
-    super(value1, value2)
+export class KeyValue extends KmipChoiceKeyMaterial<
+  Uint8Array,
+  PlainTextKeyValue
+> {
+  constructor(value1?: Uint8Array, value2?: PlainTextKeyValue) {
+    super(value1, value2);
   }
 
-  public equals (o: any): boolean {
-    return super.equals(o)
+  public equals(o: any): boolean {
+    return super.equals(o);
   }
 
-  public toString (): string {
-    return super.toString()
+  public toString(): string {
+    return super.toString();
   }
 }

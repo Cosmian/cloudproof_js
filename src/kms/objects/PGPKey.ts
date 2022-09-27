@@ -1,7 +1,7 @@
-import { KeyBlock } from '../data_structures/KeyBlock'
-import { PropertyMetadata } from '../decorators/function'
-import { TtlvType } from '../serialize/TtlvType'
-import { KmipObject } from './KmipObject'
+import { KeyBlock } from "../data_structures/KeyBlock";
+import { PropertyMetadata } from "../decorators/function";
+import { TtlvType } from "../serialize/TtlvType";
+import { KmipObject } from "./KmipObject";
 
 /**
  * A Managed Cryptographic Object that is a text-based representation of a PGP
@@ -18,49 +18,63 @@ import { KmipObject } from './KmipObject'
  */
 export class PGPKey extends KmipObject {
   @PropertyMetadata({
-    name: 'PgpKeyVersion',
-    type: TtlvType.Integer
+    name: "PgpKeyVersion",
+    type: TtlvType.Integer,
   })
-  private _pgp_key_version: number
+  private _pgp_key_version: number;
 
   @PropertyMetadata({
-    name: 'KeyBlock',
-    type: TtlvType.Structure
+    name: "KeyBlock",
+    type: TtlvType.Structure,
   })
-  private _keyBlock: KeyBlock
+  private _keyBlock: KeyBlock;
 
-  constructor (pgp_key_version: number, keyBlock: KeyBlock) {
-    super()
-    this._pgp_key_version = pgp_key_version
-    this._keyBlock = keyBlock
+  constructor(pgp_key_version: number, keyBlock: KeyBlock) {
+    super();
+    this._pgp_key_version = pgp_key_version;
+    this._keyBlock = keyBlock;
   }
 
-  public get keyBlock (): KeyBlock {
-    return this._keyBlock
+  public get keyBlock(): KeyBlock {
+    return this._keyBlock;
   }
 
-  public set keyBlock (value: KeyBlock) {
-    this._keyBlock = value
+  public set keyBlock(value: KeyBlock) {
+    this._keyBlock = value;
   }
 
-  public get pgp_key_version (): number {
-    return this._pgp_key_version
+  public get pgp_key_version(): number {
+    return this._pgp_key_version;
   }
 
-  public set pgp_key_version (value: number) {
-    this._pgp_key_version = value
+  public set pgp_key_version(value: number) {
+    this._pgp_key_version = value;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof PGPKey)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const pGPKey = o
-    return this._pgp_key_version === pGPKey.pgp_key_version && this._keyBlock === pGPKey.keyBlock
+    if (!(o instanceof PGPKey)) {
+      return false;
+    }
+    const pGPKey = o;
+    return (
+      this._pgp_key_version === pGPKey.pgp_key_version &&
+      this._keyBlock === pGPKey.keyBlock
+    );
   }
 
-  public toString (): string {
-    return '{' + " pgp_key_version='" + this._pgp_key_version + "'" + ", keyBlock='" + this._keyBlock + "'" + '}'
+  public toString(): string {
+    return (
+      "{" +
+      " pgp_key_version='" +
+      this._pgp_key_version +
+      "'" +
+      ", keyBlock='" +
+      this._keyBlock +
+      "'" +
+      "}"
+    );
   }
 }

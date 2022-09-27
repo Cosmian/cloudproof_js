@@ -1,9 +1,9 @@
-import { PropertyMetadata } from '../decorators/function'
-import { FromTTLV } from '../deserialize/deserializer'
-import { KmipStruct } from '../json/KmipStruct'
-import { TtlvType } from '../serialize/TtlvType'
-import { LinkedObjectIdentifier } from './LinkedObjectIdentifier'
-import { LinkType } from './LinkType'
+import { PropertyMetadata } from "../decorators/function";
+import { FromTTLV } from "../deserialize/deserializer";
+import { KmipStruct } from "../json/KmipStruct";
+import { TtlvType } from "../serialize/TtlvType";
+import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier";
+import { LinkType } from "./LinkType";
 
 /**
  * The Link attribute is a structure used to create a link from one Managed
@@ -34,31 +34,38 @@ import { LinkType } from './LinkType'
  */
 export class Link implements KmipStruct {
   @PropertyMetadata({
-    name: 'LinkType',
+    name: "LinkType",
     type: TtlvType.Enumeration,
-    isEnum: LinkType
+    isEnum: LinkType,
   })
-  private readonly link_type: LinkType
+  private readonly link_type: LinkType;
 
   @PropertyMetadata({
-    name: 'LinkedObjectIdentifier',
+    name: "LinkedObjectIdentifier",
     type: TtlvType.Choice,
-    from_ttlv: FromTTLV.choice(LinkedObjectIdentifier)
+    from_ttlv: FromTTLV.choice(LinkedObjectIdentifier),
   })
-  private readonly linked_object_identifier: LinkedObjectIdentifier
+  private readonly linked_object_identifier: LinkedObjectIdentifier;
 
-  constructor (link_type: LinkType, linked_object_identifier: LinkedObjectIdentifier) {
-    this.link_type = link_type
-    this.linked_object_identifier = linked_object_identifier
+  constructor(
+    link_type: LinkType,
+    linked_object_identifier: LinkedObjectIdentifier
+  ) {
+    this.link_type = link_type;
+    this.linked_object_identifier = linked_object_identifier;
   }
 
-  public equals (o: any): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof Link)) {
-      return false
+  public equals(o: any): boolean {
+    if (o == this) {
+      return true;
     }
-    const link = o
-    return this.link_type === link.link_type &&
-            this.linked_object_identifier === link.linked_object_identifier
+    if (!(o instanceof Link)) {
+      return false;
+    }
+    const link = o;
+    return (
+      this.link_type === link.link_type &&
+      this.linked_object_identifier === link.linked_object_identifier
+    );
   }
 }

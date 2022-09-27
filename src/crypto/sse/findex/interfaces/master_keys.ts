@@ -1,4 +1,4 @@
 export interface MasterKeys {
-  k: string
-  k_star: string
+  k: string;
+  k_star: string;
 }

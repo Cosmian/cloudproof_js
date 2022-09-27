@@ -1,6 +1,6 @@
-import { UniqueIdentifier } from './UniqueIdentifier'
-import { PropertyMetadata } from '../decorators/function'
-import { TtlvType } from '../serialize/TtlvType'
+import { UniqueIdentifier } from "./UniqueIdentifier";
+import { PropertyMetadata } from "../decorators/function";
+import { TtlvType } from "../serialize/TtlvType";
 
 /**
  * Either:
@@ -15,66 +15,72 @@ import { TtlvType } from '../serialize/TtlvType'
  */
 export class LinkedObjectIdentifier {
   @PropertyMetadata({
-    name: 'LinkedObjectIdentifier',
-    type: TtlvType.TextString
+    name: "LinkedObjectIdentifier",
+    type: TtlvType.TextString,
   })
-  private _str?: string | undefined
+  private _str?: string | undefined;
 
   @PropertyMetadata({
-    name: 'LinkedObjectIdentifier',
-    type: TtlvType.Integer
+    name: "LinkedObjectIdentifier",
+    type: TtlvType.Integer,
   })
-  private _num?: number | undefined
+  private _num?: number | undefined;
 
   @PropertyMetadata({
-    name: 'LinkedObjectIdentifier',
+    name: "LinkedObjectIdentifier",
     type: TtlvType.Enumeration,
-    isEnum: UniqueIdentifier
+    isEnum: UniqueIdentifier,
   })
-  private _uid?: UniqueIdentifier | undefined
+  private _uid?: UniqueIdentifier | undefined;
 
-  constructor (str?: string, num?: number, uid?: UniqueIdentifier) {
-    this.str = str
-    this.num = num
-    this.uid = uid
+  constructor(str?: string, num?: number, uid?: UniqueIdentifier) {
+    this.str = str;
+    this.num = num;
+    this.uid = uid;
   }
 
-  public get str (): string | undefined {
-    return this._str
+  public get str(): string | undefined {
+    return this._str;
   }
 
-  public set str (value: string | undefined) {
-    this._str = value
+  public set str(value: string | undefined) {
+    this._str = value;
   }
 
-  public get num (): number | undefined {
-    return this._num
+  public get num(): number | undefined {
+    return this._num;
   }
 
-  public set num (value: number | undefined) {
-    this._num = value
+  public set num(value: number | undefined) {
+    this._num = value;
   }
 
-  public get uid (): UniqueIdentifier | undefined {
-    return this._uid
+  public get uid(): UniqueIdentifier | undefined {
+    return this._uid;
   }
 
-  public set uid (value: UniqueIdentifier | undefined) {
-    this._uid = value
+  public set uid(value: UniqueIdentifier | undefined) {
+    this._uid = value;
   }
 
-  public equals (o: object): boolean {
-    if (o == this) { return true }
-    if (!(o instanceof LinkedObjectIdentifier)) {
-      return false
+  public equals(o: object): boolean {
+    if (o == this) {
+      return true;
     }
-    const kmipChoice = o
-    return this.str === kmipChoice._str &&
-            this.num === kmipChoice._num &&
-            this.uid === kmipChoice._uid
+    if (!(o instanceof LinkedObjectIdentifier)) {
+      return false;
+    }
+    const kmipChoice = o;
+    return (
+      this.str === kmipChoice._str &&
+      this.num === kmipChoice._num &&
+      this.uid === kmipChoice._uid
+    );
   }
 
-  public toString (): string {
-    return '{' + " linked_object_identifier='" + (this.str, this.num, this.uid) + '}'
+  public toString(): string {
+    return (
+      "{" + " linked_object_identifier='" + (this.str, this.num, this.uid) + "}"
+    );
   }
 }

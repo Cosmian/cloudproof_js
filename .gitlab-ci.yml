@@ -52,8 +52,7 @@ eslint:
   extends: .services
   stage: prebuild
   script:
-    - npm install -g eslint
-    - eslint .
+    - npm run format
   allow_failure: true
 
 build_node_12:
