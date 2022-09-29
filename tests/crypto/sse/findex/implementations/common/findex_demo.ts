@@ -16,12 +16,14 @@ export class FindexDemo extends Findex {
    * @param label
    * @param users
    * @param location location string naming the key of location to index
+   * @param useGraph if true, upsert the graph of the keywords
    */
   async upsertUsersIndexes(
     masterKeysFindex: MasterKeys,
     label: string,
     users: Users,
-    location: string
+    location: string,
+    useGraph: Boolean = false
   ): Promise<void> {
     const generatedUsers = users.getUsers();
 
@@ -46,8 +48,27 @@ export class FindexDemo extends Findex {
         throw new Error("upsertUsersIndexes: userId cannot be null");
       }
     });
-
     await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
+
+    if (useGraph) {
+      const locationAndWords: { [key: string]: string[] } = {};
+      generatedUsers.map((user) => {
+        let userId = user.id;
+        if (location === "enc_uid") {
+          userId = user.enc_uid;
+        }
+        if (userId.length > 0) {
+          locationAndWords[toBase64("l" + userId)] = [toBase64(user.country)];
+        } else {
+          throw new Error("upsertUsersIndexes: userId cannot be null");
+        }
+      });
+      await super.graph_upsert(
+        masterKeysFindex,
+        Buffer.from(label),
+        locationAndWords
+      );
+    }
   }
 
   compareTwoArray(a: Uint8Array, b: Uint8Array): boolean {
@@ -79,6 +100,8 @@ export class FindexDemo extends Findex {
    * @param words string of all searched terms separated by a space character
    * @param logicalSwitch boolean to specify OR / AND search
    * @param loopIterationLimit
+   * @param graphRecursionLimit
+   * @param progress
    * @returns a promise containing results from query
    */
   async searchWithLogicalSwitch(
@@ -86,7 +109,9 @@ export class FindexDemo extends Findex {
     label: string,
     words: string,
     logicalSwitch: boolean,
-    loopIterationLimit: number
+    loopIterationLimit: number,
+    graphRecursionLimit: number,
+    progress: Function
   ): Promise<Uint8Array[]> {
     const wordsArray = words.split(" ");
     let indexedValues: Uint8Array[] = [];
@@ -95,7 +120,9 @@ export class FindexDemo extends Findex {
         masterKeysFindex,
         Buffer.from(label),
         wordsArray.map((word) => sanitizeString(word)),
-        loopIterationLimit
+        loopIterationLimit,
+        graphRecursionLimit,
+        progress
       );
     } else {
       for (const [index, word] of wordsArray.entries()) {
@@ -103,7 +130,9 @@ export class FindexDemo extends Findex {
           masterKeysFindex,
           Buffer.from(label),
           [sanitizeString(word)],
-          loopIterationLimit
+          loopIterationLimit,
+          graphRecursionLimit,
+          progress
         );
 
         if (index) {

@@ -59,7 +59,12 @@ test("upsert+search", async () => {
       LABEL,
       "france spain",
       false,
-      1000
+      1000,
+      1000,
+      (res: Uint8Array[]) => {
+        console.log(res);
+        return true;
+      }
     );
     expect(locations.length).toBe(60);
 

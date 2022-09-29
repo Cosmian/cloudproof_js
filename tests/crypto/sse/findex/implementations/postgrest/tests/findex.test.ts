@@ -23,6 +23,11 @@ test("upsert+search", async () => {
   expect(entries.length).toBe(577);
   expect(chains.length).toBe(792);
 
+  const progress = (res: Uint8Array[]) => {
+    console.log(res);
+    return true;
+  };
+
   //
   // Search words
   //
@@ -31,7 +36,9 @@ test("upsert+search", async () => {
     LABEL,
     "france",
     false,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(30);
 
@@ -40,7 +47,9 @@ test("upsert+search", async () => {
     LABEL,
     "france spain",
     false,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(60);
 
@@ -49,7 +58,9 @@ test("upsert+search", async () => {
     LABEL,
     "Joelle Becker",
     false,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(1);
 
@@ -58,7 +69,9 @@ test("upsert+search", async () => {
     LABEL,
     "molly",
     false,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(1);
 
@@ -67,7 +80,9 @@ test("upsert+search", async () => {
     LABEL,
     "Joelle Becker",
     true,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(1);
 
@@ -76,7 +91,9 @@ test("upsert+search", async () => {
     LABEL,
     "spain france",
     true,
-    1000
+    1000,
+    1000,
+    progress
   );
   expect(queryResults.length).toBe(0);
 });

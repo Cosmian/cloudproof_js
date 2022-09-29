@@ -1,4 +1,8 @@
-import { webassembly_search, webassembly_upsert } from "cosmian_findex";
+import {
+  webassembly_search,
+  webassembly_graph_upsert,
+  webassembly_upsert,
+} from "cosmian_findex";
 import { deserializeList } from "utils/utils";
 import { DBInterface } from "./dbInterface";
 import { MasterKeys } from "./master_keys";
@@ -48,6 +52,40 @@ export class Findex {
   }
 
   /**
+   * This function is the same as `upsert` but it will create letter-graphs for
+   * words of more than 3 letters. For example, for "robert" :
+   *
+   * "rob" -> "robe" -> "rober" -> "robert"
+   *
+   * Searching for "rob" with a `graphRecursionLimit` greater or equal to
+   * 3 will lead to the results associated to "robert".
+   *
+   * @param {MasterKeys} masterKeys containing K and K*
+   * @param {Uint8Array} label used to create all indexes and to refresh them later on
+   * @param locationAndWords correspondence between locations in database and words
+   * @returns {void} does not return anything if everything went well
+   */
+  public async graph_upsert(
+    masterKeys: MasterKeys,
+    label: Uint8Array,
+    locationAndWords: { [key: string]: string[] }
+  ): Promise<void> {
+    try {
+      await webassembly_graph_upsert(
+        JSON.stringify(masterKeys),
+        label,
+        JSON.stringify(locationAndWords),
+        this.db.fetchEntry,
+        this.db.upsertEntry,
+        this.db.upsertChain
+      );
+    } catch (e) {
+      console.log("Error upserting : ", e);
+      throw new Error(`Error upserting : ${e as string}`);
+    }
+  }
+
+  /**
    *
    * This function is used to search indexed words among Entry Table and Chain Table indexes
    *
@@ -55,20 +93,26 @@ export class Findex {
    * @param {Uint8Array} label used to create all indexes and to refresh them later on
    * @param {string[]} words a list of words
    * @param {number} loopIterationLimit this number helps to limit the number of results in a search query when unchaining Index Table Entry item
+   * @param graphRecursionLimit
+   * @param progress
    * @returns {Uint8Array[]} a list of Indexed Values
    */
   public async search(
     masterKeys: MasterKeys,
     label: Uint8Array,
     words: string[],
-    loopIterationLimit: number
+    loopIterationLimit: number,
+    graphRecursionLimit: number,
+    progress: Function
   ): Promise<Uint8Array[]> {
     try {
       const serializedIndexedValues = await webassembly_search(
-        JSON.stringify(masterKeys),
+        masterKeys.k,
         label,
         JSON.stringify(words),
         loopIterationLimit,
+        graphRecursionLimit,
+        progress,
         this.db.fetchEntry,
         this.db.fetchChain
       );

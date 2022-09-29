@@ -33,7 +33,62 @@ test("upsert+search", async () => {
       LABEL,
       "france",
       false,
-      1000
+      1000,
+      1000,
+      (res: Uint8Array[]) => {
+        console.log(res);
+        return true;
+      }
+    );
+    expect(queryResults.length).toBe(30);
+    await redisDb.instance.quit();
+  } catch (error) {
+    await redisDb.instance.quit();
+    throw new Error("Redis test failed: " + error);
+  }
+});
+
+test("upsert_graph+search", async () => {
+  const redisDb = new RedisDB("localhost", 6379);
+  //
+  // Upsert Indexes
+  //
+  try {
+    await redisDb.initInstance();
+    const findexDemo = new FindexDemo(redisDb);
+
+    const users = new Users();
+    expect(users.getUsers().length).toBe(99);
+
+    await redisDb.instance.flushAll();
+    // upsert graphs of the country
+    await findexDemo.upsertUsersIndexes(
+      masterKeysFindex,
+      LABEL,
+      users,
+      "id",
+      true
+    );
+
+    const entries = await redisDb.getEntryTableEntries();
+    const chains = await redisDb.getChainTableEntries();
+    expect(entries.length).toBe(586);
+    expect(chains.length).toBe(900);
+
+    //
+    // Search words
+    //
+    const queryResults = await findexDemo.searchWithLogicalSwitch(
+      masterKeysFindex,
+      LABEL,
+      "fra",
+      false,
+      1000,
+      1000,
+      (res: Uint8Array[]) => {
+        console.log(res);
+        return true;
+      }
     );
     expect(queryResults.length).toBe(30);
     await redisDb.instance.quit();
