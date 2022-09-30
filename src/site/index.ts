@@ -49,7 +49,7 @@ async function upsert(location: string): Promise<void> {
   }
 
   try {
-    await FINDEX_DEMO.upsertUsersIndexes(FINDEX_MSK, LABEL, USERS, location);
+    await FINDEX_DEMO.upsertUsersIndexes(FINDEX_MSK, LABEL, USERS, location, true);
     if (button) {
       button.innerHTML = "Indexes created !";
       button.style.backgroundColor = "#4CAF50";
