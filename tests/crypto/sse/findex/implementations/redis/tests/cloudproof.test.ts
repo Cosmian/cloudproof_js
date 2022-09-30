@@ -1,6 +1,6 @@
 import { hexDecode } from "utils/utils";
 import { generateCoverCryptKeys } from "../../common/cover_crypt_keys";
-import { masterKeysFindex } from "../../common/keys";
+import { FINDEX_MSK } from "../../common/keys";
 import { Users } from "../../common/users";
 import { CloudProofDemoRedis } from "../cloudproof";
 import { RedisDB } from "../db";
@@ -40,12 +40,7 @@ test("upsert+search", async () => {
     //
     await findexDemo.redisDb.deleteAllChainTableEntries();
     await findexDemo.redisDb.deleteAllEntryTableEntries();
-    await findexDemo.upsertUsersIndexes(
-      masterKeysFindex,
-      LABEL,
-      users,
-      "enc_uid"
-    );
+    await findexDemo.upsertUsersIndexes(FINDEX_MSK, LABEL, users, "enc_uid");
     const entries = await findexDemo.redisDb.getEntryTableEntries();
     const chains = await findexDemo.redisDb.getChainTableEntries();
     expect(entries.length).toBe(577);
@@ -55,7 +50,7 @@ test("upsert+search", async () => {
     // Search words
     //
     const locations = await findexDemo.searchWithLogicalSwitch(
-      masterKeysFindex,
+      FINDEX_MSK.key,
       LABEL,
       "france spain",
       false,

@@ -23,7 +23,7 @@ import { EncryptionDecryptionDemo } from "../../tests/crypto/abe/common/demo_hyb
 import { CoverCryptDemoKeys } from "../../tests/crypto/abe/core/cover_crypt/demo_keys";
 import { GpswDemoKeys } from "../../tests/crypto/abe/core/gpsw/demo_keys";
 import { generateCoverCryptKeys } from "../../tests/crypto/sse/findex/implementations/common/cover_crypt_keys";
-import { masterKeysFindex } from "../../tests/crypto/sse/findex/implementations/common/keys";
+import { FINDEX_MSK } from "../../tests/crypto/sse/findex/implementations/common/keys";
 import { Users } from "../../tests/crypto/sse/findex/implementations/common/users";
 import { CloudproofDemoPostgRest } from "../../tests/crypto/sse/findex/implementations/postgrest/cloudproof";
 import { PostgRestDB } from "../../tests/crypto/sse/findex/implementations/postgrest/db";
@@ -34,6 +34,7 @@ const LABEL = "label";
 let USERS = new Users();
 
 const LOOP_ITERATION_LIMIT = 1000;
+const GRAPH_RECURSION_LIMIT = 1000;
 
 /**
  * Index elements contained in DB with Findex upsert
@@ -48,12 +49,7 @@ async function upsert(location: string): Promise<void> {
   }
 
   try {
-    await FINDEX_DEMO.upsertUsersIndexes(
-      masterKeysFindex,
-      LABEL,
-      USERS,
-      location
-    );
+    await FINDEX_DEMO.upsertUsersIndexes(FINDEX_MSK, LABEL, USERS, location);
     if (button) {
       button.innerHTML = "Indexes created !";
       button.style.backgroundColor = "#4CAF50";
@@ -151,11 +147,13 @@ async function searchElements(
 
   try {
     const locations = await FINDEX_DEMO.searchWithLogicalSwitch(
-      masterKeysFindex,
+      FINDEX_MSK.key,
       LABEL,
       words,
       logicalSwitch,
-      LOOP_ITERATION_LIMIT
+      LOOP_ITERATION_LIMIT,
+      GRAPH_RECURSION_LIMIT,
+      progress
     );
     if (locations.length > 0) {
       const locationsString: string[] = [];
@@ -173,6 +171,16 @@ async function searchElements(
   }
 }
 (window as any).searchElements = searchElements;
+
+/**
+ *
+ * @param _serialized_intermediate_results
+ */
+async function progress(
+  _serialized_intermediate_results: Uint8Array
+): Promise<boolean> {
+  return true;
+}
 
 /**
  * Search terms with Findex implementation
@@ -196,11 +204,13 @@ async function searchAndDecryptElements(
   content.innerHTML = "";
   try {
     const queryResults = await FINDEX_DEMO.searchWithLogicalSwitch(
-      masterKeysFindex,
+      FINDEX_MSK.key,
       LABEL,
       words,
       logicalSwitch,
-      LOOP_ITERATION_LIMIT
+      LOOP_ITERATION_LIMIT,
+      GRAPH_RECURSION_LIMIT,
+      (_: Uint8Array) => true
     );
     if (queryResults.length === 0) {
       displayNoResult(content);

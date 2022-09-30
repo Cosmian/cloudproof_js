@@ -1,6 +1,6 @@
 import axios from "axios";
 import { FindexDemo } from "../../common/findex_demo";
-import { masterKeysFindex } from "../../common/keys";
+import { FINDEX_MSK } from "../../common/keys";
 import { Users } from "../../common/users";
 import { PostgRestDB } from "../db";
 
@@ -16,15 +16,15 @@ test("upsert+search", async () => {
 
   await db.deleteAllChainTableEntries();
   await db.deleteAllEntryTableEntries();
-  await findexDemo.upsertUsersIndexes(masterKeysFindex, LABEL, users, "id");
+  await findexDemo.upsertUsersIndexes(FINDEX_MSK, LABEL, users, "id");
 
   const entries = await db.getEntryTableEntries();
   const chains = await db.getChainTableEntries();
   expect(entries.length).toBe(577);
   expect(chains.length).toBe(792);
 
-  const progress = (res: Uint8Array[]) => {
-    console.log(res);
+  const progress = (_: Uint8Array) => {
+    // we don't use this callback here
     return true;
   };
 
@@ -32,7 +32,7 @@ test("upsert+search", async () => {
   // Search words
   //
   let queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "france",
     false,
@@ -43,7 +43,7 @@ test("upsert+search", async () => {
   expect(queryResults.length).toBe(30);
 
   queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "france spain",
     false,
@@ -54,7 +54,7 @@ test("upsert+search", async () => {
   expect(queryResults.length).toBe(60);
 
   queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "Joelle Becker",
     false,
@@ -65,7 +65,7 @@ test("upsert+search", async () => {
   expect(queryResults.length).toBe(1);
 
   queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "molly",
     false,
@@ -76,7 +76,7 @@ test("upsert+search", async () => {
   expect(queryResults.length).toBe(1);
 
   queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "Joelle Becker",
     true,
@@ -87,7 +87,7 @@ test("upsert+search", async () => {
   expect(queryResults.length).toBe(1);
 
   queryResults = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "spain france",
     true,
