@@ -1,7 +1,7 @@
 import axios from "axios";
 import { hexDecode } from "utils/utils";
 import { generateCoverCryptKeys } from "../../common/cover_crypt_keys";
-import { masterKeysFindex } from "../../common/keys";
+import { FINDEX_MSK } from "../../common/keys";
 import { Users } from "../../common/users";
 import { CloudproofDemoPostgRest } from "../cloudproof";
 import { PostgRestDB } from "../db";
@@ -39,12 +39,7 @@ test("upsert+search", async () => {
   //
   await findexDemo.postgrestDb.deleteAllChainTableEntries();
   await findexDemo.postgrestDb.deleteAllEntryTableEntries();
-  await findexDemo.upsertUsersIndexes(
-    masterKeysFindex,
-    LABEL,
-    users,
-    "enc_uid"
-  );
+  await findexDemo.upsertUsersIndexes(FINDEX_MSK, LABEL, users, "enc_uid");
   const entries = await findexDemo.postgrestDb.getEntryTableEntries();
   const chains = await findexDemo.postgrestDb.getChainTableEntries();
   expect(entries.length).toBe(577);
@@ -54,11 +49,16 @@ test("upsert+search", async () => {
   // Search words
   //
   const locations = await findexDemo.searchWithLogicalSwitch(
-    masterKeysFindex,
+    FINDEX_MSK.key,
     LABEL,
     "france spain",
     false,
-    1000
+    1000,
+    1000,
+    (res: Uint8Array[]) => {
+      console.log(res);
+      return true;
+    }
   );
   expect(locations.length).toBe(60);
 

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.0] - 2022-09-30
+### Added
+- `graph_upsert`
+- test for `graph_upsert`
+- `FindexMasterKey` type
+### Changed
+- signature of the `search`
+### Fixed
+### Removed
+
+---
 ## [2.0.0] - 2022-09-26
 ### Added
 - Indexes compaction for Findex

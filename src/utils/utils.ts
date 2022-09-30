@@ -1,19 +1,12 @@
 import { logger } from "./logger";
 
 /**
+ * Convert the binary string to base64 string and sanitize it.
  *
  * @param val
  */
 export function toBase64(val: string): string {
   return Buffer.from(sanitizeString(val), "binary").toString("base64");
-}
-
-/**
- *
- * @param val
- */
-export function fromBase64(val: string): string {
-  return Buffer.from(val, "base64").toString("binary");
 }
 
 /**

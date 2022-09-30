@@ -18,6 +18,6 @@ module.exports = {
     '<rootDir>/tests/kms',
     '<rootDir>/dist'
   ],
-  testTimeout: 50000,
+  testTimeout: 100000,
   detectOpenHandles: true
 }

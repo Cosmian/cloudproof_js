@@ -1,5 +1,5 @@
 import { Findex } from "crypto/sse/findex/interfaces/findex";
-import { MasterKeys } from "crypto/sse/findex/interfaces/master_keys";
+import { FindexMasterKey } from "crypto/sse/findex/interfaces/master_keys";
 import { sanitizeString, toBase64 } from "utils/utils";
 import { Users } from "./users";
 
@@ -16,12 +16,14 @@ export class FindexDemo extends Findex {
    * @param label
    * @param users
    * @param location location string naming the key of location to index
+   * @param useGraph if true, upsert the graph of the keywords
    */
   async upsertUsersIndexes(
-    masterKeysFindex: MasterKeys,
+    masterKeysFindex: FindexMasterKey,
     label: string,
     users: Users,
-    location: string
+    location: string,
+    useGraph: Boolean = false
   ): Promise<void> {
     const generatedUsers = users.getUsers();
 
@@ -46,8 +48,31 @@ export class FindexDemo extends Findex {
         throw new Error("upsertUsersIndexes: userId cannot be null");
       }
     });
-
     await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
+
+    if (useGraph) {
+      const locationAndWords: { [key: string]: string[] } = {};
+      generatedUsers.map((user) => {
+        let userId = user.id;
+        if (location === "enc_uid") {
+          userId = user.enc_uid;
+        }
+        if (userId.length > 0) {
+          locationAndWords[toBase64("l" + userId)] = [
+            toBase64(user.country),
+            toBase64(user.firstName),
+            toBase64(user.lastName),
+          ];
+        } else {
+          throw new Error("upsertUsersIndexes: userId cannot be null");
+        }
+      });
+      await super.graph_upsert(
+        masterKeysFindex,
+        Buffer.from(label),
+        locationAndWords
+      );
+    }
   }
 
   compareTwoArray(a: Uint8Array, b: Uint8Array): boolean {
@@ -74,36 +99,44 @@ export class FindexDemo extends Findex {
   /**
    * Search terms with Findex implementation
    *
-   * @param masterKeysFindex
+   * @param key_search
    * @param label
    * @param words string of all searched terms separated by a space character
    * @param logicalSwitch boolean to specify OR / AND search
    * @param loopIterationLimit
+   * @param graphRecursionLimit
+   * @param progress
    * @returns a promise containing results from query
    */
   async searchWithLogicalSwitch(
-    masterKeysFindex: MasterKeys,
+    key_search: Uint8Array,
     label: string,
     words: string,
     logicalSwitch: boolean,
-    loopIterationLimit: number
+    loopIterationLimit: number,
+    graphRecursionLimit: number,
+    progress: Function
   ): Promise<Uint8Array[]> {
     const wordsArray = words.split(" ");
     let indexedValues: Uint8Array[] = [];
     if (!logicalSwitch) {
       indexedValues = await super.search(
-        masterKeysFindex,
+        key_search,
         Buffer.from(label),
         wordsArray.map((word) => sanitizeString(word)),
-        loopIterationLimit
+        loopIterationLimit,
+        graphRecursionLimit,
+        progress
       );
     } else {
       for (const [index, word] of wordsArray.entries()) {
         const partialIndexedValues = await super.search(
-          masterKeysFindex,
+          key_search,
           Buffer.from(label),
           [sanitizeString(word)],
-          loopIterationLimit
+          loopIterationLimit,
+          graphRecursionLimit,
+          progress
         );
 
         if (index) {
