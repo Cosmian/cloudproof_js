@@ -1,19 +1,14 @@
-import {
-  DecryptionWorkerMessage,
-  HybridDecryption,
-} from "crypto/abe/interfaces/decryption";
 import { logger } from "utils/logger";
 import { hexDecode } from "utils/utils";
-import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header";
 import { CoverCryptHybridDecryption } from "../cover_crypt/decryption";
 import { GpswHybridDecryption } from "../gpsw/decryption";
 
-const ctx: Worker = self as any;
+const ctx = self;
 
 class DecryptWorker {
-  hybridDecryption: HybridDecryption | null = null;
+  hybridDecryption = null;
 
-  init(asymmetricDecryptionKey: string, isGpswImplementation: boolean) {
+  init(asymmetricDecryptionKey, isGpswImplementation) {
     if (isGpswImplementation) {
       this.hybridDecryption = new GpswHybridDecryption(
         hexDecode(asymmetricDecryptionKey)
@@ -28,21 +23,21 @@ class DecryptWorker {
   /**
    * Destroy the hybrid decryption crypto
    */
-  destroy(): void {
+  destroy() {
     if (this.hybridDecryption == null) {
       return;
     }
     this.hybridDecryption.destroyInstance();
   }
 
-  decrypt(encryptedEntries: Array<{ ciphertextHex: string }>): Uint8Array[] {
+  decrypt(encryptedEntries) {
     if (this.hybridDecryption === null) {
       // TODO handle hybrid crypto not initialized here if needed
       throw new Error("The hybrid decryption scheme is not initialized");
     }
-    const dec: HybridDecryption = this.hybridDecryption;
+    const dec = this.hybridDecryption;
 
-    const cleartextValues: Uint8Array[] = [];
+    const cleartextValues = [];
     for (let index = 0; index < encryptedEntries.length; index++) {
       const { ciphertextHex } = encryptedEntries[index];
 
@@ -58,7 +53,7 @@ class DecryptWorker {
       );
 
       // HEADER decryption: asymmetric decryption
-      let cleartextHeader: ClearTextHeader;
+      let cleartextHeader;
       try {
         cleartextHeader = dec.decryptHybridHeader(asymmetricHeader);
       } catch (error) {
@@ -67,7 +62,7 @@ class DecryptWorker {
       }
 
       // AES_DATA: AES Symmetric part decryption
-      let cleartext: Uint8Array;
+      let cleartext;
       try {
         cleartext = dec.decryptHybridBlock(
           cleartextHeader.symmetricKey,
@@ -89,26 +84,26 @@ class DecryptWorker {
 const decrypter = new DecryptWorker();
 
 ctx.onmessage = (event) => {
-  const msg = event.data as DecryptionWorkerMessage;
+  const msg = event.data;
   const msgName = msg.name;
   const input = msg.value;
   const isGpswImplementation = msg.isGpswImplementation;
 
   if (msgName === "INIT") {
-    decrypter.init(input as string, isGpswImplementation);
+    decrypter.init(input, isGpswImplementation);
     logger.log(() => "worker cache initialized");
     ctx.postMessage({
       name: "INIT",
       value: "SUCCESS",
     });
-  } else if (msgName == "DECRYPT") {
+  } else if (msgName === "DECRYPT") {
     logger.log(() => "worker decrypting");
     ctx.postMessage({
       name: "DECRYPT",
       value: decrypter.decrypt(input),
     });
     logger.log(() => "... done decrypting");
-  } else if (msgName == "DESTROY") {
+  } else if (msgName === "DESTROY") {
     ctx.postMessage({
       name: "DESTROY",
       value: "SUCCESS",

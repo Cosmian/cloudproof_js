@@ -49,7 +49,13 @@ async function upsert(location: string): Promise<void> {
   }
 
   try {
-    await FINDEX_DEMO.upsertUsersIndexes(FINDEX_MSK, LABEL, USERS, location, true);
+    await FINDEX_DEMO.upsertUsersIndexes(
+      FINDEX_MSK,
+      LABEL,
+      USERS,
+      location,
+      true
+    );
     if (button) {
       button.innerHTML = "Indexes created !";
       button.style.backgroundColor = "#4CAF50";
@@ -491,7 +497,7 @@ const wnElt = document.getElementById("workers_number");
 if (wnElt == null) {
   // console.error("workers_number not found")
 } else {
-  wnElt.innerHTML = NUM_WORKERS + "";
+  wnElt.innerHTML = `${NUM_WORKERS}`;
 }
 
 // The function called whn clicking the decrypt button
@@ -514,7 +520,7 @@ const decryptUsingWorker = (): void => {
     isGpsw = false;
   }
 
-  logger.log(() => "isGpsw: " + isGpsw);
+  logger.log(() => `isGpsw: ${isGpsw.toString()}`);
 
   for (let index = 0; index < NUM_ENTRIES; index++) {
     encryptedEntries.push({
@@ -550,7 +556,7 @@ const displayResults = (
   startDate: number,
   results: Uint8Array[],
   encryptedEntriesLength: number
-) => {
+): void => {
   // got results  - stope time measurement
   const endDate = new Date().getTime();
   const milliseconds = (endDate - startDate) / encryptedEntriesLength;
@@ -561,13 +567,9 @@ const displayResults = (
     console.error("workers_results_number not found");
     return;
   }
-  wrnElt.innerHTML =
-    results.length +
-    " in " +
-    (endDate - startDate) +
-    "ms i.e. " +
-    milliseconds +
-    "ms/record average";
+  wrnElt.innerHTML = `${results.length} in ${
+    endDate - startDate
+  }ms i.e. ${milliseconds}ms/record average`;
 
   // the results themselves
   const wrElt = document.getElementById("workers_result");
@@ -582,7 +584,7 @@ const displayResults = (
 };
 
 // display the decryption errors
-const displayError = (err: string) => {
+const displayError = (err: string): void => {
   const wnElement = document.getElementById("workers_number");
   if (wnElement == null) {
     console.error("workers_number not found");
