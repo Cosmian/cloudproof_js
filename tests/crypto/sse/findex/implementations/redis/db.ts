@@ -14,7 +14,10 @@ export class RedisDB implements DBInterface {
 
   constructor(localhost: string, port: number) {
     this.instance = createClient({
-      url: `redis://${localhost}:${port}`,
+      socket: {
+        host: localhost,
+        port,
+      }
     });
 
     this.instance.on("error", (err: string) =>
