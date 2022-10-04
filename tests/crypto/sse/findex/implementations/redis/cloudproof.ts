@@ -19,7 +19,7 @@ export class CloudProofDemoRedis extends FindexDemo {
   }
 
   /// Construct the encrypted users DB
-  async encryptUsers(
+  async encryptUsersPerCountryAndDepartment(
     users: Users,
     metadataUid: Uint8Array,
     policy: Policy,

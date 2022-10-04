@@ -22,7 +22,7 @@ test("upsert+search", async () => {
     const findexDemo = new CloudProofDemoRedis(redisDb);
     await findexDemo.redisDb.instance.flushAll();
     await findexDemo.redisDb.deleteAllEncryptedUsers();
-    users = await findexDemo.encryptUsers(
+    users = await findexDemo.encryptUsersPerCountryAndDepartment(
       users,
       hexDecode("00000001"),
       keys.abePolicy,
