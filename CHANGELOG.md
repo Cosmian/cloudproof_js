@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.1] - 2022-10-05
+### Added
+### Changed
+- Uniformize encryption demos functions
+### Fixed
+- Fix cors problem by specifying port and public host in webpack cli
+### Removed
+
+---
 ## [3.0.0] - 2022-09-30
 ### Added
 - `graph_upsert`
