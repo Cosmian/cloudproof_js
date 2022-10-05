@@ -21,7 +21,7 @@ export class WorkerPool {
     this.workers = [];
     for (let index = 0; index < numWorkers; index++) {
       // !! webpack wants this on a single line; do not split
-      const worker = new Worker(new URL("./worker.ts", import.meta.url));
+      const worker = new Worker(new URL("./worker.js", import.meta.url));
       this.workers.push(worker);
     }
   }

@@ -14,7 +14,10 @@ export class RedisDB implements DBInterface {
 
   constructor(localhost: string, port: number) {
     this.instance = createClient({
-      url: `redis://localhost:${port}`,
+      socket: {
+        host: localhost,
+        port,
+      },
     });
 
     this.instance.on("error", (err: string) =>
@@ -176,6 +179,11 @@ export class RedisDB implements DBInterface {
 
   async getChainTableEntries(): Promise<Uint8Array[]> {
     return await this.getAllIndexes(2);
+  }
+
+  async getFirstEncryptedUsers(): Promise<Uint8Array[]> {
+    const allEncryptedUsers = await this.getAllIndexes(3);
+    return allEncryptedUsers.slice(0, 4);
   }
 
   async getEncryptedUsers(): Promise<Uint8Array[]> {

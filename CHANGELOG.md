@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.1] - 2022-10-05
+### Added
+- Add MIT license
+### Changed
+- Make ABE/CC decryption workers exportable (converting worker.ts to JS and allow JS to be compiled)
+- Uniformize encryption demos functions using `encryptUsersPerCountryAndDepartment`
+### Fixed
+- Fix cors problem by specifying port and public host in webpack cli
+### Removed
+
+---
 ## [3.0.0] - 2022-09-30
 ### Added
 - `graph_upsert`
