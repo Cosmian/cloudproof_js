@@ -20,6 +20,9 @@ variables:
   KMS_PRIVATE_PATH: /tmp
   KMS_SHARED_PATH: /tmp
 
+services:
+  - name: postgres
+    alias: db
 
 stages:
   - prebuild
@@ -29,15 +32,12 @@ stages:
 
 .services:
   services:
-    - name: postgres
-      alias: db
     - name: postgrest/postgrest
       alias: server
     - name: gitlab.cosmian.com:5000/core/kms:2.2.0_ci
       alias: kms_ci
     - redis:latest
   before_script:
-    - sleep 30 # postgres container not ready yet
     - apt update && apt install -y postgresql libpq-dev
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
