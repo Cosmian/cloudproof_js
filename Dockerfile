@@ -19,4 +19,4 @@ RUN npx webpack build
 EXPOSE 8080
 
 # Start the app
-CMD ["npx", "webpack", "serve", "--host", "0.0.0.0", "--disable-host-check"]
+CMD ["npx", "webpack", "serve", "--host", "0.0.0.0", "--disable-host-check", "--port", "8080","--public", "demo-cloudproof.cosmian.com"]
