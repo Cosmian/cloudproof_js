@@ -37,6 +37,7 @@ stages:
       alias: kms_ci
     - redis:latest
   before_script:
+    - sleep 30 # postgres container not ready yet
     - apt update && apt install -y postgresql libpq-dev
     - export PGPASSWORD=$POSTGRES_PASSWORD
     - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
