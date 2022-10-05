@@ -20,9 +20,6 @@ variables:
   KMS_PRIVATE_PATH: /tmp
   KMS_SHARED_PATH: /tmp
 
-services:
-  - name: postgres
-    alias: db
 
 stages:
   - prebuild
@@ -32,6 +29,8 @@ stages:
 
 .services:
   services:
+    - name: postgres
+      alias: db
     - name: postgrest/postgrest
       alias: server
     - name: gitlab.cosmian.com:5000/core/kms:2.2.0_ci
