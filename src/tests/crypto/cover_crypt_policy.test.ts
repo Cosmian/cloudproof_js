@@ -1,5 +1,5 @@
 import { CoverCryptPolicy } from "../../crypto/abe/hybrid_crypto/cover_crypt/cover_crypt_policy"
-import { MAX_ATTRIBUTE_VALUE, Policy } from "../../crypto/abe/policy"
+import { Attribute, MAX_ATTRIBUTE_VALUE, Policy } from "../../crypto/abe/policy"
 
 test('policy_inst', async () => {
     const policy = new CoverCryptPolicy()
@@ -43,6 +43,10 @@ test('policy_rotate', async () => {
 
     policy.addAxis("departments", ["R&D", "HR", "FIN"])
     policy.addAxis("secret", ["low", "medium", "high"], true)
+
+    policy.rotate([new Attribute("departments", "HR")])
+
+    console.log(policy)
 
     // cover_crypt
 })
