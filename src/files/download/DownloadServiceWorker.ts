@@ -2,11 +2,8 @@
  * Copyright Cosmian 2021 -
  */
 
-<<<<<<< HEAD
 import { logger } from "../../utils/logger"
 logger.on = false
-=======
->>>>>>> 54f95b8 (re-importing from old repo)
 
 const SW_PATH = "cdsw"
 
@@ -26,30 +23,18 @@ class DownloadServiceWorker {
         self.addEventListener('activate', this.onActivate)
         self.addEventListener('message', this.onMessage)
         self.addEventListener('fetch', this.onFetch)
-<<<<<<< HEAD
         logger.log(() => "--serviceWorker Instantiated")
-=======
-        // console.log("--ServiceWorker Instantiated")
->>>>>>> 54f95b8 (re-importing from old repo)
     }
 
     onInstall = () => {
         (self as any).skipWaiting()
-<<<<<<< HEAD
         logger.log(() => "--serviceWorker Installed")
-=======
-        // console.log("--ServiceWorker Installed")
->>>>>>> 54f95b8 (re-importing from old repo)
     };
 
     onActivate = (event: any) => {
         // set the SV as  the controller for all clients
         event.waitUntil((self as any).clients.claim())
-<<<<<<< HEAD
         logger.log(() => "--serviceWorker Activated")
-=======
-        // console.log("--ServiceWorker Activated")
->>>>>>> 54f95b8 (re-importing from old repo)
     };
 
     /**
@@ -58,11 +43,7 @@ class DownloadServiceWorker {
      */
     onFetch = (event: any) => {
 
-<<<<<<< HEAD
         logger.log(() => `--serviceWorker fetch ${event.request.url}`)
-=======
-        // console.log(`--ServiceWorker fetch ${event.request.url}`)
->>>>>>> 54f95b8 (re-importing from old repo)
 
         const { url } = event.request
 
@@ -72,19 +53,12 @@ class DownloadServiceWorker {
 
         const pendingDownload = this.pendingDownloads.get(url)
         if (!pendingDownload) {
-<<<<<<< HEAD
             console.error(`--serviceWorker unknown download URL: ${event.request.url}`)
             return
         }
 
         logger.log(() => "--service worker: intercept " + url)
 
-=======
-            console.error(`--ServiceWorker unknown download URL: ${event.request.url}`)
-            return
-        }
-
->>>>>>> 54f95b8 (re-importing from old repo)
         const { stream, filename, size, mimeType } = pendingDownload
 
         this.pendingDownloads.delete(url)
@@ -140,16 +114,12 @@ function createDownloadStream(port: MessagePort) {
             port.onmessage = ({ data }) => {
                 switch (data?.action) {
                     case 'write':
-<<<<<<< HEAD
                         // try {
                         return controller.enqueue(data?.payload)
                     // } catch (error) {
                     // controller is likely closed following user cancel action ignore
                     // return
                     // }
-=======
-                        return controller.enqueue(data?.payload)
->>>>>>> 54f95b8 (re-importing from old repo)
                     case 'close':
                         return controller.close()
                     case 'abort':
@@ -160,10 +130,7 @@ function createDownloadStream(port: MessagePort) {
             }
         },
         cancel() {
-<<<<<<< HEAD
             logger.log(() => "--service worker: cancel called")
-=======
->>>>>>> 54f95b8 (re-importing from old repo)
             port.postMessage({ action: 'cancel' })
         },
     })
