@@ -1,6 +1,6 @@
 # Cosmian Javascript Lib
 
-The library provides a Typescript friendly API to the **Cloudproof Encryption** product of the [Cosmian Ubiquitous Encryption platform](https://cosmian.com).
+The library provides a Typescript-friendly API to the **Cloudproof Encryption** product of the [Cosmian Ubiquitous Encryption platform](https://cosmian.com).
 
 
 ## Getting started
@@ -11,9 +11,9 @@ Please [check the online documentation](https://docs.cosmian.com/cloudproof_encr
 
 In addition, please have a look at the following tests for implementation examples:
 
- - [TestCoverCrypt](./tests/crypto/abe/cover_crypt/all.test.ts) for using the CoverCrypt scheme with WASM library
- - [TestGpsw](./tests/crypto/abe/gpsw/all.test.ts) for using the ABE GPSW scheme with WASM library
- - [TestFindex](./tests/interface/findex/upsert_search.test.ts) for using the SSE Findex scheme with WASM library
+ - [TestCoverCrypt](./tests/crypto/abe/cover_crypt/all.test.ts) for using the CoverCrypt scheme with the WASM library
+ - [TestGpsw](./tests/crypto/abe/gpsw/all.test.ts) for using the ABE GPSW scheme with the WASM library
+ - [TestFindex](./tests/interface/findex/upsert_search.test.ts) for using the SSE Findex scheme with the WASM library
 
 
 ## Using in Javascript projects
@@ -26,9 +26,9 @@ npm i cloudproof_js
 
 ## Versions Correspondence
 
-Local encryption and decryption with [GPSW](https://github.com/Cosmian/abe_gpsw) or [CoverCrypt](https://github.com/Cosmian/cover_crypt) and SSE Findex Cosmian scheme use WASM librairies which are transparent for Javascript/Typescript usage.
+Local encryption and decryption with [GPSW](https://github.com/Cosmian/abe_gpsw) or [CoverCrypt](https://github.com/Cosmian/cover_crypt) and SSE Findex Cosmian scheme use WASM libraries which are transparent for Javascript/Typescript usage.
 
-This table shows the minimum versions correspondence between the various components.
+This table shows the minimum version correspondence between the various components.
 
 KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex
 -----------|----------------|----------|----------------|-------
