@@ -4,6 +4,7 @@
         "deserialization",
         "Deserialization",
         "Kmip",
-        "Ttlv"
+        "Ttlv",
+        "webassembly"
     ]
 }

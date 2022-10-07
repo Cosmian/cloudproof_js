@@ -9,15 +9,9 @@ import { CoverCryptEncryptionTS } from "../files/transformers/CoverCryptEncrypti
 import { ClearTextFileReader } from "../files/upload/ClearTextFileReader"
 import { EncryptedFileReader } from "../files/upload/EncryptedFileReader"
 
-
-
-
-
-
 export async function encrypt_files(files: File[], securityLevel: string, department: string): Promise<string[]> {
     return Promise.all(files.map(f => encrypt_file(f, securityLevel, department)))
 }
-
 
 export async function encrypt_file(file: File, securityLevel: string, department: string): Promise<string> {
     console.log("Encrypting....")
@@ -58,7 +52,6 @@ export async function encrypt_file(file: File, securityLevel: string, department
 
     return Promise.resolve(filename)
 }
-
 
 
 export async function decrypt_files(files: File[], userKey: string): Promise<string[]> {

@@ -8,6 +8,8 @@
 // then navigate to http://locahost:8080
 
 
+import axios, { AxiosInstance, AxiosResponse } from 'axios'
+import { CoverCryptPolicy } from '../crypto/abe/hybrid_crypto/cover_crypt/cover_crypt_policy'
 import { CoverCryptHybridDecryption } from "../crypto/abe/hybrid_crypto/cover_crypt/decryption"
 import { CoverCryptDemoKeys } from "../crypto/abe/hybrid_crypto/cover_crypt/demo_keys"
 import { CoverCryptHybridEncryption } from "../crypto/abe/hybrid_crypto/cover_crypt/encryption"
@@ -20,15 +22,22 @@ import { CoverCryptMasterKeyGeneration } from "../crypto/abe/keygen/cover_crypt/
 <<<<<<< HEAD
 <<<<<<< HEAD
 // import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
+<<<<<<< HEAD
 =======
 import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 >>>>>>> 54f95b8 (re-importing from old repo)
 =======
 // import { GpswMasterKeyGeneration } from "../crypto/abe/keygen/gpsw/gpsw_crypt_keygen"
 >>>>>>> 5706751 (re-importing from old repo)
+=======
+import { DBInterface } from "../interface/db/dbInterface"
+import { Findex } from '../interface/findex/findex'
+>>>>>>> 48642de (fixing the demo)
 import * as lib from "../lib"
+import { aliceKey, bobKey, charlieKey, k1, k2 } from "./../utils/demo_keys"
 import { logger } from "./../utils/logger"
 import { hexDecode } from "./../utils/utils"
+<<<<<<< HEAD
 import { Findex } from "../interface/findex/findex"
 import { DBInterface } from "../interface/db/dbInterface"
 import axios, { AxiosResponse, AxiosInstance } from 'axios'
@@ -95,11 +104,28 @@ import { DecryptionTransformStream } from "../files/transformers/DecryptionTrans
 //   getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
 //     return this.requests.get(`/index_entry?UID=in.(${uids})`)
 //   }
+=======
 
-//   getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
-//     return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
-//   }
+// Files demo
+import { encrypt_file, encrypt_files, decrypt_file, decrypt_files } from "./index_files"
+(window as any).encrypt_file = encrypt_file;
+(window as any).encrypt_files = encrypt_files;
+(window as any).decrypt_file = decrypt_file;
+(window as any).decrypt_files = decrypt_files
 
+
+
+
+class DB implements DBInterface {
+  instance: AxiosInstance = axios.create({
+    baseURL: process.env.SERVER,
+    timeout: 15000,
+  });
+>>>>>>> 48642de (fixing the demo)
+
+  responseBody = (response: AxiosResponse) => response.data;
+
+<<<<<<< HEAD
 =======
 //   getChainTableEntries(uids: string[]): Promise<{ uid: string; Value: string }[]> {
 //     return this.requests.get(`/index_entry?UID=in.(${uids})`)
@@ -120,37 +146,18 @@ import { DecryptionTransformStream } from "../files/transformers/DecryptionTrans
 //     return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
 //   }
 <<<<<<< HEAD
+=======
+  requests = {
+    get: (url: string) => this.instance.get(url).then(this.responseBody),
+  };
+>>>>>>> 48642de (fixing the demo)
 
-//   getFirstUsers(): Promise<object[]> {
-//     const config = {
-//       headers: {
-//         "Range-Unit": "items",
-//         "Range": "0-4",
-//       }
-//     }
-//     return this.instance.get(`/users`, config).then(this.responseBody)
-//   }
-// }
+  getEntryTableEntries(uids: string[]): Promise<{ UID: string; Value: string }[]> {
+    return this.requests.get(`/index_chain?UID=in.(${uids})`)
+  }
 
-// async function loadData() {
-//   const db = new DB()
-//   const users = await db.getFirstUsers()
-//   const encryptedUsers = await db.getFirstEncryptedDirectoryEntries()
-//   const clearDb = document.getElementById("clear_db")
-//   const encDb = document.getElementById("enc_db")
-//   if (clearDb && encDb) {
-//     if (clearDb.innerHTML || encDb.innerHTML) {
-//       clearDb.innerHTML = ""
-//       encDb.innerHTML = ""
-//     }
-//     else {
-//       displayInTab(users, clearDb)
-//       displayInTab(encryptedUsers, encDb)
-//     }
-//   }
-// };
-// (window as any).loadData = loadData
 
+<<<<<<< HEAD
 // /**
 //  * Display an array of simple JS objects into a an array in HTML
 //  * @param array array to display
@@ -186,6 +193,16 @@ import { DecryptionTransformStream } from "../files/transformers/DecryptionTrans
 //   })
 // }
 =======
+=======
+  getChainTableEntries(uids: string[]): Promise<{ UID: string; Value: string }[]> {
+    return this.requests.get(`/index_entry?UID=in.(${uids})`)
+  }
+
+  getEncryptedDirectoryEntries(uids: string[]): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
+    return this.requests.get(`/encrypted_directory?UID=in.(${uids})`)
+  }
+
+>>>>>>> 48642de (fixing the demo)
   getFirstEncryptedDirectoryEntries(): Promise<{ uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }[]> {
     const config = {
       headers: {
@@ -195,6 +212,7 @@ import { DecryptionTransformStream } from "../files/transformers/DecryptionTrans
     }
     return this.instance.get(`/encrypted_directory`, config).then(this.responseBody)
   }
+<<<<<<< HEAD
 =======
 >>>>>>> 5706751 (re-importing from old repo)
 
@@ -229,6 +247,39 @@ import { DecryptionTransformStream } from "../files/transformers/DecryptionTrans
 // (window as any).loadData = loadData
 
 <<<<<<< HEAD
+=======
+
+  getFirstUsers(): Promise<object[]> {
+    const config = {
+      headers: {
+        "Range-Unit": "items",
+        "Range": "0-4",
+      }
+    }
+    return this.instance.get(`/users`, config).then(this.responseBody)
+  }
+}
+
+async function loadData() {
+  const db = new DB()
+  const users = await db.getFirstUsers()
+  const encryptedUsers = await db.getFirstEncryptedDirectoryEntries()
+  const clearDb = document.getElementById("clear_db")
+  const encDb = document.getElementById("enc_db")
+  if (clearDb && encDb) {
+    if (clearDb.innerHTML || encDb.innerHTML) {
+      clearDb.innerHTML = ""
+      encDb.innerHTML = ""
+    }
+    else {
+      displayInTab(users, clearDb)
+      displayInTab(encryptedUsers, encDb)
+    }
+  }
+};
+(window as any).loadData = loadData
+
+>>>>>>> 48642de (fixing the demo)
 /**
  * Display an array of simple JS objects into a an array in HTML
  * @param array array to display
@@ -263,6 +314,7 @@ function displayInTab(array: object[], parent: HTMLElement) {
     }
   })
 }
+<<<<<<< HEAD
 >>>>>>> 54f95b8 (re-importing from old repo)
 =======
 // /**
@@ -300,6 +352,8 @@ function displayInTab(array: object[], parent: HTMLElement) {
 //   })
 // }
 >>>>>>> 5706751 (re-importing from old repo)
+=======
+>>>>>>> 48642de (fixing the demo)
 
 /**
  * Display No result in div
@@ -322,6 +376,7 @@ function sanitizeString(str: string): string {
   return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\w\-]+/g, '-')
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 // //
@@ -422,6 +477,8 @@ function sanitizeString(str: string): string {
 =======
 =======
 >>>>>>> 5706751 (re-importing from old repo)
+=======
+>>>>>>> 48642de (fixing the demo)
 //
 /**
  * Search terms with Findex implementation
@@ -430,8 +487,6 @@ function sanitizeString(str: string): string {
  * @param logicalSwitch boolean to select OR (false) AND (true) operator
  * @returns void
  */
-<<<<<<< HEAD
-<<<<<<< HEAD
 async function search(words: string, role: string, logicalSwitch: boolean) {
   type EncryptedValue = { uid: string, Enc_K_base: string, Enc_K_rh: string, Enc_K_sec: string }
   type ClearValue = { User: string, HR_Elements: string, Security_Elements: string }
@@ -444,7 +499,6 @@ async function search(words: string, role: string, logicalSwitch: boolean) {
   result.style.visibility = "visible"
   content.innerHTML = ""
   try {
-<<<<<<< HEAD
     const db = new DB()
     const wordsArray = words.split(" ")
     const queryResults = await Findex.query(k1, k2, wordsArray.map(word => sanitizeString(word)), db, 100)
@@ -453,13 +507,6 @@ async function search(words: string, role: string, logicalSwitch: boolean) {
       if (queryResults.length === wordsArray.length) {
         searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[])
       }
-=======
-    const db = new DB()
-    const queryResults = await Findex.query(k1, k2, words.split(" ").map(word => sanitizeString(word)), db, 100)
-    let searchedUids
-    if (logicalSwitch && words.length > 1) {
-      searchedUids = queryResults.slice(1).reduce((acc, queryResult) => { return acc.filter(value => queryResult.dbUids.includes(value)) }, queryResults[0].dbUids as string[])
->>>>>>> 5507cc1 (re-importing from old repo)
     } else {
       searchedUids = queryResults.reduce((acc, queryResult) => { return [...acc, ...queryResult.dbUids] }, [] as string[])
     }
@@ -496,6 +543,7 @@ async function search(words: string, role: string, logicalSwitch: boolean) {
             catch (e) {
               logger.log(() => "Unable to decrypt")
             }
+<<<<<<< HEAD
 =======
 =======
 >>>>>>> 4835aff (progressing on policy ipl)
@@ -751,6 +799,31 @@ async function decrypt_file(file: File): Promise<void> {
 
 
 >>>>>>> 5036a76 (progressing on policy ipl)
+=======
+          }
+          if (clearValue.User || clearValue.HR_Elements || clearValue.Security_Elements) {
+            clearValues.push(clearValue)
+          }
+        }
+        )
+        if (clearValues.length) {
+          displayInTab(clearValues, content)
+        } else {
+          displayNoResult(content)
+        }
+        hybridDecryption.destroyInstance()
+      } else {
+        displayNoResult(content)
+      }
+    }
+  } catch {
+    displayNoResult(content)
+  }
+}
+(window as any).search = search
+
+//
+>>>>>>> 48642de (fixing the demo)
 // ----------------------------------------------------
 // TEST PURPOSES
 // ----------------------------------------------------
@@ -979,6 +1052,7 @@ const displayError = (err: string) => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> 5706751 (re-importing from old repo)
 // // run demo scenario for ABE implementation
@@ -1045,15 +1119,40 @@ function abeDemo(): string {
     const demoKeys = new GpswDemoKeys()
     const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
     const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
+=======
+// run demo scenario for ABE implementation
+function abeDemo(): string {
+  if (!isGpswImplementation()) {
+    const keyGeneration = new CoverCryptMasterKeyGeneration()
+    const demoKeys = new CoverCryptDemoKeys()
+    const policy = CoverCryptPolicy.fromJsonEncoded(CoverCryptDemoKeys.policy)
+    const hybridEncryption = new CoverCryptHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+    const hybridDecryption = new CoverCryptHybridDecryption(demoKeys.topSecretMkgFinUser)
+>>>>>>> 48642de (fixing the demo)
     const encryptionDemo = new EncryptionDecryptionDemo(policy,
       keyGeneration, demoKeys, hybridEncryption, hybridDecryption
     )
     encryptionDemo.run()
+<<<<<<< HEAD
     // GpswHybridEncryptionDemo.run()
+=======
+    // CoverCryptHybridEncryptionDemo.run()
+  } else {
+    throw new Error("Demo is not implemented for GPSW")
+    // const keyGeneration = new GpswMasterKeyGeneration()
+    // const demoKeys = new GpswDemoKeys()
+    // const hybridEncryption = new GpswHybridEncryption(demoKeys.policy, demoKeys.publicKey)
+    // const hybridDecryption = new GpswHybridDecryption(demoKeys.topSecretMkgFinUser)
+    // const encryptionDemo = new EncryptionDecryptionDemo(
+    //   keyGeneration, demoKeys, hybridEncryption, hybridDecryption
+    // )
+    // encryptionDemo.run()
+>>>>>>> 48642de (fixing the demo)
   }
   return "OK"
 }
 (window as any).abeDemo = abeDemo
+<<<<<<< HEAD
 >>>>>>> 5036a76 (progressing on policy ipl)
 =======
 //     const policy = new CoverCryptPolicy(100)
@@ -1073,6 +1172,8 @@ function abeDemo(): string {
 // }
 (window as any).abeDemo = undefined // abeDemo
 >>>>>>> 5706751 (re-importing from old repo)
+=======
+>>>>>>> 48642de (fixing the demo)
 
 function elementSetValue(id: string, value: Uint8Array | string) {
   const box = document.getElementById(id)

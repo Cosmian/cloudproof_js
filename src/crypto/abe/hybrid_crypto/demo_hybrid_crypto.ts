@@ -55,6 +55,7 @@ export class EncryptionDecryptionDemo {
     // Demo of key generation
     // Generate master keys
     const masterKeys = this.keyGenerator.generateMasterKey(this.policy)
+    console.log("generated the MASTER KEYS")
 
     // set all keys values
     this.demoKeys.policy = this.policy.toJsonEncoded()
