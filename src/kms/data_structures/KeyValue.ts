@@ -1,5 +1,5 @@
 import { PlainTextKeyValue } from "./PlainTextKeyValue";
-import { KmipChoiceKeyMaterial } from "../json/KmipChoiceKeyMaterial";
+import { KmipChoiceKeyMaterial } from "kms/json/KmipChoiceKeyMaterial";
 
 /**
  * The Key Value is used only inside a Key Block and is either a Byte String or
@@ -20,9 +20,6 @@ export class KeyValue extends KmipChoiceKeyMaterial<
   Uint8Array,
   PlainTextKeyValue
 > {
-  constructor(value1?: Uint8Array, value2?: PlainTextKeyValue) {
-    super(value1, value2);
-  }
 
   public equals(o: any): boolean {
     return super.equals(o);

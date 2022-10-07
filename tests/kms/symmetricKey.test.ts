@@ -15,7 +15,7 @@ const sk = new SymmetricKey(
   )
 );
 
-test("create SymetricKey object", () => {
+test("create SymmetricKey object", () => {
   expect(sk).toEqual({
     _keyBlock: {
       _key_format_type: 7,

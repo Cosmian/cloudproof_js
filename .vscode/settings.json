@@ -4,5 +4,6 @@
         "Deserialization",
         "Kmip",
         "Ttlv"
-    ]
+    ],
+    "eslint.format.enable": true
 }

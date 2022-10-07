@@ -24,7 +24,7 @@ export class PrivateKey extends KmipObject {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof PrivateKey)) {
@@ -35,6 +35,6 @@ export class PrivateKey extends KmipObject {
   }
 
   public toString(): string {
-    return "{" + " keyBlock='" + this._keyBlock + "'" + "}";
+    return `{ keyBlock=${this._keyBlock} }`;
   }
 }

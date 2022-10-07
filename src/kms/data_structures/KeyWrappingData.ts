@@ -1,10 +1,10 @@
-import { KmipStruct } from "../json/KmipStruct";
-import { EncodingOption } from "../types/EncodingOption";
-import { EncryptionKeyInformation } from "../types/EncryptionKeyInformation";
-import { MacSignatureKeyInformation } from "../types/MacSignatureKeyInformation";
-import { WrappingMethod } from "../types/WrappingMethod";
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
+import { KmipStruct } from "kms/json/KmipStruct";
+import { EncodingOption } from "kms/types/EncodingOption";
+import { EncryptionKeyInformation } from "kms/types/EncryptionKeyInformation";
+import { MacSignatureKeyInformation } from "kms/types/MacSignatureKeyInformation";
+import { WrappingMethod } from "kms/types/WrappingMethod";
+import { PropertyMetadata } from "kms/decorators/function";
+import { TtlvType } from "kms/serialize/TtlvType";
 
 /**
  * The Key Block MAY also supply OPTIONAL information about a cryptographic key wrapping mechanism used to wrap the Key
@@ -74,19 +74,19 @@ export class KeyWrappingData implements KmipStruct {
   private _encoding_option?: EncodingOption;
 
   constructor(
-    wrapping_method: WrappingMethod,
-    encryption_key_information?: EncryptionKeyInformation,
-    mac_or_signature_key_information?: MacSignatureKeyInformation,
-    mac_or_signature?: Uint8Array,
-    iv_counter_nonce?: Uint8Array,
-    encoding_option?: EncodingOption
+    wrappingMethod: WrappingMethod,
+    encryptionKeyInformation?: EncryptionKeyInformation,
+    macOrSignatureKeyInformation?: MacSignatureKeyInformation,
+    macOrSignature?: Uint8Array,
+    ivCounterNonce?: Uint8Array,
+    encodingOption?: EncodingOption
   ) {
-    this._wrapping_method = wrapping_method;
-    this._encryption_key_information = encryption_key_information;
-    this._mac_or_signature_key_information = mac_or_signature_key_information;
-    this._mac_or_signature = mac_or_signature;
-    this._iv_counter_nonce = iv_counter_nonce;
-    this._encoding_option = encoding_option;
+    this._wrapping_method = wrappingMethod;
+    this._encryption_key_information = encryptionKeyInformation;
+    this._mac_or_signature_key_information = macOrSignatureKeyInformation;
+    this._mac_or_signature = macOrSignature;
+    this._iv_counter_nonce = ivCounterNonce;
+    this._encoding_option = encodingOption;
   }
 
   public get wrapping_method(): WrappingMethod {
@@ -146,7 +146,7 @@ export class KeyWrappingData implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof KeyWrappingData)) {
@@ -167,26 +167,7 @@ export class KeyWrappingData implements KmipStruct {
 
   public toString(): string {
     return (
-      "{" +
-      " wrapping_method='" +
-      this.wrapping_method +
-      "'" +
-      ", encryption_key_information='" +
-      this.encryption_key_information +
-      "'" +
-      ", mac_or_signature_key_information='" +
-      this.mac_or_signature_key_information +
-      "'" +
-      ", mac_or_signature='" +
-      this.mac_or_signature +
-      "'" +
-      ", iv_counter_nonce='" +
-      this.iv_counter_nonce +
-      "'" +
-      ", encoding_option='" +
-      this.encoding_option +
-      "'" +
-      "}"
+      `{ wrapping_method=${this.wrapping_method}, encryption_key_information=${this.encryption_key_information ?? "N/A"}, mac_or_signature_key_information=${this.mac_or_signature_key_information ?? "N/A"}, mac_or_signature=${this.mac_or_signature ?? "N/A"}, iv_counter_nonce=${this.iv_counter_nonce ?? "N/A"}, encoding_option=${this.encoding_option ?? "N/A"}}`
     );
   }
 }

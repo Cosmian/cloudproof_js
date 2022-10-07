@@ -39,7 +39,7 @@ export class PlainTextKeyValue implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof PlainTextKeyValue)) {

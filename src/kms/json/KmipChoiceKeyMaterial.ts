@@ -36,7 +36,7 @@ export class KmipChoiceKeyMaterial<C1, C2> {
   }
 
   public equals(o: object): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof KmipChoiceKeyMaterial)) {
@@ -47,6 +47,7 @@ export class KmipChoiceKeyMaterial<C1, C2> {
   }
 
   public toString(): string {
-    return "{" + " key_material='" + (this.c1, this.c2) + "}";
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    return `{ key_material=(${this.c1}, ${this.c2})}`;
   }
 }

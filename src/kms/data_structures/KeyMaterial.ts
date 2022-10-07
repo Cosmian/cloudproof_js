@@ -1,4 +1,4 @@
-import { KmipChoiceKey } from "../json/KmipChoiceKey";
+import { KmipChoiceKey } from "kms/json/KmipChoiceKey";
 import { TransparentDHPrivateKey } from "./TransparentDHPrivateKey";
 import { TransparentDHPublicKey } from "./TransparentDHPublicKey";
 import { TransparentECPrivateKey } from "./TransparentECPrivateKey";
@@ -14,16 +14,7 @@ export class KeyMaterial extends KmipChoiceKey<
   TransparentECPrivateKey,
   TransparentECPublicKey
 > {
-  constructor(
-    value1?: Uint8Array,
-    value2?: TransparentSymmetricKey,
-    value3?: TransparentDHPrivateKey,
-    value4?: TransparentDHPublicKey,
-    value5?: TransparentECPrivateKey,
-    value6?: TransparentECPublicKey
-  ) {
-    super(value1, value2, value3, value4, value5, value6);
-  }
+
 
   public equals(o: any): boolean {
     return super.equals(o);

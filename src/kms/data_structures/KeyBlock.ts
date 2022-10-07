@@ -1,11 +1,11 @@
-import { KmipStruct } from "../json/KmipStruct";
-import { CryptographicAlgorithm } from "../types/CryptographicAlgorithm";
-import { KeyCompressionType } from "../types/KeyCompressionType";
-import { KeyFormatType } from "../types/KeyFormatType";
-import { KeyValue } from "../data_structures/KeyValue";
+import { KmipStruct } from "kms/json/KmipStruct";
+import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm";
+import { KeyCompressionType } from "kms/types/KeyCompressionType";
+import { KeyFormatType } from "kms/types/KeyFormatType";
+import { KeyValue } from "kms/data_structures/KeyValue";
 import { KeyWrappingData } from "./KeyWrappingData";
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
+import { PropertyMetadata } from "kms/decorators/function";
+import { TtlvType } from "kms/serialize/TtlvType";
 
 export class KeyBlock implements KmipStruct {
   @PropertyMetadata({
@@ -48,19 +48,19 @@ export class KeyBlock implements KmipStruct {
   private _key_compression_type?: KeyCompressionType;
 
   constructor(
-    key_format_type: KeyFormatType,
-    key_value: KeyValue,
-    cryptographic_algorithm: CryptographicAlgorithm,
-    cryptographic_length: number,
-    key_compression_type?: KeyCompressionType,
-    key_wrapping_data?: KeyWrappingData
+    keyFormatType: KeyFormatType,
+    keyValue: KeyValue,
+    cryptographicAlgorithm: CryptographicAlgorithm,
+    cryptographicLength: number,
+    keyCompressionType?: KeyCompressionType,
+    keyWrappingData?: KeyWrappingData
   ) {
-    this._key_format_type = key_format_type;
-    this._key_compression_type = key_compression_type;
-    this._key_value = key_value;
-    this._cryptographic_algorithm = cryptographic_algorithm;
-    this._cryptographic_length = cryptographic_length;
-    this._key_wrapping_data = key_wrapping_data;
+    this._key_format_type = keyFormatType;
+    this._key_compression_type = keyCompressionType;
+    this._key_value = keyValue;
+    this._cryptographic_algorithm = cryptographicAlgorithm;
+    this._cryptographic_length = cryptographicLength;
+    this._key_wrapping_data = keyWrappingData;
   }
 
   public get key_format_type(): KeyFormatType {
@@ -131,26 +131,8 @@ export class KeyBlock implements KmipStruct {
 
   public toString(): string {
     return (
-      "{" +
-      " key_format_type='" +
-      this.key_format_type +
-      "'" +
-      ", key_compression_type='" +
-      this.key_compression_type +
-      "'" +
-      ", key_value='" +
-      this.key_value +
-      "'" +
-      ", cryptographic_algorithm='" +
-      this.cryptographic_algorithm +
-      "'" +
-      ", cryptographic_length='" +
-      this.cryptographic_length +
-      "'" +
-      ", key_wrapping_data='" +
-      this.key_wrapping_data +
-      "'" +
-      "}"
-    );
+      `{ key_format_type=${this.key_format_type}, key_compression_type=${this.key_compression_type ?? "N/A"}, key_value=${this.key_value}, cryptographic_algorithm=${this.cryptographic_algorithm}, cryptographic_length=${this.cryptographic_length}, key_wrapping_data=${this.key_wrapping_data}}`
+    )
+
   }
 }
