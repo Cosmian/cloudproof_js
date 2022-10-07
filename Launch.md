@@ -15,7 +15,7 @@ cat dump_db_demo.sql | docker exec -i db psql -U app_user -d app_db
 
 # II) Deploy project
 
-- Build new image from frontend with the Dockerfile example (put it one level above the cosmian_js_lib to run it correctly) `docker build -f Dockerfile -t frontend .`
+- Build new image from frontend with the Dockerfile example from root directory `docker build -f Dockerfile -t frontend .`
 
 - Save this image `docker save frontend > frontend.tar`
 

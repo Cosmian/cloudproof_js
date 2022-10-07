@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.2] - 2022-10-07
+### Added
+### Changed
+- Rename `cosmian_js_lib` to `cloudproof_js`
+### Fixed
+### Removed
+
+---
 ## [3.0.1] - 2022-10-05
 ### Added
 - Add MIT license
