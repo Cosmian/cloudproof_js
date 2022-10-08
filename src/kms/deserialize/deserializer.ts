@@ -69,37 +69,85 @@ export function fromTTLV<T extends Object>(
       throw new Error(msg);
     }
 
-    const ttlvValue: TtlvValue | undefined = childrenTTLV.find(
+    const childTTLV: TTLV | undefined = childrenTTLV.find(
       (value: TTLV) => value.tag === ttlvTag
-    )?.value;
-    if (typeof ttlvValue === "undefined") {
+    );
+    if (typeof childTTLV === "undefined") {
       // skip the properties which are not found
       // TODO check if mandatory
       continue;
     }
+
+    // determine property value
+    let propertyValue: any;
+    if (typeof childMetadata.from_ttlv !== "undefined") {
+      propertyValue = childMetadata.from_ttlv(
+        propertyName as string,
+        childTTLV
+      );
+    } else if (ttlvType === TtlvType.Structure) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.Choice) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.Enumeration) {
+      if (typeof childMetadata.isEnum !== "undefined") {
+        propertyValue = childMetadata.isEnum[childTTLV.value as string];
+      } else {
+        throw new Error(
+          `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+        );
+      }
+    } else if (ttlvType === TtlvType.ByteString) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.DateTimeExtended) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.Interval) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.DateTime) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.LongInteger) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.Integer) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.BigInteger) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+    } else if (ttlvType === TtlvType.TextString) {
+      throw new Error(
+        `Deserializer: automatic deserialization of ${ttlvType} not supported for ${propertyName}, tag: ${ttlvTag}`
+      );
+      // childValue = childValue
+    } else {
+      console.error("Deserializer: unknown TTLV type: " + ttlvType);
+      throw new Error("Deserializer: unknown TTLV type: " + ttlvType);
+    }
+
     console.log(
       `${ConstructibleType.name}.${propertyName}`,
       ttlvTag,
       ttlvType,
-      ttlvValue
+      childTTLV,
+      propertyValue
     );
 
-    if (ttlvType === TtlvType.Structure || ttlvType === TtlvType.Choice) {
-      // it is a structure, recursively process the child
-    } else if (ttlvType === TtlvType.Enumeration) {
-    } else if (ttlvType === TtlvType.ByteString) {
-    } else if (ttlvType === TtlvType.DateTimeExtended) {
-    } else if (ttlvType === TtlvType.Interval) {
-    } else if (ttlvType === TtlvType.DateTime) {
-    } else if (ttlvType === TtlvType.LongInteger) {
-    } else if (ttlvType === TtlvType.Integer) {
-    } else if (ttlvType === TtlvType.BigInteger) {
-    } else if (ttlvType === TtlvType.TextString) {
-      // childValue = childValue
-    } else {
-      console.error("Serializer: unknown TTLV type: " + ttlvType);
-      throw new Error("Serializer: unknown TTLV type: " + ttlvType);
-    }
+    Reflect.set(obj, propertyName, propertyValue);
 
     // skip processing a property which has an undefined value
     // let childValue = Reflect.get(metadata, propertyName)
@@ -108,7 +156,8 @@ export function fromTTLV<T extends Object>(
     // }
   }
 
-  console.log(metadata);
+  // console.log(metadata);
+  console.log("OBJ", obj);
 
   return obj;
 }

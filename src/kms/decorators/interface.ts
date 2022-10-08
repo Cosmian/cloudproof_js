@@ -4,7 +4,7 @@ import { TtlvType } from "../serialize/TtlvType";
 export interface PropertyMetadata {
   name: string;
   type: TtlvType;
-  isEnum?: Object;
+  isEnum?: any;
 
   from_ttlv?: (propertyName: string, ttlv: TTLV) => Object;
 }
