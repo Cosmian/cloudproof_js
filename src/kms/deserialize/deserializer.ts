@@ -1,7 +1,126 @@
 import { PropertyMetadata, METADATA_KEY } from "../decorators/interface";
 import { TTLV } from "../serialize/Ttlv";
 import { TtlvType } from "../serialize/TtlvType";
-import { JsonObject } from "./JSON";
+import { JsonObject, TtlvValue } from "./JSON";
+
+// eslint-disable-next-line @typescript-eslint/prefer-function-type
+function factory<T>(
+  ConstructibleType: { new (...parameters: any[]): T },
+  ...parameters: any[]
+): T {
+  // eval("new " + className + "();");
+  return new ConstructibleType(...parameters);
+}
+
+// eslint-disable-next-line @typescript-eslint/prefer-function-type
+export function fromTTLV<T extends Object>(
+  ConstructibleType: { new (...parameters: any[]): T },
+  jsonTTLV: string
+): T {
+  // parse the TTLV from JSON
+  const ttlv: TTLV = JSON.parse(jsonTTLV);
+  const value = ttlv.value;
+  if (typeof value === "undefined") {
+    const msg = `Deserializer: the passed Json value is not a TTLV`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+  if (value.constructor.name !== "Array") {
+    const msg = `Deserializer: the passed Json value is not a valid TTLV`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+  const childrenTTLV: TTLV[] = value as TTLV[];
+  console.log("TTLV", ttlv.value);
+
+  // build the recipient objecyt to deserialize to
+  let obj: T = factory<T>(ConstructibleType);
+  const metadata: { [propertyName: string]: PropertyMetadata } =
+    Reflect.getMetadata(METADATA_KEY, obj);
+  if (typeof metadata === "undefined") {
+    const msg = `Deserializer: metadata is not defined for ${ConstructibleType.name}`;
+    console.error(msg);
+    throw new Error(msg);
+  }
+
+  // console.log("PROPERTY", ConstructibleType.name, childName, childType) //,childValue)
+
+  for (const pn of Object.getOwnPropertyNames(metadata)) {
+    const propertyName = pn as keyof typeof metadata;
+
+    // recover the Metadata for that property
+    const childMetadata: PropertyMetadata = metadata[propertyName];
+    // if (typeof childMetadata === "undefined") {
+    //   console.error(
+    //     "Serializer: child Metadata is not defined for " +
+    //     propertyName +
+    //     " in ",
+    //     metadata
+    //   )
+    //   throw new Error(
+    //     "Serializer: child Metadata is not defined for " + propertyName
+    //   )
+    // }
+    const ttlvTag = childMetadata.name;
+    const ttlvType = TtlvType[childMetadata.type];
+    if (typeof ttlvType === "undefined") {
+      const msg = `Deserializer: unknown TTLV Type ${childMetadata.type} for tag ${ttlvTag}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+
+    const ttlvValue: TtlvValue | undefined = childrenTTLV.find(
+      (value: TTLV) => value.tag === ttlvTag
+    )?.value;
+    if (typeof ttlvValue === "undefined") {
+      // skip the properties which are not found
+      // TODO check if mandatory
+      continue;
+    }
+    console.log(
+      `${ConstructibleType.name}.${propertyName}`,
+      ttlvTag,
+      ttlvType,
+      ttlvValue
+    );
+
+    if (ttlvType === TtlvType.Structure || ttlvType === TtlvType.Choice) {
+      // it is a structure, recursively process the child
+    } else if (ttlvType === TtlvType.Enumeration) {
+    } else if (ttlvType === TtlvType.ByteString) {
+    } else if (ttlvType === TtlvType.DateTimeExtended) {
+    } else if (ttlvType === TtlvType.Interval) {
+    } else if (ttlvType === TtlvType.DateTime) {
+    } else if (ttlvType === TtlvType.LongInteger) {
+    } else if (ttlvType === TtlvType.Integer) {
+    } else if (ttlvType === TtlvType.BigInteger) {
+    } else if (ttlvType === TtlvType.TextString) {
+      // childValue = childValue
+    } else {
+      console.error("Serializer: unknown TTLV type: " + ttlvType);
+      throw new Error("Serializer: unknown TTLV type: " + ttlvType);
+    }
+
+    // skip processing a property which has an undefined value
+    // let childValue = Reflect.get(metadata, propertyName)
+    // if (typeof childValue === "undefined") {
+    //   continue
+    // }
+  }
+
+  console.log(metadata);
+
+  return obj;
+}
+
+function findTTLVvalue(tag: string, ttlvArray: TTLV[]): TtlvValue | undefined {
+  for (const ttlv of ttlvArray) {
+    if (ttlv.tag === tag) {
+      return ttlv.value;
+    }
+  }
+  return undefined;
+}
 
 /**
  *
@@ -50,7 +169,7 @@ export function build_object_from_json(object: JsonObject): Object {
   return value;
 }
 
-export class FromTTLV {
+export class FromTTLVClass {
   public static array<T extends Object>(
     propertyName: string,
     ttlv: TTLV,

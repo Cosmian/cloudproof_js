@@ -1,3 +1,11 @@
+import { PropertyMetadata } from "../decorators/function";
+import { FromTTLVClass } from "../deserialize/deserializer";
+import { KmipStruct } from "../json/KmipStruct";
+import { TTLV } from "../serialize/Ttlv";
+import { TtlvType } from "../serialize/TtlvType";
+import { Attributes } from "../types/Attributes";
+import { ObjectType } from "../types/ObjectType";
+
 /**
  * This operation requests the server to generate a new symmetric key or
  * generate Secret Data as a Managed Cryptographic Object. The request contains
@@ -7,15 +15,6 @@
  * the created object. The server SHALL copy the Unique Identifier returned by
  * this operation into the ID Placeholder variable.
  */
-
-import { PropertyMetadata } from "../decorators/function";
-import { FromTTLV } from "../deserialize/deserializer";
-import { KmipStruct } from "../json/KmipStruct";
-import { TTLV } from "../serialize/Ttlv";
-import { TtlvType } from "../serialize/TtlvType";
-import { Attributes } from "../types/Attributes";
-import { ObjectType } from "../types/ObjectType";
-
 export class Create implements KmipStruct {
   @PropertyMetadata({
     name: "ObjectType",
@@ -29,7 +28,7 @@ export class Create implements KmipStruct {
     name: "Attributes",
     type: TtlvType.Structure,
     // need to postfix the Object Type of the attributes
-    from_ttlv: FromTTLV.structure(Attributes, ObjectType.Certificate),
+    from_ttlv: FromTTLVClass.structure(Attributes, ObjectType.Certificate),
   })
   /// Specifies desired attributes to be associated with the new object.
   private _attributes: Attributes;
@@ -43,22 +42,20 @@ export class Create implements KmipStruct {
   /// @see ProtectionStorageMasks
   private _protection_storage_masks?: number;
 
-  this() {}
-
   constructor();
   constructor(
     objectType: ObjectType,
     attributes: Attributes,
-    protection_storage_masks?: number
+    protectionStorageMasks?: number
   );
   constructor(
     objectType?: ObjectType,
     attributes?: Attributes,
-    protection_storage_masks?: number
+    protectionStorageMasks?: number
   ) {
     this._objectType = objectType ?? ObjectType.SymmetricKey;
     this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey);
-    this._protection_storage_masks = protection_storage_masks;
+    this._protection_storage_masks = protectionStorageMasks;
   }
 
   public get objectType(): ObjectType {
@@ -86,7 +83,7 @@ export class Create implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof Create)) {
@@ -101,23 +98,11 @@ export class Create implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " objectType='" +
-      this._objectType +
-      "'" +
-      ", attributes='" +
-      this._attributes +
-      "'" +
-      ", protection_storage_masks='" +
-      this._protection_storage_masks +
-      "'" +
-      "}"
-    );
+    return JSON.stringify(this, null, 4)
   }
 
   public static from_ttlv(propertyName: string, ttlv: TTLV): Create {
-    const create: Create = FromTTLV.structure(Create)(propertyName, ttlv);
+    const create: Create = FromTTLVClass.structure(Create)(propertyName, ttlv);
     // postfix attribute type
     create._attributes.object_type = create._objectType;
     return create;

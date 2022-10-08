@@ -34,4 +34,8 @@ export class CryptographicDomainParameters {
   public static empty(): CryptographicDomainParameters {
     return new CryptographicDomainParameters();
   }
+
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
+  }
 }

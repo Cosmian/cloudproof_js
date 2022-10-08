@@ -8,7 +8,7 @@ import { ObjectType } from "./ObjectType";
 import { VendorAttribute } from "./VendorAttribute";
 import { TtlvType } from "../serialize/TtlvType";
 import { TTLV } from "../serialize/Ttlv";
-import { FromTTLV } from "../deserialize/deserializer";
+import { FromTTLVClass } from "../deserialize/deserializer";
 import { PropertyMetadata } from "../decorators/function";
 
 /**
@@ -66,9 +66,9 @@ export class Attributes implements KmipStruct {
       const elementMetadata = {
         name: "Link",
         type: TtlvType.Structure,
-        from_ttlv: FromTTLV.structure(Link),
+        from_ttlv: FromTTLVClass.structure(Link),
       };
-      return FromTTLV.array(propertyName, ttlv, elementMetadata);
+      return FromTTLVClass.array(propertyName, ttlv, elementMetadata);
     },
   })
   private _link?: Link[];
@@ -210,27 +210,27 @@ export class Attributes implements KmipStruct {
   private _key_format_type?: KeyFormatType;
 
   constructor(
-    object_type: ObjectType,
+    objectType: ObjectType,
     link?: Link[],
-    vendor_attributes?: VendorAttribute[],
-    activation_date?: number,
-    cryptographic_algorithm?: CryptographicAlgorithm,
-    cryptographic_length?: number,
-    cryptographic_domain_parameters?: CryptographicDomainParameters,
-    cryptographic_parameters?: CryptographicParameters,
-    cryptographic_usage_mask?: number,
-    key_format_type?: KeyFormatType
+    vendorAttributes?: VendorAttribute[],
+    activationDate?: number,
+    cryptographicAlgorithm?: CryptographicAlgorithm,
+    cryptographicLength?: number,
+    cryptographicDomainParameters?: CryptographicDomainParameters,
+    cryptographicParameters?: CryptographicParameters,
+    cryptographicUsageMask?: number,
+    keyFormatType?: KeyFormatType
   ) {
-    this._object_type = object_type;
-    this._activation_date = activation_date;
-    this._cryptographic_algorithm = cryptographic_algorithm;
-    this._cryptographic_length = cryptographic_length;
-    this._cryptographic_domain_parameters = cryptographic_domain_parameters;
-    this._cryptographic_parameters = cryptographic_parameters;
-    this._cryptographic_usage_mask = cryptographic_usage_mask;
-    this._key_format_type = key_format_type;
+    this._object_type = objectType;
+    this._activation_date = activationDate;
+    this._cryptographic_algorithm = cryptographicAlgorithm;
+    this._cryptographic_length = cryptographicLength;
+    this._cryptographic_domain_parameters = cryptographicDomainParameters;
+    this._cryptographic_parameters = cryptographicParameters;
+    this._cryptographic_usage_mask = cryptographicUsageMask;
+    this._key_format_type = keyFormatType;
     this._link = link;
-    this._vendor_attributes = vendor_attributes;
+    this._vendor_attributes = vendorAttributes;
   }
 
   public get link(): Link[] | undefined {
@@ -319,5 +319,9 @@ export class Attributes implements KmipStruct {
 
   public set object_type(value: ObjectType) {
     this._object_type = value;
+  }
+
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
   }
 }

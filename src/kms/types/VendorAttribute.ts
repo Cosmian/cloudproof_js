@@ -44,18 +44,18 @@ export class VendorAttribute implements KmipStruct {
 
   /**
    *
-   * @param vendor_identification
-   * @param attribute_name
-   * @param attribute_value
+   * @param vendorIdentification
+   * @param attributeName
+   * @param attributeValue
    */
   constructor(
-    vendor_identification: string,
-    attribute_name: string,
-    attribute_value: Uint8Array
+    vendorIdentification: string,
+    attributeName: string,
+    attributeValue: Uint8Array
   ) {
-    this._vendor_identification = vendor_identification;
-    this._attribute_name = attribute_name;
-    this._attribute_value = attribute_value;
+    this._vendor_identification = vendorIdentification;
+    this._attribute_name = attributeName;
+    this._attribute_value = attributeValue;
   }
 
   public get vendor_identification(): string {
@@ -83,7 +83,7 @@ export class VendorAttribute implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof VendorAttribute)) {
@@ -98,18 +98,6 @@ export class VendorAttribute implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " vendor_identification='" +
-      this.vendor_identification +
-      "'" +
-      ", attribute_name='" +
-      this.attribute_name +
-      "'" +
-      ", attribute_value='" +
-      this.attribute_value +
-      "'" +
-      "}"
-    );
+    return JSON.stringify(this, null, 4)
   }
 }

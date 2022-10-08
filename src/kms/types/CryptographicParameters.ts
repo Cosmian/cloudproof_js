@@ -158,4 +158,8 @@ export class CryptographicParameters {
   public static empty(): CryptographicParameters {
     return new CryptographicParameters();
   }
+
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
+  }
 }

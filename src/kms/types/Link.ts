@@ -1,5 +1,5 @@
 import { PropertyMetadata } from "../decorators/function";
-import { FromTTLV } from "../deserialize/deserializer";
+import { FromTTLVClass } from "../deserialize/deserializer";
 import { KmipStruct } from "../json/KmipStruct";
 import { TtlvType } from "../serialize/TtlvType";
 import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier";
@@ -43,20 +43,20 @@ export class Link implements KmipStruct {
   @PropertyMetadata({
     name: "LinkedObjectIdentifier",
     type: TtlvType.Choice,
-    from_ttlv: FromTTLV.choice(LinkedObjectIdentifier),
+    from_ttlv: FromTTLVClass.choice(LinkedObjectIdentifier),
   })
   private readonly linked_object_identifier: LinkedObjectIdentifier;
 
   constructor(
-    link_type: LinkType,
-    linked_object_identifier: LinkedObjectIdentifier
+    linkType: LinkType,
+    linkedObjectIdentifier: LinkedObjectIdentifier
   ) {
-    this.link_type = link_type;
-    this.linked_object_identifier = linked_object_identifier;
+    this.link_type = linkType;
+    this.linked_object_identifier = linkedObjectIdentifier;
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof Link)) {
@@ -67,5 +67,9 @@ export class Link implements KmipStruct {
       this.link_type === link.link_type &&
       this.linked_object_identifier === link.linked_object_identifier
     );
+  }
+
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
   }
 }

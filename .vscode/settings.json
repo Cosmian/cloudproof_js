@@ -3,6 +3,7 @@
         "deserialization",
         "Deserialization",
         "Kmip",
+        "ttlv",
         "Ttlv"
     ],
     "eslint.format.enable": true

@@ -64,7 +64,7 @@ export class LinkedObjectIdentifier {
   }
 
   public equals(o: object): boolean {
-    if (o == this) {
+    if (o === this) {
       return true;
     }
     if (!(o instanceof LinkedObjectIdentifier)) {
@@ -79,8 +79,6 @@ export class LinkedObjectIdentifier {
   }
 
   public toString(): string {
-    return (
-      "{" + " linked_object_identifier='" + (this.str, this.num, this.uid) + "}"
-    );
+    return JSON.stringify(this, null, 4)
   }
 }
