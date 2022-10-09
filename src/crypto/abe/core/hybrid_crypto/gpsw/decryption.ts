@@ -6,10 +6,10 @@ import {
   webassembly_decrypt_hybrid_header_using_cache,
   webassembly_destroy_decryption_cache,
   webassembly_get_encrypted_header_size,
-} from "abe_gpsw";
-import { logger } from "utils/logger";
+} from "cosmian_abe_gpsw";
 import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header";
 import { HybridDecryption } from "crypto/abe/interfaces/decryption";
+import { logger } from "utils/logger";
 
 /**
  * This class exposes the ABE primitives.

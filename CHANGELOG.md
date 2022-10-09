@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 ### Changed
 - Rename `cosmian_js_lib` to `cloudproof_js`
+- Rename WASM libraries to `cosmian_*`
 ### Fixed
 ### Removed
 

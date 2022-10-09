@@ -7,7 +7,7 @@
     "Emmanuel Coste <emmanuel.coste@cosmian.com>"
   ],
   "description": "Symmetric Searchable Encryption",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",

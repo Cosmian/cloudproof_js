@@ -20,9 +20,9 @@
     },
     "dependencies": {
         "@types/uuid": "^8.3.4",
-        "abe_gpsw": "^2.0.1",
-        "cosmian_findex": "^0.7.0",
-        "cover_crypt": "^6.0.1",
+        "cosmian_abe_gpsw": "^2.0.2",
+        "cosmian_cover_crypt": "^6.0.5",
+        "cosmian_findex": "^0.7.1",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
         "process": "^0.11.10",

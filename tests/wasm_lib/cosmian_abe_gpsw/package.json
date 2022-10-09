@@ -1,5 +1,5 @@
 {
-  "name": "abe_gpsw",
+  "name": "cosmian_abe_gpsw",
   "collaborators": [
     "Julien Doget <julien.doget@cosmian.com>",
     "Bruno Grieder <bruno.grieder@cosmian.com>",
@@ -7,17 +7,17 @@
     "Thibaud Genty <thibaud.genty@cosmian.com>"
   ],
   "description": "ABE GPSW scheme for BLS pairing implemented in rust",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Cosmian/abe_gpsw"
+    "url": "https://github.com/Cosmian/cosmian_abe_gpsw"
   },
   "files": [
-    "abe_gpsw_bg.wasm",
-    "abe_gpsw.js",
-    "abe_gpsw.d.ts"
+    "cosmian_abe_gpsw_bg.wasm",
+    "cosmian_abe_gpsw.js",
+    "cosmian_abe_gpsw.d.ts"
   ],
-  "main": "abe_gpsw.js",
-  "types": "abe_gpsw.d.ts"
+  "main": "cosmian_abe_gpsw.js",
+  "types": "cosmian_abe_gpsw.d.ts"
 }
