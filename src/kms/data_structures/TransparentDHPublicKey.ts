@@ -1,101 +1,101 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
 
 export class TransparentDHPublicKey implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "P",
     type: TtlvType.BigInteger,
   })
-  private _p: BigInt;
+  private _p: BigInt
 
-  @PropertyMetadata({
+  @metadata({
     name: "Q",
     type: TtlvType.BigInteger,
   })
-  private _q?: BigInt;
+  private _q?: BigInt
 
-  @PropertyMetadata({
+  @metadata({
     name: "G",
     type: TtlvType.BigInteger,
   })
-  private _g: BigInt;
+  private _g: BigInt
 
-  @PropertyMetadata({
+  @metadata({
     name: "J",
     type: TtlvType.BigInteger,
   })
-  private _j?: BigInt;
+  private _j?: BigInt
 
-  @PropertyMetadata({
+  @metadata({
     name: "Y",
     type: TtlvType.BigInteger,
   })
-  private _y: BigInt;
+  private _y: BigInt
 
   public get p(): BigInt {
-    return this._p;
+    return this._p
   }
 
   public set p(value: BigInt) {
-    this._p = value;
+    this._p = value
   }
 
   public get q(): BigInt | undefined {
-    return this._q;
+    return this._q
   }
 
   public set q(value: BigInt | undefined) {
-    this._q = value;
+    this._q = value
   }
 
   public get g(): BigInt {
-    return this._g;
+    return this._g
   }
 
   public set g(value: BigInt) {
-    this._g = value;
+    this._g = value
   }
 
   public get j(): BigInt | undefined {
-    return this._j;
+    return this._j
   }
 
   public set j(value: BigInt | undefined) {
-    this._j = value;
+    this._j = value
   }
 
   public get y(): BigInt {
-    return this._y;
+    return this._y
   }
 
   public set y(value: BigInt) {
-    this._y = value;
+    this._y = value
   }
 
   constructor(p: BigInt, g: BigInt, y: BigInt, q?: BigInt, j?: BigInt) {
-    this._p = p;
-    this._q = q;
-    this._g = g;
-    this._j = j;
-    this._y = y;
+    this._p = p
+    this._q = q
+    this._g = g
+    this._j = j
+    this._y = y
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof TransparentDHPublicKey)) {
-      return false;
+      return false
     }
-    const transparentDHPublicKey = o;
+    const transparentDHPublicKey = o
     return (
       this.p === transparentDHPublicKey.p &&
       this.q === transparentDHPublicKey.q &&
       this.g === transparentDHPublicKey.g &&
       this.j === transparentDHPublicKey.j &&
       this.y === transparentDHPublicKey.y
-    );
+    )
   }
 
   public toString(): string {
@@ -117,6 +117,6 @@ export class TransparentDHPublicKey implements KmipStruct {
       this.y +
       "'" +
       "}"
-    );
+    )
   }
 }

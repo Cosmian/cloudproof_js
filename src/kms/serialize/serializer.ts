@@ -30,12 +30,7 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
   // is always a dictionary or an array
 
   if (typeof value !== "object") {
-    throw new Error(
-      "Unknown type '" +
-      typeof value +
-      "' for value: " +
-      JSON.stringify(value, null, 2)
-    )
+    throw new Error(`Serializer: unknown type ${typeof value} for value: ${JSON.stringify(value, null, 2)}`)
   }
 
   if (value.constructor.name === "Array") {
@@ -76,15 +71,15 @@ function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
   // process all object properties as new TTLVs
   const children: TTLV[] = parseChildren(value)
 
-  const name: string = Reflect.get(metadata, "name")
-  const type: TtlvType = Reflect.get(metadata, "type")
+  const name: string = metadata.name
+  const type: TtlvType = metadata.type
 
   // handle the special case of Choices: there is only
   // one child which name is identical to that of the parent
   // We need to flatten that to the type of the child
   // Exemple: LinkedObjectIdentifier
   if (type === TtlvType.Choice) {
-    console.log("FOUND A CHOICE ", children)
+    // console.log("FOUND A CHOICE ", children)
     return children[0]
   }
 
@@ -125,10 +120,10 @@ function parseChildren(value: Object): TTLV[] {
     }
     const childName = childMetadata.name
     const childType = childMetadata.type
-    console.log("PROPERTY", propertyName, childName, childType,childValue)
+    console.log("PROPERTY", propertyName, childName, childType, childValue)
 
 
-    if (childType === TtlvType.Structure || childType === TtlvType.Choice) {
+    if (childType === TtlvType.Structure || childType === TtlvType.StructuresArray || childType === TtlvType.Choice) {
       // it is a structure, recursively process the child
       const child = _toTTLV(childValue, childMetadata)
       children.push(child)

@@ -1,8 +1,8 @@
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
 
 export class CryptographicUsageMask {
-  @PropertyMetadata({
+  @metadata({
     name: "Sign",
     type: TtlvType.Integer,
   })
@@ -11,7 +11,7 @@ export class CryptographicUsageMask {
    */
   public Sign: number = 0x0000_0001;
 
-  @PropertyMetadata({
+  @metadata({
     name: "Verify",
     type: TtlvType.Integer,
   })
@@ -21,7 +21,7 @@ export class CryptographicUsageMask {
    */
   public Verify: number = 0x0000_0002;
 
-  @PropertyMetadata({
+  @metadata({
     name: "Encrypt",
     type: TtlvType.Integer,
   })
@@ -31,7 +31,7 @@ export class CryptographicUsageMask {
    */
   public Encrypt: number = 0x0000_0004;
 
-  @PropertyMetadata({
+  @metadata({
     name: "Decrypt",
     type: TtlvType.Integer,
   })
@@ -41,7 +41,7 @@ export class CryptographicUsageMask {
    */
   public Decrypt: number = 0x0000_0008;
 
-  @PropertyMetadata({
+  @metadata({
     name: "WrapKey",
     type: TtlvType.Integer,
   })
@@ -52,7 +52,7 @@ export class CryptographicUsageMask {
    */
   public Wrap_Key: number = 0x0000_0010;
 
-  @PropertyMetadata({
+  @metadata({
     name: "UnwrapKey",
     type: TtlvType.Integer,
   })
@@ -63,7 +63,7 @@ export class CryptographicUsageMask {
    */
   public Unwrap_Key: number = 0x0000_0020;
 
-  @PropertyMetadata({
+  @metadata({
     name: "MACGenerate",
     type: TtlvType.Integer,
   })
@@ -72,7 +72,7 @@ export class CryptographicUsageMask {
    */
   public MAC_Generate: number = 0x0000_0080;
 
-  @PropertyMetadata({
+  @metadata({
     name: "MACVerify",
     type: TtlvType.Integer,
   })
@@ -81,7 +81,7 @@ export class CryptographicUsageMask {
    */
   public MAC_Verify: number = 0x0000_0100;
 
-  @PropertyMetadata({
+  @metadata({
     name: "DeriveKey",
     type: TtlvType.Integer,
   })
@@ -91,7 +91,7 @@ export class CryptographicUsageMask {
    */
   public Derive_Key: number = 0x0000_0200;
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyAgreement",
     type: TtlvType.Integer,
   })
@@ -100,7 +100,7 @@ export class CryptographicUsageMask {
    */
   public Key_Agreement: number = 0x0000_0800;
 
-  @PropertyMetadata({
+  @metadata({
     name: "CertificateSign",
     type: TtlvType.Integer,
   })
@@ -109,7 +109,7 @@ export class CryptographicUsageMask {
    */
   public Certificate_Sign: number = 0x0000_1000;
 
-  @PropertyMetadata({
+  @metadata({
     name: "CRLSign",
     type: TtlvType.Integer,
   })
@@ -118,7 +118,7 @@ export class CryptographicUsageMask {
    */
   public CRL_Sign: number = 0x0000_2000;
 
-  @PropertyMetadata({
+  @metadata({
     name: "Authenticate",
     type: TtlvType.Integer,
   })
@@ -127,7 +127,7 @@ export class CryptographicUsageMask {
    */
   public Authenticate: number = 0x0010_0000;
 
-  @PropertyMetadata({
+  @metadata({
     name: "Unrestricted",
     type: TtlvType.Integer,
   })
@@ -136,7 +136,7 @@ export class CryptographicUsageMask {
    */
   public Unrestricted: number = 0x0020_0000;
 
-  @PropertyMetadata({
+  @metadata({
     name: "FPEEncrypt",
     type: TtlvType.Integer,
   })
@@ -145,7 +145,7 @@ export class CryptographicUsageMask {
    */
   public FPE_Encrypt: number = 0x0040_0000;
 
-  @PropertyMetadata({
+  @metadata({
     name: "FPEDecrypt",
     type: TtlvType.Integer,
   })

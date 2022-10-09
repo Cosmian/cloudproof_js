@@ -1,79 +1,79 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { KmipObject } from "../objects/KmipObject";
-import { TtlvType } from "../serialize/TtlvType";
-import { ObjectType } from "../types/ObjectType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { KmipObject } from "../objects/KmipObject"
+import { TtlvType } from "../serialize/TtlvType"
+import { ObjectType } from "../types/ObjectType"
 
 export class GetResponse implements KmipStruct {
   // Determines the type of object being retrieved.
-  @PropertyMetadata({
+  @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType,
+    classOrEnum: ObjectType,
   })
-  private _objectType: ObjectType;
+  private _objectType: ObjectType
 
   // The Unique Identifier of the object to be retrieved
-  @PropertyMetadata({
+  @metadata({
     name: "Uniqueidentifier",
     type: TtlvType.TextString,
   })
-  private _uniqueIdentifier: string;
+  private _uniqueIdentifier: string
 
   // The object being retrieved.
-  @PropertyMetadata({
+  @metadata({
     name: "AuthenticatedEncryptionAdditionalData",
     type: TtlvType.ByteString,
   })
-  private _object: KmipObject;
+  private _object: KmipObject
 
   constructor(
     objectType: ObjectType,
     uniqueIdentifier: string,
     object: KmipObject
   ) {
-    this._objectType = objectType;
-    this._uniqueIdentifier = uniqueIdentifier;
-    this._object = object;
+    this._objectType = objectType
+    this._uniqueIdentifier = uniqueIdentifier
+    this._object = object
   }
 
   public get objectType(): ObjectType {
-    return this._objectType;
+    return this._objectType
   }
 
   public set objectType(value: ObjectType) {
-    this._objectType = value;
+    this._objectType = value
   }
 
   public get uniqueIdentifier(): string {
-    return this._uniqueIdentifier;
+    return this._uniqueIdentifier
   }
 
   public set uniqueIdentifier(value: string) {
-    this._uniqueIdentifier = value;
+    this._uniqueIdentifier = value
   }
 
   public get object(): KmipObject {
-    return this._object;
+    return this._object
   }
 
   public set object(value: KmipObject) {
-    this._object = value;
+    this._object = value
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof GetResponse)) {
-      return false;
+      return false
     }
-    const getResponse = o;
+    const getResponse = o
     return (
       this._objectType === getResponse.objectType &&
       this._uniqueIdentifier === getResponse.uniqueIdentifier &&
       this._object === getResponse.object
-    );
+    )
   }
 
   public toString(): string {
@@ -89,6 +89,6 @@ export class GetResponse implements KmipStruct {
       this._object +
       "'" +
       "}"
-    );
+    )
   }
 }

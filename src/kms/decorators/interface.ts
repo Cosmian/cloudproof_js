@@ -1,12 +1,12 @@
-import { TTLV } from "../serialize/Ttlv";
-import { TtlvType } from "../serialize/TtlvType";
+import { TTLV } from "../serialize/Ttlv"
+import { TtlvType } from "../serialize/TtlvType"
 
 export interface PropertyMetadata {
-  name: string;
-  type: TtlvType;
-  isEnum?: any;
+  name: string
+  type: TtlvType
+  classOrEnum?: any
 
-  from_ttlv?: (propertyName: string, ttlv: TTLV) => Object;
+  fromTtlv?: (propertyName: string, ttlv: TTLV) => Object
 }
 
-export const METADATA_KEY = Symbol("propertyMetadata");
+export const METADATA_KEY = Symbol("propertyMetadata")

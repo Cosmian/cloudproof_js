@@ -1,20 +1,20 @@
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
 
 export class StorageStatusMask {
-  @PropertyMetadata({
+  @metadata({
     name: "OnlineStorage",
     type: TtlvType.Integer,
   })
   public OnlineStorage: number = 0x0000_0001;
 
-  @PropertyMetadata({
+  @metadata({
     name: "ArchivalStorage",
     type: TtlvType.Integer,
   })
   public ArchivalStorage: number = 0x0000_0002;
 
-  @PropertyMetadata({
+  @metadata({
     name: "DestroyedStorage",
     type: TtlvType.Integer,
   })

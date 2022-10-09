@@ -1,7 +1,11 @@
-export interface TttlvEnum {}
-
 export enum TtlvType {
   Structure = "Structure",
+
+  /**
+   * An array of Structures
+   */
+  StructuresArray = "StructuresArray",
+
   Integer = "Integer",
   LongInteger = "LongInteger",
   BigInteger = "BigInteger",

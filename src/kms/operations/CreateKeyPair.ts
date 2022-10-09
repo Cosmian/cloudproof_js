@@ -1,7 +1,7 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
-import { Attributes } from "../types/Attributes";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
+import { Attributes } from "../types/Attributes"
 
 /**
  * This operation requests the server to generate a new public/private key pair
@@ -20,7 +20,7 @@ import { Attributes } from "../types/Attributes";
  * Identifier of the Private Key
  */
 export class CreateKeyPair implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "CommonAttributes",
     type: TtlvType.Structure,
   })
@@ -28,17 +28,17 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies desired attributes to be associated with the new object that apply
    * to both the Private and Public Key Objects
    */
-  private _commonAttributes?: Attributes;
+  private _commonAttributes?: Attributes
 
   public get commonAttributes(): Attributes | undefined {
-    return this._commonAttributes;
+    return this._commonAttributes
   }
 
   public set commonAttributes(value: Attributes | undefined) {
-    this._commonAttributes = value;
+    this._commonAttributes = value
   }
 
-  @PropertyMetadata({
+  @metadata({
     name: "PrivateKeyAttributes",
     type: TtlvType.Structure,
   })
@@ -46,17 +46,17 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies the attributes to be associated with the new object that apply to
    * the Private Key Object.
    */
-  private _privateKeyAttributes?: Attributes;
+  private _privateKeyAttributes?: Attributes
 
   public get privateKeyAttributes(): Attributes | undefined {
-    return this._privateKeyAttributes;
+    return this._privateKeyAttributes
   }
 
   public set privateKeyAttributes(value: Attributes | undefined) {
-    this._privateKeyAttributes = value;
+    this._privateKeyAttributes = value
   }
 
-  @PropertyMetadata({
+  @metadata({
     name: "PublicKeyAttributes",
     type: TtlvType.Structure,
   })
@@ -64,17 +64,17 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies the attributes to be associated with the new object that apply to
    * the Public Key Object.
    */
-  private _publicKeyAttributes?: Attributes;
+  private _publicKeyAttributes?: Attributes
 
   public get publicKeyAttributes(): Attributes | undefined {
-    return this._publicKeyAttributes;
+    return this._publicKeyAttributes
   }
 
   public set publicKeyAttributes(value: Attributes | undefined) {
-    this._publicKeyAttributes = value;
+    this._publicKeyAttributes = value
   }
 
-  @PropertyMetadata({
+  @metadata({
     name: "CommonProtectionStorageMasks",
     type: TtlvType.Integer,
   })
@@ -82,17 +82,17 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies all ProtectionStorage Mask selections that are permissible for the
    * new Private Key and Public Key objects.
    */
-  private _commonProtectionStorageMasks?: number;
+  private _commonProtectionStorageMasks?: number
 
   public get commonProtectionStorageMasks(): number | undefined {
-    return this._commonProtectionStorageMasks;
+    return this._commonProtectionStorageMasks
   }
 
   public set commonProtectionStorageMasks(value: number | undefined) {
-    this._commonProtectionStorageMasks = value;
+    this._commonProtectionStorageMasks = value
   }
 
-  @PropertyMetadata({
+  @metadata({
     name: "PrivateProtectionStorageMasks",
     type: TtlvType.Integer,
   })
@@ -100,17 +100,17 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies all ProtectionStorage Mask selections that are permissible for the
    * new Private Key object.
    */
-  private _privateProtectionStorageMasks?: number;
+  private _privateProtectionStorageMasks?: number
 
   public get privateProtectionStorageMasks(): number | undefined {
-    return this._privateProtectionStorageMasks;
+    return this._privateProtectionStorageMasks
   }
 
   public set privateProtectionStorageMasks(value: number | undefined) {
-    this._privateProtectionStorageMasks = value;
+    this._privateProtectionStorageMasks = value
   }
 
-  @PropertyMetadata({
+  @metadata({
     name: "PublicProtectionStorageMasks",
     type: TtlvType.Integer,
   })
@@ -118,14 +118,14 @@ export class CreateKeyPair implements KmipStruct {
    * Specifies all ProtectionStorage Mask selections that are permissible for the
    * new PublicKey object.
    */
-  private _publicProtectionStorageMasks?: number;
+  private _publicProtectionStorageMasks?: number
 
   public get publicProtectionStorageMasks(): number | undefined {
-    return this._publicProtectionStorageMasks;
+    return this._publicProtectionStorageMasks
   }
 
   public set publicProtectionStorageMasks(value: number | undefined) {
-    this._publicProtectionStorageMasks = value;
+    this._publicProtectionStorageMasks = value
   }
 
   constructor(
@@ -136,33 +136,33 @@ export class CreateKeyPair implements KmipStruct {
     privateProtectionStorageMasks?: number,
     publicProtectionStorageMasks?: number
   ) {
-    this._commonAttributes = commonAttributes;
-    this._privateKeyAttributes = privateKeyAttributes;
-    this._publicKeyAttributes = publicKeyAttributes;
-    this._commonProtectionStorageMasks = commonProtectionStorageMasks;
-    this._privateProtectionStorageMasks = privateProtectionStorageMasks;
-    this._publicProtectionStorageMasks = publicProtectionStorageMasks;
+    this._commonAttributes = commonAttributes
+    this._privateKeyAttributes = privateKeyAttributes
+    this._publicKeyAttributes = publicKeyAttributes
+    this._commonProtectionStorageMasks = commonProtectionStorageMasks
+    this._privateProtectionStorageMasks = privateProtectionStorageMasks
+    this._publicProtectionStorageMasks = publicProtectionStorageMasks
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof CreateKeyPair)) {
-      return false;
+      return false
     }
-    const createKeyPair = o;
+    const createKeyPair = o
     return (
       this._commonAttributes === createKeyPair.commonAttributes &&
       this._privateKeyAttributes === createKeyPair.privateKeyAttributes &&
       this._publicKeyAttributes === createKeyPair.publicKeyAttributes &&
       this._commonProtectionStorageMasks ===
-        createKeyPair.commonProtectionStorageMasks &&
+      createKeyPair.commonProtectionStorageMasks &&
       this._privateProtectionStorageMasks ===
-        createKeyPair.privateProtectionStorageMasks &&
+      createKeyPair.privateProtectionStorageMasks &&
       this._publicProtectionStorageMasks ===
-        createKeyPair.publicProtectionStorageMasks
-    );
+      createKeyPair.publicProtectionStorageMasks
+    )
   }
 
   public toString(): string {
@@ -187,6 +187,6 @@ export class CreateKeyPair implements KmipStruct {
       this._publicProtectionStorageMasks +
       "'" +
       "}"
-    );
+    )
   }
 }

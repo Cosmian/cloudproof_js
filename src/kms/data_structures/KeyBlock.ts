@@ -1,51 +1,51 @@
-import { KmipStruct } from "kms/json/KmipStruct";
-import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm";
-import { KeyCompressionType } from "kms/types/KeyCompressionType";
-import { KeyFormatType } from "kms/types/KeyFormatType";
-import { KeyValue } from "kms/data_structures/KeyValue";
-import { KeyWrappingData } from "./KeyWrappingData";
-import { PropertyMetadata } from "kms/decorators/function";
-import { TtlvType } from "kms/serialize/TtlvType";
+import { KmipStruct } from "kms/json/KmipStruct"
+import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
+import { KeyCompressionType } from "kms/types/KeyCompressionType"
+import { KeyFormatType } from "kms/types/KeyFormatType"
+import { KeyValue } from "kms/data_structures/KeyValue"
+import { KeyWrappingData } from "./KeyWrappingData"
+import { metadata } from "kms/decorators/function"
+import { TtlvType } from "kms/serialize/TtlvType"
 
 export class KeyBlock implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "KeyFormatType",
     type: TtlvType.Enumeration,
-    isEnum: KeyFormatType,
+    classOrEnum: KeyFormatType,
   })
-  private _key_format_type: KeyFormatType;
+  private _key_format_type: KeyFormatType
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyValue",
     type: TtlvType.Structure,
   })
-  private _key_value: KeyValue;
+  private _key_value: KeyValue
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicAlgorithm",
     type: TtlvType.Enumeration,
-    isEnum: CryptographicAlgorithm,
+    classOrEnum: CryptographicAlgorithm,
   })
-  private _cryptographic_algorithm: CryptographicAlgorithm;
+  private _cryptographic_algorithm: CryptographicAlgorithm
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicLength",
     type: TtlvType.Integer,
   })
-  private _cryptographic_length: number;
+  private _cryptographic_length: number
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyWrappingData",
     type: TtlvType.Structure,
   })
-  private _key_wrapping_data?: KeyWrappingData;
+  private _key_wrapping_data?: KeyWrappingData
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyCompressionType",
     type: TtlvType.Enumeration,
-    isEnum: KeyCompressionType,
+    classOrEnum: KeyCompressionType,
   })
-  private _key_compression_type?: KeyCompressionType;
+  private _key_compression_type?: KeyCompressionType
 
   constructor(
     keyFormatType: KeyFormatType,
@@ -55,70 +55,70 @@ export class KeyBlock implements KmipStruct {
     keyCompressionType?: KeyCompressionType,
     keyWrappingData?: KeyWrappingData
   ) {
-    this._key_format_type = keyFormatType;
-    this._key_compression_type = keyCompressionType;
-    this._key_value = keyValue;
-    this._cryptographic_algorithm = cryptographicAlgorithm;
-    this._cryptographic_length = cryptographicLength;
-    this._key_wrapping_data = keyWrappingData;
+    this._key_format_type = keyFormatType
+    this._key_compression_type = keyCompressionType
+    this._key_value = keyValue
+    this._cryptographic_algorithm = cryptographicAlgorithm
+    this._cryptographic_length = cryptographicLength
+    this._key_wrapping_data = keyWrappingData
   }
 
   public get key_format_type(): KeyFormatType {
-    return this._key_format_type;
+    return this._key_format_type
   }
 
   public set key_format_type(value: KeyFormatType) {
-    this._key_format_type = value;
+    this._key_format_type = value
   }
 
   public get key_compression_type(): KeyCompressionType | undefined {
-    return this._key_compression_type;
+    return this._key_compression_type
   }
 
   public set key_compression_type(value: KeyCompressionType | undefined) {
-    this._key_compression_type = value;
+    this._key_compression_type = value
   }
 
   public get key_value(): KeyValue {
-    return this._key_value;
+    return this._key_value
   }
 
   public set key_value(value: KeyValue) {
-    this._key_value = value;
+    this._key_value = value
   }
 
   public get cryptographic_algorithm(): CryptographicAlgorithm {
-    return this._cryptographic_algorithm;
+    return this._cryptographic_algorithm
   }
 
   public set cryptographic_algorithm(value: CryptographicAlgorithm) {
-    this._cryptographic_algorithm = value;
+    this._cryptographic_algorithm = value
   }
 
   public get cryptographic_length(): number {
-    return this._cryptographic_length;
+    return this._cryptographic_length
   }
 
   public set cryptographic_length(value: number) {
-    this._cryptographic_length = value;
+    this._cryptographic_length = value
   }
 
   public get key_wrapping_data(): KeyWrappingData | undefined {
-    return this._key_wrapping_data;
+    return this._key_wrapping_data
   }
 
   public set key_wrapping_data(value: KeyWrappingData | undefined) {
-    this._key_wrapping_data = value;
+    this._key_wrapping_data = value
   }
 
   public equals(o: any): boolean {
     if (o === this) {
-      return true;
+      return true
     }
     if (!(o instanceof KeyBlock)) {
-      return false;
+      return false
     }
-    const keyBlock = o;
+    const keyBlock = o
     return (
       this.key_format_type === keyBlock.key_format_type &&
       this.key_compression_type === keyBlock.key_compression_type &&
@@ -126,7 +126,7 @@ export class KeyBlock implements KmipStruct {
       this.cryptographic_algorithm === keyBlock.cryptographic_algorithm &&
       this.cryptographic_length === keyBlock.cryptographic_length &&
       this.key_wrapping_data === keyBlock.key_wrapping_data
-    );
+    )
   }
 
   public toString(): string {

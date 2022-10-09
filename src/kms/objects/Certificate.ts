@@ -1,7 +1,7 @@
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
-import { CertificateType } from "../types/CertificateType";
-import { KmipObject } from "./KmipObject";
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
+import { CertificateType } from "../types/CertificateType"
+import { KmipObject } from "./KmipObject"
 
 /**
  * A Managed Cryptographic Object that is a digital certificate. It is a
@@ -10,56 +10,56 @@ import { KmipObject } from "./KmipObject";
  * String Yes
  */
 export class Certificate extends KmipObject {
-  @PropertyMetadata({
+  @metadata({
     name: "CertificateType",
     type: TtlvType.Enumeration,
-    isEnum: CertificateType,
+    classOrEnum: CertificateType,
   })
-  private _certificateType: CertificateType;
+  private _certificateType: CertificateType
 
-  @PropertyMetadata({
+  @metadata({
     name: "CertificateValue",
     type: TtlvType.Integer,
   })
-  private _certificateValue: number[];
+  private _certificateValue: number[]
 
   public constructor(
     certificateType: CertificateType,
     certificateValue: number[]
   ) {
-    super();
-    this._certificateType = certificateType;
-    this._certificateValue = certificateValue;
+    super()
+    this._certificateType = certificateType
+    this._certificateValue = certificateValue
   }
 
   public get certificateType(): CertificateType {
-    return this._certificateType;
+    return this._certificateType
   }
 
   public set certificateType(value: CertificateType) {
-    this._certificateType = value;
+    this._certificateType = value
   }
 
   public get certificateValue(): number[] {
-    return this._certificateValue;
+    return this._certificateValue
   }
 
   public set certificateValue(value: number[]) {
-    this._certificateValue = value;
+    this._certificateValue = value
   }
 
   public equals(o: Object): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof Certificate)) {
-      return false;
+      return false
     }
-    const certificate = o;
+    const certificate = o
     return (
       this.certificateType === certificate.certificateType &&
       this.certificateValue === certificate.certificateValue
-    );
+    )
   }
 
   public toString(): string {
@@ -72,6 +72,6 @@ export class Certificate extends KmipObject {
       this.certificateValue +
       "'" +
       "}"
-    );
+    )
   }
 }

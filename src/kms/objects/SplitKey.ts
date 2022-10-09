@@ -1,47 +1,47 @@
-import { KeyBlock } from "../data_structures/KeyBlock";
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
-import { SplitKeyMethod } from "../types/SplitKeyMethod";
-import { KmipObject } from "./KmipObject";
+import { KeyBlock } from "../data_structures/KeyBlock"
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
+import { SplitKeyMethod } from "../types/SplitKeyMethod"
+import { KmipObject } from "./KmipObject"
 
 export class SplitKey extends KmipObject {
-  @PropertyMetadata({
+  @metadata({
     name: "SplitKeyParts",
     type: TtlvType.Integer,
   })
-  private _split_key_parts: number;
+  private _split_key_parts: number
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyPartIdentifier",
     type: TtlvType.Integer,
   })
-  private _key_part_identifier: number;
+  private _key_part_identifier: number
 
-  @PropertyMetadata({
+  @metadata({
     name: "SplitKeyThreshold",
     type: TtlvType.Integer,
   })
-  private _split_key_threshold: number;
+  private _split_key_threshold: number
 
-  @PropertyMetadata({
+  @metadata({
     name: "SplitKeyMethod",
     type: TtlvType.Enumeration,
-    isEnum: SplitKeyMethod,
+    classOrEnum: SplitKeyMethod,
   })
-  private _split_key_method: SplitKeyMethod;
+  private _split_key_method: SplitKeyMethod
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
   })
-  private _keyBlock: KeyBlock;
+  private _keyBlock: KeyBlock
 
-  @PropertyMetadata({
+  @metadata({
     name: "PrimeFieldSize",
     type: TtlvType.BigInteger,
   })
   // REQUIRED only if Split Key Method is Polynomial Sharing Prime Field.
-  private _prime_field_size?: BigInt;
+  private _prime_field_size?: BigInt
 
   constructor(
     split_key_parts: number,
@@ -51,71 +51,71 @@ export class SplitKey extends KmipObject {
     keyBlock: KeyBlock,
     prime_field_size?: bigint
   ) {
-    super();
-    this._split_key_parts = split_key_parts;
-    this._key_part_identifier = key_part_identifier;
-    this._split_key_threshold = split_key_threshold;
-    this._split_key_method = split_key_method;
-    this._prime_field_size = prime_field_size;
-    this._keyBlock = keyBlock;
+    super()
+    this._split_key_parts = split_key_parts
+    this._key_part_identifier = key_part_identifier
+    this._split_key_threshold = split_key_threshold
+    this._split_key_method = split_key_method
+    this._prime_field_size = prime_field_size
+    this._keyBlock = keyBlock
   }
 
   public get split_key_parts(): number {
-    return this._split_key_parts;
+    return this._split_key_parts
   }
 
   public set split_key_parts(value: number) {
-    this._split_key_parts = value;
+    this._split_key_parts = value
   }
 
   public get key_part_identifier(): number {
-    return this._key_part_identifier;
+    return this._key_part_identifier
   }
 
   public set key_part_identifier(value: number) {
-    this._key_part_identifier = value;
+    this._key_part_identifier = value
   }
 
   public get split_key_threshold(): number {
-    return this._split_key_threshold;
+    return this._split_key_threshold
   }
 
   public set split_key_threshold(value: number) {
-    this._split_key_threshold = value;
+    this._split_key_threshold = value
   }
 
   public get split_key_method(): SplitKeyMethod {
-    return this._split_key_method;
+    return this._split_key_method
   }
 
   public set split_key_method(value: SplitKeyMethod) {
-    this._split_key_method = value;
+    this._split_key_method = value
   }
 
   public get prime_field_size(): BigInt | undefined {
-    return this._prime_field_size;
+    return this._prime_field_size
   }
 
   public set prime_field_size(value: BigInt | undefined) {
-    this._prime_field_size = value;
+    this._prime_field_size = value
   }
 
   public get keyBlock(): KeyBlock {
-    return this._keyBlock;
+    return this._keyBlock
   }
 
   public set keyBlock(value: KeyBlock) {
-    this._keyBlock = value;
+    this._keyBlock = value
   }
 
   public equals(o: any): boolean {
     if (o === this) {
-      return true;
+      return true
     }
     if (!(o instanceof SplitKey)) {
-      return false;
+      return false
     }
-    const splitKey = o;
+    const splitKey = o
     return (
       this._split_key_parts === splitKey.split_key_parts &&
       this._key_part_identifier === splitKey.key_part_identifier &&
@@ -123,7 +123,7 @@ export class SplitKey extends KmipObject {
       this._split_key_method == splitKey.split_key_method &&
       this._prime_field_size == splitKey.prime_field_size &&
       this._keyBlock == splitKey.keyBlock
-    );
+    )
   }
 
   public toString(): string {
@@ -148,6 +148,6 @@ export class SplitKey extends KmipObject {
       this._keyBlock +
       "'" +
       "}"
-    );
+    )
   }
 }

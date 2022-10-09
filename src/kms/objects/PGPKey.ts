@@ -1,7 +1,7 @@
-import { KeyBlock } from "../data_structures/KeyBlock";
-import { PropertyMetadata } from "../decorators/function";
-import { TtlvType } from "../serialize/TtlvType";
-import { KmipObject } from "./KmipObject";
+import { KeyBlock } from "../data_structures/KeyBlock"
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
+import { KmipObject } from "./KmipObject"
 
 /**
  * A Managed Cryptographic Object that is a text-based representation of a PGP
@@ -17,52 +17,52 @@ import { KmipObject } from "./KmipObject";
  * Keys, etc.).
  */
 export class PGPKey extends KmipObject {
-  @PropertyMetadata({
+  @metadata({
     name: "PgpKeyVersion",
     type: TtlvType.Integer,
   })
-  private _pgp_key_version: number;
+  private _pgp_key_version: number
 
-  @PropertyMetadata({
+  @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
   })
-  private _keyBlock: KeyBlock;
+  private _keyBlock: KeyBlock
 
   constructor(pgp_key_version: number, keyBlock: KeyBlock) {
-    super();
-    this._pgp_key_version = pgp_key_version;
-    this._keyBlock = keyBlock;
+    super()
+    this._pgp_key_version = pgp_key_version
+    this._keyBlock = keyBlock
   }
 
   public get keyBlock(): KeyBlock {
-    return this._keyBlock;
+    return this._keyBlock
   }
 
   public set keyBlock(value: KeyBlock) {
-    this._keyBlock = value;
+    this._keyBlock = value
   }
 
   public get pgp_key_version(): number {
-    return this._pgp_key_version;
+    return this._pgp_key_version
   }
 
   public set pgp_key_version(value: number) {
-    this._pgp_key_version = value;
+    this._pgp_key_version = value
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof PGPKey)) {
-      return false;
+      return false
     }
-    const pGPKey = o;
+    const pGPKey = o
     return (
       this._pgp_key_version === pGPKey.pgp_key_version &&
       this._keyBlock === pGPKey.keyBlock
-    );
+    )
   }
 
   public toString(): string {
@@ -75,6 +75,6 @@ export class PGPKey extends KmipObject {
       this._keyBlock +
       "'" +
       "}"
-    );
+    )
   }
 }

@@ -1,9 +1,8 @@
-import { PropertyMetadata } from "../decorators/function";
-import { FromTTLVClass } from "../deserialize/deserializer";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
-import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier";
-import { LinkType } from "./LinkType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
+import { LinkedObjectIdentifier } from "./LinkedObjectIdentifier"
+import { LinkType } from "./LinkType"
 
 /**
  * The Link attribute is a structure used to create a link from one Managed
@@ -33,40 +32,40 @@ import { LinkType } from "./LinkType";
  * held in a different manner).
  */
 export class Link implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "LinkType",
     type: TtlvType.Enumeration,
-    isEnum: LinkType,
+    classOrEnum: LinkType,
   })
-  private readonly link_type: LinkType;
+  private readonly link_type: LinkType
 
-  @PropertyMetadata({
+  @metadata({
     name: "LinkedObjectIdentifier",
     type: TtlvType.Choice,
-    from_ttlv: FromTTLVClass.choice(LinkedObjectIdentifier),
+    classOrEnum: LinkedObjectIdentifier
   })
-  private readonly linked_object_identifier: LinkedObjectIdentifier;
+  private readonly linked_object_identifier: LinkedObjectIdentifier
 
   constructor(
     linkType: LinkType,
     linkedObjectIdentifier: LinkedObjectIdentifier
   ) {
-    this.link_type = linkType;
-    this.linked_object_identifier = linkedObjectIdentifier;
+    this.link_type = linkType
+    this.linked_object_identifier = linkedObjectIdentifier
   }
 
   public equals(o: any): boolean {
     if (o === this) {
-      return true;
+      return true
     }
     if (!(o instanceof Link)) {
-      return false;
+      return false
     }
-    const link = o;
+    const link = o
     return (
       this.link_type === link.link_type &&
       this.linked_object_identifier === link.linked_object_identifier
-    );
+    )
   }
 
   public toString(): string {

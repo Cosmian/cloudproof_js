@@ -1,56 +1,56 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
-import { ObjectType } from "../types/ObjectType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
+import { ObjectType } from "../types/ObjectType"
 
 export class CreateResponse implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType,
+    classOrEnum: ObjectType,
   }) /// Type of object created.
-  private _objectType: ObjectType;
+  private _objectType: ObjectType
 
-  @PropertyMetadata({
+  @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
   /// The Unique Identifier of the object created
-  private _uniqueIdentifier: string;
+  private _uniqueIdentifier: string
 
   constructor(objectType: ObjectType, uniqueIdentifier: string) {
-    this._objectType = objectType;
-    this._uniqueIdentifier = uniqueIdentifier;
+    this._objectType = objectType
+    this._uniqueIdentifier = uniqueIdentifier
   }
 
   public get objectType(): ObjectType {
-    return this._objectType;
+    return this._objectType
   }
 
   public set objectType(value: ObjectType) {
-    this._objectType = value;
+    this._objectType = value
   }
 
   public get uniqueIdentifier(): string {
-    return this._uniqueIdentifier;
+    return this._uniqueIdentifier
   }
 
   public set uniqueIdentifier(value: string) {
-    this._uniqueIdentifier = value;
+    this._uniqueIdentifier = value
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof CreateResponse)) {
-      return false;
+      return false
     }
-    const createResponse = o;
+    const createResponse = o
     return (
       this._objectType === createResponse.objectType &&
       this._uniqueIdentifier === createResponse.uniqueIdentifier
-    );
+    )
   }
 
   public toString(): string {
@@ -63,6 +63,6 @@ export class CreateResponse implements KmipStruct {
       this._uniqueIdentifier +
       "'" +
       "}"
-    );
+    )
   }
 }
