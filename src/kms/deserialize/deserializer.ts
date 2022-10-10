@@ -199,9 +199,6 @@ function arrayParser<T extends Object>(
   propertyName: string,
 ): T[] {
 
-  console.log("ARRAY TTLV", ttlv)
-  console.log("ARRAY META", metadata)
-
   // check TTLV type
   const ttlvType = ttlv.type
   // check TTLV type
@@ -238,8 +235,8 @@ function arrayParser<T extends Object>(
       )
     }
     // Set the metadata of children to be structures
-    metadata.type = TtlvType.Structure
-    array.push(valueParser(v, metadata, propertyName))
+    const childMetadata = Object.assign({}, metadata, { type: TtlvType.Structure })
+    array.push(valueParser(v, childMetadata, propertyName))
   }
   return array
 }

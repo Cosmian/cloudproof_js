@@ -9,61 +9,20 @@ import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
 import { LinkType } from "kms/types/LinkType"
 import { ObjectType } from "kms/types/ObjectType"
 
-// test("re-serialize deserialized SymmetricKey object", () => {
-//   const byteArray = new TextEncoder().encode("toto");
-//   const sk = new SymmetricKey(
-//     new KeyBlock(
-//       KeyFormatType.TransparentSymmetricKey,
-//       new KeyValue(byteArray),
-//       CryptographicAlgorithm.AES,
-//       256
-//     )
-//   );
-//   const ttlv = toTTLV(sk);
-//   const stringify = JSON.stringify(ttlv, null, 2);
-//   const parse = JSON.parse(stringify);
-//   const deserialize = build_object_from_json(parse);
-//   const reSerialize = toTTLV(deserialize);
 
-//   expect(reSerialize).toEqual(ttlv);
-// });
-
-// test("re-serialize deserialized Create", () => {
-//   const create = new Create(
-//     ObjectType.SymmetricKey,
-//     new Attributes(
-//       ObjectType.SymmetricKey,
-//       [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-//       undefined,
-//       undefined,
-//       CryptographicAlgorithm.AES,
-//       undefined,
-//       undefined,
-//       undefined,
-//       undefined,
-//       KeyFormatType.TransparentSymmetricKey
-//     )
-//   );
-
-//   console.log(create.toString());
-
-//   const ttlv = toTTLV(create);
-//   const jsonString = JSON.stringify(ttlv, null, 2);
-//   console.log("S", jsonString);
-
-//   const parse = JSON.parse(jsonString);
-//   const create_ = build_object_from_json(parse);
-
-//   console.log("B", JSON.stringify(create_, null, 2));
-//   // expect(JSON.stringify(create_, null, 2)).toEqual(
-//   //   JSON.stringify(create, null, 2)
-//   // );
-
-//   // const ttlv_ = to_ttlv(create_)
-//   // console.log("R", JSON.stringify(ttlv_, null, 2))
-
-//   // expect(ttlv_).toEqual(ttlv)
-// });
+test("metadata", () => {
+  let attributes = new Attributes(ObjectType.SymmetricKey,
+    [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
+    undefined,
+    undefined,
+    CryptographicAlgorithm.AES,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    KeyFormatType.TransparentSymmetricKey
+  )
+})
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -81,24 +40,33 @@ test("ser-de Create", () => {
       KeyFormatType.TransparentSymmetricKey
     )
   )
-  console.log(JSON.stringify(create, null, 2))
+  console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
 
   const ttlv = toTTLV(create)
-  console.log(JSON.stringify(ttlv, null, 2))
+  console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
 
-  const create_ = fromTTLV(Create, JSON.stringify(ttlv, null, 2))
-  console.log(JSON.stringify(create_, null, 2))
+  const create_: Create = fromTTLV(Create, JSON.stringify(ttlv, null, 2))
+  console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
 
   const ttlv_ = toTTLV(create_)
-
-  console.log(JSON.stringify(ttlv_, null, 2))
+  console.log("RECREATED TTLV", JSON.stringify(ttlv_, null, 2))
 
   expect(ttlv_).toEqual(ttlv)
 })
 
 test("de-serialize", () => {
-  const create = fromTTLV(Create, CreateSymmetricKey)
-  console.log(create.toString())
+  const create: Create = fromTTLV(Create, CreateSymmetricKey)
+  expect(create.objectType).toEqual(ObjectType.SymmetricKey)
+  expect(create.protectionStorageMasks).toBeUndefined()
+  expect(create.attributes.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(create.attributes.link).toBeDefined()
+  // linter guard
+  if (typeof create.attributes.link !== "undefined") {
+    expect(create.attributes.link.length).toEqual(1)
+    const link: Link = create.attributes.link[0]
+    expect(link.linkType).toEqual(LinkType.ParentLink)
+    expect(link.linkedObjectIdentifier).toEqual(new LinkedObjectIdentifier("SK"))
+  }
 })
 
 const CreateSymmetricKey = `{

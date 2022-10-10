@@ -37,21 +37,39 @@ export class Link implements KmipStruct {
     type: TtlvType.Enumeration,
     classOrEnum: LinkType,
   })
-  private readonly link_type: LinkType
+  private _linkType: LinkType
+
+  public get linkType(): LinkType {
+    return this._linkType
+  }
+
+  public set linkType(linkType: LinkType) {
+    this._linkType = linkType
+  }
+
 
   @metadata({
     name: "LinkedObjectIdentifier",
     type: TtlvType.Choice,
     classOrEnum: LinkedObjectIdentifier
   })
-  private readonly linked_object_identifier: LinkedObjectIdentifier
+  private _linkedObjectIdentifier: LinkedObjectIdentifier
+
+  public get linkedObjectIdentifier(): LinkedObjectIdentifier {
+    return this._linkedObjectIdentifier
+  }
+
+  public set linkedObjectIdentifier(linkedObjectIdentifier: LinkedObjectIdentifier) {
+    this._linkedObjectIdentifier = linkedObjectIdentifier
+  }
+
 
   constructor(
     linkType: LinkType,
     linkedObjectIdentifier: LinkedObjectIdentifier
   ) {
-    this.link_type = linkType
-    this.linked_object_identifier = linkedObjectIdentifier
+    this._linkType = linkType
+    this._linkedObjectIdentifier = linkedObjectIdentifier
   }
 
   public equals(o: any): boolean {
@@ -63,12 +81,14 @@ export class Link implements KmipStruct {
     }
     const link = o
     return (
-      this.link_type === link.link_type &&
-      this.linked_object_identifier === link.linked_object_identifier
+      this.linkType === link.linkType &&
+      this._linkedObjectIdentifier === link._linkedObjectIdentifier
     )
   }
 
   public toString(): string {
     return JSON.stringify(this, null, 4)
   }
+
+
 }

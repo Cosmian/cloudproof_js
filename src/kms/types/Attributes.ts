@@ -235,83 +235,83 @@ export class Attributes implements KmipStruct {
     this._link = value
   }
 
-  public get vendor_attributes(): VendorAttribute[] | undefined {
+  public get vendorAttributes(): VendorAttribute[] | undefined {
     return this._vendor_attributes
   }
 
-  public set vendor_attributes(value: VendorAttribute[] | undefined) {
+  public set vendorAttributes(value: VendorAttribute[] | undefined) {
     this._vendor_attributes = value
   }
 
-  public get key_format_type(): KeyFormatType | undefined {
+  public get keyFormatType(): KeyFormatType | undefined {
     return this._key_format_type
   }
 
-  public set key_format_type(value: KeyFormatType | undefined) {
+  public set keyFormatType(value: KeyFormatType | undefined) {
     this._key_format_type = value
   }
 
-  public get cryptographic_usage_mask(): number | undefined {
+  public get cryptographicUsageMask(): number | undefined {
     return this._cryptographic_usage_mask
   }
 
-  public set cryptographic_usage_mask(value: number | undefined) {
+  public set cryptographicUsageMask(value: number | undefined) {
     this._cryptographic_usage_mask = value
   }
 
-  public get cryptographic_parameters(): CryptographicParameters | undefined {
+  public get cryptographicParameters(): CryptographicParameters | undefined {
     return this._cryptographic_parameters
   }
 
-  public set cryptographic_parameters(
+  public set cryptographicParameters(
     value: CryptographicParameters | undefined
   ) {
     this._cryptographic_parameters = value
   }
 
-  public get cryptographic_domain_parameters():
+  public get cryptographicDomainParameters():
     | CryptographicDomainParameters
     | undefined {
     return this._cryptographic_domain_parameters
   }
 
-  public set cryptographic_domain_parameters(
+  public set cryptographicDomainParameters(
     value: CryptographicDomainParameters | undefined
   ) {
     this._cryptographic_domain_parameters = value
   }
 
-  public get cryptographic_length(): number | undefined {
+  public get cryptographicLength(): number | undefined {
     return this._cryptographic_length
   }
 
-  public set cryptographic_length(value: number | undefined) {
+  public set cryptographicLength(value: number | undefined) {
     this._cryptographic_length = value
   }
 
-  public get cryptographic_algorithm(): CryptographicAlgorithm | undefined {
+  public get cryptographicAlgorithm(): CryptographicAlgorithm | undefined {
     return this._cryptographic_algorithm
   }
 
-  public set cryptographic_algorithm(
+  public set cryptographicAlgorithm(
     value: CryptographicAlgorithm | undefined
   ) {
     this._cryptographic_algorithm = value
   }
 
-  public get activation_date(): number | undefined {
+  public get activationDate(): number | undefined {
     return this._activation_date
   }
 
-  public set activation_date(value: number | undefined) {
+  public set activationDate(value: number | undefined) {
     this._activation_date = value
   }
 
-  public get object_type(): ObjectType {
+  public get objectType(): ObjectType {
     return this._object_type
   }
 
-  public set object_type(value: ObjectType) {
+  public set objectType(value: ObjectType) {
     this._object_type = value
   }
 

@@ -42,7 +42,7 @@ export class Create implements KmipStruct, Deserializable {
   /// Specifies all permissible Protection Storage Mask selections for the new
   /// object
   /// @see ProtectionStorageMasks
-  private _protection_storage_masks?: number
+  private _protectionStorageMasks?: number
 
   constructor()
 
@@ -58,7 +58,7 @@ export class Create implements KmipStruct, Deserializable {
   ) {
     this._objectType = objectType ?? ObjectType.SymmetricKey
     this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey)
-    this._protection_storage_masks = protectionStorageMasks
+    this._protectionStorageMasks = protectionStorageMasks
   }
 
   public get objectType(): ObjectType {
@@ -77,12 +77,12 @@ export class Create implements KmipStruct, Deserializable {
     this._attributes = value
   }
 
-  public get protection_storage_masks(): number | undefined {
-    return this._protection_storage_masks
+  public get protectionStorageMasks(): number | undefined {
+    return this._protectionStorageMasks
   }
 
-  public set protection_storage_masks(value: number | undefined) {
-    this._protection_storage_masks = value
+  public set protectionStorageMasks(value: number | undefined) {
+    this._protectionStorageMasks = value
   }
 
   public equals(o: any): boolean {
@@ -96,7 +96,7 @@ export class Create implements KmipStruct, Deserializable {
     return (
       this._objectType === create.objectType &&
       this._attributes === create.attributes &&
-      this._protection_storage_masks === create.protection_storage_masks
+      this._protectionStorageMasks === create.protectionStorageMasks
     )
   }
 
@@ -105,9 +105,8 @@ export class Create implements KmipStruct, Deserializable {
   }
 
   public fromTTLV(ttlv: TTLV, propertyName?: string | undefined): this {
-    console.log("CREATE CUSTOM DESER")
     defaultStructureParser(this, ttlv, propertyName ?? "ROOT")
-    this._attributes.object_type = this._objectType
+    this._attributes.objectType = this._objectType
     return this
   }
 }

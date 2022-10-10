@@ -49,9 +49,11 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
 function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   const array = value as Object[]
   const children: TTLV[] = []
+  // same metadata for all children of the array which are all of the same type
+  // but make it a structure
+  const childMetadata = Object.assign({}, metadata, { type: TtlvType.Structure })
   for (const child of array) {
-    // same metadata for all children of the array which are all of the same type
-    children.push(_toTTLV(child, metadata))
+    children.push(_toTTLV(child, childMetadata))
   }
   return new TTLV(
     // there should always be meta data descriptions for arrays
@@ -120,8 +122,7 @@ function parseChildren(value: Object): TTLV[] {
     }
     const childName = childMetadata.name
     const childType = childMetadata.type
-    console.log("PROPERTY", propertyName, childName, childType, childValue)
-
+    // console.log("PROPERTY", propertyName, childName, childType, childValue, childMetadata.classOrEnum)
 
     if (childType === TtlvType.Structure || childType === TtlvType.StructuresArray || childType === TtlvType.Choice) {
       // it is a structure, recursively process the child
@@ -129,7 +130,7 @@ function parseChildren(value: Object): TTLV[] {
       children.push(child)
       continue
     } else if (childType === TtlvType.Enumeration) {
-      childValue = (childMetadata as any).isEnum[childValue]
+      childValue = childMetadata.classOrEnum[childValue]
     } else if (childType === TtlvType.ByteString) {
       childValue = Buffer.from(childValue).toString("hex")
     } else if (childType === TtlvType.DateTimeExtended) {

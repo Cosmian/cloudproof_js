@@ -3,6 +3,8 @@ export enum TtlvType {
 
   /**
    * An array of Structures
+   * Does not exist as original TTLV
+   * Added to support array deserialization
    */
   StructuresArray = "StructuresArray",
 
