@@ -21,7 +21,7 @@ In addition, please have a look at the following tests for implementation exampl
 This library is free software and is available on NPM public repository.
 
 ```bash
-npm i cosmian_js_lib
+npm i cloudproof_js
 ```
 
 ## Versions Correspondence
@@ -33,12 +33,13 @@ This table shows the minimum versions correspondence between the various compone
 KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex
 -----------|----------------|----------|----------------|-------
 2.2.0      | 1.0.6          | 2.0.1    | 6.0.1          | 0.5.0
+2.2.0      | 3.0.0          | 2.0.1    | 6.0.1          | 0.7.0
 
 
 ## npm version
 
 {
-  cosmian_js_lib: '2.0.0',
+  cloudproof_js: '3.0.2',
   npm: '6.14.17',
   ares: '1.18.1',
   brotli: '1.0.9',
@@ -56,4 +57,3 @@ KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex
   v8: '8.4.371.23-node.87',
   zlib: '1.2.11'
 }
-

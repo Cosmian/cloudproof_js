@@ -3,7 +3,7 @@ import {
   webassembly_generate_master_keys,
   webassembly_generate_user_private_key,
   webassembly_rotate_attributes,
-} from "cover_crypt";
+} from "cosmian_cover_crypt";
 import { AbeKeyGeneration, AbeMasterKey } from "crypto/abe/interfaces/keygen";
 import { Policy } from "crypto/abe/interfaces/policy";
 import { logger } from "utils/logger";

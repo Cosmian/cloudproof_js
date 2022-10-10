@@ -1,7 +1,8 @@
 import {
   webassembly_encrypt_hybrid_block,
   webassembly_encrypt_hybrid_header,
-} from "cover_crypt";
+} from "cosmian_cover_crypt";
+import { HybridEncryption } from "crypto/abe/interfaces/encryption";
 import { logger } from "utils/logger";
 import { hexEncode } from "utils/utils";
 import { EncryptedHeader } from "../../../interfaces/encrypted_header";
@@ -9,7 +10,6 @@ import {
   AbeEncryptionParameters,
   Metadata,
 } from "../../../interfaces/encryption_parameters";
-import { HybridEncryption } from "crypto/abe/interfaces/encryption";
 
 /**
  * This class exposes the ABE primitives.
