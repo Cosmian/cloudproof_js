@@ -1,4 +1,5 @@
 import { fromTTLV } from "kms/deserialize/deserializer"
+import { KmipClient, SymmetricKeyAlgorithm } from "kms/client/KmipClient"
 import { Create } from "kms/operations/Create"
 import { toTTLV } from "kms/serialize/serializer"
 import { Attributes } from "kms/types/Attributes"
@@ -8,21 +9,6 @@ import { Link } from "kms/types/Link"
 import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
 import { LinkType } from "kms/types/LinkType"
 import { ObjectType } from "kms/types/ObjectType"
-
-
-test("metadata", () => {
-  let attributes = new Attributes(ObjectType.SymmetricKey,
-    [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-    undefined,
-    undefined,
-    CryptographicAlgorithm.AES,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    KeyFormatType.TransparentSymmetricKey
-  )
-})
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -45,7 +31,7 @@ test("ser-de Create", () => {
   const ttlv = toTTLV(create)
   console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
 
-  const create_: Create = fromTTLV(Create, JSON.stringify(ttlv, null, 2))
+  const create_: Create = fromTTLV(Create, ttlv)
   console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
 
   const ttlv_ = toTTLV(create_)
@@ -55,7 +41,7 @@ test("ser-de Create", () => {
 })
 
 test("de-serialize", () => {
-  const create: Create = fromTTLV(Create, CreateSymmetricKey)
+  const create: Create = fromTTLV(Create, JSON.parse(CreateSymmetricKey))
   expect(create.objectType).toEqual(ObjectType.SymmetricKey)
   expect(create.protectionStorageMasks).toBeUndefined()
   expect(create.attributes.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
@@ -69,6 +55,7 @@ test("de-serialize", () => {
   }
 })
 
+// generated from Rust
 const CreateSymmetricKey = `{
   "tag": "Create",
   "type": "Structure",
@@ -118,3 +105,17 @@ const CreateSymmetricKey = `{
     }
   ]
 }`
+
+
+test("KMS create AES Key", async () => {
+
+  const client: KmipClient = new KmipClient(new URL("http://localhost:9998/kmip/2_1"))
+  if (! await client.up()) {
+    console.log("No KMIP server. Skipping test")
+    return
+  }
+
+  const keyId = await client.aesGcmCreateSymmetricKey(SymmetricKeyAlgorithm.AES_GCM, 256)
+  expect(keyId).toBeInstanceOf(String)
+
+})

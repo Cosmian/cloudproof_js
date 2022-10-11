@@ -6,5 +6,6 @@
         "ttlv",
         "Ttlv"
     ],
-    "eslint.format.enable": true
+    "eslint.format.enable": true,
+    "jestrunner.jestCommand": "node --experimental-fetch --experimental-vm-modules node_modules/.bin/jest"
 }

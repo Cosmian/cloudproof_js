@@ -19,18 +19,17 @@ function factory<T>(
 
 /**
  * Build a KMIP object from its constructible type and 
- * TTLV JSON string representation
+ * TTLV representation
  * 
  * @param {object} ConstructibleType  the type
- * @param {string} jsonTTLV as a string
+ * @param {TTLV} ttlv he TTLV to parse from
  * @returns {object} the object instance
  */
 export function fromTTLV<T extends Object>(
   ConstructibleType: new (...args: any[]) => T,
-  jsonTTLV: string
+  ttlv: TTLV
 ): T {
   // parse the TTLV from JSON
-  const ttlv: TTLV = JSON.parse(jsonTTLV)
   const instance: T = factory<T>(ConstructibleType)
 
   // Parse using the default serialization for a structure
