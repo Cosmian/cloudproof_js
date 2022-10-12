@@ -1,4 +1,4 @@
-import { Deserializable } from "kms/deserialize/Deserializable"
+import { Deserialize } from "kms/deserialize/Deserialize"
 import { metadata } from "../decorators/function"
 import { defaultStructureParser } from "../deserialize/deserializer"
 import { KmipStruct } from "../json/KmipStruct"
@@ -16,7 +16,7 @@ import { ObjectType } from "../types/ObjectType"
  * the created object. The server SHALL copy the Unique Identifier returned by
  * this operation into the ID Placeholder variable.
  */
-export class Create implements KmipStruct, Deserializable {
+export class Create implements KmipStruct, Deserialize {
   @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,

@@ -56,7 +56,7 @@ export class KmipClient {
             throw new Error(`KMIP request failed: ${await response.text()}`)
         }
         const content = await response.json()
-        console.log("CONTENT", content)
+        console.log("TTLV RESPONSE", JSON.stringify(content, null, 4))
         return fromTTLV(responseClass, content)
     }
 
@@ -106,7 +106,6 @@ export class KmipClient {
     public async getObject<T extends KmipObject>(objectType: typeof Certificate | typeof SymmetricKey, uniqueIdentifier: string): Promise<T> {
         const get = new Get(uniqueIdentifier)
         const response = await this.post(get, GetResponse)
-        console.log("RESPONSE", response)
         if (objectType === Certificate && response.objectType === ObjectType.Certificate) {
             return response.object as T
         }

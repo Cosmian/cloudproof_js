@@ -18,6 +18,7 @@ export class KeyBlock implements KmipStruct {
   @metadata({
     name: "KeyValue",
     type: TtlvType.Structure,
+    classOrEnum: KeyValue
   })
   private _key_value: KeyValue
 

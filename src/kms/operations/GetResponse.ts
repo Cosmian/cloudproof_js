@@ -1,5 +1,5 @@
 import { Certificate } from "crypto"
-import { Deserializable } from "kms/deserialize/Deserializable"
+import { Deserialize } from "kms/deserialize/Deserialize"
 import { defaultStructureParser } from "kms/deserialize/deserializer"
 import { CertificateRequest } from "kms/objects/CertificateRequest"
 import { OpaqueObject } from "kms/objects/OpaqueObject"
@@ -12,13 +12,13 @@ import { SymmetricKey } from "kms/objects/SymmetricKey"
 import { TTLV } from "kms/serialize/Ttlv"
 import { metadata } from "../decorators/function"
 import { KmipStruct } from "../json/KmipStruct"
-import { KmipObject as Object } from "../objects/KmipObject"
+import { KmipObject } from "../objects/KmipObject"
 import { TtlvType } from "../serialize/TtlvType"
 import { ObjectType } from "../types/ObjectType"
 
-export type KmipObject = Certificate | CertificateRequest | OpaqueObject | PGPKey | PrivateKey | PublicKey | SecretData | SplitKey | SymmetricKey
 
-export class GetResponse implements KmipStruct, Deserializable {
+
+export class GetResponse implements KmipStruct, Deserialize {
   // Determines the type of object being retrieved.
   @metadata({
     name: "ObjectType",

@@ -1,3 +1,4 @@
+import { hexDecode } from "utils/utils"
 import { PropertyMetadata, METADATA_KEY } from "../decorators/interface"
 import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"
@@ -327,13 +328,15 @@ function valueParser(
     return ttlv.value
   }
 
+  if (ttlvType === TtlvType.ByteString) {
+    console.log("HEX", propertyName, ttlv.value)
+    return hexDecode(ttlv.value as string)
+  }
+
   if (ttlvType === TtlvType.BigInteger) {
     throw new Error(`Deserializer: automatic deserialization of ${ttlvType} not supported yet`)
   }
   if (ttlvType === TtlvType.Boolean) {
-    throw new Error(`Deserializer: automatic deserialization of ${ttlvType} not supported yet`)
-  }
-  if (ttlvType === TtlvType.ByteString) {
     throw new Error(`Deserializer: automatic deserialization of ${ttlvType} not supported yet`)
   }
   if (ttlvType === TtlvType.DateTime) {
