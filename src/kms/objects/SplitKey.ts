@@ -2,9 +2,8 @@ import { KeyBlock } from "../data_structures/KeyBlock"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 import { SplitKeyMethod } from "../types/SplitKeyMethod"
-import { KmipObject } from "./KmipObject"
 
-export class SplitKey extends KmipObject {
+export class SplitKey {
   @metadata({
     name: "SplitKeyParts",
     type: TtlvType.Integer,
@@ -33,6 +32,7 @@ export class SplitKey extends KmipObject {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
+    classOrEnum: KeyBlock
   })
   private _keyBlock: KeyBlock
 
@@ -44,20 +44,19 @@ export class SplitKey extends KmipObject {
   private _prime_field_size?: BigInt
 
   constructor(
-    split_key_parts: number,
-    key_part_identifier: number,
-    split_key_threshold: number,
-    split_key_method: SplitKeyMethod,
-    keyBlock: KeyBlock,
-    prime_field_size?: bigint
+    splitKeyParts?: number,
+    keyPartIdentifier?: number,
+    splitKeyThreshold?: number,
+    splitKeyMethod?: SplitKeyMethod,
+    keyBlock?: KeyBlock,
+    primeFieldSize?: bigint
   ) {
-    super()
-    this._split_key_parts = split_key_parts
-    this._key_part_identifier = key_part_identifier
-    this._split_key_threshold = split_key_threshold
-    this._split_key_method = split_key_method
-    this._prime_field_size = prime_field_size
-    this._keyBlock = keyBlock
+    this._split_key_parts = splitKeyParts ?? 0
+    this._key_part_identifier = keyPartIdentifier ?? 0
+    this._split_key_threshold = splitKeyThreshold ?? 0
+    this._split_key_method = splitKeyMethod ?? SplitKeyMethod.XOR
+    this._prime_field_size = primeFieldSize
+    this._keyBlock = keyBlock ?? new KeyBlock()
   }
 
   public get split_key_parts(): number {
@@ -119,35 +118,14 @@ export class SplitKey extends KmipObject {
     return (
       this._split_key_parts === splitKey.split_key_parts &&
       this._key_part_identifier === splitKey.key_part_identifier &&
-      this._split_key_threshold == splitKey.split_key_threshold &&
-      this._split_key_method == splitKey.split_key_method &&
-      this._prime_field_size == splitKey.prime_field_size &&
-      this._keyBlock == splitKey.keyBlock
+      this._split_key_threshold === splitKey.split_key_threshold &&
+      this._split_key_method === splitKey.split_key_method &&
+      this._prime_field_size === splitKey.prime_field_size &&
+      this._keyBlock === splitKey.keyBlock
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " split_key_parts='" +
-      this._split_key_parts +
-      "'" +
-      ", key_part_identifier='" +
-      this._key_part_identifier +
-      "'" +
-      ", split_key_threshold='" +
-      this._split_key_threshold +
-      "'" +
-      ", split_key_method='" +
-      this._split_key_method +
-      "'" +
-      ", prime_field_size='" +
-      this._prime_field_size +
-      "'" +
-      ", keyBlock='" +
-      this._keyBlock +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

@@ -1,21 +1,20 @@
 import { KeyBlock } from "../data_structures/KeyBlock"
-import { KmipObject } from "../objects/KmipObject"
 import "reflect-metadata"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
-export class SymmetricKey extends KmipObject {
+export class SymmetricKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
+    classOrEnum: KeyBlock
   })
   private _keyBlock: KeyBlock
 
-  constructor(keyBlock: KeyBlock) {
-    super()
-    this._keyBlock = keyBlock
+  constructor(keyBlock?: KeyBlock) {
+    this._keyBlock = keyBlock ?? new KeyBlock()
   }
 
-  public get keyBlock() {
+  public get keyBlock(): KeyBlock {
     return this._keyBlock
   }
 
@@ -24,7 +23,7 @@ export class SymmetricKey extends KmipObject {
   }
 
   public equals(o: any): boolean {
-    if (o == this) return true
+    if (o === this) return true
     if (!(o instanceof SymmetricKey)) {
       return false
     }
@@ -33,6 +32,6 @@ export class SymmetricKey extends KmipObject {
   }
 
   public toString(): string {
-    return "{" + " keyBlock='" + this.keyBlock + "'" + "}"
+    return JSON.stringify(this, null, 4)
   }
 }

@@ -1,7 +1,6 @@
 import { KeyBlock } from "../data_structures/KeyBlock"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
-import { KmipObject } from "./KmipObject"
 
 /**
  * A Managed Cryptographic Object that is a text-based representation of a PGP
@@ -16,7 +15,7 @@ import { KmipObject } from "./KmipObject"
  * Key Block into other Managed Cryptographic Objects (Public Keys, Private
  * Keys, etc.).
  */
-export class PGPKey extends KmipObject {
+export class PGPKey {
   @metadata({
     name: "PgpKeyVersion",
     type: TtlvType.Integer,
@@ -26,13 +25,13 @@ export class PGPKey extends KmipObject {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
+    classOrEnum: KeyBlock
   })
   private _keyBlock: KeyBlock
 
-  constructor(pgp_key_version: number, keyBlock: KeyBlock) {
-    super()
-    this._pgp_key_version = pgp_key_version
-    this._keyBlock = keyBlock
+  constructor(pgpKeyVersion?: number, keyBlock?: KeyBlock) {
+    this._pgp_key_version = pgpKeyVersion ?? 0
+    this._keyBlock = keyBlock ?? new KeyBlock()
   }
 
   public get keyBlock(): KeyBlock {
@@ -52,7 +51,7 @@ export class PGPKey extends KmipObject {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof PGPKey)) {
@@ -65,16 +64,8 @@ export class PGPKey extends KmipObject {
     )
   }
 
+
   public toString(): string {
-    return (
-      "{" +
-      " pgp_key_version='" +
-      this._pgp_key_version +
-      "'" +
-      ", keyBlock='" +
-      this._keyBlock +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

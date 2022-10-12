@@ -1,7 +1,6 @@
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 import { CertificateType } from "../types/CertificateType"
-import { KmipObject } from "./KmipObject"
 
 /**
  * A Managed Cryptographic Object that is a digital certificate. It is a
@@ -9,7 +8,7 @@ import { KmipObject } from "./KmipObject"
  * Certificate Structure Certificate Type Enumeration Yes Certificate Value Byte
  * String Yes
  */
-export class Certificate extends KmipObject {
+export class Certificate {
   @metadata({
     name: "CertificateType",
     type: TtlvType.Enumeration,
@@ -27,7 +26,6 @@ export class Certificate extends KmipObject {
     certificateType: CertificateType,
     certificateValue: number[]
   ) {
-    super()
     this._certificateType = certificateType
     this._certificateValue = certificateValue
   }
@@ -49,7 +47,7 @@ export class Certificate extends KmipObject {
   }
 
   public equals(o: Object): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof Certificate)) {
@@ -63,15 +61,6 @@ export class Certificate extends KmipObject {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " certificateType='" +
-      this.certificateType +
-      "'" +
-      ", certificateValue='" +
-      this.certificateValue +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

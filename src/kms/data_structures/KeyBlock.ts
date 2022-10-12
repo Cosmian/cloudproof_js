@@ -48,18 +48,18 @@ export class KeyBlock implements KmipStruct {
   private _key_compression_type?: KeyCompressionType
 
   constructor(
-    keyFormatType: KeyFormatType,
-    keyValue: KeyValue,
-    cryptographicAlgorithm: CryptographicAlgorithm,
-    cryptographicLength: number,
+    keyFormatType?: KeyFormatType,
+    keyValue?: KeyValue,
+    cryptographicAlgorithm?: CryptographicAlgorithm,
+    cryptographicLength?: number,
     keyCompressionType?: KeyCompressionType,
     keyWrappingData?: KeyWrappingData
   ) {
-    this._key_format_type = keyFormatType
+    this._key_format_type = keyFormatType ?? KeyFormatType.TransparentSymmetricKey
     this._key_compression_type = keyCompressionType
-    this._key_value = keyValue
-    this._cryptographic_algorithm = cryptographicAlgorithm
-    this._cryptographic_length = cryptographicLength
+    this._key_value = keyValue ?? new KeyValue()
+    this._cryptographic_algorithm = cryptographicAlgorithm ?? CryptographicAlgorithm.AES
+    this._cryptographic_length = cryptographicLength ?? 256
     this._key_wrapping_data = keyWrappingData
   }
 
@@ -129,10 +129,8 @@ export class KeyBlock implements KmipStruct {
     )
   }
 
-  public toString(): string {
-    return (
-      `{ key_format_type=${this.key_format_type}, key_compression_type=${this.key_compression_type ?? "N/A"}, key_value=${this.key_value}, cryptographic_algorithm=${this.cryptographic_algorithm}, cryptographic_length=${this.cryptographic_length}, key_wrapping_data=${this.key_wrapping_data}}`
-    )
 
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
   }
 }

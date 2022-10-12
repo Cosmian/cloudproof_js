@@ -1,3 +1,8 @@
+import { Certificate } from "crypto"
+import { KmipObject } from "kms/objects/KmipObject"
+import { SymmetricKey } from "kms/objects/SymmetricKey"
+import { Get } from "kms/operations/Get"
+import { GetResponse } from "kms/operations/GetResponse"
 import { fromTTLV } from "../deserialize/deserializer"
 import { Create } from "../operations/Create"
 import { CreateResponse } from "../operations/CreateResponse"
@@ -40,21 +45,18 @@ export class KmipClient {
      * @returns {object} an instance of the KMIP response
      */
     public async post<P extends Object, R extends Object>(payload: P, responseClass: new (...args: any[]) => R): Promise<R> {
-
         const ttlv = toTTLV(payload)
-
         const options: RequestInit = {
             method: "POST",
             body: JSON.stringify(ttlv),
             headers: this.headers
         }
-
         const response = await fetch(this.url, options)
-        console.log("RESPONSE", response)
-        console.log("RESPONSE", await response.text())
+        if (response.status >= 400) {
+            throw new Error(`KMIP request failed: ${await response.text()}`)
+        }
         const content = await response.json()
-        console.log(content)
-
+        console.log("CONTENT", content)
         return fromTTLV(responseClass, content)
     }
 
@@ -76,7 +78,7 @@ export class KmipClient {
         }
     }
 
-    public async aesGcmCreateSymmetricKey(algorithm: SymmetricKeyAlgorithm, bits: number, links?: Link[]): Promise<String> {
+    public async aesGcmCreateSymmetricKey(algorithm: SymmetricKeyAlgorithm, bits: number, links?: Link[]): Promise<string> {
         let algo = CryptographicAlgorithm.AES
         if (algorithm === SymmetricKeyAlgorithm.AES_GCM) {
             algo = CryptographicAlgorithm.AES
@@ -98,6 +100,20 @@ export class KmipClient {
         )
         const response = await this.post(create, CreateResponse)
         return response.uniqueIdentifier
+    }
+
+
+    public async getObject<T extends KmipObject>(objectType: typeof Certificate | typeof SymmetricKey, uniqueIdentifier: string): Promise<T> {
+        const get = new Get(uniqueIdentifier)
+        const response = await this.post(get, GetResponse)
+        console.log("RESPONSE", response)
+        if (objectType === Certificate && response.objectType === ObjectType.Certificate) {
+            return response.object as T
+        }
+        if (objectType === SymmetricKey && response.objectType === ObjectType.SymmetricKey) {
+            return response.object as T
+        }
+        throw new Error(`GET failed: expected a ${objectType.name}, got a ${response.objectType}`)
     }
 
 

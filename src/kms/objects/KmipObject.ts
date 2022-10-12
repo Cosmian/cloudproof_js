@@ -1,4 +1,4 @@
-import { KmipStruct } from "../json/KmipStruct";
+import { KmipStruct } from "../json/KmipStruct"
 
 export class KmipObject implements KmipStruct {
   // public static getObjectClass(objectType: ObjectType): KmipObject{

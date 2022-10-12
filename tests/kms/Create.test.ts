@@ -9,6 +9,7 @@ import { Link } from "kms/types/Link"
 import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
 import { LinkType } from "kms/types/LinkType"
 import { ObjectType } from "kms/types/ObjectType"
+import { SymmetricKey } from "kms/objects/SymmetricKey"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -108,14 +109,13 @@ const CreateSymmetricKey = `{
 
 
 test("KMS create AES Key", async () => {
-
   const client: KmipClient = new KmipClient(new URL("http://localhost:9998/kmip/2_1"))
   if (! await client.up()) {
     console.log("No KMIP server. Skipping test")
     return
   }
-
-  const keyId = await client.aesGcmCreateSymmetricKey(SymmetricKeyAlgorithm.AES_GCM, 256)
-  expect(keyId).toBeInstanceOf(String)
-
+  const uniqueIdentifier = await client.aesGcmCreateSymmetricKey(SymmetricKeyAlgorithm.AES_GCM, 256)
+  expect(typeof uniqueIdentifier).toEqual("string")
+  const obj = await client.getObject(SymmetricKey, uniqueIdentifier)
+  console.log("OBJECT", obj)
 })

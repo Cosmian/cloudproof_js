@@ -1,9 +1,8 @@
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 import { OpaqueDataType } from "../types/OpaqueDataType"
-import { KmipObject } from "./KmipObject"
 
-export class OpaqueObject extends KmipObject {
+export class OpaqueObject {
   @metadata({
     name: "OpaqueDataType",
     type: TtlvType.Enumeration,
@@ -18,12 +17,11 @@ export class OpaqueObject extends KmipObject {
   private _opaque_data_value: number
 
   public constructor(
-    opaque_data_type: OpaqueDataType,
-    opaque_data_value: number
+    opaqueDataType?: OpaqueDataType,
+    opaqueDataValue?: number
   ) {
-    super()
-    this._opaque_data_type = opaque_data_type
-    this._opaque_data_value = opaque_data_value
+    this._opaque_data_type = opaqueDataType ?? OpaqueDataType.Unknown
+    this._opaque_data_value = opaqueDataValue ?? 0
   }
 
   public get opaque_data_type(): OpaqueDataType {
@@ -43,7 +41,7 @@ export class OpaqueObject extends KmipObject {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof OpaqueObject)) {
@@ -56,16 +54,9 @@ export class OpaqueObject extends KmipObject {
     )
   }
 
+
   public toString(): string {
-    return (
-      "{" +
-      " opaque_data_type='" +
-      this.opaque_data_type +
-      "'" +
-      ", opaque_data_value='" +
-      this.opaque_data_value +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
+
 }

@@ -1,18 +1,17 @@
 import { KeyBlock } from "../data_structures/KeyBlock"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
-import { KmipObject } from "./KmipObject"
 
-export class PrivateKey extends KmipObject {
+export class PrivateKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
+    classOrEnum: KeyBlock
   })
   private _keyBlock: KeyBlock
 
-  constructor(keyBlock: KeyBlock) {
-    super()
-    this._keyBlock = keyBlock
+  constructor(keyBlock?: KeyBlock) {
+    this._keyBlock = keyBlock ?? new KeyBlock()
   }
 
   public get keyBlock(): KeyBlock {
@@ -35,6 +34,6 @@ export class PrivateKey extends KmipObject {
   }
 
   public toString(): string {
-    return `{ keyBlock=${this._keyBlock} }`
+    return JSON.stringify(this, null, 4)
   }
 }

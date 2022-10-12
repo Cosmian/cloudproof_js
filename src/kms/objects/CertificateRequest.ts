@@ -1,9 +1,8 @@
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 import { CertificateRequestType } from "../types/CertificateRequestType"
-import { KmipObject } from "./KmipObject"
 
-export class CertificateRequest extends KmipObject {
+export class CertificateRequest {
   @metadata({
     name: "CertificateRequestType",
     type: TtlvType.Enumeration,
@@ -17,13 +16,16 @@ export class CertificateRequest extends KmipObject {
   })
   private _certificate_request_value: number[]
 
+  /**
+   *
+   */
+
   public constructor(
-    certificate_request_type: CertificateRequestType,
-    certificate_request_value: number[]
+    certificateRequestType?: CertificateRequestType,
+    certificateRequestValue?: number[]
   ) {
-    super()
-    this._certificate_request_type = certificate_request_type
-    this._certificate_request_value = certificate_request_value
+    this._certificate_request_type = certificateRequestType ?? CertificateRequestType.PEM
+    this._certificate_request_value = certificateRequestValue ?? []
   }
 
   public get certificate_request_type(): CertificateRequestType {
@@ -43,7 +45,7 @@ export class CertificateRequest extends KmipObject {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof CertificateRequest)) {
@@ -58,16 +60,8 @@ export class CertificateRequest extends KmipObject {
     )
   }
 
+
   public toString(): string {
-    return (
-      "{" +
-      " certificate_request_type='" +
-      this.certificate_request_type +
-      "'" +
-      ", certificate_request_value='" +
-      this.certificate_request_value +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

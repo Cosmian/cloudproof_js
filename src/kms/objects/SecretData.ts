@@ -2,9 +2,8 @@ import { KeyBlock } from "../data_structures/KeyBlock"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 import { SecretDataType } from "../types/SecretDataType"
-import { KmipObject } from "./KmipObject"
 
-export class SecretData extends KmipObject {
+export class SecretData {
   @metadata({
     name: "SecretDataType",
     type: TtlvType.Enumeration,
@@ -15,13 +14,13 @@ export class SecretData extends KmipObject {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
+    classOrEnum: KeyBlock
   })
   private _keyBlock: KeyBlock
 
-  constructor(secretDataType: SecretDataType, keyBlock: KeyBlock) {
-    super()
-    this._secretDataType = secretDataType
-    this._keyBlock = keyBlock
+  constructor(secretDataType?: SecretDataType, keyBlock?: KeyBlock) {
+    this._secretDataType = secretDataType ?? SecretDataType.Password
+    this._keyBlock = keyBlock ?? new KeyBlock()
   }
 
   public get secretDataType(): SecretDataType {
@@ -55,15 +54,6 @@ export class SecretData extends KmipObject {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " secretDataType='" +
-      this._secretDataType +
-      "'" +
-      ", keyBlock='" +
-      this._keyBlock +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }
