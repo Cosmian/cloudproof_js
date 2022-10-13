@@ -28,6 +28,9 @@ export class CloudproofDemoPostgRest extends FindexDemo {
       policyBytes,
       publicMasterKey
     );
+
+    let usersToInsert = [];
+
     // Get all user information from the cleartext user DB
     for (const user of users.getUsers()) {
       // Encrypt user personal data for the marketing team
@@ -74,18 +77,21 @@ export class CloudproofDemoPostgRest extends FindexDemo {
       // Generate a new UID
       const uid = uuidv4();
 
-      // Insert user encrypted data in the encrypted user DB
-      await this.postgrestDb.upsertEncryptedUser({
+      usersToInsert.push({
         uid,
         enc_basic: hexEncode(encryptedBasic),
         enc_hr: hexEncode(encryptedHr),
         enc_security: hexEncode(encryptedSecurity),
       });
 
+
       // Update the cleartext user DB with the value of the
       // enc_uid
       users.upsertUserEncUidById(user.id, { enc_uid: uid });
     }
+
+    // Insert user encrypted data in the encrypted user DB
+    await this.postgrestDb.upsertEncryptedUser(usersToInsert);
     return users;
   }
 

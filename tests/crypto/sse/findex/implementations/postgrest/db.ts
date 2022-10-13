@@ -31,26 +31,36 @@ export class PostgRestDB implements DBInterface {
   // Callbacks implementations
   //
   fetchEntry = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+    console.time("fetchEntry");
     const uids = deserializeList(serializedUids);
     const result = await this.getEntryTableEntriesById(uids);
-    return serializeHashMap(result);
+    let serialized = serializeHashMap(result);
+    console.timeEnd("fetchEntry");
+    return serialized;
   };
 
   fetchChain = async (serializedUids: Uint8Array): Promise<Uint8Array> => {
+    console.time("fetchChain");
     const uids = deserializeList(serializedUids);
     const result = await this.getChainTableEntriesById(uids);
-    return serializeHashMap(result);
+    let serialized = serializeHashMap(result);
+    console.timeEnd("fetchChain");
+    return serialized;
   };
 
   upsertEntry = async (serializedEntries: Uint8Array): Promise<number> => {
+    console.time("upsertEntry");
     const items = deserializeHashMap(serializedEntries);
     await this.upsertEntryTableEntries(items);
+    console.timeEnd("upsertEntry");
     return items.length;
   };
 
   upsertChain = async (serializedEntries: Uint8Array): Promise<number> => {
+    console.time("upsertChain");
     const items = deserializeHashMap(serializedEntries);
     await this.upsertChainTableEntries(items);
+    console.timeEnd("upsertChain");
     return items.length;
   };
 
@@ -131,7 +141,7 @@ export class PostgRestDB implements DBInterface {
   }
 
   async upsertEncryptedUser(
-    entry: EncryptedUser
+    entry: EncryptedUser[],
   ): Promise<Array<{ uid: string; enc_uid: string }>> {
     const config = {
       headers: {
