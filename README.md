@@ -39,7 +39,7 @@ KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex
 ## npm version
 
 {
-  cloudproof_js: '3.0.2',
+  cloudproof_js: '3.0.3',
   npm: '6.14.17',
   ares: '1.18.1',
   brotli: '1.0.9',
