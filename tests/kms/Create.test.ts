@@ -116,6 +116,6 @@ test("KMS create AES Key", async () => {
   }
   const uniqueIdentifier = await client.aesGcmCreateSymmetricKey(SymmetricKeyAlgorithm.AES_GCM, 256)
   expect(typeof uniqueIdentifier).toEqual("string")
-  const obj = await client.getObject(SymmetricKey, uniqueIdentifier)
-  console.log("OBJECT", obj)
+  const obj: SymmetricKey = await client.getObject(uniqueIdentifier)
+  console.log(`OBJECT ${obj.toString()}`)
 })

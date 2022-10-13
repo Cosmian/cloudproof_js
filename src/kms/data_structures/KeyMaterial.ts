@@ -1,6 +1,3 @@
-import { Deserialize } from "kms/deserialize/Deserialize"
-import { Serialize } from "kms/serialize/Deserialize"
-import { TTLV } from "kms/serialize/Ttlv"
 import { TransparentDHPrivateKey } from "./TransparentDHPrivateKey"
 import { TransparentDHPublicKey } from "./TransparentDHPublicKey"
 import { TransparentECPrivateKey } from "./TransparentECPrivateKey"
@@ -12,7 +9,7 @@ import { TransparentSymmetricKey } from "./TransparentSymmetricKey"
 // Structure: for Transparent, or Extension Key Format Types
 
 // TODO Implement missing TransparentDSAPrivateKey, TransparentDSAPublicKey,
-export class KeyMaterial implements Deserialize, Serialize {
+export class KeyMaterial {
 
 
   private _bytes?: Uint8Array | undefined
@@ -75,10 +72,7 @@ export class KeyMaterial implements Deserialize, Serialize {
   }
 
 
-  /**
-   *
-   */
-  constructor(private keyBytes?: Uint8Array,
+  constructor(keyBytes?: Uint8Array,
     transparentDHPrivateKey?: TransparentDHPrivateKey,
     transparentDHPublicKey?: TransparentDHPublicKey,
     transparentECPrivateKey?: TransparentECPrivateKey,
@@ -101,14 +95,4 @@ export class KeyMaterial implements Deserialize, Serialize {
     return JSON.stringify(this, null, 4)
   }
 
-  public fromTTLV(ttlv: TTLV, propertyName?: string | undefined): this {
-
-  }
-
-  public toTTLV(propertyName?: string | undefined): TTLV {
-
-    let ttlv = this.toTTLV(propertyName)
-
-
-  }
 }

@@ -1,4 +1,3 @@
-import { KmipStruct } from "kms/json/KmipStruct"
 import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
 import { KeyCompressionType } from "kms/types/KeyCompressionType"
 import { KeyFormatType } from "kms/types/KeyFormatType"
@@ -6,8 +5,14 @@ import { KeyValue } from "kms/data_structures/KeyValue"
 import { KeyWrappingData } from "./KeyWrappingData"
 import { metadata } from "kms/decorators/function"
 import { TtlvType } from "kms/serialize/TtlvType"
+import { Deserialize } from "kms/deserialize/Deserialize"
+import { TTLV } from "kms/serialize/Ttlv"
+import { METADATA_KEY, PropertyMetadata } from "kms/decorators/interface"
+import { defaultStructureParser, valueParser } from "kms/deserialize/deserializer"
+import { hexDecode } from "utils/utils"
+import { SymmetricKey } from "kms/objects/SymmetricKey"
 
-export class KeyBlock implements KmipStruct {
+export class KeyBlock implements Deserialize {
   @metadata({
     name: "KeyFormatType",
     type: TtlvType.Enumeration,
@@ -17,7 +22,7 @@ export class KeyBlock implements KmipStruct {
 
   @metadata({
     name: "KeyValue",
-    type: TtlvType.Structure,
+    type: TtlvType.Choice,
     classOrEnum: KeyValue
   })
   private _key_value: KeyValue
@@ -63,6 +68,7 @@ export class KeyBlock implements KmipStruct {
     this._cryptographic_length = cryptographicLength ?? 256
     this._key_wrapping_data = keyWrappingData
   }
+
 
   public get key_format_type(): KeyFormatType {
     return this._key_format_type
@@ -133,5 +139,84 @@ export class KeyBlock implements KmipStruct {
 
   public toString(): string {
     return JSON.stringify(this, null, 4)
+  }
+
+  public fromTTLV(ttlv: TTLV, propertyName: string): this {
+    // need a custom version because the KeyValue is deserialized depending on the
+
+    // check TTLV value
+    if (typeof ttlv.value === "undefined" || ttlv.value == null) {
+      throw new Error(
+        `Deserializer: no valid value in the TTLV ` +
+        ` for structure: KeyBlock` +
+        ` in ${propertyName}`
+      )
+    }
+    if (ttlv.value.constructor.name !== "Array") {
+      throw new Error(
+        `Deserializer: the value should be an array in the TTLV ` +
+        ` for structure: KeyBlock` +
+        ` in ${propertyName}`
+      )
+    }
+    const ttlvValue = ttlv.value as TTLV[]
+
+    // recover the metadata
+    const metadata = Reflect.getMetadata(METADATA_KEY, this)
+    if (typeof metadata === "undefined") {
+      throw new Error(
+        `Deserializer: metadata is not defined ` +
+        ` for structure: KeyBlock` +
+        ` in ${propertyName}`
+      )
+    }
+
+    for (const propertyName of Object.getOwnPropertyNames(metadata)) {
+      const childMetadata: PropertyMetadata = metadata[propertyName]
+      const ttlvTag = childMetadata.name
+
+      if (ttlvTag === "KeyValue") {
+        // skip that on for now, it will be postprocessed
+        continue
+      }
+
+      const child = ttlvValue.find((v) => v.tag === ttlvTag)
+      if (typeof child === "undefined") {
+        // skip the properties which are not found
+        // TODO check if mandatory
+        continue
+      }
+      // found a matching TTLV child
+      const value = valueParser(child, childMetadata, propertyName)
+      Reflect.set(this, propertyName, value)
+    }
+    const child: TTLV | undefined = ttlvValue.find((v) => v.tag === "KeyValue")
+    if (typeof child === "undefined") {
+      throw new Error(
+        `Deserializer: cannot find mandatory KeyValue ` +
+        ` in structure: KeyBlock` +
+        ` in ${propertyName}`
+      )
+    }
+    if (child.type === TtlvType.ByteString) {
+      this._key_value = new KeyValue(hexDecode(child.value as string))
+    } else if (child.type === TtlvType.Structure) {
+      if (this._key_format_type === KeyFormatType.TransparentSymmetricKey) {
+        defaultStructureParser(new SymmetricKey, child, "_keyValue")
+      } else {
+        throw new Error(
+          `Deserializer: KeyValue, unable to deserialize a ${this.key_format_type} ` +
+          ` in structure: KeyBlock` +
+          ` in ${propertyName}`
+        )
+      }
+    } else {
+      throw new Error(
+        `Deserializer: KeyValue has invalid type ${child.type} ` +
+        ` in structure: KeyBlock` +
+        ` in ${propertyName}`
+      )
+    }
+    return this
   }
 }

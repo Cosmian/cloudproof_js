@@ -2,6 +2,7 @@ import { TTLV } from "./Ttlv"
 import "reflect-metadata"
 import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
 import { TtlvType } from "./TtlvType"
+import { hexEncode } from "utils/utils"
 
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object
@@ -31,6 +32,10 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
 
   if (typeof value !== "object") {
     throw new Error(`Serializer: unknown type ${typeof value} for value: ${JSON.stringify(value, null, 2)}`)
+  }
+
+  if (typeof metadata.toTtlv !== "undefined") {
+    return metadata.toTtlv(value)
   }
 
   if (value.constructor.name === "Array") {
@@ -132,7 +137,8 @@ function parseChildren(value: Object): TTLV[] {
     } else if (childType === TtlvType.Enumeration) {
       childValue = childMetadata.classOrEnum[childValue]
     } else if (childType === TtlvType.ByteString) {
-      childValue = Buffer.from(childValue).toString("hex")
+      // childValue = Buffer.from(childValue).toString("hex")
+      childValue = hexEncode(childValue)
     } else if (childType === TtlvType.DateTimeExtended) {
       childValue = childValue.extendedDate
     } else if (childType === TtlvType.Interval) {
@@ -156,3 +162,5 @@ function parseChildren(value: Object): TTLV[] {
   }
   return children
 }
+
+

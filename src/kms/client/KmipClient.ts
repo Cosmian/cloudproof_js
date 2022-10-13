@@ -1,6 +1,3 @@
-import { Certificate } from "crypto"
-import { KmipObject } from "kms/objects/KmipObject"
-import { SymmetricKey } from "kms/objects/SymmetricKey"
 import { Get } from "kms/operations/Get"
 import { GetResponse } from "kms/operations/GetResponse"
 import { fromTTLV } from "../deserialize/deserializer"
@@ -103,16 +100,17 @@ export class KmipClient {
     }
 
 
-    public async getObject<T extends KmipObject>(objectType: typeof Certificate | typeof SymmetricKey, uniqueIdentifier: string): Promise<T> {
+    public async getObject<T>(uniqueIdentifier: string): Promise<T> {
         const get = new Get(uniqueIdentifier)
         const response = await this.post(get, GetResponse)
-        if (objectType === Certificate && response.objectType === ObjectType.Certificate) {
-            return response.object as T
-        }
-        if (objectType === SymmetricKey && response.objectType === ObjectType.SymmetricKey) {
-            return response.object as T
-        }
-        throw new Error(`GET failed: expected a ${objectType.name}, got a ${response.objectType}`)
+        return response.object as T
+        // if (objectType === Certificate && response.objectType === ObjectType.Certificate) {
+        //     return response.object as T
+        // }
+        // if (objectType === SymmetricKey && response.objectType === ObjectType.SymmetricKey) {
+        //     return response.object as T
+        // }
+        // throw new Error(`GET failed: expected a ${objectType.name}, got a ${response.objectType}`)
     }
 
 

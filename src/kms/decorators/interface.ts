@@ -6,6 +6,8 @@ export interface PropertyMetadata {
   type: TtlvType
   classOrEnum?: any
 
+  toTtlv?: (instance: any) => TTLV
+
   fromTtlv?: (propertyName: string, ttlv: TTLV) => Object
 }
 

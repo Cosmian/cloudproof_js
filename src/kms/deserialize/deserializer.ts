@@ -49,16 +49,17 @@ export function fromTTLV<T extends Object>(
  */
 function structureParser<T extends Object>(instance: T, ttlv: TTLV, propertyName: string): T {
 
-  // check names
-  const instanceName = instance.constructor.name
-  const tagName = ttlv.tag
-  if (instanceName !== tagName) {
-    throw new Error(
-      `Deserializer: the instance name: ${instanceName}` +
-      ` does not match the TTLV tag name: ${tagName}` +
-      ` in ${propertyName}`
-    )
-  }
+  // Deactivate for now, too restrictive: ex PlainTextKeyValue -> KeyValue
+  // // check names
+  // const instanceName = instance.constructor.name
+  // const tagName = ttlv.tag
+  // if (instanceName !== tagName) {
+  //   throw new Error(
+  //     `Deserializer: the instance name: ${instanceName}` +
+  //     ` does not match the TTLV tag name: ${tagName}` +
+  //     ` in ${propertyName}`
+  //   )
+  // }
 
   // try to sse if the type implement Deserializable.fromTTLV
   // in which case, use that
@@ -249,7 +250,7 @@ function arrayParser<T extends Object>(
  * @param {string} propertyName the name of the property of the parent structure (if any)
  * @returns {object} the KMIP object instance
  */
-function valueParser(
+export function valueParser(
   ttlv: TTLV,
   metadata: PropertyMetadata,
   propertyName: string
@@ -329,7 +330,6 @@ function valueParser(
   }
 
   if (ttlvType === TtlvType.ByteString) {
-    console.log("HEX", propertyName, ttlv.value)
     return hexDecode(ttlv.value as string)
   }
 

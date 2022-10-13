@@ -23,11 +23,11 @@ export class Certificate {
   private _certificateValue: number[]
 
   public constructor(
-    certificateType: CertificateType,
-    certificateValue: number[]
+    certificateType?: CertificateType,
+    certificateValue?: number[]
   ) {
-    this._certificateType = certificateType
-    this._certificateValue = certificateValue
+    this._certificateType = certificateType ?? CertificateType.X509
+    this._certificateValue = certificateValue ?? []
   }
 
   public get certificateType(): CertificateType {
