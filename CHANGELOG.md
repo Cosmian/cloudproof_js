@@ -1,6 +1,14 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [3.1.0] - 2022-10-13
+### Added
+- Support for KMS 2.3.0
+### Changed
+- Increase Axios timeout to 2 minutes
+- Bump KMS version from 2.2.0 to 2.3.0
+### Fixed
+### Removed
 
 ---
 ## [3.0.4] - 2022-10-14
@@ -26,10 +34,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Rename `cosmian_js_lib` to `cloudproof_js`
 - Rename WASM libraries to `cosmian_*`
-### Fixed
-### Removed
-
 ---
+
 ## [3.0.1] - 2022-10-05
 ### Added
 - Add MIT license

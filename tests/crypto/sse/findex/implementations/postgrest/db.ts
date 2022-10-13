@@ -22,7 +22,7 @@ export class PostgRestDB implements DBInterface {
 
   instance: AxiosInstance = axios.create({
     baseURL: process.env.SERVER,
-    timeout: 15000,
+    timeout: 120000,
   });
 
   responseBody = (response: AxiosResponse): any => response.data;
