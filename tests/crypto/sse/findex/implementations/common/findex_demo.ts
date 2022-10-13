@@ -27,6 +27,7 @@ export class FindexDemo extends Findex {
   ): Promise<void> {
     const generatedUsers = users.getUsers();
 
+    console.time("building full locationAndWords");
     const locationAndWords: { [key: string]: string[] } = {};
     generatedUsers.map((user) => {
       let userId = user.id;
@@ -48,9 +49,17 @@ export class FindexDemo extends Findex {
         throw new Error("upsertUsersIndexes: userId cannot be null");
       }
     });
-    await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
+    console.timeEnd("building full locationAndWords");
 
+    console.time("super.upsert");
+    await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
+    console.timeEnd("super.upsert");
+
+    // If we want to index using graph do a second upsert with only the 
+    // attributes we want inside the graph (country, firstName and lastName)
+    // We do the basic upsert before to index all the other attributes.
     if (useGraph) {
+      console.time("building simple locationAndWords for graphs");
       const locationAndWords: { [key: string]: string[] } = {};
       generatedUsers.map((user) => {
         let userId = user.id;
@@ -67,11 +76,17 @@ export class FindexDemo extends Findex {
           throw new Error("upsertUsersIndexes: userId cannot be null");
         }
       });
+      console.timeEnd("building simple locationAndWords for graphs");
+
+      console.time("super.graph_upsert");
       await super.graph_upsert(
         masterKeysFindex,
         Buffer.from(label),
         locationAndWords
       );
+      console.timeEnd("super.graph_upsert");
+    } else {
+
     }
   }
 
