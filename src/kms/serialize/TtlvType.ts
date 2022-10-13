@@ -22,4 +22,7 @@ export enum TtlvType {
   // a type added to support polymorphism
   // where a TTLV value can take a list of multiple types
   Choice = "Choice",
+
+  // The property should be ignored on serialization/deserialization
+  Ignore = "Ignore"
 }

@@ -8,7 +8,7 @@ export interface PropertyMetadata {
 
   toTtlv?: (instance: any) => TTLV
 
-  fromTtlv?: (propertyName: string, ttlv: TTLV) => Object
+  fromTtlv?: (propertyName: string, ttlv: TTLV, parentInstance: any) => any
 }
 
 export const METADATA_KEY = Symbol("propertyMetadata")

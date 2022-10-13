@@ -1,9 +1,9 @@
 import { fromTTLV } from "kms/deserialize/deserializer"
 import { toTTLV } from "kms/serialize/serializer"
 import { TTLV } from "kms/serialize/Ttlv"
+import { KeyFormatType } from "kms/types/KeyFormatType"
 import { hexDecode, hexEncode } from "utils/utils"
 import { metadata } from "../decorators/function"
-import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 import { Attributes } from "../types/Attributes"
 import { TransparentDHPrivateKey } from "./TransparentDHPrivateKey"
@@ -14,7 +14,16 @@ import { TransparentSymmetricKey } from "./TransparentSymmetricKey"
 type KeyMaterial = Uint8Array | TransparentDHPrivateKey | TransparentDHPublicKey | TransparentECPrivateKey | TransparentECPublicKey | TransparentSymmetricKey
 
 
-export class PlainTextKeyValue implements KmipStruct {
+export class PlainTextKeyValue {
+
+  // This property is only used to help deserialization
+  // see KeyBlock
+  @metadata({
+    name: "IGNORED",
+    type: TtlvType.Ignore,
+  })
+  private readonly _keyFormatType?: KeyFormatType
+
   @metadata({
     name: "KeyMaterial",
     type: TtlvType.Structure,
@@ -26,23 +35,32 @@ export class PlainTextKeyValue implements KmipStruct {
       ttlv.tag = "KeyMaterial"
       return ttlv
     },
-    fromTtlv(propertyName: string, ttlv: TTLV): KeyMaterial {
+    fromTtlv(propertyName: string, ttlv: TTLV, parentInstance: PlainTextKeyValue): KeyMaterial {
       if (ttlv.type === TtlvType.ByteString) {
         return hexDecode(ttlv.value as string)
       }
       if (ttlv.value.constructor.name !== "Array") {
         throw new Error(`Invalid KeyMaterial for property ${propertyName}`)
       }
-      const ttlvChildren: TTLV[] = ttlv.value as TTLV[]
-      if (typeof ttlvChildren.find(v => v.tag === "Key") !== "undefined") {
-        // a transparent symmetric key
+      if (typeof parentInstance._keyFormatType === "undefined") {
+        throw new Error(`Deserializer: unknown KeyFormatType when deserializing the KeyMaterial for property ${propertyName}`)
+      }
+      if (parentInstance._keyFormatType === KeyFormatType.TransparentSymmetricKey) {
         return fromTTLV(TransparentSymmetricKey, ttlv)
       }
-      if (typeof ttlvChildren.find(v => v.tag === "RecommendedCurve") !== "undefined") {
-        // an EC  Key
-        return fromTTLV(TransparentSymmetricKey, ttlv)
+      if (parentInstance._keyFormatType === KeyFormatType.TransparentDHPrivateKey) {
+        return fromTTLV(TransparentDHPrivateKey, ttlv)
       }
-      throw new Error(`Unknown KeyMaterial for property ${propertyName}`)
+      if (parentInstance._keyFormatType === KeyFormatType.TransparentDHPublicKey) {
+        return fromTTLV(TransparentDHPublicKey, ttlv)
+      }
+      if (parentInstance._keyFormatType === KeyFormatType.TransparentECPrivateKey) {
+        return fromTTLV(TransparentECPrivateKey, ttlv)
+      }
+      if (parentInstance._keyFormatType === KeyFormatType.TransparentECPublicKey) {
+        return fromTTLV(TransparentECPublicKey, ttlv)
+      }
+      throw new Error(`Deserializer: unable to deserialize KeyMaterial with Key Format Type ${parentInstance._keyFormatType} for property ${propertyName}`)
     },
   })
   private _key_material: KeyMaterial
@@ -55,8 +73,9 @@ export class PlainTextKeyValue implements KmipStruct {
   })
   private _attributes?: Attributes
 
-  public constructor(keyMaterial: KeyMaterial, attributes?: Attributes) {
-    this._key_material = keyMaterial
+  public constructor(keyFormatType?: KeyFormatType, keyMaterial?: KeyMaterial, attributes?: Attributes) {
+    this._keyFormatType = keyFormatType
+    this._key_material = keyMaterial ?? new Uint8Array()
     this._attributes = attributes
   }
 

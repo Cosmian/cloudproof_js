@@ -129,12 +129,17 @@ function parseChildren(value: Object): TTLV[] {
     const childType = childMetadata.type
     // console.log("PROPERTY", propertyName, childName, childType, childValue, childMetadata.classOrEnum)
 
+    if (childType === TtlvType.Ignore) {
+      continue
+    }
     if (childType === TtlvType.Structure || childType === TtlvType.StructuresArray || childType === TtlvType.Choice) {
       // it is a structure, recursively process the child
       const child = _toTTLV(childValue, childMetadata)
       children.push(child)
       continue
-    } else if (childType === TtlvType.Enumeration) {
+    }
+
+    if (childType === TtlvType.Enumeration) {
       childValue = childMetadata.classOrEnum[childValue]
     } else if (childType === TtlvType.ByteString) {
       // childValue = Buffer.from(childValue).toString("hex")

@@ -65,7 +65,7 @@ function structureParser<T extends Object>(instance: T, ttlv: TTLV, propertyName
   // in which case, use that
   const fromTTLV = Reflect.get(instance, "fromTTLV")
   if (typeof fromTTLV !== "undefined") {
-    return Reflect.apply(fromTTLV, instance, [ttlv, propertyName])
+    return Reflect.apply(fromTTLV, instance, [ttlv, propertyName, instance])
   }
 
   // use the default parser
@@ -132,6 +132,9 @@ export function defaultStructureParser<T extends Object>(instance: T, ttlv: TTLV
   // process the structure properties
   for (const propertyName of Object.getOwnPropertyNames(metadata)) {
     const childMetadata: PropertyMetadata = metadata[propertyName]
+    if (childMetadata.type === TtlvType.Ignore) {
+      continue
+    }
     const ttlvTag = childMetadata.name
 
     const child = ttlvValue.find((v) => v.tag === ttlvTag)
@@ -141,7 +144,7 @@ export function defaultStructureParser<T extends Object>(instance: T, ttlv: TTLV
       continue
     }
     // found a matching TTLV child
-    const value = valueParser(child, childMetadata, propertyName)
+    const value = valueParser(child, childMetadata, propertyName, instance)
     Reflect.set(instance, propertyName, value)
   }
   return instance
@@ -174,7 +177,7 @@ function choiceParser<T extends Object>(instance: T, ttlv: TTLV, propertyName: s
     const metadata: PropertyMetadata = propsMetadata[childPropertyName]
     if (metadata.type === ttlvType) {
       // found it
-      const value = valueParser(ttlv, metadata, childPropertyName)
+      const value = valueParser(ttlv, metadata, childPropertyName, instance)
       Reflect.set(instance, childPropertyName, value)
       return instance
     }
@@ -192,12 +195,14 @@ function choiceParser<T extends Object>(instance: T, ttlv: TTLV, propertyName: s
  * @param {TTLV} ttlv the Structures Array to extract the structures from
  * @param {PropertyMetadata} metadata the metadata of the Structures Array
  * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @param {object} parentInstance the current parent instance (some properties may not have yet been initialized)
  * @returns {object} the updated instance
  */
 function arrayParser<T extends Object>(
   ttlv: TTLV,
   metadata: PropertyMetadata,
   propertyName: string,
+  parentInstance: Object
 ): T[] {
 
   // check TTLV type
@@ -237,7 +242,7 @@ function arrayParser<T extends Object>(
     }
     // Set the metadata of children to be structures
     const childMetadata = Object.assign({}, metadata, { type: TtlvType.Structure })
-    array.push(valueParser(v, childMetadata, propertyName))
+    array.push(valueParser(v, childMetadata, propertyName, parentInstance))
   }
   return array
 }
@@ -248,19 +253,22 @@ function arrayParser<T extends Object>(
  * @param {TTLV} ttlv the TTLV to extract the value from
  * @param {PropertyMetadata} metadata the metadata of the TTLV
  * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @param {object} parentInstance the current parent instance (some properties may not have yet been initialized)
  * @returns {object} the KMIP object instance
  */
 export function valueParser(
   ttlv: TTLV,
   metadata: PropertyMetadata,
-  propertyName: string
+  propertyName: string,
+  parentInstance: Object
 ): any {
 
   // if there is a custom parser implemented, use that
   if (typeof metadata.fromTtlv !== "undefined") {
     return metadata.fromTtlv(
       propertyName,
-      ttlv
+      ttlv,
+      parentInstance
     )
   }
 
@@ -287,7 +295,7 @@ export function valueParser(
   }
 
   if (ttlvType === TtlvType.StructuresArray) {
-    return arrayParser(ttlv, metadata, propertyName)
+    return arrayParser(ttlv, metadata, propertyName, parentInstance)
   }
 
   // special case of Choices: the value is actually a structure
