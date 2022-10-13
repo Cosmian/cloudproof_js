@@ -131,7 +131,7 @@ export class PostgRestDB implements DBInterface {
   }
 
   async upsertEncryptedUser(
-    entry: EncryptedUser
+    entry: EncryptedUser[],
   ): Promise<Array<{ uid: string; enc_uid: string }>> {
     const config = {
       headers: {

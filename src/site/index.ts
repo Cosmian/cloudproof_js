@@ -94,11 +94,14 @@ async function IndexAndLoadElements(): Promise<void> {
  * @returns void
  */
 async function IndexAndLoadEncryptedElements(): Promise<void> {
+  console.time("IndexAndLoadEncryptedElements");
+
   const button = document.getElementById("index_button");
   if (button != null) {
     button.innerHTML = "Encrypt elements...";
   }
 
+  console.time("firstElements");
   const firstElements = await USERS.getFirstUsers();
   const clearDb = document.getElementById("clear_db");
   if (clearDb != null) {
@@ -108,15 +111,23 @@ async function IndexAndLoadEncryptedElements(): Promise<void> {
       displayInTab(firstElements, clearDb);
     }
   }
+  console.log(firstElements);
+  console.timeEnd("firstElements");
 
+  console.time("deleteAllEncryptedUsers");
   await FINDEX_DEMO.postgrestDb.deleteAllEncryptedUsers();
+  console.timeEnd("deleteAllEncryptedUsers");
+
+  console.time("encryptUsersPerCountryAndDepartment");
   USERS = await FINDEX_DEMO.encryptUsersPerCountryAndDepartment(
     USERS,
     hexDecode("00000001"),
     COVER_CRYPT_KEYS.abePolicy,
     COVER_CRYPT_KEYS.masterKeysCoverCrypt.publicKey
   );
+  console.timeEnd("encryptUsersPerCountryAndDepartment");
 
+  console.time("getFirstEncryptedUsers");
   const firstEncryptedElements =
     await FINDEX_DEMO.postgrestDb.getFirstEncryptedUsers();
   const encDb = document.getElementById("enc_db");
@@ -127,8 +138,14 @@ async function IndexAndLoadEncryptedElements(): Promise<void> {
       displayInTab(firstEncryptedElements, encDb);
     }
   }
+  console.log(firstEncryptedElements);
+  console.timeEnd("getFirstEncryptedUsers");
 
+  console.time("upsert");
   await upsert("enc_uid");
+  console.timeEnd("upsert");
+
+  console.timeEnd("IndexAndLoadEncryptedElements");
 }
 (window as any).IndexAndLoadEncryptedElements = IndexAndLoadEncryptedElements;
 
@@ -567,9 +584,7 @@ const displayResults = (
     console.error("workers_results_number not found");
     return;
   }
-  wrnElt.innerHTML = `${results.length} in ${
-    endDate - startDate
-  }ms i.e. ${milliseconds}ms/record average`;
+  wrnElt.innerHTML = `${results.length} in ${endDate - startDate}ms i.e. ${milliseconds}ms/record average`;
 
   // the results themselves
   const wrElt = document.getElementById("workers_result");
