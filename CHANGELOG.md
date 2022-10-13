@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.3] - 2022-10-13
+### Added
+- Add timings in console for the demo
+### Changed
+### Fixed
+- Fix purging database in demo
+### Removed
+
+---
 ## [3.0.2] - 2022-10-07
 ### Added
 ### Changed
