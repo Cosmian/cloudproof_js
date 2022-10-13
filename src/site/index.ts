@@ -111,12 +111,13 @@ async function IndexAndLoadEncryptedElements(): Promise<void> {
       displayInTab(firstElements, clearDb);
     }
   }
-  console.log(firstElements);
   console.timeEnd("firstElements");
 
-  console.time("deleteAllEncryptedUsers");
+  console.time("deleteAll");
   await FINDEX_DEMO.postgrestDb.deleteAllEncryptedUsers();
-  console.timeEnd("deleteAllEncryptedUsers");
+  await FINDEX_DEMO.postgrestDb.deleteAllEntryTableEntries();
+  await FINDEX_DEMO.postgrestDb.deleteAllChainTableEntries();
+  console.timeEnd("deleteAll");
 
   console.time("encryptUsersPerCountryAndDepartment");
   USERS = await FINDEX_DEMO.encryptUsersPerCountryAndDepartment(
@@ -138,7 +139,6 @@ async function IndexAndLoadEncryptedElements(): Promise<void> {
       displayInTab(firstEncryptedElements, encDb);
     }
   }
-  console.log(firstEncryptedElements);
   console.timeEnd("getFirstEncryptedUsers");
 
   console.time("upsert");

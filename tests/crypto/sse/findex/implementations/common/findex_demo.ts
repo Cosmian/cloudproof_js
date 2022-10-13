@@ -51,9 +51,9 @@ export class FindexDemo extends Findex {
     });
     console.timeEnd("building full locationAndWords");
 
-    console.time("super.upsert");
+    console.time(`super.upsert ${Object.keys(locationAndWords).length}`);
     await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
-    console.timeEnd("super.upsert");
+    console.timeEnd(`super.upsert ${Object.keys(locationAndWords).length}`);
 
     // If we want to index using graph do a second upsert with only the 
     // attributes we want inside the graph (country, firstName and lastName)
@@ -78,15 +78,13 @@ export class FindexDemo extends Findex {
       });
       console.timeEnd("building simple locationAndWords for graphs");
 
-      console.time("super.graph_upsert");
+      console.time(`super.graph_upsert ${Object.keys(locationAndWords).length}`);
       await super.graph_upsert(
         masterKeysFindex,
         Buffer.from(label),
         locationAndWords
       );
-      console.timeEnd("super.graph_upsert");
-    } else {
-
+      console.timeEnd(`super.graph_upsert ${Object.keys(locationAndWords).length}`);
     }
   }
 
