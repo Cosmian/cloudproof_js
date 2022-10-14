@@ -7,10 +7,11 @@ variables:
   POSTGRES_DB: app_db
   POSTGRES_USER: app_user
   POSTGRES_PASSWORD: password
+  PGPORT: 5433
   # Postgrest
   PGRST_SERVER_HOST: localhost
   PGRST_SERVER_PORT: 3000
-  PGRST_DB_URI: postgres://app_user:password@localhost:5432/app_db
+  PGRST_DB_URI: postgres://app_user:password@localhost:5433/app_db
   PGRST_DB_SCHEMA: public
   PGRST_DB_ANON_ROLE: app_user
   PGRST_OPENAPI_SERVER_PROXY_URI: http://localhost:3000
@@ -19,7 +20,6 @@ variables:
   KMS_PUBLIC_PATH: /tmp
   KMS_PRIVATE_PATH: /tmp
   KMS_SHARED_PATH: /tmp
-
 
 stages:
   - prebuild
@@ -33,7 +33,7 @@ stages:
       alias: db
     - name: postgrest/postgrest
       alias: server
-    - name: gitlab.cosmian.com:5000/core/kms:2.2.0_ci
+    - name: gitlab.cosmian.com:5000/core/kms:${KMS_VERSION}_ci
       alias: kms_ci
     - redis:latest
   before_script:

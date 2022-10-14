@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.0.4] - 2022-10-14
+### Added
+- CI: use KMS version from Gitlab version
+- Use port 5433 for postgres container on Gitlab
+### Changed
+### Fixed
+### Removed
+
+---
 ## [3.0.3] - 2022-10-13
 ### Added
 - Add timings in console for the demo
