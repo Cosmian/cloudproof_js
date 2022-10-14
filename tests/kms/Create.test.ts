@@ -10,6 +10,7 @@ import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
 import { LinkType } from "kms/types/LinkType"
 import { ObjectType } from "kms/types/ObjectType"
 import { SymmetricKey } from "kms/objects/SymmetricKey"
+import { TransparentSymmetricKey } from "kms/data_structures/TransparentSymmetricKey"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -116,6 +117,12 @@ test("KMS create AES Key", async () => {
   }
   const uniqueIdentifier = await client.aesGcmCreateSymmetricKey(SymmetricKeyAlgorithm.AES_GCM, 256)
   expect(typeof uniqueIdentifier).toEqual("string")
-  const obj: SymmetricKey = await client.getObject(uniqueIdentifier)
-  console.log(`OBJECT ${obj.toString()}`)
+  const key: SymmetricKey = await client.getObject(uniqueIdentifier)
+  expect(key.keyBlock.cryptographic_algorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(key.keyBlock.cryptographic_length).toEqual(256)
+  expect(key.keyBlock.key_format_type).toEqual(KeyFormatType.TransparentSymmetricKey)
+  expect(key.keyBlock.key_value.plaintext?.keyMaterial instanceof TransparentSymmetricKey).toBeTruthy()
+
+
+  console.log(`OBJECT ${key.toString()}`)
 })
