@@ -3,7 +3,8 @@ import { logger } from "./logger"
 /**
  * Convert the binary string to base64 string and sanitize it.
  *
- * @param val
+ * @param {string} val the binary string
+ * @returns {string} the base 64 value
  */
 export function toBase64(val: string): string {
   return Buffer.from(sanitizeString(val), "binary").toString("base64")
@@ -12,8 +13,8 @@ export function toBase64(val: string): string {
 /**
  * Hex encode an array of bytes
  *
- * @param array the bytes
- * @returns the hex encoded string
+ * @param {Uint8Array} array the bytes
+ * @returns {string}the hex encoded string
  */
 export function hexEncode(array: Uint8Array): string {
   return array.reduce((prev, current) => {
@@ -24,14 +25,14 @@ export function hexEncode(array: Uint8Array): string {
 /**
  * Hex decode to an array of bytes
  *
- * @param hexString the hex encoded string
- * @returns the decoded array of bytes
+ * @param {string} hexString the hex encoded string
+ * @returns {Uint8Array} the decoded array of bytes
  */
 export function hexDecode(hexString: string): Uint8Array {
   return new Uint8Array(
     hexString
       .split(/(\w\w)/g)
-      .filter((p) => !!p)
+      .filter((p) => p !== "")
       .map((c) => parseInt(c, 16))
   )
 
@@ -44,8 +45,8 @@ export function hexDecode(hexString: string): Uint8Array {
 /**
  * Convert a u32 represented as a 4-bytes value in big endian to a u32 value
  *
- * @param bytes this a 4-bytes value representing an u32 in big endian
- * @returns the u32 value
+ * @param {Uint8Array} bytes this a 4-bytes value representing an u32 in big endian
+ * @returns {number} the u32 value
  */
 export function fromBeBytes(bytes: Uint8Array): number {
   // Create a buffer
@@ -65,8 +66,8 @@ export function fromBeBytes(bytes: Uint8Array): number {
 /**
  * Convert a u32 value to a u32 represented as a 4-bytes value in big endian
  *
- * @param myNumber a u32 value
- * @returns the u32 represented as a 4-bytes value in big endian
+ * @param {number} myNumber a u32 value
+ * @returns {Uint8Array} the u32 represented as a 4-bytes value in big endian
  */
 export function toBeBytes(myNumber: number): Uint8Array {
   // Convert symmetric key length to 4-bytes array
@@ -79,17 +80,16 @@ export function toBeBytes(myNumber: number): Uint8Array {
 /**
  * Return the number of bytes for encoding the number of bytes of the deserialized item
  *
- * @param stream Array being deserialized when using LEB128 deserialization
- * @returns number of bytes
+ * @param {Uint8Array} stream Array being deserialized when using LEB128 deserialization
+ * @returns {number} number of bytes
  */
-function getSizeNumberOfBytes(stream: Uint8Array) {
+function getSizeNumberOfBytes(stream: Uint8Array): number {
   const a: number[] = []
 
   for (const element of stream) {
     const b = element
     a.push(b)
 
-    logger.log(() => "a : " + a + " b: " + b)
     // tslint:disable-next-line: no-bitwise
     if ((b & 0x80) === 0) {
       logger.log(() => "break")
@@ -103,8 +103,8 @@ function getSizeNumberOfBytes(stream: Uint8Array) {
 /**
  * Deserialize Uint8Array as a list of Uint8Array
  *
- * @param serializedItems Uint8Array of serialized data
- * @returns an array of deserialized items
+ * @param {Uint8Array} serializedItems Uint8Array of serialized data
+ * @returns {Uint16Array[]} an array of deserialized items
  */
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const leb = require("leb128")
@@ -112,17 +112,12 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   while (serializedItems.length > 1) {
     const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10)
     const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
-    logger.log(
-      () => "deserializeList: sizeNumberOfBytes: " + sizeNumberOfBytes
-    )
 
     const item = serializedItems.slice(
       sizeNumberOfBytes,
       sizeNumberOfBytes + itemLen
     )
     serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen)
-    logger.log(() => "deserializeList: itemLen: " + itemLen)
-    logger.log(() => "deserializeList: item: " + item)
     items.push(item)
   }
   return items
@@ -131,8 +126,8 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
 /**
  * Deserialize Uint8Array as an array of objects with key and value
  *
- * @param serializedItems Uint8Array of serialized data
- * @returns an array of objects with key and value properties as Uint8Array
+ * @param {Uint8Array} serializedItems Uint8Array of serialized data
+ * @returns {Array<{ uid: Uint8Array; value: Uint8Array }>} an array of objects with key and value properties as Uint8Array
  */
 export function deserializeHashMap(
   serializedItems: Uint8Array
@@ -145,9 +140,6 @@ export function deserializeHashMap(
   while (serializedItems.length > 1) {
     const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10)
     const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
-    logger.log(
-      () => "deserializeHashMap: sizeNumberOfBytes: " + sizeNumberOfBytes
-    )
     const key = serializedItems.slice(
       sizeNumberOfBytes,
       sizeNumberOfBytes + keyLen
@@ -157,9 +149,6 @@ export function deserializeHashMap(
     if (key.length > 1) {
       const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10)
       const lengthNbBytes = getSizeNumberOfBytes(serializedItems)
-      logger.log(
-        () => "deserializeHashMap: sizeNumberOfBytes(2): " + lengthNbBytes
-      )
       const value = serializedItems.slice(
         lengthNbBytes,
         lengthNbBytes + valueLen
@@ -182,8 +171,8 @@ export function deserializeHashMap(
 /**
  * Serialize a list of Uint8Array as a Uint8Array
  *
- * @param list an array of deserialized item
- * @returns Uint8Array of serialized data
+ * @param {Uint8Array[]} list an array of deserialized item
+ * @returns {Uint8Array} Uint8Array of serialized data
  */
 export function serializeList(list: Uint8Array[]): Uint8Array {
   const leb = require("leb128")
@@ -199,8 +188,8 @@ export function serializeList(list: Uint8Array[]): Uint8Array {
 /**
  * Serialize an array of uids and values as a Uint8Array
  *
- * @param data an array of objects containing uids and values
- * @returns Uint8Array of serialized data
+ * @param {Array<{ uid: Uint8Array; value: Uint8Array }>} data  an array of objects containing uids and values
+ * @returns {Uint8Array} Uint8Array of serialized data
  */
 export function serializeHashMap(
   data: Array<{ uid: Uint8Array; value: Uint8Array }>
@@ -225,14 +214,14 @@ export function serializeHashMap(
 /**
  * Remove accents and uppercase to query word
  *
- * @param str string to sanitize
- * @returns string initial string without accents and uppercase
+ * @param {string} str string to sanitize
+ * @returns {string} string initial string without accents and uppercase
  */
 export function sanitizeString(str: string): string {
   return str
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^\w\-]+/g, "-")
+    .replace(/[^\w-]+/g, "-")
 }
 
