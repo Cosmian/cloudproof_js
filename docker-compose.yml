@@ -4,7 +4,7 @@ version: "3"
 services:
   kms:
     container_name: kms
-    image: gitlab.cosmian.com:5000/core/kms:2.3.0_ci
+    image: gitlab.cosmian.com:5000/core/kms:2.3.1_ci
     environment:
       - KMS_HOSTNAME=0.0.0.0
       - KMS_PUBLIC_PATH=/tmp
