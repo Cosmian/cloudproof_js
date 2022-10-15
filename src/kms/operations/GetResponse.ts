@@ -1,4 +1,4 @@
-import { Certificate } from "crypto"
+import { Certificate } from "kms/objects/Certificate"
 import { Deserialize } from "kms/deserialize/Deserialize"
 import { defaultStructureParser } from "kms/deserialize/deserializer"
 import { CertificateRequest } from "kms/objects/CertificateRequest"

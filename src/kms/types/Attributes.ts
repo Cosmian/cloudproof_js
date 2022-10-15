@@ -78,7 +78,7 @@ export class Attributes implements KmipStruct {
    * added, adjusted, modified or deleted by the client.
    */
   @metadata({
-    name: "VendorAttribute",
+    name: "VendorAttributes",
     type: TtlvType.StructuresArray,
     classOrEnum: VendorAttribute
   })

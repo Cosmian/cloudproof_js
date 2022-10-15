@@ -47,17 +47,17 @@ export class Get implements KmipStruct {
   private _key_wrapping_data?: KeyWrappingData
 
   constructor(
-    unique_identifier?: string,
-    key_format_type?: KeyFormatType,
-    key_wrap_type?: KeyWrapType,
-    key_compression_type?: KeyCompressionType,
-    key_wrapping_data?: KeyWrappingData
+    uniqueIdentifier?: string,
+    keyFormatType?: KeyFormatType,
+    keyWrapType?: KeyWrapType,
+    keyCompressionType?: KeyCompressionType,
+    keyWrappingData?: KeyWrappingData
   ) {
-    this._unique_identifier = unique_identifier
-    this._key_format_type = key_format_type
-    this._key_wrap_type = key_wrap_type
-    this._key_compression_type = key_compression_type
-    this._key_wrapping_data = key_wrapping_data
+    this._unique_identifier = uniqueIdentifier
+    this._key_format_type = keyFormatType
+    this._key_wrap_type = keyWrapType
+    this._key_compression_type = keyCompressionType
+    this._key_wrapping_data = keyWrappingData
   }
 
   public get unique_identifier(): string | undefined {
@@ -101,7 +101,7 @@ export class Get implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof Get)) {
@@ -118,24 +118,6 @@ export class Get implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", key_format_type='" +
-      this._key_format_type +
-      "'" +
-      ", key_wrap_type='" +
-      this._key_wrap_type +
-      "'" +
-      ", key_compression_type='" +
-      this._key_compression_type +
-      "'" +
-      ", key_wrapping_data='" +
-      this._key_wrapping_data +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

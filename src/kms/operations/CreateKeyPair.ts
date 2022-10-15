@@ -145,7 +145,7 @@ export class CreateKeyPair implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof CreateKeyPair)) {
@@ -166,27 +166,6 @@ export class CreateKeyPair implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " commonAttributes='" +
-      this._commonAttributes +
-      "'" +
-      ", privateKeyAttributes='" +
-      this._privateKeyAttributes +
-      "'" +
-      ", publicKeyAttributes='" +
-      this._publicKeyAttributes +
-      "'" +
-      ", commonProtectionStorageMasks='" +
-      this._commonProtectionStorageMasks +
-      "'" +
-      ", privateProtectionStorageMasks='" +
-      this._privateProtectionStorageMasks +
-      "'" +
-      ", publicProtectionStorageMasks='" +
-      this._publicProtectionStorageMasks +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

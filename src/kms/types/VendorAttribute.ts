@@ -19,6 +19,30 @@ import { TtlvType } from "../serialize/TtlvType"
  * or deleted by the client.
  */
 export class VendorAttribute implements KmipStruct {
+
+
+  public static VENDOR_ID_COSMIAN = "cosmian";
+
+
+  public static VENDOR_ATTR_ABE_ATTR = "abe_attributes";
+
+
+  public static VENDOR_ATTR_ABE_POLICY = "abe_policy";
+
+
+  public static VENDOR_ATTR_ABE_ACCESS_POLICY = "abe_access_policy";
+
+
+  public static VENDOR_ATTR_COVER_CRYPT_ATTR = "cover_crypt_attributes";
+
+
+  public static VENDOR_ATTR_COVER_CRYPT_POLICY = "cover_crypt_policy";
+
+
+  public static VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY = "cover_crypt_access_policy";
+
+
+
   /**
    * Text String (with usage limited to alphanumeric, underscore and period – i.e.
    * [A-Za-z0-9_.])
@@ -44,9 +68,9 @@ export class VendorAttribute implements KmipStruct {
 
   /**
    *
-   * @param vendorIdentification
-   * @param attributeName
-   * @param attributeValue
+   * @param {string} vendorIdentification the vendor ID
+   * @param {string} attributeName the name of the attribute
+   * @param {Uint8Array} attributeValue the value of the attribute
    */
   constructor(
     vendorIdentification: string,

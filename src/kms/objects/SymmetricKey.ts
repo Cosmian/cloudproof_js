@@ -2,6 +2,7 @@ import { KeyBlock } from "../data_structures/KeyBlock"
 import "reflect-metadata"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
+import { TransparentSymmetricKey } from "kms/data_structures/TransparentSymmetricKey"
 export class SymmetricKey {
   @metadata({
     name: "KeyBlock",
@@ -33,5 +34,28 @@ export class SymmetricKey {
 
   public toString(): string {
     return JSON.stringify(this, null, 4)
+  }
+
+  /**
+   * Extract the symmetric key bytes
+   * 
+   * @returns {Uint8Array} the key bytes
+   */
+  public keyBytes(): Uint8Array {
+    const kv = this.keyBlock.key_value
+    if (typeof kv.bytes !== "undefined") {
+      return kv.bytes
+    }
+    const ptKv = kv.plaintext
+    if (typeof ptKv === "undefined") {
+      throw new Error(`no key bytes found on the symmetric key`)
+    }
+    if (ptKv.keyMaterial instanceof Uint8Array) {
+      return ptKv.keyMaterial
+    }
+    if (ptKv.keyMaterial instanceof TransparentSymmetricKey) {
+      return ptKv.keyMaterial.key
+    }
+    throw new Error(`no key bytes found: invalid symmetric key`)
   }
 }
