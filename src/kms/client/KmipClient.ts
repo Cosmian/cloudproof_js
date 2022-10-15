@@ -4,6 +4,8 @@ import { KeyValue } from "kms/data_structures/KeyValue"
 import { PlainTextKeyValue } from "kms/data_structures/PlainTextKeyValue"
 import { TransparentSymmetricKey } from "kms/data_structures/TransparentSymmetricKey"
 import { getObjectType, KmipObject } from "kms/objects/KmipObject"
+import { PrivateKey } from "kms/objects/PrivateKey"
+import { PublicKey } from "kms/objects/PublicKey"
 import { SymmetricKey } from "kms/objects/SymmetricKey"
 import { CreateKeyPair } from "kms/operations/CreateKeyPair"
 import { CreateKeyPairResponse } from "kms/operations/CreateKeyPairResponse"
@@ -15,6 +17,7 @@ import { Import } from "kms/operations/Import"
 import { ImportResponse } from "kms/operations/ImportResponse"
 import { Revoke } from "kms/operations/Revoke"
 import { RevokeResponse } from "kms/operations/RevokeResponse"
+import { TTLV } from "kms/serialize/Ttlv"
 import { RevocationReason } from "kms/types/RevocationReason"
 import { fromTTLV } from "../deserialize/deserializer"
 import { Create } from "../operations/Create"
@@ -58,20 +61,21 @@ export class KmipClient {
      * @returns {object} an instance of the KMIP response
      */
     public async post<P extends Object, R extends Object>(payload: P, responseClass: new (...args: any[]) => R): Promise<R> {
-        const ttlv = toTTLV(payload)
-        console.log("TTLV REQUEST", JSON.stringify(ttlv, null, 4))
+        const ttlvRequest = toTTLV(payload)
+        console.log("TTLV REQUEST", JSON.stringify(ttlvRequest, null, 4))
         const options: RequestInit = {
             method: "POST",
-            body: JSON.stringify(ttlv),
+            body: JSON.stringify(ttlvRequest),
             headers: this.headers
         }
         const response = await fetch(this.url, options)
         if (response.status >= 400) {
             throw new Error(`KMIP request failed: ${await response.text()}`)
         }
-        const content = await response.json()
-        console.log("TTLV RESPONSE", JSON.stringify(content, null, 4))
-        return fromTTLV(responseClass, content)
+        const content = await response.text()
+        const ttlvResponse = TTLV.fromJSON(content)
+        console.log("TTLV RESPONSE", JSON.stringify(ttlvResponse, null, 4))
+        return fromTTLV(responseClass, ttlvResponse)
     }
 
     /**
@@ -231,12 +235,12 @@ export class KmipClient {
     /**
      *  Retrieve a symmetric key
      * 
-     *  Use {SymmetricKey.keyBytes()} to recover the bytes
+     *  Use SymmetricKey.bytes() to recover the bytes
      * 
      * @param {string} uniqueIdentifier the Object unique identifier in the KMS
      * @returns {SymmetricKey} the KMIP symmetric Key
      */
-    public async getSymmetricKey(uniqueIdentifier: string): Promise<SymmetricKey> {
+    public async retrieveSymmetricKey(uniqueIdentifier: string): Promise<SymmetricKey> {
         return await this.getObject(uniqueIdentifier)
     }
 
@@ -270,6 +274,39 @@ export class KmipClient {
         const response = await this.post(new CreateKeyPair(commonAttributes), CreateKeyPairResponse)
         return [response.privateKeyUniqueIdentifier, response.publicKeyUniqueIdentifier]
     }
+
+    /**
+     *  Retrieve an ABE Private Master key
+     * 
+     *  Use PrivateKey.bytes() to recover the bytes
+     * 
+     * @param {string} uniqueIdentifier the key unique identifier in the KMS
+     * @returns {PrivateKey} the KMIP symmetric Key
+     */
+    public async retrieveAbePrivateMasterKey(uniqueIdentifier: string): Promise<PrivateKey> {
+        const key: PrivateKey = await this.getObject(uniqueIdentifier)
+        if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
+            throw new Error(`Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`)
+        }
+        return key
+    }
+
+    /**
+     *  Retrieve an ABE Public Master key
+     * 
+     *  Use PublicKey.bytes() to recover the bytes
+     * 
+     * @param {string} uniqueIdentifier the key unique identifier in the KMS
+     * @returns {PublicKey} the KMIP symmetric Key
+     */
+    public async retrieveAbePublicMasterKey(uniqueIdentifier: string): Promise<PublicKey> {
+        const key: PublicKey = await this.getObject(uniqueIdentifier)
+        if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
+            throw new Error(`Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`)
+        }
+        return key
+    }
+
 }
 
 export enum SymmetricKeyAlgorithm {

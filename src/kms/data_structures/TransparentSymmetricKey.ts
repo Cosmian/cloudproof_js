@@ -22,17 +22,17 @@ export class TransparentSymmetricKey implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof TransparentSymmetricKey)) {
       return false
     }
-    const transparentSymmetricKey = o
-    return this.key === transparentSymmetricKey.key
+    return this.key === o.key
   }
 
+
   public toString(): string {
-    return "{" + " key='" + this._key + "'" + "}"
+    return JSON.stringify(this, null, 4)
   }
 }

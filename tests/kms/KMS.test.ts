@@ -15,6 +15,7 @@ import { Policy, PolicyAxis } from "crypto/abe/interfaces/policy"
 import { hexEncode } from "utils/utils"
 import { TTLV } from "kms/serialize/Ttlv"
 import { VendorAttribute } from "kms/types/VendorAttribute"
+import { TtlvType } from "kms/serialize/TtlvType"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -125,7 +126,7 @@ test("KMS Symmetric Key", async () => {
   expect(typeof uniqueIdentifier).toEqual("string")
 
   // recover
-  const key: SymmetricKey = await client.getSymmetricKey(uniqueIdentifier)
+  const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
   expect(key.keyBlock.cryptographic_algorithm).toEqual(CryptographicAlgorithm.AES)
   expect(key.keyBlock.cryptographic_length).toEqual(256)
   expect(key.keyBlock.key_format_type).toEqual(KeyFormatType.TransparentSymmetricKey)
@@ -134,12 +135,12 @@ test("KMS Symmetric Key", async () => {
   expect(sk.key.length).toEqual(32)
 
   // import
-  const uid = await client.importSymmetricKey(uniqueIdentifier + "-1", key.keyBytes(), false)
+  const uid = await client.importSymmetricKey(uniqueIdentifier + "-1", key.bytes(), false)
   expect(uid).toEqual(uniqueIdentifier + "-1")
 
   // get
-  const key_ = await client.getSymmetricKey(uid)
-  expect(key_.keyBytes()).toEqual(key.keyBytes())
+  const key_ = await client.retrieveSymmetricKey(uid)
+  expect(key_.bytes()).toEqual(key.bytes())
 
   // revoke
   await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
@@ -170,6 +171,22 @@ test("Policy", async () => {
   expect(children[0].value).toEqual(VendorAttribute.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY)
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
+})
+
+
+test("Long & Big Ints", async () => {
+  const ttlvLong = new TTLV("Long", TtlvType.LongInteger, BigInt("9223372036854775806"))
+  const ttlvLongJson = JSON.stringify(ttlvLong)
+  expect(ttlvLongJson).toEqual('{"tag":"Long","type":"LongInteger","value":"0x7FFFFFFFFFFFFFFE"}')
+  const ttlvLong_ = TTLV.fromJSON(ttlvLongJson)
+  expect(JSON.stringify(ttlvLong_)).toEqual(ttlvLongJson)
+
+  const ttlvBig = new TTLV("Big", TtlvType.BigInteger, BigInt("99999999999999999999999998888888888888888"))
+  const ttlvBigJson = JSON.stringify(ttlvBig)
+  expect(ttlvBigJson).toEqual('{"tag":"Big","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}')
+  const ttlvBig_ = TTLV.fromJSON(ttlvBigJson)
+  expect(JSON.stringify(ttlvBig_)).toEqual(ttlvBigJson)
+
 })
 
 test("KMS CoverCrypt keys", async () => {

@@ -82,7 +82,7 @@ export class TransparentDHPublicKey implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof TransparentDHPublicKey)) {
@@ -99,24 +99,6 @@ export class TransparentDHPublicKey implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " p='" +
-      this.p +
-      "'" +
-      ", q='" +
-      this.q +
-      "'" +
-      ", g='" +
-      this.g +
-      "'" +
-      ", j='" +
-      this.j +
-      "'" +
-      ", y='" +
-      this.y +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

@@ -41,7 +41,7 @@ export class SymmetricKey {
    * 
    * @returns {Uint8Array} the key bytes
    */
-  public keyBytes(): Uint8Array {
+  public bytes(): Uint8Array {
     const kv = this.keyBlock.key_value
     if (typeof kv.bytes !== "undefined") {
       return kv.bytes

@@ -78,7 +78,7 @@ export class TransparentDHPrivateKey implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof TransparentDHPrivateKey)) {
@@ -95,24 +95,6 @@ export class TransparentDHPrivateKey implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " p='" +
-      this.p +
-      "'" +
-      ", q='" +
-      this.q +
-      "'" +
-      ", g='" +
-      this.g +
-      "'" +
-      ", j='" +
-      this.j +
-      "'" +
-      ", x='" +
-      this.x +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }

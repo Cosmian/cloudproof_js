@@ -39,7 +39,7 @@ export class TransparentECPrivateKey implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof TransparentECPrivateKey)) {
@@ -53,15 +53,6 @@ export class TransparentECPrivateKey implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " recommendedCurve='" +
-      this.recommendedCurve +
-      "'" +
-      ", d='" +
-      this.d +
-      "'" +
-      "}"
-    )
+    return JSON.stringify(this, null, 4)
   }
 }
