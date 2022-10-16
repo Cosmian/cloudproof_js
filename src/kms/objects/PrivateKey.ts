@@ -61,4 +61,7 @@ export class PrivateKey {
     }
     throw new Error(`no key bytes found: invalid private key`)
   }
+
+
+
 }

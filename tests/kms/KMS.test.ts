@@ -16,6 +16,7 @@ import { hexEncode } from "utils/utils"
 import { TTLV } from "kms/serialize/Ttlv"
 import { VendorAttribute } from "kms/types/VendorAttribute"
 import { TtlvType } from "kms/serialize/TtlvType"
+import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -154,23 +155,28 @@ test("KMS Symmetric Key", async () => {
 
 
 test("Policy", async () => {
-
   const policy = new Policy([
     new PolicyAxis("Security Level", ["Protected", "Confidential", "Top Secret"], true),
     new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
   ], 20)
-
+  // JSON encoding test
   const json = JSON.parse(new TextDecoder().decode(policy.toJsonEncoded()))
   expect(json.last_attribute_value).toEqual(6)
   expect(json.max_attribute_creations).toEqual(20)
   expect(json.attribute_to_int["Department::FIN"]).toEqual([4])
   expect(json.axes["Security Level"]).toEqual([["Protected", "Confidential", "Top Secret"], true])
-
+  // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
   expect(children[0].value).toEqual(VendorAttribute.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY)
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
+  // Vendor Attributes test
+  const va = policy.toVendorAttribute()
+  const att = new Attributes(ObjectType.PrivateKey)
+  att.vendorAttributes = [va]
+  const policy_ = Policy.fromAttributes(att)
+  expect(policy_).toEqual(policy)
 })
 
 
@@ -189,6 +195,19 @@ test("Long & Big Ints", async () => {
 
 })
 
+test("KMS CoverCrypt Access Policy", async () => {
+  const apb = new AccessPolicy("(Department::MKG || Department::FIN) && Security Level::Confidential")
+  const apj = apb.toKmipJson()
+  expect(apj).toEqual('{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}')
+  const apb_ = AccessPolicy.fromKmipJson(apj)
+  expect(apb_).toEqual(apb)
+  // vendor attributes
+  const va = apb.toVendorAttribute()
+  const attributes = new Attributes(ObjectType.PrivateKey)
+  attributes.vendorAttributes = [va]
+  expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
+})
+
 test("KMS CoverCrypt keys", async () => {
 
   const client: KmipClient = new KmipClient(new URL("http://localhost:9998/kmip/2_1"))
@@ -202,7 +221,20 @@ test("KMS CoverCrypt keys", async () => {
     new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
   ])
 
-  const [msk, mpk] = await client.createAbeMasterKeyPair(policy)
-  console.log(msk, mpk)
+  const [mskID, mpkID] = await client.createAbeMasterKeyPair(policy)
+  // recover policies
+  const msk = await client.retrieveAbePrivateMasterKey(mskID)
+  const policyMsk = Policy.fromKey(msk)
+  expect(policyMsk).toEqual(policy)
+  const mpk = await client.retrieveAbePrivateMasterKey(mpkID)
+  const policyMpk = Policy.fromKey(mpk)
+  expect(policyMpk).toEqual(policy)
+
+  const apb = "(Department::MKG || Department::FIN) && Security Level::Confidential"
+  const udkID = await client.createAbeUserDecryptionKey(apb, mskID)
+  const udk = await client.retrieveAbeUserDecryptionKey(udkID)
+  expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
+
 
 })
+

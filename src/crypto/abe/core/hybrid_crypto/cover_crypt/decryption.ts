@@ -3,10 +3,10 @@ import {
   webassembly_decrypt_hybrid_block,
   webassembly_decrypt_hybrid_header,
   webassembly_get_encrypted_header_size,
-} from "cosmian_cover_crypt";
-import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header";
-import { HybridDecryption } from "crypto/abe/interfaces/decryption";
-import { logger } from "utils/logger";
+} from "cosmian_cover_crypt"
+import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header"
+import { HybridDecryption } from "crypto/abe/interfaces/decryption"
+import { logger } from "utils/logger"
 
 /**
  * This class exposes the ABE primitives.
@@ -14,14 +14,14 @@ import { logger } from "utils/logger";
  */
 export class CoverCryptHybridDecryption extends HybridDecryption {
   public renewKey(userDecryptionKey: Uint8Array): void {
-    this.asymmetricDecryptionKey = userDecryptionKey;
+    this.asymmetricDecryptionKey = userDecryptionKey
   }
 
   /**
    * Destroy ABE instance
    */
   public destroyInstance(): void {
-    logger.log(() => "DestroyInstance Abe");
+    logger.log(() => "DestroyInstance Abe")
   }
 
   /**
@@ -34,9 +34,9 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
     const cleartextHeader = webassembly_decrypt_hybrid_header(
       this.asymmetricDecryptionKey,
       abeHeader
-    );
-    logger.log(() => `decryptHybridHeader: ${cleartextHeader.toString()}`);
-    return ClearTextHeader.parseLEB128(cleartextHeader);
+    )
+    logger.log(() => `decryptHybridHeader: ${cleartextHeader.toString()}`)
+    return ClearTextHeader.parseLEB128(cleartextHeader)
   }
 
   /**
@@ -59,7 +59,7 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
       uid,
       blockNumber,
       encryptedBytes
-    );
+    )
   }
 
   /**
@@ -70,25 +70,25 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
    * @returns a list of cleartext values
    */
   public decrypt(encryptedData: Uint8Array): Uint8Array {
-    logger.log(() => `decrypt for encryptedData: ${encryptedData.toString()}`);
+    logger.log(() => `decrypt for encryptedData: ${encryptedData.toString()}`)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-    const headerSize = webassembly_get_encrypted_header_size(encryptedData);
-    const asymmetricHeader = encryptedData.slice(4, 4 + headerSize);
+    const headerSize = webassembly_get_encrypted_header_size(encryptedData)
+    const asymmetricHeader = encryptedData.slice(4, 4 + headerSize)
     const encryptedSymmetricBytes = encryptedData.slice(
       4 + headerSize,
       encryptedData.length
-    );
+    )
 
     //
-    logger.log(() => `decrypt for headerSize: ${headerSize}`);
+    logger.log(() => `decrypt for headerSize: ${headerSize}`)
     logger.log(
       () => `decrypt for asymmetricHeader: ${asymmetricHeader.toString()}`
-    );
+    )
 
     // HEADER decryption: asymmetric decryption
-    const cleartextHeader = this.decryptHybridHeader(asymmetricHeader);
-    logger.log(() => "decrypt for cleartextHeader: " + cleartextHeader);
+    const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
+    logger.log(() => "decrypt for cleartextHeader: " + cleartextHeader)
 
     // AES_DATA: AES Symmetric part decryption
     const cleartext = this.decryptHybridBlock(
@@ -96,9 +96,9 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
       encryptedSymmetricBytes,
       cleartextHeader.metadata.uid,
       0
-    );
-    logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext));
-    return cleartext;
+    )
+    logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
+    return cleartext
   }
 
   /**
@@ -108,14 +108,14 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
    * @returns a list of cleartext values
    */
   public decryptBatch(databaseEntries: Uint8Array[]): Uint8Array[] {
-    const cleartextValues: Uint8Array[] = [];
+    const cleartextValues: Uint8Array[] = []
     databaseEntries.forEach((encryptedValue: Uint8Array) => {
-      const cleartext = this.decrypt(encryptedValue);
-      logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext));
-      cleartextValues.push(cleartext);
-    });
+      const cleartext = this.decrypt(encryptedValue)
+      logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
+      cleartextValues.push(cleartext)
+    })
 
-    return cleartextValues;
+    return cleartextValues
   }
 
   /**
@@ -127,24 +127,24 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
   public benchDecryptHybridHeader(abeHeader: Uint8Array): number[] {
     logger.log(
       () => `benchDecryptHybridHeader for abeHeader: ${abeHeader.toString()}`
-    );
+    )
 
-    const loops = 100;
-    const startDate = new Date().getTime();
+    const loops = 100
+    const startDate = new Date().getTime()
     for (let i = 0; i < loops; i++) {
       webassembly_decrypt_hybrid_header(
         this.asymmetricDecryptionKey,
         abeHeader
-      );
+      )
     }
-    const endDate = new Date().getTime();
-    const ms = (endDate - startDate) / loops;
-    logger.log(() => `webassembly-JS avg time: ${ms}ms`);
+    const endDate = new Date().getTime()
+    const ms = (endDate - startDate) / loops
+    logger.log(() => `webassembly-JS avg time: ${ms}ms`)
 
-    return [ms, -1];
+    return [ms, -1]
   }
 
   public getHeaderSize(encryptedBytes: Uint8Array): number {
-    return webassembly_get_encrypted_header_size(encryptedBytes);
+    return webassembly_get_encrypted_header_size(encryptedBytes)
   }
 }

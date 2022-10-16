@@ -1,3 +1,4 @@
+import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { Policy } from "crypto/abe/interfaces/policy"
 import { KeyBlock } from "kms/data_structures/KeyBlock"
 import { KeyValue } from "kms/data_structures/KeyValue"
@@ -18,6 +19,9 @@ import { ImportResponse } from "kms/operations/ImportResponse"
 import { Revoke } from "kms/operations/Revoke"
 import { RevokeResponse } from "kms/operations/RevokeResponse"
 import { TTLV } from "kms/serialize/Ttlv"
+import { CryptographicUsageMask } from "kms/types/CryptographicUsageMask"
+import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
+import { LinkType } from "kms/types/LinkType"
 import { RevocationReason } from "kms/types/RevocationReason"
 import { fromTTLV } from "../deserialize/deserializer"
 import { Create } from "../operations/Create"
@@ -68,7 +72,7 @@ export class KmipClient {
             body: JSON.stringify(ttlvRequest),
             headers: this.headers
         }
-        const response = await fetch(this.url, options)
+        const response = await fetch((this.url as any), options)
         if (response.status >= 400) {
             throw new Error(`KMIP request failed: ${await response.text()}`)
         }
@@ -89,7 +93,7 @@ export class KmipClient {
             headers: this.headers
         }
         try {
-            await fetch(this.url, options)
+            await fetch((this.url as any), options)
             return true
         } catch (error) {
             return false
@@ -105,7 +109,7 @@ export class KmipClient {
     public async getObject<T>(uniqueIdentifier: string): Promise<T> {
         const get = new Get(uniqueIdentifier)
         const response = await this.post(get, GetResponse)
-        return response.object as T
+        return (response.object as unknown) as T
     }
 
 
@@ -129,7 +133,7 @@ export class KmipClient {
         }
         const imp = new Import(uniqueIdentifier, attributes.objectType, attributes, object)
         const response = await this.post(imp, ImportResponse)
-        return response.uniqueIdentifier as T
+        return (response.uniqueIdentifier as unknown) as T
     }
 
 
@@ -212,7 +216,7 @@ export class KmipClient {
             keyBytes.length * 8,
             undefined,
             undefined,
-            undefined,
+            CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt,
             KeyFormatType.TransparentSymmetricKey
         )
         const symmetricKey = new SymmetricKey(
@@ -247,7 +251,7 @@ export class KmipClient {
     /**
      * Mark a KMIP Symmetric Key as Revoked
      * 
-     * @param {string} uniqueIdentifier the unique identifier of the object
+     * @param {string} uniqueIdentifier the unique identifier of the key
      * @param {string} reason the explanation of the revocation
      */
     public async revokeSymmetricKey(uniqueIdentifier: string, reason: string): Promise<void> {
@@ -279,6 +283,7 @@ export class KmipClient {
      *  Retrieve an ABE Private Master key
      * 
      *  Use PrivateKey.bytes() to recover the bytes
+     *  Use Policy.fromKey() to recover the Policy
      * 
      * @param {string} uniqueIdentifier the key unique identifier in the KMS
      * @returns {PrivateKey} the KMIP symmetric Key
@@ -295,6 +300,7 @@ export class KmipClient {
      *  Retrieve an ABE Public Master key
      * 
      *  Use PublicKey.bytes() to recover the bytes
+     *  Use Policy.fromKey() to recover the Policy
      * 
      * @param {string} uniqueIdentifier the key unique identifier in the KMS
      * @returns {PublicKey} the KMIP symmetric Key
@@ -306,6 +312,138 @@ export class KmipClient {
         }
         return key
     }
+
+
+    /**
+     * Import a Private Master Key key into the KMS
+     * 
+     * @param {string} uniqueIdentifier  the unique identifier of the key
+     * @param {PrivateKey} key the Private Master Key
+     * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+     * @returns {string} the unique identifier of the key
+     */
+    public async importAbePrivateMasterKey(uniqueIdentifier: string, key: PrivateKey, replaceExisting?: boolean): Promise<string> {
+        const attributes = key.keyBlock.key_value.plaintext?.attributes
+        if (typeof attributes === "undefined") {
+            throw new Error("The Private Master Key must contain the attributes")
+        }
+        return await this.importObject(uniqueIdentifier, attributes, key, replaceExisting)
+    }
+
+    /**
+     * Import a Public Master Key key into the KMS
+     * 
+     * @param {string} uniqueIdentifier  the unique identifier of the key
+     * @param {PublicKey} key the Public Master Key
+     * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+     * @returns {string} the unique identifier of the key
+     */
+    public async importAbePublicMasterKey(uniqueIdentifier: string, key: PublicKey, replaceExisting?: boolean): Promise<string> {
+        const attributes = key.keyBlock.key_value.plaintext?.attributes
+        if (typeof attributes === "undefined") {
+            throw new Error("The Public Master Key must contain the attributes")
+        }
+        return await this.importObject(uniqueIdentifier, attributes, key, replaceExisting)
+    }
+
+    /**
+     * Mark a ABE Private Master Key as Revoked
+     * 
+     * @param {string} uniqueIdentifier the unique identifier of the key
+     * @param {string} reason the explanation of the revocation
+     */
+    public async revokeAbePrivateMasterKey(uniqueIdentifier: string, reason: string): Promise<void> {
+        return await this.revokeObject(uniqueIdentifier, reason)
+    }
+
+    /**
+     * Mark a ABE Public Master Key as Revoked
+     * 
+     * @param {string} uniqueIdentifier the unique identifier of the key
+     * @param {string} reason the explanation of the revocation
+     */
+    public async revokeAbePublicMasterKey(uniqueIdentifier: string, reason: string): Promise<void> {
+        return await this.revokeObject(uniqueIdentifier, reason)
+    }
+
+
+    /**
+     * Create an ABE User Decryption Key with a given access policy
+     * 
+     * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g. 
+     * (Department::MKG || Department::FIN) && Security Level::Confidential
+     * @param {string} privateMasterKeyIdentifier the private master key identifier which will derive this key
+     * @returns {string} the unique identifier of the user decryption key
+     */
+    public async createAbeUserDecryptionKey(accessPolicy: AccessPolicy | string, privateMasterKeyIdentifier: string): Promise<string> {
+        if (typeof accessPolicy === "string") {
+            accessPolicy = new AccessPolicy(accessPolicy)
+        }
+        const create = new Create(
+            ObjectType.PrivateKey,
+            new Attributes(
+                ObjectType.PrivateKey,
+                [new Link(LinkType.ParentLink, new LinkedObjectIdentifier(privateMasterKeyIdentifier))],
+                [accessPolicy.toVendorAttribute()],
+                undefined,
+                CryptographicAlgorithm.CoverCrypt,
+                undefined,
+                undefined,
+                undefined,
+                CryptographicUsageMask.Decrypt,
+                KeyFormatType.CoverCryptSecretKey
+            )
+        )
+        const response = await this.post(create, CreateResponse)
+        return response.uniqueIdentifier
+    }
+
+    /**
+     *  Retrieve an ABE User Decryption key
+     * 
+     *  Use PrivateKey.bytes() to recover the bytes
+     *  Use AccessPolicy.fromKey() to recover the Policy
+     * 
+     * @param {string} uniqueIdentifier the key unique identifier in the KMS
+     * @returns {PrivateKey} the KMIP symmetric Key
+     */
+    public async retrieveAbeUserDecryptionKey(uniqueIdentifier: string): Promise<PrivateKey> {
+        const key: PrivateKey = await this.getObject(uniqueIdentifier)
+        if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
+            throw new Error(`Not an ABE User Decryption Key for identifier: ${uniqueIdentifier}`)
+        }
+        return key
+    }
+
+
+    /**
+     * Import a ABE User Decryption Key key into the KMS
+     * 
+     * @param {string} uniqueIdentifier  the unique identifier of the key
+     * @param {PrivateKey} key the ABE User Decryption Key
+     * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+     * @returns {string} the unique identifier of the key
+     */
+    public async importAbeUserDecryptionKey(uniqueIdentifier: string, key: PrivateKey, replaceExisting?: boolean): Promise<string> {
+        const attributes = key.keyBlock.key_value.plaintext?.attributes
+        if (typeof attributes === "undefined") {
+            throw new Error("The ABE User Decryption Key must contain the attributes")
+        }
+        return await this.importObject(uniqueIdentifier, attributes, key, replaceExisting)
+    }
+
+    /**
+     * Mark a KMIP Symmetric Key as Revoked
+     * 
+     * @param {string} uniqueIdentifier the unique identifier of the key
+     * @param {string} reason the explanation of the revocation
+     */
+    public async revokeAbeUserDecryptionKey(uniqueIdentifier: string, reason: string): Promise<void> {
+        return await this.revokeObject(uniqueIdentifier, reason)
+    }
+
+
+
 
 }
 
