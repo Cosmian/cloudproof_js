@@ -42,7 +42,6 @@ export class TTLV {
       type: this.type
     }
     if (this.type === TtlvType.BigInteger || this.type === TtlvType.LongInteger) {
-      console.log("plock")
       obj.value = "0x" + (this.value as BigInt).toString(16).toUpperCase()
     } else {
       obj.value = this.value
@@ -53,7 +52,6 @@ export class TTLV {
   public static fromJSON(json: string): TTLV {
     const obj: TTLV = JSON.parse(json)
     if (obj.type === TtlvType.LongInteger || obj.type === TtlvType.BigInteger) {
-      console.log("Plick")
       obj.value = BigInt(obj.value as string)
     }
     return new TTLV(obj.tag, obj.type, obj.value)

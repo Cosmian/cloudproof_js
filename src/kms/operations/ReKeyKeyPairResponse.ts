@@ -2,7 +2,7 @@ import { metadata } from "../decorators/function"
 import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
-export class CreateKeyPairResponse implements KmipStruct {
+export class ReKeyKeyPairResponse implements KmipStruct {
   @metadata({
     name: "PrivateKeyUniqueIdentifier",
     type: TtlvType.TextString,
@@ -46,15 +46,15 @@ export class CreateKeyPairResponse implements KmipStruct {
     if (o === this) {
       return true
     }
-    if (!(o instanceof CreateKeyPairResponse)) {
+    if (!(o instanceof ReKeyKeyPairResponse)) {
       return false
     }
-    const createKeyPairResponse = o
+    const reKeyKeyPairResponse = o
     return (
       this._privateKeyUniqueIdentifier ===
-      createKeyPairResponse.privateKeyUniqueIdentifier &&
+      reKeyKeyPairResponse.privateKeyUniqueIdentifier &&
       this._publicKeyUniqueIdentifier ===
-      createKeyPairResponse.publicKeyUniqueIdentifier
+      reKeyKeyPairResponse.publicKeyUniqueIdentifier
     )
   }
 

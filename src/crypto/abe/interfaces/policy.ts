@@ -182,5 +182,38 @@ export class Policy {
     return JSON.stringify(this, null, 4)
   }
 
+  public equals(o: any): boolean {
+    if (o === this) {
+      return true
+    }
+    if (!(o instanceof Policy)) {
+      return false
+    }
+
+    if (this._axes.length !== o._axes.length) {
+      return false
+    }
+    const aAxis = this._axes.sort((a, b) => { return a.name > b.name ? 1 : -1 })
+    const bAxis = o._axes.sort((a, b) => { return a.name > b.name ? 1 : -1 })
+
+    const aKeys = Object.keys(this._attributeToInt)
+    const bKeys = Object.keys(o._attributeToInt)
+    if (aKeys.length !== bKeys.length) {
+      return false
+    }
+    for (const k of aKeys) {
+      if (JSON.stringify(this._attributeToInt[k]) !== JSON.stringify(o._attributeToInt[k])) {
+        return false
+      }
+    }
+
+    return (
+      JSON.stringify(aAxis) === JSON.stringify(bAxis) &&
+      this._maxAttributeCreations === o._maxAttributeCreations &&
+      this._lastAttributeValue === o._lastAttributeValue
+
+    )
+  }
+
 
 }

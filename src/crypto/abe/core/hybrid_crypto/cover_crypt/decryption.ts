@@ -65,19 +65,18 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
   /**
    * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
    *
-   * @param uid integrity parameter used when encrypting
-   * @param encryptedData
-   * @returns a list of cleartext values
+   * @param  {Uint8Array} ciphertext the encrypted data
+   * @returns {Uint8Array} the cleartext value
    */
-  public decrypt(encryptedData: Uint8Array): Uint8Array {
-    logger.log(() => `decrypt for encryptedData: ${encryptedData.toString()}`)
+  public decrypt(ciphertext: Uint8Array): Uint8Array {
+    logger.log(() => `decrypt for encryptedData: ${ciphertext.toString()}`)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-    const headerSize = webassembly_get_encrypted_header_size(encryptedData)
-    const asymmetricHeader = encryptedData.slice(4, 4 + headerSize)
-    const encryptedSymmetricBytes = encryptedData.slice(
+    const headerSize = webassembly_get_encrypted_header_size(ciphertext)
+    const asymmetricHeader = ciphertext.slice(4, 4 + headerSize)
+    const encryptedSymmetricBytes = ciphertext.slice(
       4 + headerSize,
-      encryptedData.length
+      ciphertext.length
     )
 
     //

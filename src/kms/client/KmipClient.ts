@@ -16,6 +16,8 @@ import { Get } from "kms/operations/Get"
 import { GetResponse } from "kms/operations/GetResponse"
 import { Import } from "kms/operations/Import"
 import { ImportResponse } from "kms/operations/ImportResponse"
+import { ReKeyKeyPair } from "kms/operations/ReKeyKeyPair"
+import { ReKeyKeyPairResponse } from "kms/operations/ReKeyKeyPairResponse"
 import { Revoke } from "kms/operations/Revoke"
 import { RevokeResponse } from "kms/operations/RevokeResponse"
 import { TTLV } from "kms/serialize/Ttlv"
@@ -23,6 +25,7 @@ import { CryptographicUsageMask } from "kms/types/CryptographicUsageMask"
 import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
 import { LinkType } from "kms/types/LinkType"
 import { RevocationReason } from "kms/types/RevocationReason"
+import { VendorAttribute } from "kms/types/VendorAttribute"
 import { fromTTLV } from "../deserialize/deserializer"
 import { Create } from "../operations/Create"
 import { CreateResponse } from "../operations/CreateResponse"
@@ -66,7 +69,6 @@ export class KmipClient {
      */
     public async post<P extends Object, R extends Object>(payload: P, responseClass: new (...args: any[]) => R): Promise<R> {
         const ttlvRequest = toTTLV(payload)
-        console.log("TTLV REQUEST", JSON.stringify(ttlvRequest, null, 4))
         const options: RequestInit = {
             method: "POST",
             body: JSON.stringify(ttlvRequest),
@@ -78,7 +80,6 @@ export class KmipClient {
         }
         const content = await response.text()
         const ttlvResponse = TTLV.fromJSON(content)
-        console.log("TTLV RESPONSE", JSON.stringify(ttlvResponse, null, 4))
         return fromTTLV(responseClass, ttlvResponse)
     }
 
@@ -307,8 +308,8 @@ export class KmipClient {
      */
     public async retrieveAbePublicMasterKey(uniqueIdentifier: string): Promise<PublicKey> {
         const key: PublicKey = await this.getObject(uniqueIdentifier)
-        if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
-            throw new Error(`Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`)
+        if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptPublicKey) {
+            throw new Error(`Not an ABE Public Master Key for identifier: ${uniqueIdentifier}`)
         }
         return key
     }
@@ -433,13 +434,58 @@ export class KmipClient {
     }
 
     /**
-     * Mark a KMIP Symmetric Key as Revoked
+     * Mark a ABE User Decryption Key as Revoked
      * 
      * @param {string} uniqueIdentifier the unique identifier of the key
      * @param {string} reason the explanation of the revocation
      */
     public async revokeAbeUserDecryptionKey(uniqueIdentifier: string, reason: string): Promise<void> {
         return await this.revokeObject(uniqueIdentifier, reason)
+    }
+
+
+    /**
+     * Rotate the given policy attributes. This will rekey in the KMS:
+     *   - the Master Keys
+     *   - all User Decryption Keys that contain one of these attributes in their policy and are not rotated.
+     * 
+     * Non Rekeyed User Decryption Keys cannot decrypt ata encrypted with the rekeyed Master Public Key and the given
+     * attributes. 
+     * Rekeyed User Decryption Keys however will be able to decrypt data encrypted by the previous Master Public Key and
+     * the rekeyed one.
+     * Note: there is a limit on the number of revocations that can be performed which is set in the {@link Policy} when
+     * Master Keys are created
+     * 
+     * @param {string} privateMasterKeyUniqueIdentifier the unique identifier of the Private Master Key
+     * @param {string[]} attributes to rotate e.g. ["Department::MKG", "Department::FIN"]
+     * @returns {string[]} returns the IDs of the Private Master Key and Public Master Key
+     */
+    public async rotateAbeAttributes(privateMasterKeyUniqueIdentifier: string, attributes: string[]): Promise<string[]> {
+        const rekeyKeyPair = new ReKeyKeyPair(
+            privateMasterKeyUniqueIdentifier,
+            undefined,
+            undefined,
+            new Attributes(
+                ObjectType.PrivateKey,
+                [new Link(LinkType.ParentLink, new LinkedObjectIdentifier(privateMasterKeyUniqueIdentifier))],
+                [
+                    new VendorAttribute(
+                        VendorAttribute.VENDOR_ID_COSMIAN,
+                        VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ATTR,
+                        new TextEncoder().encode(JSON.stringify(attributes))
+                    )
+                ],
+                undefined,
+                CryptographicAlgorithm.CoverCrypt,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                KeyFormatType.CoverCryptSecretKey
+            )
+        )
+        const response = await this.post(rekeyKeyPair, ReKeyKeyPairResponse)
+        return [response.privateKeyUniqueIdentifier, response.publicKeyUniqueIdentifier]
     }
 
 

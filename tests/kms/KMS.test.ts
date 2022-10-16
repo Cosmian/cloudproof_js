@@ -17,6 +17,8 @@ import { TTLV } from "kms/serialize/Ttlv"
 import { VendorAttribute } from "kms/types/VendorAttribute"
 import { TtlvType } from "kms/serialize/TtlvType"
 import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
+import { CoverCryptHybridEncryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
+import { CoverCryptHybridDecryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -221,20 +223,66 @@ test("KMS CoverCrypt keys", async () => {
     new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
   ])
 
+  // create master keys
+  console.log("...master key")
   const [mskID, mpkID] = await client.createAbeMasterKeyPair(policy)
-  // recover policies
+
+  // recover keys and policies
   const msk = await client.retrieveAbePrivateMasterKey(mskID)
   const policyMsk = Policy.fromKey(msk)
-  expect(policyMsk).toEqual(policy)
-  const mpk = await client.retrieveAbePrivateMasterKey(mpkID)
+  expect(policyMsk.equals(policy)).toBeTruthy()
+  const mpk = await client.retrieveAbePublicMasterKey(mpkID)
   const policyMpk = Policy.fromKey(mpk)
-  expect(policyMpk).toEqual(policy)
+  expect(policyMpk.equals(policy)).toBeTruthy()
 
+  // create user decryption Key
+  console.log("...user decryption key")
   const apb = "(Department::MKG || Department::FIN) && Security Level::Confidential"
   const udkID = await client.createAbeUserDecryptionKey(apb, mskID)
   const udk = await client.retrieveAbeUserDecryptionKey(udkID)
   expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
+  // encryption
+  console.log("...encryption")
+  const plaintext = new TextEncoder().encode("abcdefgh")
+  const encrypter = new CoverCryptHybridEncryption(policy, mpk)
+  const ciphertext = encrypter.encrypt(["Department::FIN", "Security Level::Confidential"], new Uint8Array([42]), plaintext)
+  // decryption
+  console.log("...decryption")
+  const decrypter = new CoverCryptHybridDecryption(udk)
+  const plaintext_ = decrypter.decrypt(ciphertext)
+  expect(plaintext_).toEqual(plaintext)
 
+
+  // rotate
+  const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, ["Department::FIN", "Department::MKG"])
+  expect(mskID_).toEqual(mskID)
+  expect(mpkID_).toEqual(mpkID)
+
+  const mpk2 = await client.retrieveAbePublicMasterKey(mpkID)
+  const policy2 = Policy.fromKey(mpk2)
+
+  // encryption
+  console.log("...encryption")
+  const plaintext2 = new TextEncoder().encode("abcdefgh")
+  const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
+  const ciphertext2 = encrypter2.encrypt(["Department::FIN", "Security Level::Confidential"], new Uint8Array([42]), plaintext2)
+  // decryption
+  console.log("...decryption rotated old")
+  try {
+    const decrypter2 = new CoverCryptHybridDecryption(udk)
+    decrypter2.decrypt(ciphertext2)
+    return await Promise.reject(new Error("This should have failed"))
+  } catch (error) {
+    // everything is fine - it should not decrypt
+  }
+  // retrieve refreshed udk
+  const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
+  console.log("...decryption rotated 2")
+  const decrypter2 = new CoverCryptHybridDecryption(udk2)
+  const plaintext2_ = decrypter2.decrypt(ciphertext2)
+  expect(plaintext2_).toEqual(plaintext)
+
+  return await Promise.resolve("SUCCESS")
 })
 
