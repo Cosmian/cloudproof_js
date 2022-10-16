@@ -7,7 +7,8 @@ import {
 import { AbeKeyGeneration, AbeMasterKey } from "crypto/abe/interfaces/keygen"
 import { Policy } from "crypto/abe/interfaces/policy"
 import { logger } from "utils/logger"
-import { fromBeBytes } from "utils/utils"
+import { fromBeBytes, hexEncode } from "utils/utils"
+
 
 export class CoverCryptMasterKey extends AbeMasterKey { }
 
