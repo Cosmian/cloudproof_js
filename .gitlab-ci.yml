@@ -56,11 +56,11 @@ eslint:
     - npm run format
   allow_failure: true
 
-build_node_12:
-  extends: .test
-  image: node:12
-  script:
-    - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
+# build_node_12:
+#   extends: .test
+#   image: node:12
+#   script:
+#     - ./node_modules/.bin/jest --config jest.config.js --testPathIgnorePatterns "redis"
 
 build_node_14:
   extends: .test
