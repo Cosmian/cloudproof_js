@@ -88,14 +88,25 @@ export interface NewIndexedEntry {
 
 export type UidsAndValues = Array<{ uid: Uint8Array, value: Uint8Array }>;
 
-type FetchEntries = (uids: Uint8Array[]) => Promise<UidsAndValues>;
+export type FetchEntries = (uids: Uint8Array[]) => Promise<UidsAndValues>;
 
-type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>;
+export type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>;
 
-type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>;
+export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>;
 
-type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>;
+export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>;
 
+/**
+ * This function is responsible of the Findex-indexes creation
+ * 
+ * @param {NewIndexedEntry[]} newIndexedEntries new entries to upsert in indexes
+ * @param {Key} searchKey Findex's read key
+ * @param {Key} updateKey Findex's write key
+ * @param {Label} label public label for the index
+ * @param {FetchEntries} fetchEntries callback to fetch the entries table
+ * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
+ * @param {UpsertChains} upsertChains callback to upsert inside chains table
+ */
 export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Key, updateKey: Key, label: Label, fetchEntries: FetchEntries, upsertEntries: UpsertEntries, upsertChains: UpsertChains): Promise<void> {
     const newIndexedEntriesBase64: { [key: string]: string[] } = {};
     for (const newIndexedEntry of newIndexedEntries) {
@@ -125,6 +136,17 @@ export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Ke
     );
 }
 
+/**
+ * This function is used to search indexed words among Entry Table and Chain Table indexes
+ * 
+ * @param {Set<string>} keywords words to search inside the indexes
+ * @param {Key} searchKey Findex's read key
+ * @param {Label} label public label for the index
+ * @param {number} maxResultsPerKeyword the maximum number of results per keyword
+ * @param {FetchEntries} fetchEntries callback to fetch the entries table
+ * @param {FetchChains} fetchChains callback to fetch the chains table
+ * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
+ */
 export async function search(keywords: Set<string>, searchKey: Key, label: Label, maxResultsPerKeyword: number, fetchEntries: FetchEntries, fetchChains: FetchChains): Promise<IndexedValue[]> {
     const serializedIndexedValues = await webassembly_search(
         searchKey.bytes,
