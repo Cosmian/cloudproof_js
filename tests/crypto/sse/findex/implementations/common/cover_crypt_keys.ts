@@ -29,7 +29,7 @@ export function generateCoverCryptKeys(): CoverCryptTestKeys {
   // Key generation
   //
   const keygen = new CoverCryptKeyGeneration()
-  const masterKeysCoverCrypt = keygen.generateMasterKey(abePolicy)
+  const masterKeysCoverCrypt = keygen.generateMasterKeys(abePolicy)
   const alice = keygen.generateUserDecryptionKey(
     masterKeysCoverCrypt.privateKey,
     "country::France && department::marketing",

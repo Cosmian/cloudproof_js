@@ -12,7 +12,7 @@ import { fromBeBytes } from "utils/utils"
 export class GpswMasterKey extends AbeMasterKey { }
 
 export class GpswMasterKeyGeneration implements AbeKeyGeneration {
-  public generateMasterKey(policy: Policy): AbeMasterKey {
+  public generateMasterKeys(policy: Policy): AbeMasterKey {
     logger.log(() => `policy: ${policy.toJsonEncoded().toString()}`)
 
     const policyBytes = policy.toJsonEncoded()

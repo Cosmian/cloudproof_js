@@ -23,7 +23,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
    * @param {Policy} policy the policy to use
    * @returns {AbeMasterKey} the master keys
    */
-  public generateMasterKey(policy: Policy): AbeMasterKey {
+  public generateMasterKeys(policy: Policy): AbeMasterKey {
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()

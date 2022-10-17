@@ -29,7 +29,7 @@ export class AbeMasterKey {
 }
 
 export interface AbeKeyGeneration {
-  generateMasterKey: (policy: Policy) => AbeMasterKey
+  generateMasterKeys: (policy: Policy) => AbeMasterKey
   generateUserDecryptionKey: (
     privateKey: Uint8Array,
     accessPolicy: string,

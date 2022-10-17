@@ -87,7 +87,7 @@ export class EncryptionDecryptionDemo {
       100
     )
     // Generate master keys
-    const masterKeys = this.keyGenerator.generateMasterKey(policy)
+    const masterKeys = this.keyGenerator.generateMasterKeys(policy)
 
     // set all keys values
     this.demoKeys.policy = policy.toJsonEncoded()
@@ -117,7 +117,7 @@ export class EncryptionDecryptionDemo {
       policy
     )
     // Refresh master keys (only needed by CoverCrypt)
-    const newMasterKeys = this.keyGenerator.generateMasterKey(newPolicy)
+    const newMasterKeys = this.keyGenerator.generateMasterKeys(newPolicy)
 
     // set all keys values
     this.demoKeys.policy = newPolicy.toJsonEncoded()
