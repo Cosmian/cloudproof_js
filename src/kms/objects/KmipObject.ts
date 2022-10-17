@@ -1,34 +1,58 @@
-import { KmipStruct } from "../json/KmipStruct";
+import { Certificate } from "./Certificate"
+import { ObjectType } from "kms/types/ObjectType"
+import { CertificateRequest } from "./CertificateRequest"
+import { OpaqueObject } from "./OpaqueObject"
+import { PGPKey } from "./PGPKey"
+import { PrivateKey } from "./PrivateKey"
+import { PublicKey } from "./PublicKey"
+import { SecretData } from "./SecretData"
+import { SplitKey } from "./SplitKey"
+import { SymmetricKey } from "./SymmetricKey"
 
-export class KmipObject implements KmipStruct {
-  // public static getObjectClass(objectType: ObjectType): KmipObject{
-  //     if (objectType.equals(ObjectType.Certificate)) {
-  //         return Certificate;
-  //     }
-  //     if (objectType.equals(ObjectType.Certificate_Request)) {
-  //         return CertificateRequest;
-  //     }
-  //     if (objectType.equals(ObjectType.Opaque_Object)) {
-  //         return OpaqueObject;
-  //     }
-  //     if (objectType.equals(ObjectType.PGP_Key)) {
-  //         return PGPKey;
-  //     }
-  //     if (objectType.equals(ObjectType.Private_Key)) {
-  //         return PrivateKey;
-  //     }
-  //     if (objectType.equals(ObjectType.Public_Key)) {
-  //         return PublicKey;
-  //     }
-  //     if (objectType.equals(ObjectType.Secret_Data)) {
-  //         return SecretData;
-  //     }
-  //     if (objectType.equals(ObjectType.Split_Key)) {
-  //         return SplitKey;
-  //     }
-  //     if (objectType.equals(ObjectType.Symmetric_Key)) {
-  //         return SymmetricKey;
-  //     }
-  //     throw new Error("Unsupported Object Type " + objectType + " for a KMIP Object");
-  // }
+export type KmipObject =
+  | Certificate
+  | CertificateRequest
+  | OpaqueObject
+  | PGPKey
+  | PrivateKey
+  | PublicKey
+  | SecretData
+  | SplitKey
+  | SymmetricKey
+
+/**
+ * Determine the ObjectType from the KMIP Object instance
+ *
+ * @param {KmipObject} object the instance
+ * @returns {ObjectType} the type
+ */
+export function getObjectType(object: KmipObject): ObjectType {
+  if (object instanceof Certificate) {
+    return ObjectType.Certificate
+  }
+  if (object instanceof CertificateRequest) {
+    return ObjectType.CertificateRequest
+  }
+  if (object instanceof OpaqueObject) {
+    return ObjectType.OpaqueObject
+  }
+  if (object instanceof PGPKey) {
+    return ObjectType.PGPKey
+  }
+  if (object instanceof PrivateKey) {
+    return ObjectType.PrivateKey
+  }
+  if (object instanceof PublicKey) {
+    return ObjectType.PublicKey
+  }
+  if (object instanceof SecretData) {
+    return ObjectType.SecretData
+  }
+  if (object instanceof SplitKey) {
+    return ObjectType.SplitKey
+  }
+  if (object instanceof SymmetricKey) {
+    return ObjectType.SymmetricKey
+  }
+  throw new Error(`Unknown Object type ${typeof object}`)
 }

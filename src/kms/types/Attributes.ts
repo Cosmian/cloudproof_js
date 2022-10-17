@@ -1,15 +1,13 @@
-import { KmipStruct } from "../json/KmipStruct";
-import { CryptographicAlgorithm } from "./CryptographicAlgorithm";
-import { CryptographicDomainParameters } from "./CryptographicDomainParameters";
-import { CryptographicParameters } from "./CryptographicParameters";
-import { KeyFormatType } from "./KeyFormatType";
-import { Link } from "./Link";
-import { ObjectType } from "./ObjectType";
-import { VendorAttribute } from "./VendorAttribute";
-import { TtlvType } from "../serialize/TtlvType";
-import { TTLV } from "../serialize/Ttlv";
-import { FromTTLV } from "../deserialize/deserializer";
-import { PropertyMetadata } from "../decorators/function";
+import { KmipStruct } from "../json/KmipStruct"
+import { CryptographicAlgorithm } from "./CryptographicAlgorithm"
+import { CryptographicDomainParameters } from "./CryptographicDomainParameters"
+import { CryptographicParameters } from "./CryptographicParameters"
+import { KeyFormatType } from "./KeyFormatType"
+import { Link } from "./Link"
+import { ObjectType } from "./ObjectType"
+import { VendorAttribute } from "./VendorAttribute"
+import { TtlvType } from "../serialize/TtlvType"
+import { metadata } from "../decorators/function"
 
 /**
  * The following subsections describe the attributes that are associated with
@@ -59,19 +57,12 @@ export class Attributes implements KmipStruct {
    * server or client (e.g., the registration of a CA Signer certificate with a
    * server, where the corresponding private key is held in a different manner)
    */
-  @PropertyMetadata({
+  @metadata({
     name: "Link",
-    type: TtlvType.Structure,
-    from_ttlv: (propertyName: string, ttlv: TTLV): Object => {
-      const elementMetadata = {
-        name: "Link",
-        type: TtlvType.Structure,
-        from_ttlv: FromTTLV.structure(Link),
-      };
-      return FromTTLV.array(propertyName, ttlv, elementMetadata);
-    },
+    type: TtlvType.StructuresArray,
+    classOrEnum: Link,
   })
-  private _link?: Link[];
+  private _link?: Link[]
 
   /**
    * A vendor specific Attribute is a structure used for sending and receiving a
@@ -86,11 +77,12 @@ export class Attributes implements KmipStruct {
    * Identification “y” are not created (provided during object creation), set,
    * added, adjusted, modified or deleted by the client.
    */
-  @PropertyMetadata({
-    name: "VendorAttribute",
-    type: TtlvType.Structure,
+  @metadata({
+    name: "VendorAttributes",
+    type: TtlvType.StructuresArray,
+    classOrEnum: VendorAttribute,
   })
-  private _vendor_attributes?: VendorAttribute[];
+  private _vendor_attributes?: VendorAttribute[]
 
   /**
    * The Object Typeof a Managed Object (e.g., public key, private key, symmetric
@@ -99,12 +91,12 @@ export class Attributes implements KmipStruct {
    * destroyed.
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType,
+    classOrEnum: ObjectType,
   })
-  private _object_type: ObjectType;
+  private _object_type: ObjectType
 
   /**
    * The Activation Date attribute contains the date and time when the Managed
@@ -115,11 +107,11 @@ export class Attributes implements KmipStruct {
    * object is destroyed.
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "ActivationDate",
     type: TtlvType.Integer,
   })
-  private _activation_date?: number; // epoch milliseconds
+  private _activation_date?: number // epoch milliseconds
 
   /**
    * The Cryptographic Algorithm of an object. The Cryptographic Algorithm of a
@@ -130,12 +122,12 @@ export class Attributes implements KmipStruct {
    * and then SHALL NOT be changed or deleted before the object is destroyed.
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicAlgorithm",
     type: TtlvType.Enumeration,
-    isEnum: CryptographicAlgorithm,
+    classOrEnum: CryptographicAlgorithm,
   })
-  private _cryptographic_algorithm?: CryptographicAlgorithm;
+  private _cryptographic_algorithm?: CryptographicAlgorithm
 
   /**
    * For keys, Cryptographic Length is the length in bits of the clear-text
@@ -146,11 +138,11 @@ export class Attributes implements KmipStruct {
    * deleted before the object is destroyed.
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicLength",
     type: TtlvType.Integer,
   })
-  private _cryptographic_length?: number;
+  private _cryptographic_length?: number
 
   /**
    * The Cryptographic Domain Parameters attribute is a structure that contains
@@ -160,20 +152,22 @@ export class Attributes implements KmipStruct {
    * parameter Q (refer to [RFC7778],[SEC2]and [SP800-56A]).
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicDomainParameters",
     type: TtlvType.Structure,
+    classOrEnum: CryptographicDomainParameters,
   })
-  private _cryptographic_domain_parameters?: CryptographicDomainParameters;
+  private _cryptographic_domain_parameters?: CryptographicDomainParameters
 
   /**
    * @see CryptographicParameters
    */
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicParameters",
     type: TtlvType.Structure,
+    classOrEnum: CryptographicParameters,
   })
-  private _cryptographic_parameters?: CryptographicParameters;
+  private _cryptographic_parameters?: CryptographicParameters
 
   /**
    * The Cryptographic Usage Mask attribute defines the cryptographic usage of a
@@ -184,11 +178,11 @@ export class Attributes implements KmipStruct {
    * @see CryptographicUsageMask
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "CryptographicUsageMask",
     type: TtlvType.Integer,
   })
-  private _cryptographic_usage_mask?: number;
+  private _cryptographic_usage_mask?: number
 
   /**
    * 4.26 The Key Format Type attribute is a required attribute of a Cryptographic
@@ -202,122 +196,124 @@ export class Attributes implements KmipStruct {
    * Format Type for that type of key and the algorithm requested (if a
    * non-default value is specified).
    */
-  @PropertyMetadata({
+  @metadata({
     name: "KeyFormatType",
     type: TtlvType.Enumeration,
-    isEnum: KeyFormatType,
+    classOrEnum: KeyFormatType,
   })
-  private _key_format_type?: KeyFormatType;
+  private _key_format_type?: KeyFormatType
 
   constructor(
-    object_type: ObjectType,
+    objectType: ObjectType,
     link?: Link[],
-    vendor_attributes?: VendorAttribute[],
-    activation_date?: number,
-    cryptographic_algorithm?: CryptographicAlgorithm,
-    cryptographic_length?: number,
-    cryptographic_domain_parameters?: CryptographicDomainParameters,
-    cryptographic_parameters?: CryptographicParameters,
-    cryptographic_usage_mask?: number,
-    key_format_type?: KeyFormatType
+    vendorAttributes?: VendorAttribute[],
+    activationDate?: number,
+    cryptographicAlgorithm?: CryptographicAlgorithm,
+    cryptographicLength?: number,
+    cryptographicDomainParameters?: CryptographicDomainParameters,
+    cryptographicParameters?: CryptographicParameters,
+    cryptographicUsageMask?: number,
+    keyFormatType?: KeyFormatType
   ) {
-    this._object_type = object_type;
-    this._activation_date = activation_date;
-    this._cryptographic_algorithm = cryptographic_algorithm;
-    this._cryptographic_length = cryptographic_length;
-    this._cryptographic_domain_parameters = cryptographic_domain_parameters;
-    this._cryptographic_parameters = cryptographic_parameters;
-    this._cryptographic_usage_mask = cryptographic_usage_mask;
-    this._key_format_type = key_format_type;
-    this._link = link;
-    this._vendor_attributes = vendor_attributes;
+    this._object_type = objectType
+    this._activation_date = activationDate
+    this._cryptographic_algorithm = cryptographicAlgorithm
+    this._cryptographic_length = cryptographicLength
+    this._cryptographic_domain_parameters = cryptographicDomainParameters
+    this._cryptographic_parameters = cryptographicParameters
+    this._cryptographic_usage_mask = cryptographicUsageMask
+    this._key_format_type = keyFormatType
+    this._link = link
+    this._vendor_attributes = vendorAttributes
   }
 
   public get link(): Link[] | undefined {
-    return this._link;
+    return this._link
   }
 
   public set link(value: Link[] | undefined) {
-    this._link = value;
+    this._link = value
   }
 
-  public get vendor_attributes(): VendorAttribute[] | undefined {
-    return this._vendor_attributes;
+  public get vendorAttributes(): VendorAttribute[] | undefined {
+    return this._vendor_attributes
   }
 
-  public set vendor_attributes(value: VendorAttribute[] | undefined) {
-    this._vendor_attributes = value;
+  public set vendorAttributes(value: VendorAttribute[] | undefined) {
+    this._vendor_attributes = value
   }
 
-  public get key_format_type(): KeyFormatType | undefined {
-    return this._key_format_type;
+  public get keyFormatType(): KeyFormatType | undefined {
+    return this._key_format_type
   }
 
-  public set key_format_type(value: KeyFormatType | undefined) {
-    this._key_format_type = value;
+  public set keyFormatType(value: KeyFormatType | undefined) {
+    this._key_format_type = value
   }
 
-  public get cryptographic_usage_mask(): number | undefined {
-    return this._cryptographic_usage_mask;
+  public get cryptographicUsageMask(): number | undefined {
+    return this._cryptographic_usage_mask
   }
 
-  public set cryptographic_usage_mask(value: number | undefined) {
-    this._cryptographic_usage_mask = value;
+  public set cryptographicUsageMask(value: number | undefined) {
+    this._cryptographic_usage_mask = value
   }
 
-  public get cryptographic_parameters(): CryptographicParameters | undefined {
-    return this._cryptographic_parameters;
+  public get cryptographicParameters(): CryptographicParameters | undefined {
+    return this._cryptographic_parameters
   }
 
-  public set cryptographic_parameters(
+  public set cryptographicParameters(
     value: CryptographicParameters | undefined
   ) {
-    this._cryptographic_parameters = value;
+    this._cryptographic_parameters = value
   }
 
-  public get cryptographic_domain_parameters():
+  public get cryptographicDomainParameters():
     | CryptographicDomainParameters
     | undefined {
-    return this._cryptographic_domain_parameters;
+    return this._cryptographic_domain_parameters
   }
 
-  public set cryptographic_domain_parameters(
+  public set cryptographicDomainParameters(
     value: CryptographicDomainParameters | undefined
   ) {
-    this._cryptographic_domain_parameters = value;
+    this._cryptographic_domain_parameters = value
   }
 
-  public get cryptographic_length(): number | undefined {
-    return this._cryptographic_length;
+  public get cryptographicLength(): number | undefined {
+    return this._cryptographic_length
   }
 
-  public set cryptographic_length(value: number | undefined) {
-    this._cryptographic_length = value;
+  public set cryptographicLength(value: number | undefined) {
+    this._cryptographic_length = value
   }
 
-  public get cryptographic_algorithm(): CryptographicAlgorithm | undefined {
-    return this._cryptographic_algorithm;
+  public get cryptographicAlgorithm(): CryptographicAlgorithm | undefined {
+    return this._cryptographic_algorithm
   }
 
-  public set cryptographic_algorithm(
-    value: CryptographicAlgorithm | undefined
-  ) {
-    this._cryptographic_algorithm = value;
+  public set cryptographicAlgorithm(value: CryptographicAlgorithm | undefined) {
+    this._cryptographic_algorithm = value
   }
 
-  public get activation_date(): number | undefined {
-    return this._activation_date;
+  public get activationDate(): number | undefined {
+    return this._activation_date
   }
 
-  public set activation_date(value: number | undefined) {
-    this._activation_date = value;
+  public set activationDate(value: number | undefined) {
+    this._activation_date = value
   }
 
-  public get object_type(): ObjectType {
-    return this._object_type;
+  public get objectType(): ObjectType {
+    return this._object_type
   }
 
-  public set object_type(value: ObjectType) {
-    this._object_type = value;
+  public set objectType(value: ObjectType) {
+    this._object_type = value
+  }
+
+  public toString(): string {
+    return JSON.stringify(this, null, 4)
   }
 }

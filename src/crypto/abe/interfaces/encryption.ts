@@ -1,33 +1,43 @@
-import { EncryptedHeader } from "./encrypted_header";
-import { AbeEncryptionParameters } from "./encryption_parameters";
+import { PublicKey } from "kms/objects/PublicKey"
+import { EncryptedHeader } from "./encrypted_header"
+import { AbeEncryptionParameters } from "./encryption_parameters"
+import { Policy } from "./policy"
 
 export abstract class HybridEncryption {
-  private _publicKey: Uint8Array;
-  private _policy: Uint8Array;
+  private _publicKey: Uint8Array
+  private _policy: Uint8Array
 
   public get policy(): Uint8Array {
-    return this._policy;
+    return this._policy
   }
 
   public set policy(value: Uint8Array) {
-    this._policy = value;
+    this._policy = value
   }
 
   public set publicKey(value: Uint8Array) {
-    this._publicKey = value;
+    this._publicKey = value
   }
 
   public get publicKey(): Uint8Array {
-    return this._publicKey;
+    return this._publicKey
   }
 
-  constructor(policy: Uint8Array, publicKey: Uint8Array) {
-    this._policy = policy;
-    this._publicKey = publicKey;
+  constructor(policy: Policy | Uint8Array, publicKey: PublicKey | Uint8Array) {
+    if (policy instanceof Policy) {
+      this._policy = policy.toJsonEncoded()
+    } else {
+      this._policy = policy
+    }
+    if (publicKey instanceof PublicKey) {
+      this._publicKey = publicKey.bytes()
+    } else {
+      this._publicKey = publicKey
+    }
   }
-  public abstract renewKey(policy: Uint8Array, publicKey: Uint8Array): void;
+  public abstract renewKey(policy: Uint8Array, publicKey: Uint8Array): void
 
-  public abstract destroyInstance(): void;
+  public abstract destroyInstance(): void
 
   /**
    *
@@ -35,7 +45,7 @@ export abstract class HybridEncryption {
    */
   public abstract encryptHybridHeader(
     parameters: AbeEncryptionParameters
-  ): EncryptedHeader;
+  ): EncryptedHeader
 
   /**
    * Encrypts a hybrid block
@@ -51,7 +61,7 @@ export abstract class HybridEncryption {
     plaintext: Uint8Array,
     uid: Uint8Array | undefined,
     blockNumber: number | undefined
-  ): Uint8Array;
+  ): Uint8Array
 
   /**
    * Hybrid encrypt wrapper: ABE encrypt then AES encrypt
@@ -65,11 +75,11 @@ export abstract class HybridEncryption {
     attributes: string[],
     uid: Uint8Array,
     plaintext: Uint8Array
-  ): Uint8Array;
+  ): Uint8Array
 }
 
 export interface EncryptionWorkerMessage {
-  name: "INIT" | "DESTROY" | "ENCRYPT" | "SUCCESS" | "ERROR";
-  error?: string;
-  value?: any;
+  name: "INIT" | "DESTROY" | "ENCRYPT" | "SUCCESS" | "ERROR"
+  error?: string
+  value?: any
 }

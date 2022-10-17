@@ -1,7 +1,13 @@
-export interface TttlvEnum {}
-
 export enum TtlvType {
   Structure = "Structure",
+
+  /**
+   * An array of Structures
+   * Does not exist as original TTLV
+   * Added to support array deserialization
+   */
+  StructuresArray = "StructuresArray",
+
   Integer = "Integer",
   LongInteger = "LongInteger",
   BigInteger = "BigInteger",
@@ -16,4 +22,7 @@ export enum TtlvType {
   // a type added to support polymorphism
   // where a TTLV value can take a list of multiple types
   Choice = "Choice",
+
+  // The property should be ignored on serialization/deserialization
+  Ignore = "Ignore",
 }

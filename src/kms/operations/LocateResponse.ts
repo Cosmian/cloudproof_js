@@ -1,6 +1,6 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
 
 export class LocateResponse implements KmipStruct {
   /// An Integer object that indicates the number of object identifiers that
@@ -10,52 +10,52 @@ export class LocateResponse implements KmipStruct {
   // A server MAY elect to return the Located Items value even if Offset Items is
   /// not present in
   // the Request.
-  @PropertyMetadata({
+  @metadata({
     name: "LocatedItems",
     type: TtlvType.Integer,
   })
-  private _located_items?: number;
+  private _located_items?: number
 
   /// The Unique Identifier of the located objects.
-  @PropertyMetadata({
+  @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier: string[];
+  private _unique_identifier: string[]
 
   constructor(unique_identifier: string[], located_items?: number) {
-    this._located_items = located_items;
-    this._unique_identifier = unique_identifier;
+    this._located_items = located_items
+    this._unique_identifier = unique_identifier
   }
 
   public get located_items(): number | undefined {
-    return this._located_items;
+    return this._located_items
   }
 
   public set located_items(value: number | undefined) {
-    this._located_items = value;
+    this._located_items = value
   }
 
   public get unique_identifier(): string[] {
-    return this._unique_identifier;
+    return this._unique_identifier
   }
 
   public set unique_identifier(value: string[]) {
-    this._unique_identifier = value;
+    this._unique_identifier = value
   }
 
   public equals(o: any): boolean {
     if (o == this) {
-      return true;
+      return true
     }
     if (!(o instanceof LocateResponse)) {
-      return false;
+      return false
     }
-    const locateResponse = o;
+    const locateResponse = o
     return (
       this._located_items === locateResponse.located_items &&
       this._unique_identifier === locateResponse.unique_identifier
-    );
+    )
   }
 
   public toString(): string {
@@ -68,6 +68,6 @@ export class LocateResponse implements KmipStruct {
       this._unique_identifier +
       "'" +
       "}"
-    );
+    )
   }
 }

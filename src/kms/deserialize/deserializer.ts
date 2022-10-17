@@ -1,269 +1,382 @@
-import { PropertyMetadata, METADATA_KEY } from "../decorators/interface";
-import { TTLV } from "../serialize/Ttlv";
-import { TtlvType } from "../serialize/TtlvType";
-import { JsonObject } from "./JSON";
+import { hexDecode } from "utils/utils"
+import { PropertyMetadata, METADATA_KEY } from "../decorators/interface"
+import { TTLV } from "../serialize/Ttlv"
+import { TtlvType } from "../serialize/TtlvType"
 
 /**
+ * A general factory to construct a type
  *
- * @param object
+ * @param {object} ConstructibleType a type that has a constructor (a new function)
+ * @param {any[]} args to be passed during construction
+ * @returns {object} an instance of the type
  */
-export function build_object_from_json(object: JsonObject): Object {
-  const value: any = object.value;
-  const name: string = object.tag;
-  const type: string | undefined = object.type;
-
-  const newObject = {};
-  const innerObject = {};
-
-  if (object.type === "Structure") {
-    // TTLV: Structure
-    for (let i = 0; i < value.length; i++) {
-      // build the child recursively
-      const child = build_object_from_json(value[i]);
-      const childName = value[i].tag;
-      Reflect.set(
-        innerObject,
-        childName,
-        child[childName as keyof typeof child]
-          ? child[childName as keyof typeof child]
-          : child
-      );
-      Reflect.defineMetadata("name", value[i].tag, innerObject, value[i].tag);
-      Reflect.defineMetadata("type", value[i].type, innerObject, value[i].tag);
-    }
-    Reflect.defineMetadata("name", name, innerObject);
-    Reflect.defineMetadata("type", type, innerObject);
-    Object.assign(newObject, {
-      [object.tag]: innerObject,
-    });
-    Reflect.defineMetadata("name", name, newObject);
-    Reflect.defineMetadata("type", type, newObject);
-
-    return newObject;
-  }
-  if (object.type === "ByteString") {
-    // TTLV: Byte String
-    const valueToUIntArray = new Uint8Array(Buffer.from(value, "hex"));
-    return valueToUIntArray;
-  }
-  // TTLV: Other TTLV type
-  return value;
+function factory<T>(
+  ConstructibleType: new (...args: any[]) => T,
+  ...args: any[]
+): T {
+  return new ConstructibleType(...args)
 }
 
-export class FromTTLV {
-  public static array<T extends Object>(
-    propertyName: string,
-    ttlv: TTLV,
-    elementMetadata: PropertyMetadata
-  ): T[] {
-    // check TTLV type
-    const ttlvType = ttlv.type;
-    if (ttlvType && ttlvType !== TtlvType.Structure) {
-      throw new Error(
-        "Invalid type: " + ttlvType + " for structure " + ttlv.tag
-      );
-    }
+/**
+ * Build a KMIP object from its constructible type and
+ * TTLV representation
+ *
+ * @param {object} ConstructibleType  the type
+ * @param {TTLV} ttlv he TTLV to parse from
+ * @returns {object} the object instance
+ */
+export function fromTTLV<T extends Object>(
+  ConstructibleType: new (...args: any[]) => T,
+  ttlv: TTLV
+): T {
+  // parse the TTLV from JSON
+  const instance: T = factory<T>(ConstructibleType)
 
-    // check value is array
-    if (ttlv.value.constructor.name !== "Array") {
-      throw new Error(
-        "Invalid value for structure " + ttlv.tag + ": it should be an array"
-      );
-    }
-
-    const array: T[] = [];
-    const ttlvValue = ttlv.value as TTLV[];
-    for (const v of ttlvValue) {
-      if (v.tag !== ttlv.tag) {
-        throw new Error(
-          "Invalid child with name" + v.tag + " in array of " + ttlv.tag
-        );
-      }
-      array.push(this.parseValue(v, elementMetadata, propertyName));
-    }
-    return array;
-  }
-
-  private static parseValue(
-    ttlv: TTLV,
-    metadata: PropertyMetadata,
-    propertyName: string
-  ): any {
-    // special case of Choices: the value is actually a structure
-    // with the correct property set
-    if (metadata.type === TtlvType.Choice) {
-      const ttlvDe = metadata.from_ttlv;
-      if (ttlvDe != null) {
-        return ttlvDe(propertyName, ttlv);
-      }
-      throw new Error(
-        "The child " +
-          propertyName +
-          " is a TTLV Choice but there is no deserializer in the Metadata"
-      );
-    }
-
-    if (ttlv.type === TtlvType.BigInteger) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.Boolean) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.ByteString) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.DateTime) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.DateTimeExtended) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.Enumeration) {
-      if (metadata.isEnum != null) {
-        return metadata.isEnum[ttlv.value as keyof typeof metadata.isEnum];
-      }
-      throw new Error(
-        "The child " +
-          propertyName +
-          " is a TTLV Enumeration but there is no enum Metadata"
-      );
-    } else if (ttlv.type === TtlvType.Integer) {
-      try {
-        return parseInt(ttlv.value as string, 10);
-      } catch (error) {
-        throw new Error(
-          "The child " +
-            propertyName +
-            " is a TTLV Integer but its value: " +
-            ttlv.value +
-            " cannot be parsed as an Integer"
-        );
-      }
-    } else if (ttlv.type === TtlvType.Interval) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.LongInteger) {
-      throw new Error(ttlv.type + " deserialization not yet implemented");
-    } else if (ttlv.type === TtlvType.Structure) {
-      const ttlvDe = metadata.from_ttlv;
-      if (ttlvDe != null) {
-        return ttlvDe(propertyName, ttlv);
-      }
-      throw new Error(
-        "The child " +
-          propertyName +
-          " is a TTLV Structure but there is no deserializer in the Metadata"
-      );
-    } else if (ttlv.type === TtlvType.TextString) {
-      return ttlv.value;
-    }
-    throw new Error("Unknown TTLV Type: " + ttlv.type);
-  }
-
-  public static structure<T extends Object>(
-    type: new (...args: any[]) => T,
-    ...args: any[]
-  ): (propertyName: string, ttlv: TTLV) => T {
-    return (propertyName: string, ttlv: TTLV): T => {
-      const instance = new type(args);
-
-      // check names
-      const expectedName = instance.constructor.name;
-      const actualName = ttlv.tag;
-      if (expectedName !== actualName) {
-        throw new Error(
-          "The expected structure name: " +
-            expectedName +
-            "in " +
-            propertyName +
-            ", does not match the actual name: " +
-            actualName
-        );
-      }
-
-      // check TTLV type
-      const ttlvType = ttlv.type;
-      if (ttlvType && ttlvType !== TtlvType.Structure) {
-        throw new Error(
-          "Invalid type: " +
-            ttlvType +
-            " for structure " +
-            actualName +
-            " in " +
-            propertyName
-        );
-      }
-
-      // check value is array
-      if (ttlv.value.constructor.name !== "Array") {
-        throw new Error(
-          "Invalid value for structure " +
-            actualName +
-            "in " +
-            propertyName +
-            ": it should be an array"
-        );
-      }
-      const ttlvValue = ttlv.value as TTLV[];
-
-      // process the structure properties
-      const propsMetadata = Reflect.getMetadata(METADATA_KEY, instance);
-      for (const childPropertyName in propsMetadata) {
-        const metadata: PropertyMetadata = propsMetadata[childPropertyName];
-        const propTag = metadata.name;
-
-        const child = ttlvValue.find((v) => v.tag === propTag);
-        if (typeof child === "undefined") {
-          continue;
-        }
-        // found a matching TTLV child
-        const value = this.parseValue(child, metadata, childPropertyName);
-        Reflect.set(instance, childPropertyName, value);
-      }
-      return instance;
-    };
-  }
-
-  public static choice<T extends Object>(
-    type: new (...args: any[]) => T,
-    ...args: any[]
-  ): (propertyName: string, ttlv: TTLV) => T {
-    return (propertyName: string, ttlv: TTLV): T => {
-      const instance = new type(args);
-
-      // the type to find in the properties of the instance
-      const ttlvType = ttlv.type;
-
-      // fin the appropriate type in the properties
-      const propsMetadata = Reflect.getMetadata(METADATA_KEY, instance);
-      for (const childPropertyName in propsMetadata) {
-        const metadata: PropertyMetadata = propsMetadata[childPropertyName];
-        if (metadata.type === ttlvType) {
-          // found it
-          const value = this.parseValue(ttlv, metadata, childPropertyName);
-          Reflect.set(instance, childPropertyName, value);
-          return instance;
-        }
-      }
-      throw new Error(
-        "Choice of type" +
-          ttlvType +
-          " not found for object " +
-          instance.constructor.name +
-          " in " +
-          propertyName
-      );
-    };
-  }
+  // Parse using the default serialization for a structure
+  return structureParser(instance, ttlv, "ROOT")
 }
 
-// export function struct_from_ttlv<T extends Object>(type: { new(): T }, ttlv: object): T {
-//   const instance = new type()
-//   const expectedName = instance.constructor.name
-//   const actualName = Reflect.get(ttlv, "tag")
+/**
+ * Fills the passed KMIP Structure instance with the parsed properties of the TTLV
+ * using a custom parser if the Structure implements Deserializable, the default parser otherwise
+ *
+ * @param {object} instance a KMIP Structure instance
+ * @param {TTLV } ttlv Structure to extract properties from
+ * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @returns {object} the updated instance
+ */
+function structureParser<T extends Object>(
+  instance: T,
+  ttlv: TTLV,
+  propertyName: string
+): T {
+  // Deactivate for now, too restrictive: ex PlainTextKeyValue -> KeyValue
+  // // check names
+  // const instanceName = instance.constructor.name
+  // const tagName = ttlv.tag
+  // if (instanceName !== tagName) {
+  //   throw new Error(
+  //     `Deserializer: the instance name: ${instanceName}` +
+  //     ` does not match the TTLV tag name: ${tagName}` +
+  //     ` in ${propertyName}`
+  //   )
+  // }
 
-//   console.log(expectedName, actualName)
-//   const propsMetadata = Reflect.getMetadata(METADATA_KEY, instance)
+  // try to sse if the type implement Deserializable.fromTTLV
+  // in which case, use that
+  const fromTTLV = Reflect.get(instance, "fromTTLV")
+  if (typeof fromTTLV !== "undefined") {
+    return Reflect.apply(fromTTLV, instance, [ttlv, propertyName, instance])
+  }
 
-//   for (const propertyName in propsMetadata) {
-//     const propType = typeof instance[propertyName as keyof typeof instance]
-//     console.log(type, propertyName, propType)
+  // use the default parser
+  return defaultStructureParser(instance, ttlv, propertyName)
+}
 
-//   }
+/**
+ * Fills the passed KMIP Structure instance with the parsed properties of the TTLV
+ * Using the default parser
+ *
+ * @param {object} instance a KMIP Structure instance
+ * @param {TTLV } ttlv Structure to extract properties from
+ * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @returns {object} the updated instance
+ */
+export function defaultStructureParser<T extends Object>(
+  instance: T,
+  ttlv: TTLV,
+  propertyName: string
+): T {
+  const tagName = ttlv.tag
 
-//   return instance
-// }
+  // check TTLV type
+  if (typeof ttlv.type === "undefined" || ttlv.type == null) {
+    throw new Error(
+      `Deserializer: no valid type in the TTLV ` +
+        ` for structure: ${tagName}` +
+        ` in ${propertyName}`
+    )
+  }
+  const ttlvType = ttlv.type
+  if (ttlvType !== TtlvType.Structure) {
+    throw new Error(
+      `Deserializer: invalid type: ${ttlvType}` +
+        ` for structure ${tagName}` +
+        ` in ${propertyName}`
+    )
+  }
+
+  // check TTLV value
+  if (typeof ttlv.value === "undefined" || ttlv.value == null) {
+    throw new Error(
+      `Deserializer: no valid value in the TTLV ` +
+        ` for structure: ${tagName}` +
+        ` in ${propertyName}`
+    )
+  }
+  if (ttlv.value.constructor.name !== "Array") {
+    throw new Error(
+      `Deserializer: the value should be an array in the TTLV ` +
+        ` for structure: ${tagName}` +
+        ` in ${propertyName}`
+    )
+  }
+  const ttlvValue = ttlv.value as TTLV[]
+
+  // recover the metadata
+  const metadata = Reflect.getMetadata(METADATA_KEY, instance)
+  if (typeof metadata === "undefined") {
+    throw new Error(
+      `Deserializer: metadata is not defined ` +
+        ` for structure: ${tagName}` +
+        ` in ${propertyName}`
+    )
+  }
+
+  // process the structure properties
+  for (const propertyName of Object.getOwnPropertyNames(metadata)) {
+    const childMetadata: PropertyMetadata = metadata[propertyName]
+    if (childMetadata.type === TtlvType.Ignore) {
+      continue
+    }
+    const ttlvTag = childMetadata.name
+
+    const child = ttlvValue.find((v) => v.tag === ttlvTag)
+    if (typeof child === "undefined") {
+      // skip the properties which are not found
+      // TODO check if mandatory
+      continue
+    }
+    // found a matching TTLV child
+    const value = valueParser(child, childMetadata, propertyName, instance)
+    Reflect.set(instance, propertyName, value)
+  }
+  return instance
+}
+
+/**
+ * Fills the passed KMIP Choice instance with the parsed properties of the TTLV
+ *
+ * @param {object} instance a KMIP Choice instance
+ * @param {TTLV } ttlv Choice to extract properties from
+ * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @returns {object} the updated instance
+ */
+function choiceParser<T extends Object>(
+  instance: T,
+  ttlv: TTLV,
+  propertyName: string
+): T {
+  // the type to find in the properties of the instance
+  const ttlvType = ttlv.type
+  // check TTLV type
+  if (typeof ttlv.type === "undefined" || ttlv.type == null) {
+    throw new Error(
+      `Deserializer: no valid type in the TTLV ` +
+        ` for choice` +
+        ` in ${propertyName}`
+    )
+  }
+
+  // find the appropriate type in the properties
+  const propsMetadata = Reflect.getMetadata(METADATA_KEY, instance)
+  for (const childPropertyName in propsMetadata) {
+    const metadata: PropertyMetadata = propsMetadata[childPropertyName]
+    if (metadata.type === ttlvType) {
+      // found it
+      const value = valueParser(ttlv, metadata, childPropertyName, instance)
+      Reflect.set(instance, childPropertyName, value)
+      return instance
+    }
+  }
+  throw new Error(
+    `Deserializer: choice of type ${ttlvType} not found` +
+      `for object ${instance.constructor.name}` +
+      ` in ${propertyName}`
+  )
+}
+
+/**
+ * Create an Array of Structures from the given TTLV
+ *
+ * @param {TTLV} ttlv the Structures Array to extract the structures from
+ * @param {PropertyMetadata} metadata the metadata of the Structures Array
+ * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @param {object} parentInstance the current parent instance (some properties may not have yet been initialized)
+ * @returns {object} the updated instance
+ */
+function arrayParser<T extends Object>(
+  ttlv: TTLV,
+  metadata: PropertyMetadata,
+  propertyName: string,
+  parentInstance: Object
+): T[] {
+  // check TTLV type
+  const ttlvType = ttlv.type
+  // check TTLV type
+  if (typeof ttlv.type === "undefined" || ttlv.type == null) {
+    throw new Error(
+      `Deserializer: no valid type in the TTLV ` +
+        ` for array ${metadata.name}` +
+        ` in ${propertyName}`
+    )
+  }
+  if (ttlvType !== TtlvType.Structure) {
+    throw new Error(
+      `Deserializer: invalid type: ${ttlvType}` +
+        ` for array ${metadata.name}` +
+        ` in ${propertyName}`
+    )
+  }
+
+  // check value is array
+  if (ttlv.value.constructor.name !== "Array") {
+    throw new Error(
+      `Deserializer: invalid value for structure ${ttlv.tag}: it should be an array` +
+        ` in ${propertyName}`
+    )
+  }
+
+  const array: T[] = []
+  const ttlvValue = ttlv.value as TTLV[]
+  for (const v of ttlvValue) {
+    if (v.tag !== ttlv.tag) {
+      throw new Error(
+        `Deserializer: invalid child with name ${v.tag} for array of ${ttlv.tag}` +
+          ` in ${propertyName}`
+      )
+    }
+    // Set the metadata of children to be structures
+    const childMetadata = Object.assign({}, metadata, {
+      type: TtlvType.Structure,
+    })
+    array.push(valueParser(v, childMetadata, propertyName, parentInstance))
+  }
+  return array
+}
+
+/**
+ * Parses the Value of a KMIP TTLV, returning the instantiated KMIP object
+ *
+ * @param {TTLV} ttlv the TTLV to extract the value from
+ * @param {PropertyMetadata} metadata the metadata of the TTLV
+ * @param {string} propertyName the name of the property of the parent structure (if any)
+ * @param {object} parentInstance the current parent instance (some properties may not have yet been initialized)
+ * @returns {object} the KMIP object instance
+ */
+export function valueParser(
+  ttlv: TTLV,
+  metadata: PropertyMetadata,
+  propertyName: string,
+  parentInstance: Object
+): any {
+  // if there is a custom parser implemented, use that
+  if (typeof metadata.fromTtlv !== "undefined") {
+    return metadata.fromTtlv(propertyName, ttlv, parentInstance)
+  }
+
+  if (typeof metadata.type === "undefined" || metadata.type === null) {
+    throw new Error(
+      `Deserializer: no valid type in the TTLV ` +
+        ` for element: ${ttlv.tag}` +
+        ` in ${propertyName}`
+    )
+  }
+  const ttlvType: TtlvType = metadata.type
+
+  if (ttlvType === TtlvType.Structure) {
+    const constructible = metadata.classOrEnum
+    if (typeof constructible === "undefined" || constructible === null) {
+      throw new Error(
+        `Deserializer: the class must be specified in the metadata for a structure ` +
+          ` for element: ${ttlv.tag}` +
+          ` in ${propertyName}`
+      )
+    }
+    const instance: Object = factory(constructible)
+    return structureParser(instance, ttlv, propertyName)
+  }
+
+  if (ttlvType === TtlvType.StructuresArray) {
+    return arrayParser(ttlv, metadata, propertyName, parentInstance)
+  }
+
+  // special case of Choices: the value is actually a structure
+  // with the correct property set
+  if (ttlvType === TtlvType.Choice) {
+    const constructible = metadata.classOrEnum
+    if (typeof constructible === "undefined" || constructible === null) {
+      throw new Error(
+        `Deserializer: the class must be specified in the metadata for a choice ` +
+          ` for element: ${ttlv.tag}` +
+          ` in ${propertyName}`
+      )
+    }
+    const instance: Object = factory(constructible)
+    return choiceParser(instance, ttlv, propertyName)
+  }
+
+  if (ttlvType === TtlvType.Enumeration) {
+    const anEnum = metadata.classOrEnum
+    if (typeof anEnum === "undefined" || anEnum === null) {
+      throw new Error(
+        `Deserializer: the enum must be specified in the metadata for a structure ` +
+          ` for element: ${ttlv.tag}` +
+          ` in ${propertyName}`
+      )
+    }
+    return anEnum[ttlv.value as keyof typeof anEnum]
+  }
+
+  if (ttlvType === TtlvType.Integer) {
+    try {
+      return parseInt(ttlv.value as string, 10)
+    } catch (error) {
+      throw new Error(
+        `Deserializer: the child ${propertyName} is a TTLV Integer but its value cannot be parsed as an Integer`
+      )
+    }
+  }
+
+  if (ttlvType === TtlvType.TextString) {
+    return ttlv.value
+  }
+
+  if (ttlvType === TtlvType.ByteString) {
+    return hexDecode(ttlv.value as string)
+  }
+
+  if (ttlvType === TtlvType.BigInteger) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  if (ttlvType === TtlvType.Boolean) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  if (ttlvType === TtlvType.DateTime) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  if (ttlvType === TtlvType.DateTimeExtended) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  if (ttlvType === TtlvType.Interval) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  if (ttlvType === TtlvType.LongInteger) {
+    throw new Error(
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+    )
+  }
+  // This line should never be reached but is a guard against adding a type
+  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+  throw new Error(`Deserializer: unknown TTLV Type: ${ttlvType}`)
+}

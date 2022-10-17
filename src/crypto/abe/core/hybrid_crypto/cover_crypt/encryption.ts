@@ -1,15 +1,15 @@
 import {
   webassembly_encrypt_hybrid_block,
   webassembly_encrypt_hybrid_header,
-} from "cosmian_cover_crypt";
-import { HybridEncryption } from "crypto/abe/interfaces/encryption";
-import { logger } from "utils/logger";
-import { hexEncode } from "utils/utils";
-import { EncryptedHeader } from "../../../interfaces/encrypted_header";
+} from "cosmian_cover_crypt"
+import { HybridEncryption } from "crypto/abe/interfaces/encryption"
+import { logger } from "utils/logger"
+import { hexEncode } from "utils/utils"
+import { EncryptedHeader } from "../../../interfaces/encrypted_header"
 import {
   AbeEncryptionParameters,
   Metadata,
-} from "../../../interfaces/encryption_parameters";
+} from "../../../interfaces/encryption_parameters"
 
 /**
  * This class exposes the ABE primitives.
@@ -17,15 +17,15 @@ import {
  */
 export class CoverCryptHybridEncryption extends HybridEncryption {
   public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
-    this.policy = policy;
-    this.publicKey = publicKey;
+    this.policy = policy
+    this.publicKey = publicKey
   }
 
   /**
    * Destroy encryption
    */
   public destroyInstance(): void {
-    logger.log(() => "DestroyInstance Abe");
+    logger.log(() => "DestroyInstance Abe")
   }
 
   /**
@@ -42,11 +42,11 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
       this.policy,
       new TextEncoder().encode(JSON.stringify(parameters.attributes)),
       this.publicKey
-    );
+    )
 
-    logger.log(() => "hybrid header succeeded: " + encryptedHeaderBytes);
+    logger.log(() => "hybrid header succeeded: " + encryptedHeaderBytes)
 
-    return EncryptedHeader.parseLEB128(encryptedHeaderBytes);
+    return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
   }
 
   /**
@@ -69,7 +69,7 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
       uid,
       blockNumber,
       plaintext
-    );
+    )
   }
 
   /**
@@ -85,59 +85,59 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     uid: Uint8Array,
     plaintext: Uint8Array
   ): Uint8Array {
-    logger.log(() => "encrypt for attributes: " + attributes);
-    logger.log(() => "encrypt for uid: " + uid);
-    logger.log(() => "encrypt for plaintext: " + plaintext);
+    logger.log(() => "encrypt for attributes: " + attributes)
+    logger.log(() => "encrypt for uid: " + uid)
+    logger.log(() => "encrypt for plaintext: " + plaintext)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
     const encryptionParameters = new AbeEncryptionParameters(
       attributes,
       new Metadata(uid, new Uint8Array(1))
-    );
-    const hybridHeader = this.encryptHybridHeader(encryptionParameters);
+    )
+    const hybridHeader = this.encryptHybridHeader(encryptionParameters)
     logger.log(
       () =>
         "encrypt: encryptedSymmetricKeySizeAsArray:" +
         hybridHeader.encryptedSymmetricKeySizeAsArray
-    );
+    )
     const ciphertext = this.encryptHybridBlock(
       hybridHeader.symmetricKey,
       plaintext,
       uid,
       0
-    );
+    )
 
     logger.log(
       () =>
         "encrypt: header size : " +
         hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)
-    );
+    )
     logger.log(
       () =>
         "encrypt: enc header size : " +
         hybridHeader.encryptedSymmetricKey.length
-    );
+    )
     logger.log(
       () =>
         "encrypt: encrypted symmetric key : " +
         hybridHeader.encryptedSymmetricKey
-    );
-    logger.log(() => "encrypt: ciphertext : " + ciphertext);
+    )
+    logger.log(() => "encrypt: ciphertext : " + ciphertext)
 
     // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
-    const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length;
+    const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length
     const encryptedData = new Uint8Array(
       headerSize + hybridHeader.encryptedSymmetricKey.length + ciphertext.length
-    );
-    encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray);
-    encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize);
+    )
+    encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray)
+    encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize)
     encryptedData.set(
       ciphertext,
       headerSize + hybridHeader.encryptedSymmetricKey.length
-    );
-    logger.log(() => "encrypt: encryptedData: " + encryptedData);
+    )
+    logger.log(() => "encrypt: encryptedData: " + encryptedData)
 
-    return encryptedData;
+    return encryptedData
   }
 
   /**
@@ -153,21 +153,21 @@ export class CoverCryptHybridEncryption extends HybridEncryption {
     attributes: string[],
     uid: Uint8Array
   ): number[] {
-    const loops = 100;
-    const startDate = new Date().getTime();
-    const metadata = new Metadata(uid);
+    const loops = 100
+    const startDate = new Date().getTime()
+    const metadata = new Metadata(uid)
     for (let i = 0; i < loops; i++) {
       webassembly_encrypt_hybrid_header(
         metadata.toJsonEncoded(),
         this.policy,
         new TextEncoder().encode(JSON.stringify(attributes)),
         this.publicKey
-      );
+      )
     }
-    const endDate = new Date().getTime();
-    const ms = (endDate - startDate) / loops;
-    logger.log(() => `webassembly-JS avg time: ${ms}ms`);
+    const endDate = new Date().getTime()
+    const ms = (endDate - startDate) / loops
+    logger.log(() => `webassembly-JS avg time: ${ms}ms`)
 
-    return [ms, -1];
+    return [ms, -1]
   }
 }

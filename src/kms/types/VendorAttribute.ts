@@ -1,6 +1,6 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
 
 /**
  * A vendor specific Attribute is a structure used for sending and receiving a
@@ -19,97 +19,100 @@ import { TtlvType } from "../serialize/TtlvType";
  * or deleted by the client.
  */
 export class VendorAttribute implements KmipStruct {
+  public static VENDOR_ID_COSMIAN = "cosmian"
+
+  public static VENDOR_ATTR_ABE_ATTR = "abe_attributes"
+
+  public static VENDOR_ATTR_ABE_POLICY = "abe_policy"
+
+  public static VENDOR_ATTR_ABE_ACCESS_POLICY = "abe_access_policy"
+
+  public static VENDOR_ATTR_COVER_CRYPT_ATTR = "cover_crypt_attributes"
+
+  public static VENDOR_ATTR_COVER_CRYPT_POLICY = "cover_crypt_policy"
+
+  public static VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY =
+    "cover_crypt_access_policy"
+
   /**
    * Text String (with usage limited to alphanumeric, underscore and period – i.e.
    * [A-Za-z0-9_.])
    */
 
-  @PropertyMetadata({
+  @metadata({
     name: "VendorIdentification",
     type: TtlvType.TextString,
   })
-  private _vendor_identification: string;
+  private _vendor_identification: string
 
-  @PropertyMetadata({
+  @metadata({
     name: "AttributeName",
     type: TtlvType.TextString,
   })
-  private _attribute_name: string;
+  private _attribute_name: string
 
-  @PropertyMetadata({
+  @metadata({
     name: "AttributeValue",
     type: TtlvType.ByteString,
   })
-  private _attribute_value: Uint8Array;
+  private _attribute_value: Uint8Array
 
   /**
    *
-   * @param vendor_identification
-   * @param attribute_name
-   * @param attribute_value
+   * @param {string} vendorIdentification the vendor ID
+   * @param {string} attributeName the name of the attribute
+   * @param {Uint8Array} attributeValue the value of the attribute
    */
   constructor(
-    vendor_identification: string,
-    attribute_name: string,
-    attribute_value: Uint8Array
+    vendorIdentification: string,
+    attributeName: string,
+    attributeValue: Uint8Array
   ) {
-    this._vendor_identification = vendor_identification;
-    this._attribute_name = attribute_name;
-    this._attribute_value = attribute_value;
+    this._vendor_identification = vendorIdentification
+    this._attribute_name = attributeName
+    this._attribute_value = attributeValue
   }
 
   public get vendor_identification(): string {
-    return this._vendor_identification;
+    return this._vendor_identification
   }
 
   public set vendor_identification(value: string) {
-    this._vendor_identification = value;
+    this._vendor_identification = value
   }
 
   public get attribute_name(): string {
-    return this._attribute_name;
+    return this._attribute_name
   }
 
   public set attribute_name(value: string) {
-    this._attribute_name = value;
+    this._attribute_name = value
   }
 
   public get attribute_value(): Uint8Array {
-    return this._attribute_value;
+    return this._attribute_value
   }
 
   public set attribute_value(value: Uint8Array) {
-    this._attribute_value = value;
+    this._attribute_value = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
-      return true;
+    if (o === this) {
+      return true
     }
     if (!(o instanceof VendorAttribute)) {
-      return false;
+      return false
     }
-    const vendorAttribute = o;
+    const vendorAttribute = o
     return (
       this.vendor_identification === vendorAttribute.vendor_identification &&
       this.attribute_name === vendorAttribute.attribute_name &&
       this.attribute_value === vendorAttribute.attribute_value
-    );
+    )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " vendor_identification='" +
-      this.vendor_identification +
-      "'" +
-      ", attribute_name='" +
-      this.attribute_name +
-      "'" +
-      ", attribute_value='" +
-      this.attribute_value +
-      "'" +
-      "}"
-    );
+    return JSON.stringify(this, null, 4)
   }
 }

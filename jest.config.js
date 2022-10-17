@@ -15,8 +15,8 @@ module.exports = {
   ],
   transformIgnorePatterns: ['<rootDir>/node_modules/'],
   modulePathIgnorePatterns: [
-    '<rootDir>/tests/kms',
-    '<rootDir>/dist'
+    '<rootDir>/dist',
+    '<rootDir>/cosmian_cover_crypt'
   ],
   testTimeout: 100000,
   detectOpenHandles: true

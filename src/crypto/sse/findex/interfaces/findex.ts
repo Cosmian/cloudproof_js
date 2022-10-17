@@ -2,10 +2,10 @@ import {
   webassembly_search,
   webassembly_graph_upsert,
   webassembly_upsert,
-} from "cosmian_findex";
-import { deserializeList } from "utils/utils";
-import { DBInterface } from "./dbInterface";
-import { FindexMasterKey } from "./master_keys";
+} from "cosmian_findex"
+import { deserializeList } from "utils/utils"
+import { DBInterface } from "./dbInterface"
+import { FindexMasterKey } from "./master_keys"
 
 /**
  * Findex class implementing callbacks using DbInterface and upsert and search functions
@@ -13,14 +13,14 @@ import { FindexMasterKey } from "./master_keys";
  * @param db DB Interface, implementing the minimal DB requests for Findex algorithm
  */
 export class Findex {
-  private readonly _db: DBInterface;
+  private readonly _db: DBInterface
 
   public get db(): DBInterface {
-    return this._db;
+    return this._db
   }
 
   constructor(db: DBInterface) {
-    this._db = db;
+    this._db = db
   }
 
   /**
@@ -44,10 +44,10 @@ export class Findex {
         this.db.fetchEntry,
         this.db.upsertEntry,
         this.db.upsertChain
-      );
+      )
     } catch (e) {
-      console.log("Error upserting : ", e);
-      throw new Error(`Error upserting : ${e as string}`);
+      console.log("Error upserting : ", e)
+      throw new Error(`Error upserting : ${e as string}`)
     }
   }
 
@@ -78,10 +78,10 @@ export class Findex {
         this.db.fetchEntry,
         this.db.upsertEntry,
         this.db.upsertChain
-      );
+      )
     } catch (e) {
-      console.log("Error upserting : ", e);
-      throw new Error(`Error upserting : ${e as string}`);
+      console.log("Error upserting : ", e)
+      throw new Error(`Error upserting : ${e as string}`)
     }
   }
 
@@ -116,12 +116,12 @@ export class Findex {
         progress,
         this.db.fetchEntry,
         this.db.fetchChain
-      );
-      const indexedValues = deserializeList(serializedIndexedValues);
-      return indexedValues;
+      )
+      const indexedValues = deserializeList(serializedIndexedValues)
+      return indexedValues
     } catch (e) {
-      console.log("Error searching : ", e);
-      throw new Error(`Error searching : ${e as string}`);
+      console.log("Error searching : ", e)
+      throw new Error(`Error searching : ${e as string}`)
     }
   }
 }

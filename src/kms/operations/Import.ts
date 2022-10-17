@@ -12,71 +12,71 @@
  * https://docs.oasis-open.org/kmip/kmip-spec/v2.1/os/kmip-spec-v2.1-os.html#_Toc57115657
  */
 
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { KmipObject } from "../objects/KmipObject";
-import { TtlvType } from "../serialize/TtlvType";
-import { Attributes } from "../types/Attributes";
-import { KeyWrapType } from "../types/KeyWrapType";
-import { ObjectType } from "../types/ObjectType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { KmipObject } from "../objects/KmipObject"
+import { TtlvType } from "../serialize/TtlvType"
+import { Attributes } from "../types/Attributes"
+import { KeyWrapType } from "../types/KeyWrapType"
+import { ObjectType } from "../types/ObjectType"
 
 export class Import implements KmipStruct {
   // The Unique Identifier of the object to be imported
-  @PropertyMetadata({
+  @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _uniqueIdentifier: string;
+  private _uniqueIdentifier: string
 
   // Determines the type of object being imported.
-  @PropertyMetadata({
+  @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,
-    isEnum: ObjectType,
+    classOrEnum: ObjectType,
   })
-  private _objectType: ObjectType;
+  private _objectType: ObjectType
 
   // A Boolean. If specified and true then any existing object with the same
   // Unique Identifier SHALL be replaced by this operation.
   // If absent or false and an object exists with the same Unique Identifier then
   // an error SHALL be returned.
-  @PropertyMetadata({
+  @metadata({
     name: "ReplaceExisting",
     type: TtlvType.Boolean,
   })
-  private _replaceExisting?: boolean;
+  private _replaceExisting?: boolean
 
   // If Not Wrapped then the server SHALL unwrap the object before storing it,
   // and return an error if the wrapping key is not available.
   // Otherwise the server SHALL store the object as provided.
-  @PropertyMetadata({
+  @metadata({
     name: "KeyWrapType",
     type: TtlvType.Enumeration,
-    isEnum: KeyWrapType,
+    classOrEnum: KeyWrapType,
   })
-  private _keyWrapType?: KeyWrapType;
+  private _keyWrapType?: KeyWrapType
 
   public get keyWrapType(): KeyWrapType | undefined {
-    return this._keyWrapType;
+    return this._keyWrapType
   }
 
   public set keyWrapType(value: KeyWrapType | undefined) {
-    this._keyWrapType = value;
+    this._keyWrapType = value
   }
 
   // Specifies object attributes to be associated with the new object.
-  @PropertyMetadata({
+  @metadata({
     name: "Attributes",
     type: TtlvType.Structure,
   })
-  private _attributes: Attributes;
+  private _attributes: Attributes
 
   // The object being imported. The object and attributes MAY be wrapped.
-  @PropertyMetadata({
+  @metadata({
     name: "Object",
     type: TtlvType.Structure,
   })
-  private _object: KmipObject;
+  private _object: KmipObject
 
   constructor(
     uniqueIdentifier: string,
@@ -86,51 +86,51 @@ export class Import implements KmipStruct {
     replaceExisting?: boolean,
     keyWrapType?: KeyWrapType
   ) {
-    this._uniqueIdentifier = uniqueIdentifier;
-    this._objectType = objectType;
-    this._replaceExisting = replaceExisting;
-    this._keyWrapType = keyWrapType;
-    this._attributes = attributes;
-    this._object = object;
+    this._uniqueIdentifier = uniqueIdentifier
+    this._objectType = objectType
+    this._replaceExisting = replaceExisting
+    this._keyWrapType = keyWrapType
+    this._attributes = attributes
+    this._object = object
   }
 
   public get uniqueIdentifier(): string {
-    return this._uniqueIdentifier;
+    return this._uniqueIdentifier
   }
 
   public set uniqueIdentifier(value: string) {
-    this._uniqueIdentifier = value;
+    this._uniqueIdentifier = value
   }
 
   public get objectType(): ObjectType {
-    return this._objectType;
+    return this._objectType
   }
 
   public set objectType(value: ObjectType) {
-    this._objectType = value;
+    this._objectType = value
   }
 
   public get replaceExisting(): boolean | undefined {
-    return this._replaceExisting;
+    return this._replaceExisting
   }
 
   public set replaceExisting(value: boolean | undefined) {
-    this._replaceExisting = value;
+    this._replaceExisting = value
   }
 
   public get attributes(): Attributes {
-    return this._attributes;
+    return this._attributes
   }
 
   public set attributes(value: Attributes) {
-    this._attributes = value;
+    this._attributes = value
   }
 
   public get object(): KmipObject {
-    return this._object;
+    return this._object
   }
 
   public set object(value: KmipObject) {
-    this._object = value;
+    this._object = value
   }
 }

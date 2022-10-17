@@ -1,38 +1,37 @@
-import { PropertyMetadata } from "../decorators/function";
-import { KmipStruct } from "../json/KmipStruct";
-import { TtlvType } from "../serialize/TtlvType";
+import { metadata } from "../decorators/function"
+import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
 
 export class TransparentSymmetricKey implements KmipStruct {
-  @PropertyMetadata({
+  @metadata({
     name: "Key",
     type: TtlvType.ByteString,
   })
-  private _key: Uint8Array;
+  private _key: Uint8Array
 
   constructor(key: Uint8Array) {
-    this._key = key;
+    this._key = key
   }
 
   public get key(): Uint8Array {
-    return this._key;
+    return this._key
   }
 
   public set key(value: Uint8Array) {
-    this._key = value;
+    this._key = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
-      return true;
+    if (o === this) {
+      return true
     }
     if (!(o instanceof TransparentSymmetricKey)) {
-      return false;
+      return false
     }
-    const transparentSymmetricKey = o;
-    return this.key === transparentSymmetricKey.key;
+    return this.key === o.key
   }
 
   public toString(): string {
-    return "{" + " key='" + this._key + "'" + "}";
+    return JSON.stringify(this, null, 4)
   }
 }

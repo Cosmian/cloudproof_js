@@ -1,5 +1,6 @@
-import { PlainTextKeyValue } from "./PlainTextKeyValue";
-import { KmipChoiceKeyMaterial } from "../json/KmipChoiceKeyMaterial";
+import { PlainTextKeyValue } from "./PlainTextKeyValue"
+import { metadata } from "kms/decorators/function"
+import { TtlvType } from "kms/serialize/TtlvType"
 
 /**
  * The Key Value is used only inside a Key Block and is either a Byte String or
@@ -16,19 +17,58 @@ import { KmipChoiceKeyMaterial } from "../json/KmipChoiceKeyMaterial";
  * structure, or the wrapped un-encoded value of the Byte String Key Material
  * field.
  */
-export class KeyValue extends KmipChoiceKeyMaterial<
-  Uint8Array,
-  PlainTextKeyValue
-> {
-  constructor(value1?: Uint8Array, value2?: PlainTextKeyValue) {
-    super(value1, value2);
+export class KeyValue {
+  @metadata({
+    name: "KeyValue",
+    type: TtlvType.ByteString,
+  })
+  private _bytes?: Uint8Array | undefined
+
+  public get bytes(): Uint8Array | undefined {
+    return this._bytes
   }
 
-  public equals(o: any): boolean {
-    return super.equals(o);
+  public set bytes(value: Uint8Array | undefined) {
+    this._bytes = value
+  }
+
+  @metadata({
+    name: "KeyValue",
+    type: TtlvType.Structure,
+    classOrEnum: PlainTextKeyValue,
+  })
+  private _plaintext?: PlainTextKeyValue | undefined
+
+  public get plaintext(): PlainTextKeyValue | undefined {
+    return this._plaintext
+  }
+
+  public set plaintext(value: PlainTextKeyValue | undefined) {
+    this._plaintext = value
+  }
+
+  constructor(
+    bytes?: Uint8Array | undefined,
+    plaintext?: PlainTextKeyValue | undefined
+  ) {
+    this._bytes = bytes
+    this._plaintext = plaintext
+  }
+
+  public equals(o: object): boolean {
+    if (o === this) {
+      return true
+    }
+    if (!(o instanceof KeyValue)) {
+      return false
+    }
+    const instance = o
+    return (
+      this.bytes === instance._bytes && this.plaintext === instance._plaintext
+    )
   }
 
   public toString(): string {
-    return super.toString();
+    return JSON.stringify(this, null, 4)
   }
 }
