@@ -12,7 +12,17 @@ import { fromBeBytes, hexEncode } from "utils/utils"
 
 export class CoverCryptMasterKey extends AbeMasterKey { }
 
-export class CoverCryptMasterKeyGeneration implements AbeKeyGeneration {
+/**
+ * Generate the keys using the local web assembly
+ */
+export class CoverCryptKeyGeneration implements AbeKeyGeneration {
+
+  /**
+   * Generate the Master Key Par
+   * 
+   * @param {Policy} policy the policy to use
+   * @returns {AbeMasterKey} the master keys
+   */
   public generateMasterKey(policy: Policy): AbeMasterKey {
     logger.log(() => `policy: ${policy.toString()}`)
 
@@ -26,18 +36,27 @@ export class CoverCryptMasterKeyGeneration implements AbeKeyGeneration {
     )
   }
 
+  /**
+   * Generate a User Decryption Key
+   * 
+   * @param {Uint8Array} masterPrivateKeyBytes The Master Private Key Bytes
+   * @param {string} accessPolicy the access policy as a boolean expression
+   *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
+   * @param {Policy} policy the policy of the master key
+   * @returns the user decryption key bytes
+   */
   public generateUserPrivateKey(
-    privateKey: Uint8Array,
+    masterPrivateKeyBytes: Uint8Array,
     accessPolicy: string,
     policy: Policy
   ): Uint8Array {
-    logger.log(() => "privateKey: " + hexEncode(privateKey))
+    logger.log(() => "privateKey: " + hexEncode(masterPrivateKeyBytes))
     logger.log(() => "accessPolicy: " + accessPolicy)
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
     const userPrivateKey = webassembly_generate_user_private_key(
-      privateKey,
+      masterPrivateKeyBytes,
       accessPolicy,
       policyBytes
     )
@@ -45,6 +64,16 @@ export class CoverCryptMasterKeyGeneration implements AbeKeyGeneration {
     return userPrivateKey
   }
 
+  /**
+   * Rotate attributes in the given policy
+   * 
+   * Note: this does NOT refresh the keys
+   * 
+   * @param {string[]} attributes to rotate
+   * e.g. ["Department::MKG" , "Department::FIN"]
+   * @param {Policy} policy the policy
+   * @returns {Policy} the updated policy
+   */
   public rotateAttributes(attributes: string[], policy: Policy): Policy {
     logger.log(() => "attributes: " + JSON.stringify(attributes))
     logger.log(() => `policy: ${policy.toString()}`)

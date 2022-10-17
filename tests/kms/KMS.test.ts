@@ -1,4 +1,4 @@
-import { fromTTLV } from "kms/deserialize/deserializer"
+zimport { fromTTLV } from "kms/deserialize/deserializer"
 import { KmipClient, SymmetricKeyAlgorithm } from "kms/client/KmipClient"
 import { Create } from "kms/operations/Create"
 import { toTTLV } from "kms/serialize/serializer"
