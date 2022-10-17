@@ -20,6 +20,16 @@ export class IndexedValue {
         return new IndexedValue(prefix);
     }
 
+    static fromNextWord(keyword: Keyword): IndexedValue {
+        let prefix = new Uint8Array(keyword.bytes.length + 1);
+        prefix[0] = IndexedValue.W_PREFIX;
+        for (let index = 0; index < keyword.bytes.length; index++) {
+            prefix[index + 1] = keyword.bytes[index];
+        }
+
+        return new IndexedValue(prefix);
+    }
+
     toBase64(): string {
         return Buffer.from(this.bytes).toString('base64');
     }

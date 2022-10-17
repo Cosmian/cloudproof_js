@@ -115,24 +115,44 @@ async function run(fetchEntries: FetchEntries, fetchChains: FetchChains, upsertE
     let updateKey = new Key(Uint8Array.from(Array(32).keys()));
     let label = new Label(Uint8Array.from([1, 2, 3]));
 
-    let newIndexedEntries: NewIndexedEntry[] = [];
-    for (let user of USERS) {
-        newIndexedEntries.push({
-            indexedValue: IndexedValue.fromLocation(Location.fromUtf8String(user.id)),
-            keywords: new Set([
-                Keyword.fromUtf8String(user.firstName),
-            ]),
-        });
+    {
+        let newIndexedEntries: NewIndexedEntry[] = [];
+        for (let user of USERS) {
+            newIndexedEntries.push({
+                indexedValue: IndexedValue.fromLocation(Location.fromUtf8String(user.id)),
+                keywords: new Set([
+                    Keyword.fromUtf8String(user.firstName),
+                ]),
+            });
+        }
+
+        await upsert(newIndexedEntries, searchKey, updateKey, label, fetchEntries, upsertEntries, upsertChains);
+
+        let results = await search(new Set([
+            USERS[0].firstName,
+        ]), searchKey, label, 1000, fetchEntries, fetchChains);
+
+        expect(results.length).toEqual(1);
+        expect(results[0]).toEqual(IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)));
     }
 
-    await upsert(newIndexedEntries, searchKey, updateKey, label, fetchEntries, upsertEntries, upsertChains);
 
-    let results = await search(new Set([
-        USERS[0].firstName,
-    ]), searchKey, label, 1000, fetchEntries, fetchChains);
+    {
+        // Test upsert an alias to the first user.
+        await upsert([
+            {
+                indexedValue: IndexedValue.fromNextWord(Keyword.fromUtf8String(USERS[0].firstName)),
+                keywords: new Set([
+                    Keyword.fromUtf8String("SomeAlias"),
+                ])
+            }
+        ], searchKey, updateKey, label, fetchEntries, upsertEntries, upsertChains);
 
-    expect(results.length).toEqual(1);
-    expect(results[0]).toEqual(IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)));
+        let results = await search(new Set(["SomeAlias"]), searchKey, label, 1000, fetchEntries, fetchChains);
+
+        expect(results.length).toEqual(1);
+        expect(results[0]).toEqual(IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)));
+    }
 }
 
 
