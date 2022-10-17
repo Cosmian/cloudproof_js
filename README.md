@@ -35,7 +35,7 @@ This table shows the minimum version correspondence between the various componen
 
 ## npm version
 
-```Json
+```
 {
   cloudproof_js: '3.1.0',
   npm: '8.6.0',
