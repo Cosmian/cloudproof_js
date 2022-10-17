@@ -1,4 +1,4 @@
-import { FetchChains, FetchEntries, IndexedValue, Key, Keyword, Label, Location, search, UidsAndValues, upsert, UpsertChains, UpsertEntries } from "findex";
+import { FetchChains, FetchEntries, NewIndexedEntry, IndexedValue, Key, Keyword, Label, Location, search, UidsAndValues, upsert, UpsertChains, UpsertEntries } from "../../src/findex";
 import { USERS } from "../data/users";
 import { expect, test } from '@jest/globals';
 import { createClient } from "redis";
@@ -8,7 +8,7 @@ test("in memory", async () => {
     let chain_table: Array<{ uid: Uint8Array, value: Uint8Array }> = [];
 
     let fetch = async (table: Array<{ uid: Uint8Array, value: Uint8Array }>, uids: Uint8Array[]) => {
-        let results = [];
+        let results: UidsAndValues = [];
         uidsLoop: for (let requestedUid of uids) {
             for (let { uid, value } of table) {
                 if (Buffer.from(uid).toString('base64') == Buffer.from(requestedUid).toString('base64')) {
@@ -86,7 +86,7 @@ test("Redis", async () => {
         let fetch = async (prefix: string, uids: Uint8Array[]) => {
             let redisResults = await client.mGet(uids.map((uid) => `findex.test.ts::${prefix}.${Buffer.from(uid).toString('base64')}`));
 
-            let results = [];
+            let results: UidsAndValues = [];
             for (let index in uids) {
                 if (redisResults[index] !== null) {
                     results.push({ uid: uids[index], value: Uint8Array.from(Buffer.from(redisResults[index] as string, 'base64')) });
@@ -115,7 +115,7 @@ async function run(fetchEntries: FetchEntries, fetchChains: FetchChains, upsertE
     let updateKey = new Key(Uint8Array.from(Array(32).keys()));
     let label = new Label(Uint8Array.from([1, 2, 3]));
 
-    let newIndexedEntries = [];
+    let newIndexedEntries: NewIndexedEntry[] = [];
     for (let user of USERS) {
         newIndexedEntries.push({
             indexedValue: IndexedValue.fromLocation(Location.fromUtf8String(user.id)),
