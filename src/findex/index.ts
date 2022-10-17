@@ -11,7 +11,7 @@ export class IndexedValue {
     }
 
     static fromLocation(location: Location): IndexedValue {
-        let prefix = new Uint8Array(location.bytes.length + 1);
+        const prefix = new Uint8Array(location.bytes.length + 1);
         prefix[0] = IndexedValue.L_PREFIX;
         for (let index = 0; index < location.bytes.length; index++) {
             prefix[index + 1] = location.bytes[index];
@@ -21,7 +21,7 @@ export class IndexedValue {
     }
 
     static fromNextWord(keyword: Keyword): IndexedValue {
-        let prefix = new Uint8Array(keyword.bytes.length + 1);
+        const prefix = new Uint8Array(keyword.bytes.length + 1);
         prefix[0] = IndexedValue.W_PREFIX;
         for (let index = 0; index < keyword.bytes.length; index++) {
             prefix[index + 1] = keyword.bytes[index];
@@ -88,25 +88,17 @@ export interface NewIndexedEntry {
 
 export type UidsAndValues = Array<{ uid: Uint8Array, value: Uint8Array }>;
 
-export interface FetchEntries {
-    (uids: Uint8Array[]): Promise<UidsAndValues>;
-}
+type FetchEntries = (uids: Uint8Array[]) => Promise<UidsAndValues>;
 
-export interface FetchChains {
-    (uids: Uint8Array[]): Promise<UidsAndValues>;
-}
+type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>;
 
-export interface UpsertEntries {
-    (uidsAndValues: UidsAndValues): Promise<void>;
-}
+type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>;
 
-export interface UpsertChains {
-    (uidsAndValues: UidsAndValues): Promise<void>;
-}
+type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>;
 
-export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Key, updateKey: Key, label: Label, fetchEntries: FetchEntries, upsertEntries: UpsertEntries, upsertChains: UpsertChains) {
-    let newIndexedEntriesBase64: { [key: string]: string[] } = {};
-    for (let newIndexedEntry of newIndexedEntries) {
+export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Key, updateKey: Key, label: Label, fetchEntries: FetchEntries, upsertEntries: UpsertEntries, upsertChains: UpsertChains): Promise<void> {
+    const newIndexedEntriesBase64: { [key: string]: string[] } = {};
+    for (const newIndexedEntry of newIndexedEntries) {
         newIndexedEntriesBase64[newIndexedEntry.indexedValue.toBase64()] = [...newIndexedEntry.keywords].map((keyword) => keyword.toBase64());
     }
 
@@ -134,7 +126,7 @@ export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Ke
 }
 
 export async function search(keywords: Set<string>, searchKey: Key, label: Label, maxResultsPerKeyword: number, fetchEntries: FetchEntries, fetchChains: FetchChains): Promise<IndexedValue[]> {
-    let serializedIndexedValues = await webassembly_search(
+    const serializedIndexedValues = await webassembly_search(
         searchKey.bytes,
         label.bytes,
         JSON.stringify([...keywords]),
