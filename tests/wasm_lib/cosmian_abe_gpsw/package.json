@@ -7,7 +7,7 @@
     "Thibaud Genty <thibaud.genty@cosmian.com>"
   ],
   "description": "ABE GPSW scheme for BLS pairing implemented in rust",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "license": "MIT/Apache-2.0",
   "repository": {
     "type": "git",
@@ -16,7 +16,8 @@
   "files": [
     "cosmian_abe_gpsw_bg.wasm",
     "cosmian_abe_gpsw.js",
-    "cosmian_abe_gpsw.d.ts"
+    "cosmian_abe_gpsw.d.ts",
+    "LICENSE.md"
   ],
   "main": "cosmian_abe_gpsw.js",
   "types": "cosmian_abe_gpsw.d.ts"

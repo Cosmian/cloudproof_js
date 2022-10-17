@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 
 ---
+## [3.1.1] - 2022-10-17
+
+### Added
+
+### Changed
+
+- Update `cosmian_cover_crypt` to 6.0.8
+- Update `cosmian_findex` to 0.7.2
+- Update `cosmian_abe_gpsw` to 2.0.3
+
+### Fixed
+
+### Removed
+
+---
 
 ## [3.1.0] - 2022-10-13
 
