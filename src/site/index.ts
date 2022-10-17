@@ -86,7 +86,7 @@ async function IndexAndLoadElements(): Promise<void> {
   }
   await upsert("id")
 }
-(window as any).IndexAndLoadElements = IndexAndLoadElements
+;(window as any).IndexAndLoadElements = IndexAndLoadElements
 
 /**
  * Encrypt elements table with CoverCrypt, Findex upsert encrypted elements and display them
@@ -147,7 +147,7 @@ async function IndexAndLoadEncryptedElements(): Promise<void> {
 
   console.timeEnd("IndexAndLoadEncryptedElements")
 }
-(window as any).IndexAndLoadEncryptedElements = IndexAndLoadEncryptedElements
+;(window as any).IndexAndLoadEncryptedElements = IndexAndLoadEncryptedElements
 
 /**
  * Search terms with Findex implementation
@@ -193,7 +193,7 @@ async function searchElements(
     console.log(error)
   }
 }
-(window as any).searchElements = searchElements
+;(window as any).searchElements = searchElements
 
 /**
  *
@@ -265,7 +265,7 @@ async function searchAndDecryptElements(
     console.log(error)
   }
 }
-(window as any).searchAndDecryptElements = searchAndDecryptElements
+;(window as any).searchAndDecryptElements = searchAndDecryptElements
 
 /**
  * Display an array of simple JS objects into a an array in HTML
@@ -360,7 +360,7 @@ function hybridDecryptionTest(
 
   return milliseconds
 }
-(window as any).hybridDecryptionTest = hybridDecryptionTest
+;(window as any).hybridDecryptionTest = hybridDecryptionTest
 
 /**
  *
@@ -403,7 +403,7 @@ function benchAsymmetricDecryption(
 
   return res
 }
-(window as any).benchAsymmetricDecryption = benchAsymmetricDecryption
+;(window as any).benchAsymmetricDecryption = benchAsymmetricDecryption
 
 // --- ENCRYPTION ---
 /**
@@ -457,7 +457,7 @@ function hybridEncryptionTest(
 
   return milliseconds
 }
-(window as any).hybridEncryptionTest = hybridEncryptionTest
+;(window as any).hybridEncryptionTest = hybridEncryptionTest
 
 /**
  *
@@ -497,7 +497,7 @@ function benchAsymmetricEncryption(
 
   return results
 }
-(window as any).benchAsymmetricEncryption = benchAsymmetricEncryption
+;(window as any).benchAsymmetricEncryption = benchAsymmetricEncryption
 
 // /////////////////////////:
 //
@@ -565,8 +565,8 @@ const decryptUsingWorker = (): void => {
         logger.log(() => "all decryption workers terminated")
       })
   }
-};
-(window as any).decryptUsingWorker = decryptUsingWorker
+}
+;(window as any).decryptUsingWorker = decryptUsingWorker
 
 // Display the decryption results
 const displayResults = (
@@ -584,7 +584,9 @@ const displayResults = (
     console.error("workers_results_number not found")
     return
   }
-  wrnElt.innerHTML = `${results.length} in ${endDate - startDate}ms i.e. ${milliseconds}ms/record average`
+  wrnElt.innerHTML = `${results.length} in ${
+    endDate - startDate
+  }ms i.e. ${milliseconds}ms/record average`
 
   // the results themselves
   const wrElt = document.getElementById("workers_result")
@@ -652,7 +654,7 @@ function abeDemo(): string {
   }
   return "OK"
 }
-(window as any).abeDemo = abeDemo
+;(window as any).abeDemo = abeDemo
 
 /**
  *
@@ -718,5 +720,5 @@ export function initPage(isGpsw: boolean) {
     elementSetValue("plaintext_1", CoverCryptDemoKeys.plaintext)
   }
 }
-initPage(false);
-(window as any).initPage = initPage
+initPage(false)
+;(window as any).initPage = initPage

@@ -22,7 +22,6 @@ export class RevocationReason {
   })
   private _reason?: RevocationReasonEnumeration | undefined
 
-
   constructor(str?: string, reason?: RevocationReasonEnumeration) {
     this.str = str
     this._reason = reason
@@ -44,7 +43,6 @@ export class RevocationReason {
     this._reason = value
   }
 
-
   public equals(o: object): boolean {
     if (o === this) {
       return true
@@ -52,10 +50,7 @@ export class RevocationReason {
     if (!(o instanceof RevocationReason)) {
       return false
     }
-    return (
-      this.str === o._str &&
-      this.reason === o._reason
-    )
+    return this.str === o._str && this.reason === o._reason
   }
 
   public toString(): string {

@@ -9,9 +9,7 @@ export class RevokeResponse implements KmipStruct {
   })
   private _uniqueIdentifier?: string
 
-  constructor(
-    uniqueIdentifier?: string,
-  ) {
+  constructor(uniqueIdentifier?: string) {
     this._uniqueIdentifier = uniqueIdentifier
   }
 
@@ -22,8 +20,6 @@ export class RevokeResponse implements KmipStruct {
   public set uniqueIdentifier(value: string | undefined) {
     this._uniqueIdentifier = value
   }
-
-
 
   public equals(o: any): boolean {
     if (o === this) {

@@ -224,4 +224,3 @@ export function sanitizeString(str: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w-]+/g, "-")
 }
-

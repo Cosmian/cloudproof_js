@@ -1,6 +1,6 @@
-import fetch from "node-fetch";
+import fetch from "node-fetch"
 
-const url = "http://localhost:9998/kmip/2_1";
+const url = "http://localhost:9998/kmip/2_1"
 
 const importPayload = {
   tag: "Import",
@@ -80,7 +80,7 @@ const importPayload = {
       ],
     },
   ],
-};
+}
 // Server response : Upserting object of type: SymmetricKey, with uid: unique_identifier
 
 const createPayload = {
@@ -119,7 +119,7 @@ const createPayload = {
       ],
     },
   ],
-};
+}
 // Server response : Created KMS Object of type SymmetricKey with id eb9c5a0d-afa3-4d06-8673-3dc51431268f
 
 const getPayload = {
@@ -132,7 +132,7 @@ const getPayload = {
       value: "eb9c5a0d-afa3-4d06-8673-3dc51431268f",
     },
   ],
-};
+}
 // Server response : Retrieved Object: SymmetricKey with id eb9c5a0d-afa3-4d06-8673-3dc51431268f
 
 const encryptPayload = {
@@ -150,7 +150,7 @@ const encryptPayload = {
       value: "747765616b56616c7565",
     },
   ],
-};
+}
 // Server response : POST /kmip. Request: "Encrypt"
 
 const decryptPayload = {
@@ -168,7 +168,7 @@ const decryptPayload = {
       value: "747765616b56616c7565",
     },
   ],
-};
+}
 // Server response : POST /kmip. Request: "Decrypt"
 
 const locatePayload = {
@@ -202,7 +202,7 @@ const locatePayload = {
       ],
     },
   ],
-};
+}
 // Server response :
 // Listed 1 rows
 // Retrieved Object: SymmetricKey with id 9884be1f-fd6c-4944-ab20-5bce3f00e140
@@ -213,10 +213,10 @@ const options = {
   headers: {
     "Content-Type": "application/json; charset=utf-8",
   },
-};
+}
 
-(async () => {
-  const response = await fetch(url, options);
-  const content = await response;
-  console.log(content);
-})();
+;(async () => {
+  const response = await fetch(url, options)
+  const content = await response
+  console.log(content)
+})()

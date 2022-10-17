@@ -25,7 +25,7 @@ export class PGPKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
-    classOrEnum: KeyBlock
+    classOrEnum: KeyBlock,
   })
   private _keyBlock: KeyBlock
 
@@ -63,7 +63,6 @@ export class PGPKey {
       this._keyBlock === pGPKey.keyBlock
     )
   }
-
 
   public toString(): string {
     return JSON.stringify(this, null, 4)

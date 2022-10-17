@@ -9,7 +9,7 @@ import { Policy } from "crypto/abe/interfaces/policy"
 import { logger } from "utils/logger"
 import { fromBeBytes } from "utils/utils"
 
-export class GpswMasterKey extends AbeMasterKey { }
+export class GpswMasterKey extends AbeMasterKey {}
 
 export class GpswMasterKeyGeneration implements AbeKeyGeneration {
   public generateMasterKeys(policy: Policy): AbeMasterKey {
@@ -49,9 +49,7 @@ export class GpswMasterKeyGeneration implements AbeKeyGeneration {
     logger.log(() => "policy: " + policy.toJsonEncoded().toString())
 
     const policyBytes = policy.toJsonEncoded()
-    const attributesBytes = new TextEncoder().encode(
-      JSON.stringify(attributes)
-    )
+    const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
     const newPolicyString = webassembly_rotate_attributes(
       attributesBytes,
       policyBytes

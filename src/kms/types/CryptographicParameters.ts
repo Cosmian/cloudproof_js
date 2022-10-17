@@ -38,84 +38,84 @@ export class CryptographicParameters {
     type: TtlvType.Enumeration,
     classOrEnum: BlockCipherMode,
   })
-  public block_cipher_mode?: BlockCipherMode = undefined;
+  public block_cipher_mode?: BlockCipherMode = undefined
 
   @metadata({
     name: "PaddingMethod",
     type: TtlvType.Enumeration,
     classOrEnum: PaddingMethod,
   })
-  public padding_method?: PaddingMethod = undefined;
+  public padding_method?: PaddingMethod = undefined
 
   @metadata({
     name: "HashingAlgorithm",
     type: TtlvType.Enumeration,
     classOrEnum: HashingAlgorithm,
   })
-  public hashing_algorithm?: HashingAlgorithm = undefined;
+  public hashing_algorithm?: HashingAlgorithm = undefined
 
   @metadata({
     name: "KeyRoleType",
     type: TtlvType.Enumeration,
     classOrEnum: KeyRoleType,
   })
-  public key_role_type?: KeyRoleType = undefined;
+  public key_role_type?: KeyRoleType = undefined
 
   @metadata({
     name: "FixedFieldLenght",
     type: TtlvType.Integer,
   })
-  public fixed_field_length?: number = undefined;
+  public fixed_field_length?: number = undefined
 
   @metadata({
     name: "DigitalSignatureAlgorithm",
     type: TtlvType.Enumeration,
     classOrEnum: DigitalSignatureAlgorithm,
   })
-  public digital_signature_algorithm?: DigitalSignatureAlgorithm = undefined;
+  public digital_signature_algorithm?: DigitalSignatureAlgorithm = undefined
 
   @metadata({
     name: "CryptographicAlgorithm",
     type: TtlvType.Enumeration,
     classOrEnum: CryptographicAlgorithm,
   })
-  public cryptographic_algorithm?: CryptographicAlgorithm = undefined;
+  public cryptographic_algorithm?: CryptographicAlgorithm = undefined
 
   @metadata({
     name: "RandomIv",
     type: TtlvType.Boolean,
   })
-  public random_iv?: Boolean = undefined;
+  public random_iv?: Boolean = undefined
 
   @metadata({
     name: "IvLength",
     type: TtlvType.Integer,
   })
-  public iv_length?: number = undefined;
+  public iv_length?: number = undefined
 
   @metadata({
     name: "TagLength",
     type: TtlvType.Integer,
   })
-  public tag_length?: number = undefined;
+  public tag_length?: number = undefined
 
   @metadata({
     name: "InvocationFieldLength",
     type: TtlvType.Integer,
   })
-  public invocation_field_length?: number = undefined;
+  public invocation_field_length?: number = undefined
 
   @metadata({
     name: "CounterLength",
     type: TtlvType.Integer,
   })
-  public counter_length?: number = undefined;
+  public counter_length?: number = undefined
 
   @metadata({
     name: "InitialCounterValue",
     type: TtlvType.Integer,
   })
-  public initial_counter_value?: number = undefined;
+  public initial_counter_value?: number = undefined
   /// if omitted, defaults to the block size of the Mask Generator Hashing Algorithm
   /// Cosmian extension: In AES: used as the number of additional data at the end of the
   /// submitted data that become part of the MAC calculation. These additional data are removed
@@ -125,7 +125,7 @@ export class CryptographicParameters {
     name: "SaltLength",
     type: TtlvType.Integer,
   })
-  public salt_length?: number = undefined;
+  public salt_length?: number = undefined
 
   /// if omitted defaults to MGF1
   @metadata({
@@ -133,7 +133,7 @@ export class CryptographicParameters {
     type: TtlvType.Enumeration,
     classOrEnum: MaskGenerator,
   })
-  public mask_generator?: MaskGenerator = undefined;
+  public mask_generator?: MaskGenerator = undefined
 
   /// if omitted defaults to SHA-1
   @metadata({
@@ -141,19 +141,19 @@ export class CryptographicParameters {
     type: TtlvType.Enumeration,
     classOrEnum: HashingAlgorithm,
   })
-  public mask_generator_hashing_algorithm?: HashingAlgorithm = undefined;
+  public mask_generator_hashing_algorithm?: HashingAlgorithm = undefined
 
   @metadata({
     name: "PSource",
     type: TtlvType.ByteString,
   })
-  public p_source?: Uint8Array = undefined;
+  public p_source?: Uint8Array = undefined
 
   @metadata({
     name: "TrailerField",
     type: TtlvType.Integer,
   })
-  public trailer_field?: number = undefined;
+  public trailer_field?: number = undefined
 
   public static empty(): CryptographicParameters {
     return new CryptographicParameters()

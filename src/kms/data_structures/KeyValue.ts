@@ -18,7 +18,6 @@ import { TtlvType } from "kms/serialize/TtlvType"
  * field.
  */
 export class KeyValue {
-
   @metadata({
     name: "KeyValue",
     type: TtlvType.ByteString,
@@ -36,7 +35,7 @@ export class KeyValue {
   @metadata({
     name: "KeyValue",
     type: TtlvType.Structure,
-    classOrEnum: PlainTextKeyValue
+    classOrEnum: PlainTextKeyValue,
   })
   private _plaintext?: PlainTextKeyValue | undefined
 
@@ -48,7 +47,10 @@ export class KeyValue {
     this._plaintext = value
   }
 
-  constructor(bytes?: Uint8Array | undefined, plaintext?: PlainTextKeyValue | undefined) {
+  constructor(
+    bytes?: Uint8Array | undefined,
+    plaintext?: PlainTextKeyValue | undefined
+  ) {
     this._bytes = bytes
     this._plaintext = plaintext
   }
@@ -62,8 +64,7 @@ export class KeyValue {
     }
     const instance = o
     return (
-      this.bytes === instance._bytes &&
-      this.plaintext === instance._plaintext
+      this.bytes === instance._bytes && this.plaintext === instance._plaintext
     )
   }
 

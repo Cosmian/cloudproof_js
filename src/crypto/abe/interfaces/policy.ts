@@ -56,7 +56,7 @@ export class Policy {
     attributeToInt?: { [attribute: string]: number[] }
   ) {
     this._axes = axes
-    this._maxAttributeCreations = maxAttributeCreations ?? 2 ^ 32 - 1
+    this._maxAttributeCreations = maxAttributeCreations ?? (2 ^ 32) - 1
     if (typeof attributeToInt !== "undefined") {
       this._attributeToInt = attributeToInt
     } else {
@@ -74,14 +74,18 @@ export class Policy {
     } else {
       let lastVal = 0
       Object.entries(this._attributeToInt).forEach(([att, values]) =>
-        values.forEach(v => { if (v > lastVal) { lastVal = v } })
+        values.forEach((v) => {
+          if (v > lastVal) {
+            lastVal = v
+          }
+        })
       )
       this._lastAttributeValue = lastVal
     }
   }
 
   /**
-   * This function converts a Policy toa KMIP JSON format 
+   * This function converts a Policy toa KMIP JSON format
    * and returns the corresponding bytes
    *
    * @returns {Uint8Array} a byte array of the KMIP JSON encoded Policy
@@ -103,19 +107,25 @@ export class Policy {
 
   /**
    * Parse the Policy from a KMIP encoded JSON string
-   * 
+   *
    * @param {string} jsonPolicy the KMIP encoded JSON
    * @returns {Policy} the policy
    */
   public static fromJsonEncoded(jsonPolicy: string): Policy {
     const policyJson = JSON.parse(jsonPolicy)
-    logger.log(() => "fromJsonEncoded: input policy json: " + JSON.stringify(policyJson, null, 4))
+    logger.log(
+      () =>
+        "fromJsonEncoded: input policy json: " +
+        JSON.stringify(policyJson, null, 4)
+    )
 
     // Fill Policy Axis
     const axes: PolicyAxis[] = []
     for (const axis of Object.keys(policyJson.axes)) {
       const value = policyJson.axes[axis]
-      logger.log(() => `fromJsonEncoded: axis: ${axis}, value: ${(value[0] as string)}`)
+      logger.log(
+        () => `fromJsonEncoded: axis: ${axis}, value: ${value[0] as string}`
+      )
       axes.push(new PolicyAxis(axis, value[0], value[1]))
     }
     return new Policy(
@@ -128,16 +138,20 @@ export class Policy {
 
   /**
    * Packages the policy into a vendor attribute to include in a key
-   * 
+   *
    * @returns {VendorAttribute} the Policy as a VendorAttribute
    */
   public toVendorAttribute(): VendorAttribute {
-    return new VendorAttribute(VendorAttribute.VENDOR_ID_COSMIAN, VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY, this.toJsonEncoded())
+    return new VendorAttribute(
+      VendorAttribute.VENDOR_ID_COSMIAN,
+      VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
+      this.toJsonEncoded()
+    )
   }
 
   /**
    * Recover the Policy from the key attributes, throws otherwise
-   * 
+   *
    * @param {Attributes} attributes the key attributes to parse
    * @returns {Policy} the Policy
    */
@@ -147,8 +161,13 @@ export class Policy {
       throw new Error(`No policy available in the vendor attributes`)
     }
     for (const att of attrs) {
-      if (att.attribute_name === VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY || att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_POLICY) {
-        return Policy.fromJsonEncoded(new TextDecoder().decode(att.attribute_value))
+      if (
+        att.attribute_name === VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY ||
+        att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_POLICY
+      ) {
+        return Policy.fromJsonEncoded(
+          new TextDecoder().decode(att.attribute_value)
+        )
       }
     }
     throw new Error(`No policy available in the vendor attributes`)
@@ -157,7 +176,7 @@ export class Policy {
   /**
    * Attempt to extract the Policy from a CoverCrypt public or private key
    * Throws if not found
-   * 
+   *
    * @param {PrivateKey | PublicKey} key the CoverCrypt key
    * @returns {Policy} the recovered Policy
    */
@@ -174,7 +193,7 @@ export class Policy {
 
   /**
    * Print the policy as a JSON string
-   * 
+   *
    * @returns {string} the JSON string
    */
 
@@ -193,8 +212,12 @@ export class Policy {
     if (this._axes.length !== o._axes.length) {
       return false
     }
-    const aAxis = this._axes.sort((a, b) => { return a.name > b.name ? 1 : -1 })
-    const bAxis = o._axes.sort((a, b) => { return a.name > b.name ? 1 : -1 })
+    const aAxis = this._axes.sort((a, b) => {
+      return a.name > b.name ? 1 : -1
+    })
+    const bAxis = o._axes.sort((a, b) => {
+      return a.name > b.name ? 1 : -1
+    })
 
     const aKeys = Object.keys(this._attributeToInt)
     const bKeys = Object.keys(o._attributeToInt)
@@ -202,7 +225,10 @@ export class Policy {
       return false
     }
     for (const k of aKeys) {
-      if (JSON.stringify(this._attributeToInt[k]) !== JSON.stringify(o._attributeToInt[k])) {
+      if (
+        JSON.stringify(this._attributeToInt[k]) !==
+        JSON.stringify(o._attributeToInt[k])
+      ) {
         return false
       }
     }
@@ -211,9 +237,6 @@ export class Policy {
       JSON.stringify(aAxis) === JSON.stringify(bAxis) &&
       this._maxAttributeCreations === o._maxAttributeCreations &&
       this._lastAttributeValue === o._lastAttributeValue
-
     )
   }
-
-
 }

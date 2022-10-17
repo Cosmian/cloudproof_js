@@ -1,6 +1,6 @@
 {
     "name": "cloudproof_js",
-    "version": "3.2.0",
+    "version": "3.1.0",
     "license": "MIT",
     "description": "Cosmian javascript client library",
     "main": "dist/cjs/index.js",

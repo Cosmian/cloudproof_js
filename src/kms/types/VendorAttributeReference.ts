@@ -50,7 +50,7 @@ export class VendorAttributeReference {
     const vendorAttributeReference = o
     return (
       this._vendor_identification ===
-      vendorAttributeReference.vendor_identification &&
+        vendorAttributeReference.vendor_identification &&
       this._attribute_name === vendorAttributeReference.attribute_name
     )
   }

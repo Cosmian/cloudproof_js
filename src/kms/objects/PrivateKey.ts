@@ -8,7 +8,7 @@ export class PrivateKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
-    classOrEnum: KeyBlock
+    classOrEnum: KeyBlock,
   })
   private _keyBlock: KeyBlock
 
@@ -41,7 +41,7 @@ export class PrivateKey {
 
   /**
    * Extract the key bytes
-   * 
+   *
    * @returns {Uint8Array} the key bytes
    */
   public bytes(): Uint8Array {
@@ -61,7 +61,4 @@ export class PrivateKey {
     }
     throw new Error(`no key bytes found: invalid private key`)
   }
-
-
-
 }

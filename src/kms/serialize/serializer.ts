@@ -7,7 +7,7 @@ import { hexEncode } from "utils/utils"
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object
  *
- * @param {object} value  the KMIP object 
+ * @param {object} value  the KMIP object
  * @returns {TTLV} a TTLV.
  */
 export function toTTLV(value: Object): TTLV {
@@ -22,7 +22,7 @@ export function toTTLV(value: Object): TTLV {
 
 /**
  *
- * @param {object} value  the KMIP object 
+ * @param {object} value  the KMIP object
  * @param  {PropertyMetadata} metadata of the property
  * @returns {TTLV} a TTLV
  */
@@ -31,7 +31,13 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
   // is always a dictionary or an array
 
   if (typeof value !== "object") {
-    throw new Error(`Serializer: unknown type ${typeof value} for value: ${JSON.stringify(value, null, 2)}`)
+    throw new Error(
+      `Serializer: unknown type ${typeof value} for value: ${JSON.stringify(
+        value,
+        null,
+        2
+      )}`
+    )
   }
 
   if (typeof metadata.toTtlv !== "undefined") {
@@ -47,7 +53,7 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
 
 /**
  *
- * @param {object} value  the KMIP array 
+ * @param {object} value  the KMIP array
  * @param  {PropertyMetadata} metadata of the array
  * @returns {TTLV} a TTLV
  */
@@ -56,7 +62,9 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   const children: TTLV[] = []
   // same metadata for all children of the array which are all of the same type
   // but make it a structure
-  const childMetadata = Object.assign({}, metadata, { type: TtlvType.Structure })
+  const childMetadata = Object.assign({}, metadata, {
+    type: TtlvType.Structure,
+  })
   for (const child of array) {
     children.push(_toTTLV(child, childMetadata))
   }
@@ -117,8 +125,8 @@ function parseChildren(value: Object): TTLV[] {
     if (typeof childMetadata === "undefined") {
       console.error(
         "Serializer: child Metadata is not defined for " +
-        propertyName +
-        " in ",
+          propertyName +
+          " in ",
         childrenMetadata
       )
       throw new Error(
@@ -132,7 +140,11 @@ function parseChildren(value: Object): TTLV[] {
     if (childType === TtlvType.Ignore) {
       continue
     }
-    if (childType === TtlvType.Structure || childType === TtlvType.StructuresArray || childType === TtlvType.Choice) {
+    if (
+      childType === TtlvType.Structure ||
+      childType === TtlvType.StructuresArray ||
+      childType === TtlvType.Choice
+    ) {
       // it is a structure, recursively process the child
       const child = _toTTLV(childValue, childMetadata)
       children.push(child)
@@ -167,5 +179,3 @@ function parseChildren(value: Object): TTLV[] {
   }
   return children
 }
-
-

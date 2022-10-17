@@ -131,10 +131,7 @@ export class CoverCryptHybridDecryption extends HybridDecryption {
     const loops = 100
     const startDate = new Date().getTime()
     for (let i = 0; i < loops; i++) {
-      webassembly_decrypt_hybrid_header(
-        this.asymmetricDecryptionKey,
-        abeHeader
-      )
+      webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
     }
     const endDate = new Date().getTime()
     const ms = (endDate - startDate) / loops

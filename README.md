@@ -20,7 +20,7 @@ This library is free software and is available on NPM public repository.
 npm i cloudproof_js
 ```
 
-(version before 3.2.0 were called cosmian_js_lib)
+(version before 3.1.0 were called cosmian_js_lib)
 
 ## Versions Correspondence
 
@@ -31,14 +31,13 @@ This table shows the minimum version correspondence between the various componen
 | KMS Server | Javascript Lib | GPSW lib | CoverCrypt lib | Findex |
 | ---------- | -------------- | -------- | -------------- | ------ |
 | 2.2.0      | 1.0.6          | 2.0.1    | 6.0.1          | 0.5.0  |
-| 2.3.0      | 3.1.0          | 2.0.2    | 6.0.1          | 0.7.0  |
-| 2.3.0      | 3.2.0          | 2.0.2    | 6.0.7          | 0.7.0  |
+| 2.3.0      | 3.1.0          | 2.0.2    | 6.0.7          | 0.7.0  |
 
 ## npm version
 
 ```Json
 {
-  cloudproof_js: '3.2.0',
+  cloudproof_js: '3.1.0',
   npm: '8.6.0',
   node: '18.0.0',
   v8: '10.1.124.8-node.13',

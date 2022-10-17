@@ -16,8 +16,6 @@ import { KmipObject } from "../objects/KmipObject"
 import { TtlvType } from "../serialize/TtlvType"
 import { ObjectType } from "../types/ObjectType"
 
-
-
 export class GetResponse implements KmipStruct, Deserialize {
   // Determines the type of object being retrieved.
   @metadata({
@@ -42,8 +40,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       // this indicates that deserialization is post-processed in fromTtlv() below
       // The _object property will hold a TTLV until the post process
       return ttlv
-    }
-
+    },
   })
   private _object: KmipObject | TTLV
 
@@ -56,9 +53,6 @@ export class GetResponse implements KmipStruct, Deserialize {
     this._uniqueIdentifier = uniqueIdentifier
     this._object = object
   }
-
-
-
 
   public get objectType(): ObjectType {
     return this._objectType
@@ -108,39 +102,75 @@ export class GetResponse implements KmipStruct, Deserialize {
     defaultStructureParser(this, ttlv, propertyName ?? "ROOT")
 
     if (this.objectType === ObjectType.Certificate) {
-      this._object = defaultStructureParser(new Certificate(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new Certificate(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.CertificateRequest) {
-      this._object = defaultStructureParser(new CertificateRequest(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new CertificateRequest(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.OpaqueObject) {
-      this._object = defaultStructureParser(new OpaqueObject(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new OpaqueObject(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.PGPKey) {
-      this._object = defaultStructureParser(new PGPKey(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new PGPKey(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.PrivateKey) {
-      this._object = defaultStructureParser(new PrivateKey(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new PrivateKey(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.PublicKey) {
-      this._object = defaultStructureParser(new PublicKey(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new PublicKey(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.SecretData) {
-      this._object = defaultStructureParser(new SecretData(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new SecretData(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.SplitKey) {
-      this._object = defaultStructureParser(new SplitKey(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new SplitKey(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     if (this.objectType === ObjectType.SymmetricKey) {
-      this._object = defaultStructureParser(new SymmetricKey(), this._object as TTLV, "_object")
+      this._object = defaultStructureParser(
+        new SymmetricKey(),
+        this._object as TTLV,
+        "_object"
+      )
       return this
     }
     throw new Error(`Unsupported Object Type, for a KMIP Object`)

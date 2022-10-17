@@ -1,7 +1,7 @@
-import { Findex } from "crypto/sse/findex/interfaces/findex";
-import { FindexMasterKey } from "crypto/sse/findex/interfaces/master_keys";
-import { sanitizeString, toBase64 } from "utils/utils";
-import { Users } from "./users";
+import { Findex } from "crypto/sse/findex/interfaces/findex"
+import { FindexMasterKey } from "crypto/sse/findex/interfaces/master_keys"
+import { sanitizeString, toBase64 } from "utils/utils"
+import { Users } from "./users"
 
 /**
  * Findex class implementing callbacks using DbInterface and upsert and search functions
@@ -25,14 +25,14 @@ export class FindexDemo extends Findex {
     location: string,
     useGraph: Boolean = false
   ): Promise<void> {
-    const generatedUsers = users.getUsers();
+    const generatedUsers = users.getUsers()
 
-    console.time("building full locationAndWords");
-    const locationAndWords: { [key: string]: string[] } = {};
+    console.time("building full locationAndWords")
+    const locationAndWords: { [key: string]: string[] } = {}
     generatedUsers.map((user) => {
-      let userId = user.id;
+      let userId = user.id
       if (location === "enc_uid") {
-        userId = user.enc_uid;
+        userId = user.enc_uid
       }
       if (userId.length > 0) {
         locationAndWords[toBase64("l" + userId)] = [
@@ -44,69 +44,71 @@ export class FindexDemo extends Findex {
           toBase64(user.region),
           toBase64(user.employeeNumber),
           toBase64(user.security),
-        ];
+        ]
       } else {
-        throw new Error("upsertUsersIndexes: userId cannot be null");
+        throw new Error("upsertUsersIndexes: userId cannot be null")
       }
-    });
-    console.timeEnd("building full locationAndWords");
+    })
+    console.timeEnd("building full locationAndWords")
 
-    console.time(`super.upsert ${Object.keys(locationAndWords).length}`);
-    await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords);
-    console.timeEnd(`super.upsert ${Object.keys(locationAndWords).length}`);
+    console.time(`super.upsert ${Object.keys(locationAndWords).length}`)
+    await super.upsert(masterKeysFindex, Buffer.from(label), locationAndWords)
+    console.timeEnd(`super.upsert ${Object.keys(locationAndWords).length}`)
 
-    // If we want to index using graph do a second upsert with only the 
+    // If we want to index using graph do a second upsert with only the
     // attributes we want inside the graph (country, firstName and lastName)
     // We do the basic upsert before to index all the other attributes.
     if (useGraph) {
-      console.time("building simple locationAndWords for graphs");
-      const locationAndWords: { [key: string]: string[] } = {};
+      console.time("building simple locationAndWords for graphs")
+      const locationAndWords: { [key: string]: string[] } = {}
       generatedUsers.map((user) => {
-        let userId = user.id;
+        let userId = user.id
         if (location === "enc_uid") {
-          userId = user.enc_uid;
+          userId = user.enc_uid
         }
         if (userId.length > 0) {
           locationAndWords[toBase64("l" + userId)] = [
             toBase64(user.country),
             toBase64(user.firstName),
             toBase64(user.lastName),
-          ];
+          ]
         } else {
-          throw new Error("upsertUsersIndexes: userId cannot be null");
+          throw new Error("upsertUsersIndexes: userId cannot be null")
         }
-      });
-      console.timeEnd("building simple locationAndWords for graphs");
+      })
+      console.timeEnd("building simple locationAndWords for graphs")
 
-      console.time(`super.graph_upsert ${Object.keys(locationAndWords).length}`);
+      console.time(`super.graph_upsert ${Object.keys(locationAndWords).length}`)
       await super.graph_upsert(
         masterKeysFindex,
         Buffer.from(label),
         locationAndWords
-      );
-      console.timeEnd(`super.graph_upsert ${Object.keys(locationAndWords).length}`);
+      )
+      console.timeEnd(
+        `super.graph_upsert ${Object.keys(locationAndWords).length}`
+      )
     }
   }
 
   compareTwoArray(a: Uint8Array, b: Uint8Array): boolean {
     if (a.length !== b.length) {
-      return false;
+      return false
     }
     for (let i = 0; i < a.length; i++) {
       if (a[i] !== b[i]) {
-        return false;
+        return false
       }
     }
-    return true;
+    return true
   }
 
   isArrayContains(myArray: Uint8Array[], element: Uint8Array): boolean {
     for (const e of myArray) {
       if (this.compareTwoArray(e, element)) {
-        return true;
+        return true
       }
     }
-    return false;
+    return false
   }
 
   /**
@@ -130,8 +132,8 @@ export class FindexDemo extends Findex {
     graphRecursionLimit: number,
     progress: Function
   ): Promise<Uint8Array[]> {
-    const wordsArray = words.split(" ");
-    let indexedValues: Uint8Array[] = [];
+    const wordsArray = words.split(" ")
+    let indexedValues: Uint8Array[] = []
     if (!logicalSwitch) {
       indexedValues = await super.search(
         key_search,
@@ -140,7 +142,7 @@ export class FindexDemo extends Findex {
         loopIterationLimit,
         graphRecursionLimit,
         progress
-      );
+      )
     } else {
       for (const [index, word] of wordsArray.entries()) {
         const partialIndexedValues = await super.search(
@@ -150,24 +152,24 @@ export class FindexDemo extends Findex {
           loopIterationLimit,
           graphRecursionLimit,
           progress
-        );
+        )
 
         if (index) {
           indexedValues = indexedValues.filter((location) =>
             this.isArrayContains(partialIndexedValues, location)
-          );
+          )
         } else {
-          indexedValues = [...partialIndexedValues];
+          indexedValues = [...partialIndexedValues]
         }
       }
     }
 
     // Remove the first character of an indexed value ('l')
-    let locations: Uint8Array[] = [];
+    let locations: Uint8Array[] = []
     for (const indexedValue of indexedValues) {
-      locations = [...locations, indexedValue.slice(1)];
+      locations = [...locations, indexedValue.slice(1)]
     }
 
-    return locations;
+    return locations
   }
 }

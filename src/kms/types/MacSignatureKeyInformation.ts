@@ -53,7 +53,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
     return (
       this.unique_identifier === macSignatureKeyInformation.unique_identifier &&
       this.cryptographic_parameters ===
-      macSignatureKeyInformation.cryptographic_parameters
+        macSignatureKeyInformation.cryptographic_parameters
     )
   }
 

@@ -53,7 +53,7 @@ export class EncryptionKeyInformation implements KmipStruct {
     return (
       this.unique_identifier === encryptionKeyInformation.unique_identifier &&
       this.cryptographic_parameters ===
-      encryptionKeyInformation.cryptographic_parameters
+        encryptionKeyInformation.cryptographic_parameters
     )
   }
 

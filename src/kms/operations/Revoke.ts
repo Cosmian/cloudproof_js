@@ -20,18 +20,13 @@ export class Revoke implements KmipStruct {
   })
   private _uniqueIdentifier: string
 
-
   @metadata({
     name: "RevocationReason",
     type: TtlvType.Choice,
   })
   private _revocationReason: RevocationReason
 
-
-  constructor(
-    uniqueIdentifier: string,
-    revocationReason: RevocationReason
-  ) {
+  constructor(uniqueIdentifier: string, revocationReason: RevocationReason) {
     this._uniqueIdentifier = uniqueIdentifier
     this._revocationReason = revocationReason
   }
@@ -52,7 +47,6 @@ export class Revoke implements KmipStruct {
     this._revocationReason = value
   }
 
-
   public equals(o: any): boolean {
     if (o === this) {
       return true
@@ -60,8 +54,10 @@ export class Revoke implements KmipStruct {
     if (!(o instanceof Revoke)) {
       return false
     }
-    return this._uniqueIdentifier === o.uniqueIdentifier &&
+    return (
+      this._uniqueIdentifier === o.uniqueIdentifier &&
       this._revocationReason === o.revocationReason
+    )
   }
 
   public toString(): string {

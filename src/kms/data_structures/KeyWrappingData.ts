@@ -156,9 +156,9 @@ export class KeyWrappingData implements KmipStruct {
     return (
       this.wrapping_method === keyWrappingData.wrapping_method &&
       this.encryption_key_information ===
-      keyWrappingData.encryption_key_information &&
+        keyWrappingData.encryption_key_information &&
       this.mac_or_signature_key_information ===
-      keyWrappingData.mac_or_signature_key_information &&
+        keyWrappingData.mac_or_signature_key_information &&
       this.mac_or_signature === keyWrappingData.mac_or_signature &&
       this.iv_counter_nonce === keyWrappingData.iv_counter_nonce &&
       this.encoding_option === keyWrappingData.encoding_option
@@ -166,8 +166,14 @@ export class KeyWrappingData implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      `{ wrapping_method=${this.wrapping_method}, encryption_key_information=${this.encryption_key_information ?? "N/A"}, mac_or_signature_key_information=${this.mac_or_signature_key_information ?? "N/A"}, mac_or_signature=${this.mac_or_signature ?? "N/A"}, iv_counter_nonce=${this.iv_counter_nonce ?? "N/A"}, encoding_option=${this.encoding_option ?? "N/A"}}`
-    )
+    return `{ wrapping_method=${
+      this.wrapping_method
+    }, encryption_key_information=${
+      this.encryption_key_information ?? "N/A"
+    }, mac_or_signature_key_information=${
+      this.mac_or_signature_key_information ?? "N/A"
+    }, mac_or_signature=${this.mac_or_signature ?? "N/A"}, iv_counter_nonce=${
+      this.iv_counter_nonce ?? "N/A"
+    }, encoding_option=${this.encoding_option ?? "N/A"}}`
   }
 }

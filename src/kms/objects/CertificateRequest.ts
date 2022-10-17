@@ -24,7 +24,8 @@ export class CertificateRequest {
     certificateRequestType?: CertificateRequestType,
     certificateRequestValue?: number[]
   ) {
-    this._certificate_request_type = certificateRequestType ?? CertificateRequestType.PEM
+    this._certificate_request_type =
+      certificateRequestType ?? CertificateRequestType.PEM
     this._certificate_request_value = certificateRequestValue ?? []
   }
 
@@ -54,12 +55,11 @@ export class CertificateRequest {
     const certificateRequest = o
     return (
       this.certificate_request_type ===
-      certificateRequest.certificate_request_type &&
+        certificateRequest.certificate_request_type &&
       this.certificate_request_value ===
-      certificateRequest.certificate_request_value
+        certificateRequest.certificate_request_value
     )
   }
-
 
   public toString(): string {
     return JSON.stringify(this, null, 4)

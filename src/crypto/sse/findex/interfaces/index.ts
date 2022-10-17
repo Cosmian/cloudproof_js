@@ -1,9 +1,9 @@
 export class Index {
-  uid: Uint8Array;
-  value: Uint8Array;
+  uid: Uint8Array
+  value: Uint8Array
 
   constructor(uid: Uint8Array, value: Uint8Array) {
-    this.uid = uid;
-    this.value = value;
+    this.uid = uid
+    this.value = value
   }
 }

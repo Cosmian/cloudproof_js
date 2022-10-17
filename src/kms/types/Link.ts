@@ -47,11 +47,10 @@ export class Link implements KmipStruct {
     this._linkType = linkType
   }
 
-
   @metadata({
     name: "LinkedObjectIdentifier",
     type: TtlvType.Choice,
-    classOrEnum: LinkedObjectIdentifier
+    classOrEnum: LinkedObjectIdentifier,
   })
   private _linkedObjectIdentifier: LinkedObjectIdentifier
 
@@ -59,10 +58,11 @@ export class Link implements KmipStruct {
     return this._linkedObjectIdentifier
   }
 
-  public set linkedObjectIdentifier(linkedObjectIdentifier: LinkedObjectIdentifier) {
+  public set linkedObjectIdentifier(
+    linkedObjectIdentifier: LinkedObjectIdentifier
+  ) {
     this._linkedObjectIdentifier = linkedObjectIdentifier
   }
-
 
   constructor(
     linkType: LinkType,
@@ -89,6 +89,4 @@ export class Link implements KmipStruct {
   public toString(): string {
     return JSON.stringify(this, null, 4)
   }
-
-
 }

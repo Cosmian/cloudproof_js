@@ -191,9 +191,9 @@ export class Decrypt implements KmipStruct {
       this._init_indicator === decrypt.init_indicator &&
       this._final_indicator === decrypt.final_indicator &&
       this._authenticated_encryption_additional_data ===
-      decrypt.authenticated_encryption_additional_data &&
+        decrypt.authenticated_encryption_additional_data &&
       this._authenticated_encryption_tag ===
-      decrypt.authenticated_encryption_tag
+        decrypt.authenticated_encryption_tag
     )
   }
 

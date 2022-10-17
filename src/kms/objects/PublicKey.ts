@@ -7,7 +7,7 @@ export class PublicKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
-    classOrEnum: KeyBlock
+    classOrEnum: KeyBlock,
   })
   private _keyBlock: KeyBlock
 
@@ -40,7 +40,7 @@ export class PublicKey {
 
   /**
    * Extract the key bytes
-   * 
+   *
    * @returns {Uint8Array} the key bytes
    */
   public bytes(): Uint8Array {

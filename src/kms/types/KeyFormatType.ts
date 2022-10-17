@@ -25,9 +25,8 @@ export enum KeyFormatType {
   TFHE = 0x8880_0007,
   AbeMasterSecretKey = 0x8880_0008,
   AbeMasterPublicKey = 0x8880_0009,
-  AbeUserDecryptionKey = 0x8880_000A,
-  AbeSymmetricKey = 0x8880_000B,
-  CoverCryptSecretKey = 0x8880_000C,
-  CoverCryptPublicKey = 0x8880_000D
-
+  AbeUserDecryptionKey = 0x8880_000a,
+  AbeSymmetricKey = 0x8880_000b,
+  CoverCryptSecretKey = 0x8880_000c,
+  CoverCryptPublicKey = 0x8880_000d,
 }

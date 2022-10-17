@@ -22,19 +22,26 @@ export class KeyBlock {
     name: "KeyValue",
     type: TtlvType.Choice,
     classOrEnum: KeyValue,
-    fromTtlv(propertyName: string, ttlv: TTLV, parentInstance: Object): KeyValue {
+    fromTtlv(
+      propertyName: string,
+      ttlv: TTLV,
+      parentInstance: Object
+    ): KeyValue {
       if (ttlv.type === TtlvType.ByteString) {
         return new KeyValue(hexDecode(ttlv.value as string))
       }
       if (ttlv.type === TtlvType.Structure) {
         const kb: KeyBlock = parentInstance as KeyBlock
         const plainTextKeyValue = new PlainTextKeyValue(kb._key_format_type)
-        return new KeyValue(undefined, defaultStructureParser(plainTextKeyValue, ttlv, "_key_value"))
+        return new KeyValue(
+          undefined,
+          defaultStructureParser(plainTextKeyValue, ttlv, "_key_value")
+        )
       }
       throw new Error(
         `Deserializer: KeyValue has invalid type ${ttlv.type} ` +
-        ` in structure: KeyBlock` +
-        ` in ${propertyName}`
+          ` in structure: KeyBlock` +
+          ` in ${propertyName}`
       )
     },
   })
@@ -74,14 +81,15 @@ export class KeyBlock {
     keyCompressionType?: KeyCompressionType,
     keyWrappingData?: KeyWrappingData
   ) {
-    this._key_format_type = keyFormatType ?? KeyFormatType.TransparentSymmetricKey
+    this._key_format_type =
+      keyFormatType ?? KeyFormatType.TransparentSymmetricKey
     this._key_compression_type = keyCompressionType
     this._key_value = keyValue ?? new KeyValue()
-    this._cryptographic_algorithm = cryptographicAlgorithm ?? CryptographicAlgorithm.AES
+    this._cryptographic_algorithm =
+      cryptographicAlgorithm ?? CryptographicAlgorithm.AES
     this._cryptographic_length = cryptographicLength ?? 256
     this._key_wrapping_data = keyWrappingData
   }
-
 
   public get key_format_type(): KeyFormatType {
     return this._key_format_type
@@ -149,9 +157,7 @@ export class KeyBlock {
     )
   }
 
-
   public toString(): string {
     return JSON.stringify(this, null, 4)
   }
-
 }

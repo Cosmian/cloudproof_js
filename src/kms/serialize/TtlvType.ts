@@ -24,5 +24,5 @@ export enum TtlvType {
   Choice = "Choice",
 
   // The property should be ignored on serialization/deserialization
-  Ignore = "Ignore"
+  Ignore = "Ignore",
 }

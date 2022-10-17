@@ -52,9 +52,9 @@ export class ReKeyKeyPairResponse implements KmipStruct {
     const reKeyKeyPairResponse = o
     return (
       this._privateKeyUniqueIdentifier ===
-      reKeyKeyPairResponse.privateKeyUniqueIdentifier &&
+        reKeyKeyPairResponse.privateKeyUniqueIdentifier &&
       this._publicKeyUniqueIdentifier ===
-      reKeyKeyPairResponse.publicKeyUniqueIdentifier
+        reKeyKeyPairResponse.publicKeyUniqueIdentifier
     )
   }
 

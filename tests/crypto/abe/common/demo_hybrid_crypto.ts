@@ -9,10 +9,10 @@ import { hexEncode } from "utils/utils"
 
 export class DemoKeys {
   static topSecretMkgFinUserAccessPolicy =
-    "Security Level::Top Secret && (Department::MKG || Department::FIN)";
+    "Security Level::Top Secret && (Department::MKG || Department::FIN)"
 
   static mediumSecretMkgUserAccessPolicy =
-    "Security Level::Medium Secret && Department::MKG";
+    "Security Level::Medium Secret && Department::MKG"
 
   public policy: Uint8Array
   public publicKey: Uint8Array
@@ -152,9 +152,7 @@ export class EncryptionDecryptionDemo {
     }
 
     this.hybridDecryption.renewKey(this.demoKeys.topSecretMkgFinUser)
-    const cleartext = this.hybridDecryption.decrypt(
-      this.demoKeys.encryptedData
-    )
+    const cleartext = this.hybridDecryption.decrypt(this.demoKeys.encryptedData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
@@ -208,18 +206,14 @@ export class EncryptionDecryptionDemo {
     try {
       this.hybridDecryption.decrypt(topSecretMkgData)
     } catch (e) {
-      logger.log(
-        () => "User does not have the right access policy (" + e + ")"
-      )
+      logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // … nor decrypt a message from another department even with a lower security:
     try {
       this.hybridDecryption.decrypt(lowSecretFinData)
     } catch (e) {
-      logger.log(
-        () => "User does not have the right access policy (" + e + ")"
-      )
+      logger.log(() => "User does not have the right access policy (" + e + ")")
     }
 
     // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below

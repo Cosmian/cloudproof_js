@@ -1,6 +1,6 @@
-import { KmipChoiceAttributeReference } from "../json/KmipChoiceAttributeReference";
-import { Tag } from "./Tag";
-import { VendorAttributeReference } from "./VendorAttributeReference";
+import { KmipChoiceAttributeReference } from "../json/KmipChoiceAttributeReference"
+import { Tag } from "./Tag"
+import { VendorAttributeReference } from "./VendorAttributeReference"
 
 export class AttributeReference extends KmipChoiceAttributeReference<
   string,
@@ -12,14 +12,14 @@ export class AttributeReference extends KmipChoiceAttributeReference<
     value2?: VendorAttributeReference,
     value3?: Tag
   ) {
-    super(value1, value2, value3);
+    super(value1, value2, value3)
   }
 
   public equals(o: any): boolean {
-    return super.equals(o);
+    return super.equals(o)
   }
 
   public toString(): string {
-    return super.toString();
+    return super.toString()
   }
 }

@@ -9,17 +9,15 @@ import { Policy } from "crypto/abe/interfaces/policy"
 import { logger } from "utils/logger"
 import { fromBeBytes, hexEncode } from "utils/utils"
 
-
-export class CoverCryptMasterKey extends AbeMasterKey { }
+export class CoverCryptMasterKey extends AbeMasterKey {}
 
 /**
  * Generate the keys using the local web assembly
  */
 export class CoverCryptKeyGeneration implements AbeKeyGeneration {
-
   /**
    * Generate the Master Key Par
-   * 
+   *
    * @param {Policy} policy the policy to use
    * @returns {AbeMasterKey} the master keys
    */
@@ -38,7 +36,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
 
   /**
    * Generate a User Decryption Key
-   * 
+   *
    * @param {Uint8Array} masterPrivateKeyBytes The Master Private Key Bytes
    * @param {string} accessPolicy the access policy as a boolean expression
    *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
@@ -66,9 +64,9 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
 
   /**
    * Rotate attributes in the given policy
-   * 
+   *
    * Note: this does NOT refresh the keys
-   * 
+   *
    * @param {string[]} attributes to rotate
    * e.g. ["Department::MKG" , "Department::FIN"]
    * @param {Policy} policy the policy
@@ -79,9 +77,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
-    const attributesBytes = new TextEncoder().encode(
-      JSON.stringify(attributes)
-    )
+    const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
     const newPolicyString = webassembly_rotate_attributes(
       attributesBytes,
       policyBytes

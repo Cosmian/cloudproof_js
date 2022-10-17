@@ -17,11 +17,10 @@ export type TtlvValue =
   | boolean
   | string
 
-
 // Allows JSON.toString on BigInt
 // see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt#use_within_json
 // eslint-disable-next-line no-extend-native
-(BigInt.prototype as any).toJSON = function () {
+;(BigInt.prototype as any).toJSON = function () {
   return this.toString()
 }
 
@@ -37,11 +36,14 @@ export class TTLV {
   }
 
   public toJSON(): Object {
-    const obj: { tag: string, type: string, value?: TtlvValue } = {
+    const obj: { tag: string; type: string; value?: TtlvValue } = {
       tag: this.tag,
-      type: this.type
+      type: this.type,
     }
-    if (this.type === TtlvType.BigInteger || this.type === TtlvType.LongInteger) {
+    if (
+      this.type === TtlvType.BigInteger ||
+      this.type === TtlvType.LongInteger
+    ) {
       obj.value = "0x" + (this.value as BigInt).toString(16).toUpperCase()
     } else {
       obj.value = this.value

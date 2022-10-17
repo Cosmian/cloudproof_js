@@ -6,35 +6,35 @@ import {
   webassembly_decrypt_hybrid_header_using_cache,
   webassembly_destroy_decryption_cache,
   webassembly_get_encrypted_header_size,
-} from "cosmian_abe_gpsw";
-import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header";
-import { HybridDecryption } from "crypto/abe/interfaces/decryption";
-import { logger } from "utils/logger";
+} from "cosmian_abe_gpsw"
+import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header"
+import { HybridDecryption } from "crypto/abe/interfaces/decryption"
+import { logger } from "utils/logger"
 
 /**
  * This class exposes the ABE primitives.
  *
  */
 export class GpswHybridDecryption extends HybridDecryption {
-  private _cache: number;
+  private _cache: number
 
   constructor(userDecryptionKey: Uint8Array) {
-    super(userDecryptionKey);
+    super(userDecryptionKey)
     // Create decryption cache. This number is linked to the user decryption key
-    this._cache = webassembly_create_decryption_cache(userDecryptionKey);
+    this._cache = webassembly_create_decryption_cache(userDecryptionKey)
   }
 
   public renewKey(userDecryptionKey: Uint8Array): void {
     // Create decryption cache. This number is linked to the user decryption key
-    this._cache = webassembly_create_decryption_cache(userDecryptionKey);
+    this._cache = webassembly_create_decryption_cache(userDecryptionKey)
   }
 
   /**
    * Destroy decryption cache
    */
   public destroyInstance() {
-    logger.log(() => "DestroyInstance Abe");
-    webassembly_destroy_decryption_cache(this._cache);
+    logger.log(() => "DestroyInstance Abe")
+    webassembly_destroy_decryption_cache(this._cache)
   }
 
   /**
@@ -49,8 +49,8 @@ export class GpswHybridDecryption extends HybridDecryption {
     const clearTextHeader = webassembly_decrypt_hybrid_header_using_cache(
       this._cache,
       abeHeader
-    );
-    return ClearTextHeader.parseRaw(clearTextHeader);
+    )
+    return ClearTextHeader.parseRaw(clearTextHeader)
   }
 
   /**
@@ -63,7 +63,7 @@ export class GpswHybridDecryption extends HybridDecryption {
     return webassembly_decrypt_hybrid_header(
       this.asymmetricDecryptionKey,
       abeHeader
-    );
+    )
   }
 
   /**
@@ -86,7 +86,7 @@ export class GpswHybridDecryption extends HybridDecryption {
       uid,
       blockNumber,
       encryptedBytes
-    );
+    )
   }
 
   /**
@@ -97,26 +97,26 @@ export class GpswHybridDecryption extends HybridDecryption {
    * @returns a list of cleartext values
    */
   public decrypt(encryptedData: Uint8Array): Uint8Array {
-    logger.log(() => "decrypt: encryptedData: " + encryptedData);
+    logger.log(() => "decrypt: encryptedData: " + encryptedData)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-    const headerSize = webassembly_get_encrypted_header_size(encryptedData);
-    const asymmetricHeader = encryptedData.slice(4, 4 + headerSize);
+    const headerSize = webassembly_get_encrypted_header_size(encryptedData)
+    const asymmetricHeader = encryptedData.slice(4, 4 + headerSize)
     const encryptedSymmetricBytes = encryptedData.slice(
       4 + headerSize,
       encryptedData.length
-    );
+    )
 
     //
-    logger.log(() => "decrypt: headerSize: " + headerSize);
-    logger.log(() => "decrypt: asymmetricHeader: " + asymmetricHeader);
+    logger.log(() => "decrypt: headerSize: " + headerSize)
+    logger.log(() => "decrypt: asymmetricHeader: " + asymmetricHeader)
     logger.log(
       () => "decrypt for asymmetricHeader (size): " + asymmetricHeader.length
-    );
+    )
 
     // HEADER decryption: asymmetric decryption
-    const cleartextHeader = this.decryptHybridHeader(asymmetricHeader);
-    logger.log(() => "decrypt: metadata: " + cleartextHeader.metadata);
+    const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
+    logger.log(() => "decrypt: metadata: " + cleartextHeader.metadata)
 
     // AES_DATA: AES Symmetric part decryption
     const cleartext = this.decryptHybridBlock(
@@ -124,9 +124,9 @@ export class GpswHybridDecryption extends HybridDecryption {
       encryptedSymmetricBytes,
       cleartextHeader.metadata.uid,
       0
-    );
-    logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext));
-    return cleartext;
+    )
+    logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
+    return cleartext
   }
 
   /**
@@ -136,14 +136,14 @@ export class GpswHybridDecryption extends HybridDecryption {
    * @returns a list of cleartext values
    */
   public decryptBatch(databaseEntries: Uint8Array[]): Uint8Array[] {
-    const cleartextValues: Uint8Array[] = [];
+    const cleartextValues: Uint8Array[] = []
     databaseEntries.forEach((encryptedValue: Uint8Array) => {
-      const cleartext = this.decrypt(encryptedValue);
-      logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext));
-      cleartextValues.push(cleartext);
-    });
+      const cleartext = this.decrypt(encryptedValue)
+      logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
+      cleartextValues.push(cleartext)
+    })
 
-    return cleartextValues;
+    return cleartextValues
   }
 
   /**
@@ -153,37 +153,34 @@ export class GpswHybridDecryption extends HybridDecryption {
    * @returns cleartext decrypted ABE value
    */
   public benchDecryptHybridHeader(abeHeader: Uint8Array): number[] {
-    logger.log(() => "benchDecryptHybridHeader for abeHeader: " + abeHeader);
+    logger.log(() => "benchDecryptHybridHeader for abeHeader: " + abeHeader)
 
-    const loops = 100;
-    const startDate = new Date().getTime();
+    const loops = 100
+    const startDate = new Date().getTime()
     for (let i = 0; i < loops; i++) {
-      webassembly_decrypt_hybrid_header(
-        this.asymmetricDecryptionKey,
-        abeHeader
-      );
+      webassembly_decrypt_hybrid_header(this.asymmetricDecryptionKey, abeHeader)
     }
-    const endDate = new Date().getTime();
-    const msNoCache = (endDate - startDate) / loops;
-    logger.log(() => "webassembly-JS avg time (no cache): " + msNoCache + "ms");
+    const endDate = new Date().getTime()
+    const msNoCache = (endDate - startDate) / loops
+    logger.log(() => "webassembly-JS avg time (no cache): " + msNoCache + "ms")
 
     // With cache
     const cache = webassembly_create_decryption_cache(
       this.asymmetricDecryptionKey
-    );
-    const start = new Date().getTime();
+    )
+    const start = new Date().getTime()
     for (let i = 0; i < loops; i++) {
-      webassembly_decrypt_hybrid_header_using_cache(cache, abeHeader);
+      webassembly_decrypt_hybrid_header_using_cache(cache, abeHeader)
     }
-    const end = new Date().getTime();
-    const msCache = (end - start) / loops;
-    logger.log(() => "webassembly-JS avg time (with cache): " + msCache + "ms");
-    webassembly_destroy_decryption_cache(cache);
+    const end = new Date().getTime()
+    const msCache = (end - start) / loops
+    logger.log(() => "webassembly-JS avg time (with cache): " + msCache + "ms")
+    webassembly_destroy_decryption_cache(cache)
 
-    return [msNoCache, msCache];
+    return [msNoCache, msCache]
   }
 
   public getHeaderSize(encryptedBytes: Uint8Array): number {
-    return webassembly_get_encrypted_header_size(encryptedBytes);
+    return webassembly_get_encrypted_header_size(encryptedBytes)
   }
 }

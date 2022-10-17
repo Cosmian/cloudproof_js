@@ -126,7 +126,7 @@ export class EncryptResponse implements KmipStruct {
       this._iv_counter_nonce === encrypt.iv_counter_nonce &&
       this._correlation_value === encrypt.correlation_value &&
       this._authenticated_encryption_additional_data ===
-      encrypt.authenticated_encryption_additional_data
+        encrypt.authenticated_encryption_additional_data
     )
   }
 

@@ -11,11 +11,15 @@ import { TransparentDHPublicKey } from "./TransparentDHPublicKey"
 import { TransparentECPrivateKey } from "./TransparentECPrivateKey"
 import { TransparentECPublicKey } from "./TransparentECPublicKey"
 import { TransparentSymmetricKey } from "./TransparentSymmetricKey"
-type KeyMaterial = Uint8Array | TransparentDHPrivateKey | TransparentDHPublicKey | TransparentECPrivateKey | TransparentECPublicKey | TransparentSymmetricKey
-
+type KeyMaterial =
+  | Uint8Array
+  | TransparentDHPrivateKey
+  | TransparentDHPublicKey
+  | TransparentECPrivateKey
+  | TransparentECPublicKey
+  | TransparentSymmetricKey
 
 export class PlainTextKeyValue {
-
   // This property is only used to help deserialization
   // see KeyBlock
   @metadata({
@@ -35,7 +39,11 @@ export class PlainTextKeyValue {
       ttlv.tag = "KeyMaterial"
       return ttlv
     },
-    fromTtlv(propertyName: string, ttlv: TTLV, parentInstance: PlainTextKeyValue): KeyMaterial {
+    fromTtlv(
+      propertyName: string,
+      ttlv: TTLV,
+      parentInstance: PlainTextKeyValue
+    ): KeyMaterial {
       if (ttlv.type === TtlvType.ByteString) {
         return hexDecode(ttlv.value as string)
       }
@@ -43,24 +51,38 @@ export class PlainTextKeyValue {
         throw new Error(`Invalid KeyMaterial for property ${propertyName}`)
       }
       if (typeof parentInstance._keyFormatType === "undefined") {
-        throw new Error(`Deserializer: unknown KeyFormatType when deserializing the KeyMaterial for property ${propertyName}`)
+        throw new Error(
+          `Deserializer: unknown KeyFormatType when deserializing the KeyMaterial for property ${propertyName}`
+        )
       }
-      if (parentInstance._keyFormatType === KeyFormatType.TransparentSymmetricKey) {
+      if (
+        parentInstance._keyFormatType === KeyFormatType.TransparentSymmetricKey
+      ) {
         return fromTTLV(TransparentSymmetricKey, ttlv)
       }
-      if (parentInstance._keyFormatType === KeyFormatType.TransparentDHPrivateKey) {
+      if (
+        parentInstance._keyFormatType === KeyFormatType.TransparentDHPrivateKey
+      ) {
         return fromTTLV(TransparentDHPrivateKey, ttlv)
       }
-      if (parentInstance._keyFormatType === KeyFormatType.TransparentDHPublicKey) {
+      if (
+        parentInstance._keyFormatType === KeyFormatType.TransparentDHPublicKey
+      ) {
         return fromTTLV(TransparentDHPublicKey, ttlv)
       }
-      if (parentInstance._keyFormatType === KeyFormatType.TransparentECPrivateKey) {
+      if (
+        parentInstance._keyFormatType === KeyFormatType.TransparentECPrivateKey
+      ) {
         return fromTTLV(TransparentECPrivateKey, ttlv)
       }
-      if (parentInstance._keyFormatType === KeyFormatType.TransparentECPublicKey) {
+      if (
+        parentInstance._keyFormatType === KeyFormatType.TransparentECPublicKey
+      ) {
         return fromTTLV(TransparentECPublicKey, ttlv)
       }
-      throw new Error(`Deserializer: unable to deserialize KeyMaterial with Key Format Type ${parentInstance._keyFormatType} for property ${propertyName}`)
+      throw new Error(
+        `Deserializer: unable to deserialize KeyMaterial with Key Format Type ${parentInstance._keyFormatType} for property ${propertyName}`
+      )
     },
   })
   private _key_material: KeyMaterial
@@ -68,12 +90,15 @@ export class PlainTextKeyValue {
   @metadata({
     name: "Attributes",
     type: TtlvType.Structure,
-    classOrEnum: Attributes
-
+    classOrEnum: Attributes,
   })
   private _attributes?: Attributes
 
-  public constructor(keyFormatType?: KeyFormatType, keyMaterial?: KeyMaterial, attributes?: Attributes) {
+  public constructor(
+    keyFormatType?: KeyFormatType,
+    keyMaterial?: KeyMaterial,
+    attributes?: Attributes
+  ) {
     this._keyFormatType = keyFormatType
     this._key_material = keyMaterial ?? new Uint8Array()
     this._attributes = attributes
@@ -108,7 +133,6 @@ export class PlainTextKeyValue {
       this.attributes === plainTextKeyValue.attributes
     )
   }
-
 
   public toString(): string {
     return JSON.stringify(this, null, 4)

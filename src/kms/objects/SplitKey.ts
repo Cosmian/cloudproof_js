@@ -32,7 +32,7 @@ export class SplitKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
-    classOrEnum: KeyBlock
+    classOrEnum: KeyBlock,
   })
   private _keyBlock: KeyBlock
 

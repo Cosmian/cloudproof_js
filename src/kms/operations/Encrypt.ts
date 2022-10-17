@@ -187,7 +187,7 @@ export class Encrypt implements KmipStruct {
       this._init_indicator === encrypt.init_indicator &&
       this._final_indicator === encrypt.final_indicator &&
       this._authenticated_encryption_additional_data ===
-      encrypt.authenticated_encryption_additional_data
+        encrypt.authenticated_encryption_additional_data
     )
   }
 

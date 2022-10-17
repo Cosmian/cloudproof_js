@@ -1,13 +1,13 @@
-import { logger } from "utils/logger";
-import { DecryptionWorkerMessage } from "crypto/abe/interfaces/decryption";
+import { logger } from "utils/logger"
+import { DecryptionWorkerMessage } from "crypto/abe/interfaces/decryption"
 
 export interface EncryptedEntry {
-  uidHex: string;
-  ciphertextHex: string;
+  uidHex: string
+  ciphertextHex: string
 }
 
 export class WorkerPool {
-  workers: Worker[];
+  workers: Worker[]
 
   /**
    * Instantiate a pool of workers
@@ -16,13 +16,13 @@ export class WorkerPool {
    */
   constructor(numWorkers: number) {
     if (numWorkers <= 0) {
-      throw new Error(`Invalid number of workers: ${numWorkers}`);
+      throw new Error(`Invalid number of workers: ${numWorkers}`)
     }
-    this.workers = [];
+    this.workers = []
     for (let index = 0; index < numWorkers; index++) {
       // !! webpack wants this on a single line; do not split
-      const worker = new Worker(new URL("./worker.js", import.meta.url));
-      this.workers.push(worker);
+      const worker = new Worker(new URL("./worker.js", import.meta.url))
+      this.workers.push(worker)
     }
   }
 
@@ -44,7 +44,7 @@ export class WorkerPool {
       decryptionKeyHex,
       encryptedEntries,
       isGpswImplementation
-    );
+    )
   }
 
   /**
@@ -52,7 +52,7 @@ export class WorkerPool {
    * Tis pool is no more usable
    */
   public terminate(): void {
-    this.workers.forEach((w) => w.terminate());
+    this.workers.forEach((w) => w.terminate())
   }
 }
 
@@ -71,9 +71,9 @@ export async function runWorkers(
   encryptedEntries: EncryptedEntry[],
   isGpswImplementation: boolean
 ): Promise<Uint8Array[]> {
-  logger.log(() => `NUM WORKERS: ${workers.length}`);
+  logger.log(() => `NUM WORKERS: ${workers.length}`)
   if (workers.length === 0) {
-    throw new Error("At least 1 worker must have been created");
+    throw new Error("At least 1 worker must have been created")
   }
   if (workers.length === 1) {
     // let us keep this simple then
@@ -82,30 +82,30 @@ export async function runWorkers(
       decryptionKeyHex,
       encryptedEntries,
       isGpswImplementation
-    );
+    )
   }
   // split the entries among workers
-  const perWorker = encryptedEntries.length / workers.length;
-  const promises = [];
+  const perWorker = encryptedEntries.length / workers.length
+  const promises = []
   for (let index = 0; index < workers.length; index++) {
-    let entries: EncryptedEntry[];
+    let entries: EncryptedEntry[]
     if (index === workers.length - 1) {
       // the last worker needs the division remainder as well
-      entries = encryptedEntries.slice(index * perWorker);
+      entries = encryptedEntries.slice(index * perWorker)
     } else {
       entries = encryptedEntries.slice(
         index * perWorker,
         (index + 1) * perWorker
-      );
+      )
     }
     promises.push(
       runWorker(workers[index], decryptionKeyHex, entries, isGpswImplementation)
-    );
+    )
   }
   // wait for all workers to complete
-  const results = await Promise.all(promises);
+  const results = await Promise.all(promises)
   // flatten the results
-  return results.flat();
+  return results.flat()
 }
 
 const runWorker = async (
@@ -121,65 +121,65 @@ const runWorker = async (
       reject: (reason?: any) => void
     ) => {
       // a temporary cache for the asynchronous calls
-      let err: string | undefined;
-      let result: Uint8Array[];
+      let err: string | undefined
+      let result: Uint8Array[]
 
       // This handles the message communication and workflow with the worker
       worker.onmessage = (event) => {
-        const msg = event.data as DecryptionWorkerMessage;
-        const msgName = msg.name;
-        const value = msg.value;
-        const error = msg.error;
+        const msg = event.data as DecryptionWorkerMessage
+        const msgName = msg.name
+        const value = msg.value
+        const error = msg.error
 
         if (msgName === "INIT") {
           if (typeof error !== "undefined") {
-            return reject("ERROR: " + error);
+            return reject("ERROR: " + error)
           }
           // launch decryption
           worker.postMessage({
             name: "DECRYPT",
             value: encryptedEntries,
-          });
+          })
         } else if (msgName === "DECRYPT") {
           if (typeof error !== "undefined") {
-            err = "ERROR: " + error;
+            err = "ERROR: " + error
           } else {
-            result = value;
+            result = value
           }
 
           // done decrypting, destroy encryption cache
           worker.postMessage({
             name: "DESTROY",
             value: "",
-          });
+          })
         } else if (msgName === "DESTROY") {
           if (typeof error !== "undefined") {
-            reject("ERROR: " + error);
+            reject("ERROR: " + error)
           } else {
             if (typeof err === "undefined") {
-              resolve(result);
+              resolve(result)
             } else {
-              reject(err);
+              reject(err)
             }
           }
 
           // done
         } else {
-          reject("UNKNOWN RESPONSE: " + msgName);
+          reject("UNKNOWN RESPONSE: " + msgName)
         }
-      };
+      }
 
       worker.onerror = (event: ErrorEvent) => {
-        reject("WORKER ERROR: " + event.message);
-      };
+        reject("WORKER ERROR: " + event.message)
+      }
 
       // let us get started
       worker.postMessage({
         name: "INIT",
         value: decryptionKeyHex,
         isGpswImplementation,
-      } as DecryptionWorkerMessage);
-      logger.log(() => "run worker ");
+      } as DecryptionWorkerMessage)
+      logger.log(() => "run worker ")
     }
-  );
-};
+  )
+}

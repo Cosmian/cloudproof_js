@@ -80,7 +80,7 @@ export class Attributes implements KmipStruct {
   @metadata({
     name: "VendorAttributes",
     type: TtlvType.StructuresArray,
-    classOrEnum: VendorAttribute
+    classOrEnum: VendorAttribute,
   })
   private _vendor_attributes?: VendorAttribute[]
 
@@ -155,7 +155,7 @@ export class Attributes implements KmipStruct {
   @metadata({
     name: "CryptographicDomainParameters",
     type: TtlvType.Structure,
-    classOrEnum: CryptographicDomainParameters
+    classOrEnum: CryptographicDomainParameters,
   })
   private _cryptographic_domain_parameters?: CryptographicDomainParameters
 
@@ -165,7 +165,7 @@ export class Attributes implements KmipStruct {
   @metadata({
     name: "CryptographicParameters",
     type: TtlvType.Structure,
-    classOrEnum: CryptographicParameters
+    classOrEnum: CryptographicParameters,
   })
   private _cryptographic_parameters?: CryptographicParameters
 
@@ -293,9 +293,7 @@ export class Attributes implements KmipStruct {
     return this._cryptographic_algorithm
   }
 
-  public set cryptographicAlgorithm(
-    value: CryptographicAlgorithm | undefined
-  ) {
+  public set cryptographicAlgorithm(value: CryptographicAlgorithm | undefined) {
     this._cryptographic_algorithm = value
   }
 

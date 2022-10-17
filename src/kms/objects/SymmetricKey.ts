@@ -7,7 +7,7 @@ export class SymmetricKey {
   @metadata({
     name: "KeyBlock",
     type: TtlvType.Structure,
-    classOrEnum: KeyBlock
+    classOrEnum: KeyBlock,
   })
   private _keyBlock: KeyBlock
 
@@ -38,7 +38,7 @@ export class SymmetricKey {
 
   /**
    * Extract the symmetric key bytes
-   * 
+   *
    * @returns {Uint8Array} the key bytes
    */
   public bytes(): Uint8Array {
