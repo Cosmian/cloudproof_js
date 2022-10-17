@@ -45,7 +45,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
    * @param {Policy} policy the policy of the master key
    * @returns the user decryption key bytes
    */
-  public generateUserPrivateKey(
+  public generateUserDecryptionKey(
     masterPrivateKeyBytes: Uint8Array,
     accessPolicy: string,
     policy: Policy

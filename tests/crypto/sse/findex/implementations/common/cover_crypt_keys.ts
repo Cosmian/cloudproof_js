@@ -30,17 +30,17 @@ export function generateCoverCryptKeys(): CoverCryptTestKeys {
   //
   const keygen = new CoverCryptKeyGeneration()
   const masterKeysCoverCrypt = keygen.generateMasterKey(abePolicy)
-  const alice = keygen.generateUserPrivateKey(
+  const alice = keygen.generateUserDecryptionKey(
     masterKeysCoverCrypt.privateKey,
     "country::France && department::marketing",
     abePolicy
   )
-  const bob = keygen.generateUserPrivateKey(
+  const bob = keygen.generateUserDecryptionKey(
     masterKeysCoverCrypt.privateKey,
     "country::Spain && (department::HR || department::marketing)",
     abePolicy
   )
-  const charlie = keygen.generateUserPrivateKey(
+  const charlie = keygen.generateUserDecryptionKey(
     masterKeysCoverCrypt.privateKey,
     "(country::France || country::Spain) && (department::HR || department::marketing)",
     abePolicy
