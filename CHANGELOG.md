@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file.
 
 ---
+
+## [3.2.0] - 2022-10-17
+
+### Added
+
+- expose Findex Simple
+
+### Changed
+
+### Fixed
+
+### Removed
+
+---
+
 ## [3.1.1] - 2022-10-17
 
 ### Added
