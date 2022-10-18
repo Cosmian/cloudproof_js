@@ -60,6 +60,8 @@ pack:
     paths:
       - ${CI_PROJECT_NAME}_${CI_COMMIT_TAG}.zip
     expire_in: 3 mos
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
 
 publish:
   stage: publish
@@ -71,16 +73,3 @@ publish:
     - npm publish
   rules:
     - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
-
-deploy:
-  image: docker:19.03.15
-  stage: deploy
-  script:
-    - ssh cosmian@demo-cloudproof.cosmian.com 'mv ~/demo_cloudproof/frontend.tar ~/demo_cloudproof/frontend.tar.old'
-    - docker build -f Dockerfile -t frontend .
-    - docker save frontend > frontend.tar
-    - scp docker-compose.yml frontend.tar run-demo.sh dump_db_demo.* cosmian@demo-cloudproof.cosmian.com:~/demo_cloudproof/
-    - ssh cosmian@demo-cloudproof.cosmian.com 'bash ~/demo_cloudproof/run-demo.sh'
-  rules:
-    - if: '$CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/'
-  when: manual
