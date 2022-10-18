@@ -9,6 +9,7 @@
     "Kmip",
     "ttlv",
     "Ttlv",
+    "Uids",
     "webassembly"
   ],
   "eslint.format.enable": true,

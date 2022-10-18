@@ -77,8 +77,12 @@ export class FindexKey {
 
 export class Label {
   bytes: Uint8Array
-  constructor(bytes: Uint8Array) {
-    this.bytes = bytes
+  constructor(value: string | Uint8Array) {
+    if (value instanceof Uint8Array) {
+      this.bytes = value
+    } else {
+      this.bytes = new TextEncoder().encode(value)
+    }
   }
 
   static fromUtf8String(label: string): Label {
@@ -86,19 +90,85 @@ export class Label {
   }
 }
 
+/**
+ * A new value to index for a given set of keywords: 
+ * IndexedValue -> Set<KeyWord>
+ */
 export interface NewIndexedEntry {
   indexedValue: IndexedValue
   keywords: Set<Keyword>
 }
 
+
+/**
+ * A helper class to create a {@link NewIndexedEntry} when 
+ * indexing a {@link Location} with keywords supplied 
+ * as arrays of strings or bytes
+ */
+export class NewLocationIndexEntry implements NewIndexedEntry {
+
+  indexedValue: IndexedValue
+  keywords: Set<Keyword>
+  constructor(location: string | Uint8Array, keywords: string[] | Uint8Array[]) {
+    if (location instanceof Uint8Array) {
+      this.indexedValue = IndexedValue.fromLocation(new Location(location))
+    } else {
+      this.indexedValue = IndexedValue.fromLocation(new Location(new TextEncoder().encode(location)))
+    }
+    this.keywords = new Set(keywords.map((v) => {
+      if (v instanceof Uint8Array) {
+        return new Keyword(v)
+      }
+      return new Keyword(new TextEncoder().encode(v))
+    }))
+  }
+}
+
+/**
+ * A helper class to create a {@link NewIndexedEntry} when 
+ * indexing a {@link Keyword} to point to another {@link Keyword}
+ */
+export class NewKeywordIndexEntry implements NewIndexedEntry {
+
+  indexedValue: IndexedValue
+  keywords: Set<Keyword>
+  constructor(source: string | Uint8Array, destination: string | Uint8Array) {
+    if (destination instanceof Uint8Array) {
+      this.indexedValue = IndexedValue.fromNextWord(new Keyword(destination))
+    } else {
+      this.indexedValue = IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode(destination)))
+    }
+    if (source instanceof Uint8Array) {
+      this.keywords = new Set([new Keyword(source)])
+    } else {
+      this.keywords = new Set([new Keyword(new TextEncoder().encode(source))])
+    }
+  }
+}
+
+/**
+ * Represents a `(uid, value)` tuple, i.e. a line, in the Entry or Chain table
+ */
 export type UidsAndValues = Array<{ uid: Uint8Array; value: Uint8Array }>
 
+/**
+ * Fetch a uid in the Entry table and return the (uid, value) column
+ */
 export type FetchEntries = (uids: Uint8Array[]) => Promise<UidsAndValues>
 
+/**
+ * Fetch a uid in the Chain table and return the (uid, value) column
+ */
 export type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>
 
+/**
+ * Insert, or update an existing, (uid, value) line in the Entry table
+ */
 export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
 
+/**
+ * Insert, or update an existing, (uid, value) line in the Chain table
+ */
 export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**

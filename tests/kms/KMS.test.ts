@@ -1,24 +1,24 @@
-import { fromTTLV } from "kms/deserialize/deserializer"
-import { KmipClient, SymmetricKeyAlgorithm } from "kms/client/KmipClient"
-import { Create } from "kms/operations/Create"
-import { toTTLV } from "kms/serialize/serializer"
-import { Attributes } from "kms/types/Attributes"
-import { CryptographicAlgorithm } from "kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "kms/types/KeyFormatType"
-import { Link } from "kms/types/Link"
-import { LinkedObjectIdentifier } from "kms/types/LinkedObjectIdentifier"
-import { LinkType } from "kms/types/LinkType"
-import { ObjectType } from "kms/types/ObjectType"
-import { SymmetricKey } from "kms/objects/SymmetricKey"
-import { TransparentSymmetricKey } from "kms/data_structures/TransparentSymmetricKey"
-import { Policy, PolicyAxis } from "crypto/abe/interfaces/policy"
-import { hexEncode } from "utils/utils"
-import { TTLV } from "kms/serialize/Ttlv"
-import { VendorAttribute } from "kms/types/VendorAttribute"
-import { TtlvType } from "kms/serialize/TtlvType"
-import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
-import { CoverCryptHybridEncryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
-import { CoverCryptHybridDecryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
+import { fromTTLV } from "../../src/kms/deserialize/deserializer"
+import { KmipClient, SymmetricKeyAlgorithm } from "../../src/kms/client/KmipClient"
+import { Create } from "../../src/kms/operations/Create"
+import { toTTLV } from "../../src/kms/serialize/serializer"
+import { Attributes } from "../../src/kms/types/Attributes"
+import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
+import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
+import { Link } from "../../src/kms/types/Link"
+import { LinkedObjectIdentifier } from "../../src/kms/types/LinkedObjectIdentifier"
+import { LinkType } from "../../src/kms/types/LinkType"
+import { ObjectType } from "../../src/kms/types/ObjectType"
+import { SymmetricKey } from "../../src/kms/objects/SymmetricKey"
+import { TransparentSymmetricKey } from "../../src/kms/data_structures/TransparentSymmetricKey"
+import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
+import { hexEncode } from "../../src/utils/utils"
+import { TTLV } from "../../src/kms/serialize/Ttlv"
+import { VendorAttribute } from "../../src/kms/types/VendorAttribute"
+import { TtlvType } from "../../src/kms/serialize/TtlvType"
+import { AccessPolicy } from "../../src/crypto/abe/interfaces/access_policy"
+import { CoverCryptHybridEncryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
+import { CoverCryptHybridDecryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -147,7 +147,7 @@ test("KMS Symmetric Key", async () => {
   )
   expect(
     key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-      TransparentSymmetricKey
+    TransparentSymmetricKey
   ).toBeTruthy()
   const sk = key.keyBlock.key_value.plaintext
     ?.keyMaterial as TransparentSymmetricKey
