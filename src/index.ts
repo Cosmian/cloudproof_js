@@ -22,7 +22,17 @@ export * from "./crypto/sse/findex/interfaces/master_keys"
 export * from "./crypto/sse/findex/interfaces/findex"
 export * from "./crypto/sse/findex/interfaces/index"
 export { logger } from "./utils/logger"
-export { hexDecode, hexEncode } from "./utils/utils"
+export {
+  hexDecode,
+  hexEncode,
+  sanitizeString,
+  toBase64,
+  deserializeList,
+  serializeList,
+  serializeHashMap,
+  toBeBytes,
+  deserializeHashMap,
+} from "./utils/utils"
 export * from "./kms/data_structures/TransparentDHPublicKey"
 export * from "./kms/data_structures/TransparentDHPrivateKey"
 export * from "./kms/data_structures/KeyWrappingData"

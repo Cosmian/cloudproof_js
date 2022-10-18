@@ -4,9 +4,8 @@
     "module": "ES2020",
     "outDir": "./dist"
   },
+  "include": ["."],
   "exclude": [
-    "src/crypto/abe/core/hybrid_crypto/worker", // import.meta.url not allowed
-    "src/site",
     "node_modules",
     "**/__tests__/*",
     "tests/**/*.test.ts"
