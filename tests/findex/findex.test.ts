@@ -1,30 +1,31 @@
+/* eslint-disable jsdoc/require-jsdoc */
 import { FetchChains, FetchEntries, NewIndexedEntry, IndexedValue, FindexKey, Keyword, Label, Location, search, UidsAndValues, upsert, UpsertChains, UpsertEntries } from "crypto/sse/findex/simple"
 import { USERS } from "../data/users"
 import { expect, test } from '@jest/globals'
 import { createClient } from "redis"
 
 test("in memory", async () => {
-    let entry_table: Array<{ uid: Uint8Array, value: Uint8Array }> = []
-    let chain_table: Array<{ uid: Uint8Array, value: Uint8Array }> = []
+    const entryTable: Array<{ uid: Uint8Array, value: Uint8Array }> = []
+    const chainTable: Array<{ uid: Uint8Array, value: Uint8Array }> = []
 
-    let fetch = async (table: Array<{ uid: Uint8Array, value: Uint8Array }>, uids: Uint8Array[]) => {
-        let results: UidsAndValues = []
-        uidsLoop: for (let requestedUid of uids) {
-            for (let { uid, value } of table) {
+    const fetch = async (table: Array<{ uid: Uint8Array, value: Uint8Array }>, uids: Uint8Array[]): Promise<UidsAndValues> => {
+        const results: UidsAndValues = []
+        for (const requestedUid of uids) {
+            for (const { uid, value } of table) {
                 if (Buffer.from(uid).toString('base64') == Buffer.from(requestedUid).toString('base64')) {
                     results.push({ uid, value })
-                    continue uidsLoop
+                    break
                 }
             }
         }
         return results
     }
-    let upsert = async (table: Array<{ uid: Uint8Array, value: Uint8Array }>, uidsAndValues: Array<{ uid: Uint8Array, value: Uint8Array }>) => {
-        uidsAndValuesLoop: for (let { uid: newUid, value: newValue } of uidsAndValues) {
-            for (let tableEntry of table) {
+    const upsert = async (table: Array<{ uid: Uint8Array, value: Uint8Array }>, uidsAndValues: Array<{ uid: Uint8Array, value: Uint8Array }>): Promise<void> => {
+        for (const { uid: newUid, value: newValue } of uidsAndValues) {
+            for (const tableEntry of table) {
                 if (Buffer.from(tableEntry.uid).toString('base64') == Buffer.from(newUid).toString('base64')) {
                     tableEntry.value = newValue
-                    continue uidsAndValuesLoop
+                    break
                 }
             }
 
@@ -34,10 +35,10 @@ test("in memory", async () => {
     }
 
     await run(
-        (uids) => fetch(entry_table, uids),
-        (uids) => fetch(chain_table, uids),
-        (uidsAndValues) => upsert(entry_table, uidsAndValues),
-        (uidsAndValues) => upsert(chain_table, uidsAndValues),
+        async (uids) => await fetch(entryTable, uids),
+        async (uids) => await fetch(chainTable, uids),
+        async (uidsAndValues) => await upsert(entryTable, uidsAndValues),
+        async (uidsAndValues) => await upsert(chainTable, uidsAndValues),
     )
 })
 
@@ -111,8 +112,8 @@ test("Redis", async () => {
 })
 
 async function run(fetchEntries: FetchEntries, fetchChains: FetchChains, upsertEntries: UpsertEntries, upsertChains: UpsertChains) {
-    let searchKey = new Key(Uint8Array.from(Array(32).keys()))
-    let updateKey = new Key(Uint8Array.from(Array(32).keys()))
+    let searchKey = new FindexKey(Uint8Array.from(Array(32).keys()))
+    let updateKey = new FindexKey(Uint8Array.from(Array(32).keys()))
     let label = new Label(Uint8Array.from([1, 2, 3]))
 
     {
