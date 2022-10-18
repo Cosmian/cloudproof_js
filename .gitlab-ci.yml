@@ -2,19 +2,6 @@ image: node:16
 
 variables:
   SCCACHE_DIR: ${CI_PROJECT_DIR}/.cache/sccache
-  NODE_OPTIONS: --max-http-header-size=128000
-  # Postgres
-  POSTGRES_DB: app_db
-  POSTGRES_USER: app_user
-  POSTGRES_PASSWORD: password
-  PGPORT: 5433
-  # Postgrest
-  PGRST_SERVER_HOST: localhost
-  PGRST_SERVER_PORT: 3000
-  PGRST_DB_URI: postgres://app_user:password@localhost:${PGPORT}/app_db
-  PGRST_DB_SCHEMA: public
-  PGRST_DB_ANON_ROLE: app_user
-  PGRST_OPENAPI_SERVER_PROXY_URI: http://localhost:3000
   # KMS
   COSMIAN_SERVER_URL: http://localhost:9998
   KMS_PUBLIC_PATH: /tmp
@@ -30,17 +17,10 @@ stages:
 
 .services:
   services:
-    - name: postgres
-      alias: db
-    - name: postgrest/postgrest
-      alias: server
     - name: gitlab.cosmian.com:5000/core/kms:${KMS_VERSION}_ci
       alias: kms_ci
     - redis:latest
   before_script:
-    - apt update && apt install -y postgresql libpq-dev
-    - export PGPASSWORD=$POSTGRES_PASSWORD
-    - psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f ./dump_db_demo.sql
     - npm install
 
 .test:
