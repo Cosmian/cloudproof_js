@@ -9,6 +9,14 @@ export {
     EncryptedEntry,
     WorkerPool,
 } from "crypto/abe/core/hybrid_crypto/worker/worker_pool"
+export * from "crypto/abe/interfaces/encryption_parameters"
+export * from "crypto/abe/interfaces/access_policy"
+export * from "crypto/abe/interfaces/keygen"
+export * from "crypto/abe/interfaces/cleartext_header"
+export * from "crypto/abe/interfaces/encrypted_header"
+export * from "crypto/abe/interfaces/policy"
+export * from "crypto/abe/interfaces/decryption"
+export * from "crypto/abe/interfaces/encryption"
 export { logger } from "utils/logger"
 export { hexDecode, hexEncode } from "utils/utils"
 export * from "kms/data_structures/TransparentDHPublicKey"
