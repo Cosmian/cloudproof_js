@@ -65,12 +65,12 @@
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
   "include": [
-    "src/**/*"
+    "src",
+    "tests"
   ],
   "exclude": [
     "node_modules",
     "**/__tests__/*",
     "tests/wasm_lib",
-    "tests/**/*.test.ts"
   ]
 }
