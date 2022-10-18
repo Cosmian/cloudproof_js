@@ -77,8 +77,12 @@ export class FindexKey {
 
 export class Label {
   bytes: Uint8Array
-  constructor(bytes: Uint8Array) {
-    this.bytes = bytes
+  constructor(value: string | Uint8Array) {
+    if (value instanceof Uint8Array) {
+      this.bytes = value
+    } else {
+      this.bytes = new TextEncoder().encode(value)
+    }
   }
 
   static fromUtf8String(label: string): Label {
@@ -86,25 +90,91 @@ export class Label {
   }
 }
 
-export interface NewIndexedEntry {
+/**
+ * A new value to index for a given set of keywords: 
+ * IndexedValue -> Set<KeyWord>
+ */
+export interface IndexedEntry {
   indexedValue: IndexedValue
   keywords: Set<Keyword>
 }
 
+
+/**
+ * A helper class to create a {@link IndexedEntry} when 
+ * indexing a {@link Location} with keywords supplied 
+ * as arrays of strings or bytes
+ */
+export class LocationIndexEntry implements IndexedEntry {
+
+  indexedValue: IndexedValue
+  keywords: Set<Keyword>
+  constructor(location: string | Uint8Array, keywords: string[] | Uint8Array[]) {
+    if (location instanceof Uint8Array) {
+      this.indexedValue = IndexedValue.fromLocation(new Location(location))
+    } else {
+      this.indexedValue = IndexedValue.fromLocation(new Location(new TextEncoder().encode(location)))
+    }
+    this.keywords = new Set(keywords.map((v) => {
+      if (v instanceof Uint8Array) {
+        return new Keyword(v)
+      }
+      return new Keyword(new TextEncoder().encode(v))
+    }))
+  }
+}
+
+/**
+ * A helper class to create a {@link IndexedEntry} when 
+ * indexing a {@link Keyword} to point to another {@link Keyword}
+ */
+export class KeywordIndexEntry implements IndexedEntry {
+
+  indexedValue: IndexedValue
+  keywords: Set<Keyword>
+  constructor(source: string | Uint8Array, destination: string | Uint8Array) {
+    if (destination instanceof Uint8Array) {
+      this.indexedValue = IndexedValue.fromNextWord(new Keyword(destination))
+    } else {
+      this.indexedValue = IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode(destination)))
+    }
+    if (source instanceof Uint8Array) {
+      this.keywords = new Set([new Keyword(source)])
+    } else {
+      this.keywords = new Set([new Keyword(new TextEncoder().encode(source))])
+    }
+  }
+}
+
+/**
+ * Represents a `(uid, value)` tuple, i.e. a line, in the Entry or Chain table
+ */
 export type UidsAndValues = Array<{ uid: Uint8Array; value: Uint8Array }>
 
+/**
+ * Fetch a uid in the Entry table and return the (uid, value) column
+ */
 export type FetchEntries = (uids: Uint8Array[]) => Promise<UidsAndValues>
 
+/**
+ * Fetch a uid in the Chain table and return the (uid, value) column
+ */
 export type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>
 
+/**
+ * Insert, or update an existing, (uid, value) line in the Entry table
+ */
 export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
 
+/**
+ * Insert, or update an existing, (uid, value) line in the Chain table
+ */
 export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**
- * This function is responsible of the Findex-indexes creation
+ * Insert or update existing (a.k.a upsert) entries in the index
  *
- * @param {NewIndexedEntry[]} newIndexedEntries new entries to upsert in indexes
+ * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
  * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {FindexKey | SymmetricKey} updateKey Findex's write key
  * @param {Label} label public label for the index
@@ -113,7 +183,7 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  * @param {UpsertChains} upsertChains callback to upsert inside chains table
  */
 export async function upsert(
-  newIndexedEntries: NewIndexedEntry[],
+  newIndexedEntries: IndexedEntry[],
   searchKey: FindexKey | SymmetricKey,
   updateKey: FindexKey | SymmetricKey,
   label: Label,
@@ -159,9 +229,9 @@ export async function upsert(
 }
 
 /**
- * This function is used to search indexed words among Entry Table and Chain Table indexes
+ * Search indexed keywords and return the corresponding IndexedValues
  *
- * @param {Set<string>} keywords words to search inside the indexes
+ * @param {Set<string>} keywords keywords to search inside the indexes
  * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {Label} label public label for the index
  * @param {number} maxResultsPerKeyword the maximum number of results per keyword

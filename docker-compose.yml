@@ -1,0 +1,18 @@
+# docker-compose.yml
+
+version: "3"
+services:
+  kms:
+    container_name: kms
+    image: gitlab.cosmian.com:5000/core/kms:2.3.1_ci
+    environment:
+      - KMS_HOSTNAME=0.0.0.0
+      - KMS_PUBLIC_PATH=/tmp
+      - KMS_PRIVATE_PATH=/tmp
+      - KMS_SHARED_PATH=/tmp
+    ports:
+      - "9998:9998"
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
