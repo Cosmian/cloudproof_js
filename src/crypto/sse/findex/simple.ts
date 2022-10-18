@@ -229,9 +229,9 @@ export async function upsert(
 }
 
 /**
- * This function is used to search indexed words among Entry Table and Chain Table indexes
+ * Search indexed keywords and return the corresponding IndexedValues
  *
- * @param {Set<string>} keywords words to search inside the indexes
+ * @param {Set<string>} keywords keywords to search inside the indexes
  * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {Label} label public label for the index
  * @param {number} maxResultsPerKeyword the maximum number of results per keyword
