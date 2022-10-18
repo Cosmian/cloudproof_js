@@ -3,14 +3,14 @@
     "version": "3.2.0",
     "license": "MIT",
     "description": "Cosmian Cloudproof javascript client library",
-    "main": "dist/cjs/index.js",
-    "module": "dist/esm/index.js",
+    "main": "dist/src/index.js",
+    "module": "dist/src/index.js",
     "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>, Emmanuel Coste<emmanuel.coste@cosmian.com>, Thibaud Dauce<thibaud.dauce@cosmian.com>",
     "files": [
         "dist"
     ],
     "scripts": {
-        "prepare": "tsc -p tsconfig.json && tsc -p tsconfig-cjs.json",
+        "prepare": "rm -rf dist && tsc -p tsconfig-esm.json",
         "test": "NODE_OPTIONS=\"--max-http-header-size=128000\" jest",
         "lint": "npx eslint src tests",
         "lint:fix": "npm run lint -- --fix",
