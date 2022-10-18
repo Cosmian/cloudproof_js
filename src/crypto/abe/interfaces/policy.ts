@@ -1,10 +1,10 @@
-/* tslint:disable:max-classes-per-file */
-import { PrivateKey } from "kms/objects/PrivateKey"
-import { PublicKey } from "kms/objects/PublicKey"
-import { Attributes } from "kms/types/Attributes"
-import { VendorAttribute } from "kms/types/VendorAttribute"
-import { logger } from "utils/logger"
+import { PrivateKey } from "../../../kms/objects/PrivateKey"
+import { PublicKey } from "../../../kms/objects/PublicKey"
+import { Attributes } from "../../../kms/types/Attributes"
+import { VendorAttribute } from "../../../kms/types/VendorAttribute"
+import { logger } from "../../../utils/logger"
 
+/* tslint:disable:max-classes-per-file */
 export class PolicyAxis {
   private _name: string
   private _attributes: string[]

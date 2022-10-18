@@ -2,7 +2,7 @@ import { KeyBlock } from "../data_structures/KeyBlock"
 import "reflect-metadata"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
-import { TransparentSymmetricKey } from "kms/data_structures/TransparentSymmetricKey"
+import { TransparentSymmetricKey } from "../data_structures/TransparentSymmetricKey"
 export class SymmetricKey {
   @metadata({
     name: "KeyBlock",

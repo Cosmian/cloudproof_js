@@ -1,11 +1,11 @@
 /* tslint:disable:max-classes-per-file */
 
-import { HybridDecryption } from "crypto/abe/interfaces/decryption"
-import { HybridEncryption } from "crypto/abe/interfaces/encryption"
-import { AbeKeyGeneration } from "crypto/abe/interfaces/keygen"
-import { Policy, PolicyAxis } from "crypto/abe/interfaces/policy"
-import { logger } from "utils/logger"
-import { hexEncode } from "utils/utils"
+import { HybridDecryption } from "../../src/crypto/abe/interfaces/decryption"
+import { HybridEncryption } from "../../src/crypto/abe/interfaces/encryption"
+import { AbeKeyGeneration } from "../../src/crypto/abe/interfaces/keygen"
+import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
+import { logger } from "../../src/utils/logger"
+import { hexEncode } from "../../src/utils/utils"
 
 export class DemoKeys {
   static topSecretMkgFinUserAccessPolicy =

@@ -1,8 +1,8 @@
-import { GpswHybridDecryption } from "crypto/abe/core/hybrid_crypto/gpsw/decryption"
-import { GpswHybridEncryption } from "crypto/abe/core/hybrid_crypto/gpsw/encryption"
-import { GpswMasterKeyGeneration } from "crypto/abe/core/keygen/gpsw_crypt"
-import { EncryptionDecryptionDemo } from "../../common/demo_hybrid_crypto"
-import { GpswDemoKeys } from "./demo_keys"
+import { GpswHybridDecryption } from "../../src/crypto/abe/core/hybrid_crypto/gpsw/decryption"
+import { GpswHybridEncryption } from "../../src/crypto/abe/core/hybrid_crypto/gpsw/encryption"
+import { GpswMasterKeyGeneration } from "../../src/crypto/abe/core/keygen/gpsw_crypt"
+import { EncryptionDecryptionDemo } from "./hybrid_crypto_utils"
+import { GpswDemoKeys } from "./gpsw_demo_keys"
 
 test("gpsw", async () => {
   const keyGeneration = new GpswMasterKeyGeneration()

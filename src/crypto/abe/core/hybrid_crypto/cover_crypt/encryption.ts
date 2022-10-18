@@ -2,10 +2,10 @@ import {
   webassembly_encrypt_hybrid_block,
   webassembly_encrypt_hybrid_header,
 } from "cosmian_cover_crypt"
-import { HybridEncryption } from "crypto/abe/interfaces/encryption"
-import { logger } from "utils/logger"
-import { hexEncode } from "utils/utils"
+import { logger } from "../../../../../utils/logger"
+import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
+import { HybridEncryption } from "../../../interfaces/encryption"
 import {
   AbeEncryptionParameters,
   Metadata,

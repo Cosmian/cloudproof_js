@@ -1,7 +1,7 @@
-import { RevocationReason } from "kms/types/RevocationReason"
 import { metadata } from "../decorators/function"
 import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
+import { RevocationReason } from "../types/RevocationReason"
 
 /**
  * This operation requests the server to revoke a Managed Cryptographic Object or an Opaque Object. The request contains

@@ -5,10 +5,10 @@ import {
   webassembly_encrypt_hybrid_header,
   webassembly_encrypt_hybrid_header_using_cache,
 } from "cosmian_abe_gpsw"
-import { HybridEncryption } from "crypto/abe/interfaces/encryption"
-import { logger } from "utils/logger"
-import { fromBeBytes } from "utils/utils"
+import { logger } from "../../../../../utils/logger"
+import { fromBeBytes } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
+import { HybridEncryption } from "../../../interfaces/encryption"
 import {
   AbeEncryptionParameters,
   Metadata,

@@ -7,9 +7,9 @@ import {
   webassembly_destroy_decryption_cache,
   webassembly_get_encrypted_header_size,
 } from "cosmian_abe_gpsw"
-import { ClearTextHeader } from "crypto/abe/interfaces/cleartext_header"
-import { HybridDecryption } from "crypto/abe/interfaces/decryption"
-import { logger } from "utils/logger"
+import { logger } from "../../../../../utils/logger"
+import { ClearTextHeader } from "../../../interfaces/cleartext_header"
+import { HybridDecryption } from "../../../interfaces/decryption"
 
 /**
  * This class exposes the ABE primitives.

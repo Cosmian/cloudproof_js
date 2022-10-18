@@ -1,5 +1,5 @@
+import { ObjectType } from "../types/ObjectType"
 import { Certificate } from "./Certificate"
-import { ObjectType } from "kms/types/ObjectType"
 import { CertificateRequest } from "./CertificateRequest"
 import { OpaqueObject } from "./OpaqueObject"
 import { PGPKey } from "./PGPKey"

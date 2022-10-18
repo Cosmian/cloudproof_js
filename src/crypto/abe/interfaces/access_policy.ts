@@ -1,7 +1,7 @@
 import { webassembly_parse_boolean_access_policy } from "cosmian_cover_crypt"
-import { PrivateKey } from "kms/objects/PrivateKey"
-import { Attributes } from "kms/types/Attributes"
-import { VendorAttribute } from "kms/types/VendorAttribute"
+import { PrivateKey } from "../../../kms/objects/PrivateKey"
+import { Attributes } from "../../../kms/types/Attributes"
+import { VendorAttribute } from "../../../kms/types/VendorAttribute"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string

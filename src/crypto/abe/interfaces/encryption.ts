@@ -1,4 +1,4 @@
-import { PublicKey } from "kms/objects/PublicKey"
+import { PublicKey } from "../../../kms/objects/PublicKey"
 import { EncryptedHeader } from "./encrypted_header"
 import { AbeEncryptionParameters } from "./encryption_parameters"
 import { Policy } from "./policy"

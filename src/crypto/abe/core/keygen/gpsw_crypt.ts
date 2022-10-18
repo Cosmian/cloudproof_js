@@ -4,10 +4,10 @@ import {
   webassembly_generate_user_private_key,
   webassembly_rotate_attributes,
 } from "cosmian_abe_gpsw"
-import { AbeKeyGeneration, AbeMasterKey } from "crypto/abe/interfaces/keygen"
-import { Policy } from "crypto/abe/interfaces/policy"
-import { logger } from "utils/logger"
-import { fromBeBytes } from "utils/utils"
+import { logger } from "../../../../utils/logger"
+import { fromBeBytes } from "../../../../utils/utils"
+import { AbeKeyGeneration, AbeMasterKey } from "../../interfaces/keygen"
+import { Policy } from "../../interfaces/policy"
 
 export class GpswMasterKey extends AbeMasterKey {}
 

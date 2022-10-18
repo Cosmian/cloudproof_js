@@ -1,8 +1,8 @@
-import { CoverCryptHybridDecryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
-import { CoverCryptHybridEncryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
-import { CoverCryptKeyGeneration } from "crypto/abe/core/keygen/cover_crypt"
-import { EncryptionDecryptionDemo } from "../../common/demo_hybrid_crypto"
-import { CoverCryptDemoKeys } from "./demo_keys"
+import { CoverCryptHybridDecryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
+import { CoverCryptHybridEncryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
+import { CoverCryptKeyGeneration } from "../../src/crypto/abe/core/keygen/cover_crypt"
+import { CoverCryptDemoKeys } from "./cover_crypt_demo_keys"
+import { EncryptionDecryptionDemo } from "./hybrid_crypto_utils"
 
 test("cover_crypt", async () => {
   const keyGeneration = new CoverCryptKeyGeneration()

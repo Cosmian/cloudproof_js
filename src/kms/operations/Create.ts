@@ -1,5 +1,5 @@
-import { Deserialize } from "kms/deserialize/Deserialize"
 import { metadata } from "../decorators/function"
+import { Deserialize } from "../deserialize/Deserialize"
 import { defaultStructureParser } from "../deserialize/deserializer"
 import { KmipStruct } from "../json/KmipStruct"
 import { TTLV } from "../serialize/Ttlv"

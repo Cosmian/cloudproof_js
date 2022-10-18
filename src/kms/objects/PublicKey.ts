@@ -1,5 +1,5 @@
-import { TransparentECPublicKey } from "kms/data_structures/TransparentECPublicKey"
 import { KeyBlock } from "../data_structures/KeyBlock"
+import { TransparentECPublicKey } from "../data_structures/TransparentECPublicKey"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 

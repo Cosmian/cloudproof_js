@@ -1,6 +1,6 @@
-import { TransparentECPrivateKey } from "kms/data_structures/TransparentECPrivateKey"
-import { hexDecode } from "utils/utils"
+import { hexDecode } from "../../utils/utils"
 import { KeyBlock } from "../data_structures/KeyBlock"
+import { TransparentECPrivateKey } from "../data_structures/TransparentECPrivateKey"
 import { metadata } from "../decorators/function"
 import { TtlvType } from "../serialize/TtlvType"
 
