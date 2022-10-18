@@ -66,12 +66,8 @@ export class Keyword {
 }
 export class FindexKey {
     bytes: Uint8Array
-    constructor(bytesOrKey: Uint8Array | SymmetricKey) {
-        if (bytesOrKey instanceof SymmetricKey) {
-            this.bytes = bytesOrKey.bytes()
-        } else {
-            this.bytes = bytesOrKey
-        }
+    constructor(bytes: Uint8Array) {
+        this.bytes = bytes
     }
 
     toBase64(): string {
@@ -109,14 +105,23 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  * This function is responsible of the Findex-indexes creation
  *
  * @param {NewIndexedEntry[]} newIndexedEntries new entries to upsert in indexes
- * @param {FindexKey} searchKey Findex's read key
- * @param {FindexKey} updateKey Findex's write key
+ * @param {FindexKey | SymmetricKey} searchKey Findex's read key
+ * @param {FindexKey | SymmetricKey} updateKey Findex's write key
  * @param {Label} label public label for the index
  * @param {FetchEntries} fetchEntries callback to fetch the entries table
  * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
  * @param {UpsertChains} upsertChains callback to upsert inside chains table
  */
-export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: FindexKey, updateKey: FindexKey, label: Label, fetchEntries: FetchEntries, upsertEntries: UpsertEntries, upsertChains: UpsertChains): Promise<void> {
+export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: FindexKey | SymmetricKey, updateKey: FindexKey | SymmetricKey, label: Label, fetchEntries: FetchEntries, upsertEntries: UpsertEntries, upsertChains: UpsertChains): Promise<void> {
+
+    // convert key to a single representation
+    if (searchKey instanceof SymmetricKey) {
+        searchKey = new FindexKey(searchKey.bytes())
+    }
+    if (updateKey instanceof SymmetricKey) {
+        updateKey = new FindexKey(updateKey.bytes())
+    }
+
     const newIndexedEntriesBase64: { [key: string]: string[] } = {}
     for (const newIndexedEntry of newIndexedEntries) {
         newIndexedEntriesBase64[newIndexedEntry.indexedValue.toBase64()] = [...newIndexedEntry.keywords].map((keyword) => keyword.toBase64())
@@ -149,14 +154,20 @@ export async function upsert(newIndexedEntries: NewIndexedEntry[], searchKey: Fi
  * This function is used to search indexed words among Entry Table and Chain Table indexes
  *
  * @param {Set<string>} keywords words to search inside the indexes
- * @param {FindexKey} searchKey Findex's read key
+ * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {Label} label public label for the index
  * @param {number} maxResultsPerKeyword the maximum number of results per keyword
  * @param {FetchEntries} fetchEntries callback to fetch the entries table
  * @param {FetchChains} fetchChains callback to fetch the chains table
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
-export async function search(keywords: Set<string>, searchKey: FindexKey, label: Label, maxResultsPerKeyword: number, fetchEntries: FetchEntries, fetchChains: FetchChains): Promise<IndexedValue[]> {
+export async function search(keywords: Set<string>, searchKey: FindexKey | SymmetricKey, label: Label, maxResultsPerKeyword: number, fetchEntries: FetchEntries, fetchChains: FetchChains): Promise<IndexedValue[]> {
+
+    // convert key to a single representation
+    if (searchKey instanceof SymmetricKey) {
+        searchKey = new FindexKey(searchKey.bytes())
+    }
+
     const serializedIndexedValues = await webassembly_search(
         searchKey.bytes,
         label.bytes,
