@@ -1,4 +1,4 @@
-export * from './crypto/sse/findex/index'
+export * from './crypto/sse/findex/simple'
 export { CoverCryptHybridDecryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
 export { CoverCryptHybridEncryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
 export { CoverCryptKeyGeneration } from "./crypto/abe/core/keygen/cover_crypt"
