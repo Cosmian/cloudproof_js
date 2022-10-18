@@ -1,4 +1,4 @@
-import { TTLV } from "../serialize/Ttlv";
+import { TTLV } from "../serialize/Ttlv"
 
 /**
  * Implemented by a KMIP Object which has a custom deserialization procedure

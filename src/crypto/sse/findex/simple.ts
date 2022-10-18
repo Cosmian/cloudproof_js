@@ -1,6 +1,10 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
-import { deserializeHashMap, deserializeList, serializeHashMap } from "../../../utils/utils"
+import {
+  deserializeHashMap,
+  deserializeList,
+  serializeHashMap,
+} from "../../../utils/utils"
 
 export class IndexedValue {
   static L_PREFIX = 108
