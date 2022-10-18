@@ -19,25 +19,97 @@ import {
 import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
 import { createClient } from "redis"
+import { hexEncode } from "../../src/utils/utils"
+import { randomBytes } from "crypto"
 
-test("upsert in memory", async () => {
+
+test("upsert and search in memory", async () => {
   const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(
-      new Location(new TextEncoder().encode("ROBERT file"))
-    ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
+    indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file"))),
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const entryKeyword: IndexedEntry = {
-    indexedValue: IndexedValue.fromNextWord(
-      new Keyword(new TextEncoder().encode("ROBERT"))
-    ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))]),
+    indexedValue: IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode("ROBERT"))),
+    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))])
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
+
+  const searchKey = new FindexKey(randomBytes(32))
+  const updateKey = new FindexKey(randomBytes(32))
+  const label = new Label("test")
+
+  const entryTable: { [uid: string]: Uint8Array } = {}
+  const chainTable: { [uid: string]: Uint8Array } = {}
+
+  const fetchEntries: FetchEntries = async (uids: Uint8Array[]): Promise<UidsAndValues> => {
+    const results: UidsAndValues = []
+    for (const uid of uids) {
+      console.log("FETCH ENTRY", hexEncode(uid))
+      const value = entryTable[hexEncode(uid)]
+      if (typeof value !== "undefined") {
+        results.push({ uid, value })
+      }
+    }
+    console.log("RESULTS ENTRY", results)
+    return await Promise.resolve(results)
+  }
+
+  const fetchChains: FetchChains = async (uids: Uint8Array[]): Promise<UidsAndValues> => {
+    const results: UidsAndValues = []
+    for (const uid of uids) {
+      const value = chainTable[hexEncode(uid)]
+      if (typeof value !== "undefined") {
+        results.push({ uid, value })
+      }
+    }
+    return await Promise.resolve(results)
+  }
+
+
+  const upsertEntries: UpsertEntries = async (uidsAndValues: UidsAndValues): Promise<void> => {
+    for (const { uid, value } of uidsAndValues) {
+      console.log("UPSERT ENTRY", hexEncode(uid))
+      entryTable[hexEncode(uid)] = value
+    }
+    return await Promise.resolve()
+  }
+
+  const upsertChains: UpsertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
+    for (const { uid, value } of uidsAndValues) {
+      chainTable[hexEncode(uid)] = value
+    }
+    return await Promise.resolve()
+  }
+
+
+  await upsert(
+    [entryLocation, entryKeyword],
+    searchKey,
+    updateKey,
+    label,
+    fetchEntries,
+    upsertEntries,
+    upsertChains
+  )
+
+  const results = await search(
+    new Set(["ROBERT"]),
+    searchKey,
+    label,
+    100,
+    fetchEntries,
+    fetchChains
+  )
+
+  console.log("ENTRY", entryTable)
+  console.log("CHAIN", chainTable)
+  console.log("IV", results)
+
+  expect(results.length).toEqual(1)
 
   // const label = new Label(new TextEncoder().encode("Q1 2022"))
 })
