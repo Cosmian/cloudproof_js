@@ -1,6 +1,6 @@
-import { Findex } from "crypto/sse/findex/interfaces/findex"
-import { FindexMasterKey } from "crypto/sse/findex/interfaces/master_keys"
-import { sanitizeString, toBase64 } from "utils/utils"
+import { Findex } from "../../../../../../src/crypto/sse/findex/interfaces/findex"
+import { FindexMasterKey } from "../../../../../../src/crypto/sse/findex/interfaces/master_keys"
+import { sanitizeString, toBase64 } from "../../../../../../src/utils/utils"
 import { Users } from "./users"
 
 /**

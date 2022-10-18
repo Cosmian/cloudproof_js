@@ -2,7 +2,7 @@ import { TTLV } from "./Ttlv"
 import "reflect-metadata"
 import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
 import { TtlvType } from "./TtlvType"
-import { hexEncode } from "utils/utils"
+import { hexEncode } from "../../utils/utils"
 
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object

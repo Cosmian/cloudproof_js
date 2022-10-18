@@ -3,7 +3,7 @@ import {
   webassembly_graph_upsert,
   webassembly_upsert,
 } from "cosmian_findex"
-import { deserializeList } from "utils/utils"
+import { deserializeList } from "../../../../utils/utils"
 import { DBInterface } from "./dbInterface"
 import { FindexMasterKey } from "./master_keys"
 

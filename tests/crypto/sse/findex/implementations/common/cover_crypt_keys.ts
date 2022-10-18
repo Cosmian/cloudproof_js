@@ -1,6 +1,6 @@
-import { CoverCryptKeyGeneration } from "crypto/abe/core/keygen/cover_crypt"
-import { AbeMasterKey } from "crypto/abe/interfaces/keygen"
-import { Policy, PolicyAxis } from "crypto/abe/interfaces/policy"
+import { CoverCryptKeyGeneration } from "../../../../../../src/crypto/abe/core/keygen/cover_crypt"
+import { AbeMasterKey } from "../../../../../../src/crypto/abe/interfaces/keygen"
+import { Policy, PolicyAxis } from "../../../../../../src/crypto/abe/interfaces/policy"
 
 export interface CoverCryptTestKeys {
   alice: Uint8Array

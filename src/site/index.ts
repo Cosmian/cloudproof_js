@@ -7,18 +7,18 @@
 //    `npx webpack serve`
 // then navigate to http://locahost:8080
 
-import { CoverCryptHybridDecryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
-import { CoverCryptHybridEncryption } from "crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
-import { GpswHybridDecryption } from "crypto/abe/core/hybrid_crypto/gpsw/decryption"
-import { GpswHybridEncryption } from "crypto/abe/core/hybrid_crypto/gpsw/encryption"
+import { CoverCryptHybridDecryption } from "../crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
+import { CoverCryptHybridEncryption } from "../crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
+import { GpswHybridDecryption } from "../crypto/abe/core/hybrid_crypto/gpsw/decryption"
+import { GpswHybridEncryption } from "../crypto/abe/core/hybrid_crypto/gpsw/encryption"
 import {
   EncryptedEntry,
   WorkerPool,
-} from "crypto/abe/core/hybrid_crypto/worker/worker_pool"
-import { CoverCryptKeyGeneration } from "crypto/abe/core/keygen/cover_crypt"
-import { GpswMasterKeyGeneration } from "crypto/abe/core/keygen/gpsw_crypt"
-import { logger } from "utils/logger"
-import { hexDecode, hexEncode } from "utils/utils"
+} from "../crypto/abe/core/hybrid_crypto/worker/worker_pool"
+import { CoverCryptKeyGeneration } from "../crypto/abe/core/keygen/cover_crypt"
+import { GpswMasterKeyGeneration } from "../crypto/abe/core/keygen/gpsw_crypt"
+import { logger } from "../utils/logger"
+import { hexDecode, hexEncode } from "../utils/utils"
 import { EncryptionDecryptionDemo } from "../../tests/crypto/abe/common/demo_hybrid_crypto"
 import { CoverCryptDemoKeys } from "../../tests/crypto/abe/core/cover_crypt/demo_keys"
 import { GpswDemoKeys } from "../../tests/crypto/abe/core/gpsw/demo_keys"
@@ -643,13 +643,13 @@ function abeDemo(): string {
     const hybridDecryption = new GpswHybridDecryption(
       demoKeys.topSecretMkgFinUser
     )
-    const encryptionDemo = new EncryptionDecryptionDemo(
-      keyGeneration,
-      demoKeys,
-      hybridEncryption,
-      hybridDecryption
-    )
-    encryptionDemo.run()
+    // const encryptionDemo = new EncryptionDecryptionDemo(
+    //   keyGeneration,
+    //   demoKeys,
+    //   hybridEncryption,
+    //   hybridDecryption
+    // )
+    // encryptionDemo.run()
     // GpswHybridEncryptionDemo.run()
   }
   return "OK"

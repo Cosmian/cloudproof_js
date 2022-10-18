@@ -1,6 +1,6 @@
+import { metadata } from "../decorators/function"
+import { TtlvType } from "../serialize/TtlvType"
 import { PlainTextKeyValue } from "./PlainTextKeyValue"
-import { metadata } from "kms/decorators/function"
-import { TtlvType } from "kms/serialize/TtlvType"
 
 /**
  * The Key Value is used only inside a Key Block and is either a Byte String or

@@ -1,4 +1,4 @@
-import { hexDecode } from "utils/utils"
+import { hexDecode } from "../../../../../src/utils/utils"
 import { DemoKeys } from "../../common/demo_hybrid_crypto"
 
 export class CoverCryptDemoKeys extends DemoKeys {

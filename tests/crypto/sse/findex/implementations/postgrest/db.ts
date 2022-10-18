@@ -1,13 +1,7 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios"
-import { Index } from "crypto/sse/findex/interfaces"
-import { DBInterface } from "crypto/sse/findex/interfaces/dbInterface"
-import {
-  deserializeList,
-  serializeHashMap,
-  deserializeHashMap,
-  hexEncode,
-  hexDecode,
-} from "utils/utils"
+import { Index } from "../../../../../../src/crypto/sse/findex/interfaces"
+import { DBInterface } from "../../../../../../src/crypto/sse/findex/interfaces/dbInterface"
+import { deserializeHashMap, deserializeList, hexDecode, hexEncode, serializeHashMap } from "../../../../../../src/utils/utils"
 import { IndexString } from "../common/index_string"
 import { Users } from "../common/users"
 

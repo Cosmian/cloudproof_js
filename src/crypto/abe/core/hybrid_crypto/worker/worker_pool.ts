@@ -1,5 +1,5 @@
-import { logger } from "utils/logger"
-import { DecryptionWorkerMessage } from "crypto/abe/interfaces/decryption"
+import { logger } from "../../../../../utils/logger"
+import { DecryptionWorkerMessage } from "../../../interfaces/decryption"
 
 export interface EncryptedEntry {
   uidHex: string

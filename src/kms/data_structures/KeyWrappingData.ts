@@ -1,10 +1,10 @@
-import { KmipStruct } from "kms/json/KmipStruct"
-import { EncodingOption } from "kms/types/EncodingOption"
-import { EncryptionKeyInformation } from "kms/types/EncryptionKeyInformation"
-import { MacSignatureKeyInformation } from "kms/types/MacSignatureKeyInformation"
-import { WrappingMethod } from "kms/types/WrappingMethod"
-import { metadata } from "kms/decorators/function"
-import { TtlvType } from "kms/serialize/TtlvType"
+import { KmipStruct } from "../../kms/json/KmipStruct"
+import { EncodingOption } from "../../kms/types/EncodingOption"
+import { EncryptionKeyInformation } from "../../kms/types/EncryptionKeyInformation"
+import { MacSignatureKeyInformation } from "../../kms/types/MacSignatureKeyInformation"
+import { WrappingMethod } from "../../kms/types/WrappingMethod"
+import { metadata } from "../../kms/decorators/function"
+import { TtlvType } from "../../kms/serialize/TtlvType"
 
 /**
  * The Key Block MAY also supply OPTIONAL information about a cryptographic key wrapping mechanism used to wrap the Key

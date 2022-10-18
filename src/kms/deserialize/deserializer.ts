@@ -1,4 +1,4 @@
-import { hexDecode } from "utils/utils"
+import { hexDecode } from "../../utils/utils"
 import { PropertyMetadata, METADATA_KEY } from "../decorators/interface"
 import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"

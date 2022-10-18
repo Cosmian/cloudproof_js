@@ -1,5 +1,6 @@
-import { CoverCryptKeyGeneration } from "crypto/abe/core/keygen/cover_crypt"
-import { Policy, PolicyAxis } from "crypto/abe/interfaces/policy"
+import { Policy, PolicyAxis } from "../../../../../../src/crypto/abe/interfaces/policy"
+import { CoverCryptKeyGeneration } from "../../../../../../src/crypto/abe/core/keygen/cover_crypt"
+
 
 /**
  *

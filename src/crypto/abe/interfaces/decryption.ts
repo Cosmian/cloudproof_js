@@ -1,4 +1,4 @@
-import { PrivateKey } from "kms/objects/PrivateKey"
+import { PrivateKey } from "../../../kms/objects/PrivateKey"
 import { ClearTextHeader } from "./cleartext_header"
 
 export abstract class HybridDecryption {
