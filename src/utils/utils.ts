@@ -224,3 +224,33 @@ export function sanitizeString(str: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w-]+/g, "-")
 }
+
+/**
+ * WASM libs require to call an init function before running
+ * but Jest doesn't have this requirements. Returns an empty init
+ * function if running in Jest.
+ * 
+ * @param wasmLib 
+ * @returns 
+ */
+export async function initFindex(): Promise<void> {
+  if (typeof process === 'undefined' || process.env.JEST_WORKER_ID === undefined) {
+    const module = await import("cosmian_findex");
+    await module.default();
+  }
+}
+
+/**
+ * WASM libs require to call an init function before running
+ * but Jest doesn't have this requirements. Returns an empty init
+ * function if running in Jest.
+ * 
+ * @param wasmLib 
+ * @returns 
+ */
+export async function initCoverCrypt(): Promise<void> {
+  if (typeof process === 'undefined' || process.env.JEST_WORKER_ID === undefined) {
+    const module = await import("cosmian_cover_crypt");
+    await module.default();
+  }
+}

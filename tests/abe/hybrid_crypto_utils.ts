@@ -66,7 +66,7 @@ export class EncryptionDecryptionDemo {
     this.hybridDecryption = hybridDecryption
   }
 
-  public run() {
+  public async run() {
     // Verify non regression test vector
     this.nonRegressionTests()
 
@@ -89,7 +89,7 @@ export class EncryptionDecryptionDemo {
       100
     )
     // Generate master keys
-    const masterKeys = this.keyGenerator.generateMasterKeys(policy)
+    const masterKeys = await this.keyGenerator.generateMasterKeys(policy)
 
     // set all keys values
     this.demoKeys.policy = policy.toJsonEncoded()
@@ -119,7 +119,7 @@ export class EncryptionDecryptionDemo {
       policy
     )
     // Refresh master keys (only needed by CoverCrypt)
-    const newMasterKeys = this.keyGenerator.generateMasterKeys(newPolicy)
+    const newMasterKeys = await this.keyGenerator.generateMasterKeys(newPolicy)
 
     // set all keys values
     this.demoKeys.policy = newPolicy.toJsonEncoded()

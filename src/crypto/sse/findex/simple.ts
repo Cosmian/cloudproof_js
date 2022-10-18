@@ -1,11 +1,12 @@
-import { webassembly_search, webassembly_upsert } from "cosmian_findex"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import {
   deserializeHashMap,
   deserializeList,
+  initFindex,
   serializeHashMap,
 } from "../../../utils/utils"
 import { Index } from "./interfaces"
+import { webassembly_search, webassembly_upsert } from 'cosmian_findex';
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
@@ -199,6 +200,8 @@ export async function upsert(
   upsertEntries: UpsertEntries,
   upsertChains: UpsertChains
 ): Promise<void> {
+  await initFindex();
+
   // convert key to a single representation
   if (searchKey instanceof SymmetricKey) {
     searchKey = new FindexKey(searchKey.bytes())
@@ -255,6 +258,8 @@ export async function search(
   fetchEntries: FetchEntries,
   fetchChains: FetchChains
 ): Promise<IndexedValue[]> {
+  await initFindex();
+
   // convert key to a single representation
   if (searchKey instanceof SymmetricKey) {
     searchKey = new FindexKey(searchKey.bytes())

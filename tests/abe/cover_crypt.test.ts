@@ -20,5 +20,5 @@ test("cover_crypt", async () => {
     hybridEncryption,
     hybridDecryption
   )
-  encryptionDemo.run()
+  await encryptionDemo.run()
 })
