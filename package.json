@@ -3,8 +3,8 @@
     "version": "3.2.0",
     "license": "MIT",
     "description": "Cosmian Cloudproof javascript client library",
-    "main": "dist/src/index.js",
-    "module": "dist/src/index.js",
+    "main": "dist/index.js",
+    "module": "dist/index.js",
     "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>, Emmanuel Coste<emmanuel.coste@cosmian.com>, Thibaud Dauce<thibaud.dauce@cosmian.com>",
     "files": [
         "dist"
@@ -16,7 +16,7 @@
         "lint:fix": "npm run lint -- --fix",
         "prettier": "npx prettier src tests --check",
         "prettier:fix": "npm run prettier -- --write",
-        "format": "npm run prettier:fix && npm run lint:fix",
+        "format": "npm run prettier:fix && npm run lint:fix"
     },
     "dependencies": {
         "@types/uuid": "^8.3.4",
