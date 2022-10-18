@@ -94,18 +94,18 @@ export class Label {
  * A new value to index for a given set of keywords: 
  * IndexedValue -> Set<KeyWord>
  */
-export interface NewIndexedEntry {
+export interface IndexedEntry {
   indexedValue: IndexedValue
   keywords: Set<Keyword>
 }
 
 
 /**
- * A helper class to create a {@link NewIndexedEntry} when 
+ * A helper class to create a {@link IndexedEntry} when 
  * indexing a {@link Location} with keywords supplied 
  * as arrays of strings or bytes
  */
-export class NewLocationIndexEntry implements NewIndexedEntry {
+export class LocationIndexEntry implements IndexedEntry {
 
   indexedValue: IndexedValue
   keywords: Set<Keyword>
@@ -125,10 +125,10 @@ export class NewLocationIndexEntry implements NewIndexedEntry {
 }
 
 /**
- * A helper class to create a {@link NewIndexedEntry} when 
+ * A helper class to create a {@link IndexedEntry} when 
  * indexing a {@link Keyword} to point to another {@link Keyword}
  */
-export class NewKeywordIndexEntry implements NewIndexedEntry {
+export class KeywordIndexEntry implements IndexedEntry {
 
   indexedValue: IndexedValue
   keywords: Set<Keyword>
@@ -172,9 +172,9 @@ export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
 export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**
- * This function is responsible of the Findex-indexes creation
+ * Insert or update existing (a.k.a upsert) entries in the index
  *
- * @param {NewIndexedEntry[]} newIndexedEntries new entries to upsert in indexes
+ * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
  * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {FindexKey | SymmetricKey} updateKey Findex's write key
  * @param {Label} label public label for the index
@@ -183,7 +183,7 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  * @param {UpsertChains} upsertChains callback to upsert inside chains table
  */
 export async function upsert(
-  newIndexedEntries: NewIndexedEntry[],
+  newIndexedEntries: IndexedEntry[],
   searchKey: FindexKey | SymmetricKey,
   updateKey: FindexKey | SymmetricKey,
   label: Label,

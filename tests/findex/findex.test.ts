@@ -2,7 +2,7 @@
 import {
     FetchChains,
     FetchEntries,
-    NewIndexedEntry,
+    IndexedEntry,
     IndexedValue,
     FindexKey,
     Keyword,
@@ -13,8 +13,8 @@ import {
     upsert,
     UpsertChains,
     UpsertEntries,
-    NewLocationIndexEntry,
-    NewKeywordIndexEntry,
+    LocationIndexEntry,
+    KeywordIndexEntry,
 } from "../../src/crypto/sse/findex/simple"
 import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
@@ -22,18 +22,18 @@ import { createClient } from "redis"
 
 
 test("upsert in memory", async () => {
-    const entryLocation: NewIndexedEntry = {
+    const entryLocation: IndexedEntry = {
         indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file"))),
         keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
     }
-    const entryLocation_ = new NewLocationIndexEntry("ROBERT file", ["ROBERT"])
+    const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
     expect(entryLocation_).toEqual(entryLocation)
 
-    const entryKeyword: NewIndexedEntry = {
+    const entryKeyword: IndexedEntry = {
         indexedValue: IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode("ROBERT"))),
         keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))])
     }
-    const entryKeyword_ = new NewKeywordIndexEntry("BOB", "ROBERT")
+    const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
     expect(entryKeyword_).toEqual(entryKeyword)
 
 
@@ -57,7 +57,7 @@ test("in memory", async () => {
         for (const requestedUid of uids) {
             for (const { uid, value } of table) {
                 if (
-                    Buffer.from(uid).toString("base64") ==
+                    Buffer.from(uid).toString("base64") ===
                     Buffer.from(requestedUid).toString("base64")
                 ) {
                     results.push({ uid, value })
@@ -74,7 +74,7 @@ test("in memory", async () => {
         for (const { uid: newUid, value: newValue } of uidsAndValues) {
             for (const tableEntry of table) {
                 if (
-                    Buffer.from(tableEntry.uid).toString("base64") ==
+                    Buffer.from(tableEntry.uid).toString("base64") ===
                     Buffer.from(newUid).toString("base64")
                 ) {
                     tableEntry.value = newValue
@@ -212,7 +212,7 @@ async function run(
     let label = new Label(Uint8Array.from([1, 2, 3]))
 
     {
-        let newIndexedEntries: NewIndexedEntry[] = []
+        let newIndexedEntries: IndexedEntry[] = []
         for (let user of USERS) {
             newIndexedEntries.push({
                 indexedValue: IndexedValue.fromLocation(
