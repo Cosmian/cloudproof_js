@@ -18,6 +18,20 @@ import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
 import { createClient } from "redis"
 
+
+test("in memory", async () => {
+    const entry: NewIndexedEntry = {
+        indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("DB_UID"))),
+        keywords: new Set([new Keyword(new TextEncoder().encode("DB_UID"))]) //new Set<Keyword>,
+    }
+
+    const label = new Label(new TextEncoder().encode("Q1 2022"))
+
+
+
+
+})
+
 test("in memory", async () => {
   const entryTable: Array<{ uid: Uint8Array; value: Uint8Array }> = []
   const chainTable: Array<{ uid: Uint8Array; value: Uint8Array }> = []
