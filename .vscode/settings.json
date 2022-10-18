@@ -1,15 +1,16 @@
 {
-    "cSpell.words": [
-        "ciphertext",
-        "cosmian",
-        "deserialization",
-        "Deserialization",
-        "kmip",
-        "Kmip",
-        "ttlv",
-        "Ttlv",
-        "webassembly"
-    ],
-    "eslint.format.enable": true,
-    "jestrunner.jestCommand": "node --experimental-fetch --experimental-vm-modules node_modules/.bin/jest"
+  "cSpell.words": [
+    "ciphertext",
+    "cosmian",
+    "deserialization",
+    "Deserialization",
+    "Findex",
+    "kmip",
+    "Kmip",
+    "ttlv",
+    "Ttlv",
+    "webassembly"
+  ],
+  "eslint.format.enable": true,
+  "jestrunner.jestCommand": "node --experimental-fetch --experimental-vm-modules node_modules/.bin/jest"
 }
