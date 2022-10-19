@@ -10,13 +10,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Strip packaging
-- Remove worker and worker pool
+- Strip packaging (removed tests folder)
 
 ### Fixed
 
 ### Removed
 
+- Remove worker and worker pool
 - Remove GPSW
 
 ---
