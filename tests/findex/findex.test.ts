@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-jsdoc */
 import {
   FetchChains,
   FetchEntries,
@@ -21,9 +20,10 @@ import { expect, test } from "@jest/globals"
 import { createClient } from "redis"
 import { hexEncode } from "../../src/utils/utils"
 import { randomBytes } from "crypto"
+import sqlite3 = require("sqlite3")
 
 
-test("upsert and search in memory", async () => {
+test("upsert and search memory", async () => {
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file"))),
     keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
@@ -40,6 +40,7 @@ test("upsert and search in memory", async () => {
 
   const searchKey = new FindexKey(randomBytes(32))
   const updateKey = new FindexKey(randomBytes(32))
+
   const label = new Label("test")
 
   const entryTable: { [uid: string]: Uint8Array } = {}
@@ -165,7 +166,7 @@ test("in memory", async () => {
 })
 
 test("SQLite", async () => {
-  const sqlite3 = require("sqlite3").verbose()
+  // const sqlite3 = require("sqlite3").verbose()
   const db = new sqlite3.Database(":memory:")
   await new Promise((resolve) => {
     db.run(
@@ -191,7 +192,7 @@ test("SQLite", async () => {
           .join(",")})`,
         uids,
         (err: any, rows: UidsAndValues) => {
-          if (err) reject(err)
+          if (err !== null && typeof err !== "undefined") reject(err)
           resolve(rows)
         }
       )
@@ -207,7 +208,7 @@ test("SQLite", async () => {
           `INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`,
           [uid, value],
           (err: any) => {
-            if (err) reject(err)
+            if (err !== null && typeof err !== "undefined") reject(err)
             resolve(null)
           }
         )
@@ -278,15 +279,16 @@ test("Redis", async () => {
   }
 })
 
+// eslint-disable-next-line jsdoc/require-jsdoc
 async function run(
   fetchEntries: FetchEntries,
   fetchChains: FetchChains,
   upsertEntries: UpsertEntries,
   upsertChains: UpsertChains
 ): Promise<void> {
-  const searchKey = new FindexKey(Uint8Array.from(Array(32).keys()))
-  const updateKey = new FindexKey(Uint8Array.from(Array(32).keys()))
-  const label = new Label(Uint8Array.from([1, 2, 3]))
+  const searchKey = new FindexKey(randomBytes(32))
+  const updateKey = new FindexKey(randomBytes(32))
+  const label = new Label(randomBytes(10))
 
   {
     const newIndexedEntries: IndexedEntry[] = []

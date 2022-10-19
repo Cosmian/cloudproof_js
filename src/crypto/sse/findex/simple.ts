@@ -215,7 +215,7 @@ export async function upsert(
   }
 
   await webassembly_upsert(
-    JSON.stringify({ k: updateKey.toBase64(), k_star: searchKey.toBase64() }),
+    JSON.stringify({ k: searchKey.toBase64(), k_star: updateKey.toBase64() }),
     label.bytes,
     JSON.stringify(newIndexedEntriesBase64),
     async (serializedUids: Uint8Array) => {
