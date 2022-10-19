@@ -24,7 +24,6 @@ build_wasm_bindgen() {
 }
 
 rm -rf "${WASM_DIR}"
-build_wasm_bindgen git@github.com:Cosmian/abe_gpsw.git abe_gpsw cosmian_abe_gpsw
 build_wasm_bindgen git@github.com:Cosmian/cover_crypt.git cover_crypt cosmian_cover_crypt
 build_wasm_bindgen git@gitlab.cosmian.com:core/findex.git findex cosmian_findex
 

@@ -6,29 +6,54 @@ import {
 } from "cosmian_cover_crypt"
 import { logger } from "../../../../utils/logger"
 import { fromBeBytes, hexEncode } from "../../../../utils/utils"
-import { AbeKeyGeneration, AbeMasterKey } from "../../interfaces/keygen"
 import { Policy } from "../../interfaces/policy"
 
-export class CoverCryptMasterKey extends AbeMasterKey {}
+export class CoverCryptMasterKey {
+  private _privateKey: Uint8Array
+  private _publicKey: Uint8Array
+
+  // Getters and setters
+  public get privateKey(): Uint8Array {
+    return this._privateKey
+  }
+
+  public set privateKey(value: Uint8Array) {
+    this._privateKey = value
+  }
+
+  public get publicKey(): Uint8Array {
+    return this._publicKey
+  }
+
+  public set publicKey(value: Uint8Array) {
+    this._publicKey = value
+  }
+
+  // Constructor
+  constructor(privateKey: Uint8Array, publicKey: Uint8Array) {
+    this._privateKey = privateKey
+    this._publicKey = publicKey
+  }
+}
 
 /**
  * Generate the keys using the local web assembly
  */
-export class CoverCryptKeyGeneration implements AbeKeyGeneration {
+export class CoverCryptKeyGeneration {
   /**
    * Generate the Master Key Par
    *
    * @param {Policy} policy the policy to use
-   * @returns {AbeMasterKey} the master keys
+   * @returns {CoverCryptMasterKey} the master keys
    */
-  public generateMasterKeys(policy: Policy): AbeMasterKey {
+  public generateMasterKeys(policy: Policy): CoverCryptMasterKey {
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
     const masterKeys = webassembly_generate_master_keys(policyBytes)
     const privateKeySize = fromBeBytes(masterKeys.slice(0, 4))
     logger.log(() => `private key size: ${privateKeySize}`)
-    return new AbeMasterKey(
+    return new CoverCryptMasterKey(
       masterKeys.slice(4, 4 + privateKeySize),
       masterKeys.slice(4 + privateKeySize, masterKeys.length)
     )
@@ -48,7 +73,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
     accessPolicy: string,
     policy: Policy
   ): Uint8Array {
-    logger.log(() => "privateKey: " + hexEncode(masterPrivateKeyBytes))
+    logger.log(() => `privateKey: ${hexEncode(masterPrivateKeyBytes)}`)
     logger.log(() => "accessPolicy: " + accessPolicy)
     logger.log(() => `policy: ${policy.toString()}`)
 
@@ -73,7 +98,7 @@ export class CoverCryptKeyGeneration implements AbeKeyGeneration {
    * @returns {Policy} the updated policy
    */
   public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    logger.log(() => "attributes: " + JSON.stringify(attributes))
+    logger.log(() => `attributes: ${JSON.stringify(attributes)}`)
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()

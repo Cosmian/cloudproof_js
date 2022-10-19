@@ -12,9 +12,12 @@ All notable changes to this project will be documented in this file.
 
 - Strip packaging
 - Remove worker and worker pool
+
 ### Fixed
 
 ### Removed
+
+- Remove GPSW
 
 ---
 
