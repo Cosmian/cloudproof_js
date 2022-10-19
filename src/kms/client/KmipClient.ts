@@ -303,7 +303,7 @@ export class KmipClient {
     const commonAttributes = new Attributes(ObjectType.PrivateKey)
     commonAttributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     commonAttributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
-    commonAttributes.vendorAttributes = [policy.toVendorAttribute()]
+    commonAttributes.vendorAttributes = [await policy.toVendorAttribute()]
 
     const response = await this.post(
       new CreateKeyPair(commonAttributes),
@@ -458,7 +458,7 @@ export class KmipClient {
             new LinkedObjectIdentifier(privateMasterKeyIdentifier)
           ),
         ],
-        [accessPolicy.toVendorAttribute()],
+        [await accessPolicy.toVendorAttribute()],
         undefined,
         CryptographicAlgorithm.CoverCrypt,
         undefined,

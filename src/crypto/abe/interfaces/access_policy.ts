@@ -1,4 +1,5 @@
 import { webassembly_parse_boolean_access_policy } from "cosmian_cover_crypt"
+import { initCoverCrypt } from "utils/utils"
 import { PrivateKey } from "../../../kms/objects/PrivateKey"
 import { Attributes } from "../../../kms/types/Attributes"
 import { VendorAttribute } from "../../../kms/types/VendorAttribute"
@@ -25,7 +26,8 @@ export class AccessPolicy {
    *
    * @returns {string} the KMIP JSON Format
    */
-  public toKmipJson(): string {
+  public async toKmipJson(): Promise<string> {
+    await initCoverCrypt();
     return webassembly_parse_boolean_access_policy(this._booleanAccessPolicy)
   }
 
@@ -34,11 +36,11 @@ export class AccessPolicy {
    *
    * @returns {VendorAttribute} the Access Policy as a VendorAttribute
    */
-  public toVendorAttribute(): VendorAttribute {
+  public async toVendorAttribute(): Promise<VendorAttribute> {
     return new VendorAttribute(
       VendorAttribute.VENDOR_ID_COSMIAN,
       VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY,
-      new TextEncoder().encode(this.toKmipJson())
+      new TextEncoder().encode(await this.toKmipJson())
     )
   }
 

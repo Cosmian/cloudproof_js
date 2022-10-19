@@ -244,14 +244,14 @@ test("KMS CoverCrypt Access Policy", async () => {
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential"
   )
-  const apj = apb.toKmipJson()
+  const apj = await apb.toKmipJson()
   expect(apj).toEqual(
     '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}'
   )
   const apb_ = AccessPolicy.fromKmipJson(apj)
   expect(apb_).toEqual(apb)
   // vendor attributes
-  const va = apb.toVendorAttribute()
+  const va = await apb.toVendorAttribute()
   const attributes = new Attributes(ObjectType.PrivateKey)
   attributes.vendorAttributes = [va]
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
@@ -299,7 +299,7 @@ test("KMS CoverCrypt keys", async () => {
   console.log("...encryption")
   const plaintext = new TextEncoder().encode("abcdefgh")
   const encrypter = new CoverCryptHybridEncryption(policy, mpk)
-  const ciphertext = encrypter.encrypt(
+  const ciphertext = await encrypter.encrypt(
     ["Department::FIN", "Security Level::Confidential"],
     new Uint8Array([42]),
     plaintext
@@ -325,7 +325,7 @@ test("KMS CoverCrypt keys", async () => {
   console.log("...encryption")
   const plaintext2 = new TextEncoder().encode("abcdefgh")
   const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
-  const ciphertext2 = encrypter2.encrypt(
+  const ciphertext2 = await encrypter2.encrypt(
     ["Department::FIN", "Security Level::Confidential"],
     new Uint8Array([42]),
     plaintext2
@@ -334,7 +334,7 @@ test("KMS CoverCrypt keys", async () => {
   console.log("...decryption rotated old")
   try {
     const decrypter2 = new CoverCryptHybridDecryption(udk)
-    decrypter2.decrypt(ciphertext2)
+    await decrypter2.decrypt(ciphertext2)
     return await Promise.reject(new Error("This should have failed"))
   } catch (error) {
     // everything is fine - it should not decrypt
@@ -343,7 +343,7 @@ test("KMS CoverCrypt keys", async () => {
   const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
   console.log("...decryption rotated 2")
   const decrypter2 = new CoverCryptHybridDecryption(udk2)
-  const plaintext2_ = decrypter2.decrypt(ciphertext2)
+  const plaintext2_ = await decrypter2.decrypt(ciphertext2)
   expect(plaintext2_).toEqual(plaintext)
 
   return await Promise.resolve("SUCCESS")

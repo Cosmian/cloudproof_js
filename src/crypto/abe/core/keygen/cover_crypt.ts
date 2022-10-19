@@ -5,7 +5,7 @@ import {
   webassembly_rotate_attributes,
 } from "cosmian_cover_crypt"
 import { logger } from "../../../../utils/logger"
-import { fromBeBytes, hexEncode } from "../../../../utils/utils"
+import { fromBeBytes, hexEncode, initCoverCrypt } from "../../../../utils/utils"
 import { Policy } from "../../interfaces/policy"
 
 export class CoverCryptMasterKey {
@@ -46,7 +46,8 @@ export class CoverCryptKeyGeneration {
    * @param {Policy} policy the policy to use
    * @returns {CoverCryptMasterKey} the master keys
    */
-  public generateMasterKeys(policy: Policy): CoverCryptMasterKey {
+  public async generateMasterKeys(policy: Policy): Promise<CoverCryptMasterKey> {
+    await initCoverCrypt();
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
@@ -68,11 +69,12 @@ export class CoverCryptKeyGeneration {
    * @param {Policy} policy the policy of the master key
    * @returns the user decryption key bytes
    */
-  public generateUserDecryptionKey(
+  public async generateUserDecryptionKey(
     masterPrivateKeyBytes: Uint8Array,
     accessPolicy: string,
     policy: Policy
-  ): Uint8Array {
+  ): Promise<Uint8Array> {
+    await initCoverCrypt()
     logger.log(() => `privateKey: ${hexEncode(masterPrivateKeyBytes)}`)
     logger.log(() => "accessPolicy: " + accessPolicy)
     logger.log(() => `policy: ${policy.toString()}`)
@@ -97,7 +99,8 @@ export class CoverCryptKeyGeneration {
    * @param {Policy} policy the policy
    * @returns {Policy} the updated policy
    */
-  public rotateAttributes(attributes: string[], policy: Policy): Policy {
+  public async rotateAttributes(attributes: string[], policy: Policy): Promise<Policy> {
+    await initCoverCrypt()
     logger.log(() => `attributes: ${JSON.stringify(attributes)}`)
     logger.log(() => `policy: ${policy.toString()}`)
 

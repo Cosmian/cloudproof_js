@@ -5,7 +5,7 @@ import {
 import { Policy } from "../../../../../crypto/abe/interfaces/policy"
 import { PublicKey } from "../../../../../kms/objects/PublicKey"
 import { logger } from "../../../../../utils/logger"
-import { hexEncode } from "../../../../../utils/utils"
+import { hexEncode, initCoverCrypt } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
 import {
   AbeEncryptionParameters,
@@ -67,9 +67,10 @@ export class CoverCryptHybridEncryption {
    * @param parameters ABE encryption parameters
    * @returns an encrypted header witch contains the clear and encrypted symmetric key
    */
-  public encryptHybridHeader(
+  public async encryptHybridHeader(
     parameters: AbeEncryptionParameters
-  ): EncryptedHeader {
+  ): Promise<EncryptedHeader> {
+    await initCoverCrypt()
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
       parameters.metadata.toJsonEncoded(),
       this.policy,
@@ -93,12 +94,13 @@ export class CoverCryptHybridEncryption {
    * @param blockNumber
    * @returns the cleartext if everything succeeded
    */
-  public encryptHybridBlock(
+  public async encryptHybridBlock(
     symmetricKey: Uint8Array,
     plaintext: Uint8Array,
     uid: Uint8Array | undefined,
     blockNumber: number | undefined
-  ): Uint8Array {
+  ): Promise<Uint8Array> {
+    await initCoverCrypt()
     return webassembly_encrypt_hybrid_block(
       symmetricKey,
       uid,
@@ -115,12 +117,12 @@ export class CoverCryptHybridEncryption {
    * @param plaintext
    * @returns
    */
-  public encrypt(
+  public async encrypt(
     attributes: string[],
     uid: Uint8Array,
     plaintext: Uint8Array
-  ): Uint8Array {
-    logger.log(() => `encrypt for attributes: ${attributes.join(",")}`)
+  ): Promise<Uint8Array> {
+    logger.log(() => `encrypt for attributes: ${attributes.join(',' )}`)
     logger.log(() => `encrypt for uid: ${hexEncode(uid)}`)
     logger.log(() => `encrypt for plaintext: ${hexEncode(plaintext)}`)
 
@@ -129,14 +131,14 @@ export class CoverCryptHybridEncryption {
       attributes,
       new Metadata(uid, new Uint8Array(1))
     )
-    const hybridHeader = this.encryptHybridHeader(encryptionParameters)
+    const hybridHeader = await this.encryptHybridHeader(encryptionParameters)
     logger.log(
       () =>
         `encrypt: encryptedSymmetricKeySizeAsArray:${hexEncode(
           hybridHeader.encryptedSymmetricKeySizeAsArray
         )}`
     )
-    const ciphertext = this.encryptHybridBlock(
+    const ciphertext = await this.encryptHybridBlock(
       hybridHeader.symmetricKey,
       plaintext,
       uid,
@@ -186,10 +188,11 @@ export class CoverCryptHybridEncryption {
    * @param uid header integrity param
    * @returns timings for encryption
    */
-  public benchEncryptHybridHeader(
+  public async benchEncryptHybridHeader(
     attributes: string[],
     uid: Uint8Array
-  ): number[] {
+  ): Promise<number[]> {
+    await initCoverCrypt();
     const loops = 100
     const startDate = new Date().getTime()
     const metadata = new Metadata(uid)

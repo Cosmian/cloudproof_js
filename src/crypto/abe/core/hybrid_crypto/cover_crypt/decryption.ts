@@ -4,6 +4,7 @@ import {
   webassembly_decrypt_hybrid_header,
   webassembly_get_encrypted_header_size,
 } from "cosmian_cover_crypt"
+import { initCoverCrypt } from "utils/utils"
 import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
 import { logger } from "../../../../../utils/logger"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
@@ -48,7 +49,8 @@ export class CoverCryptHybridDecryption {
    * @param abeHeader ABE encrypted value
    * @returns cleartext decrypted ABE value
    */
-  public decryptHybridHeader(abeHeader: Uint8Array): ClearTextHeader {
+  public async decryptHybridHeader(abeHeader: Uint8Array): Promise<ClearTextHeader> {
+    await initCoverCrypt();
     const cleartextHeader = webassembly_decrypt_hybrid_header(
       this.asymmetricDecryptionKey,
       abeHeader
@@ -66,12 +68,13 @@ export class CoverCryptHybridDecryption {
    * @param blockNumber
    * @returns the cleartext if everything succeeded
    */
-  public decryptHybridBlock(
+  public async decryptHybridBlock(
     symmetricKey: Uint8Array,
     encryptedBytes: Uint8Array,
     uid: Uint8Array | undefined,
     blockNumber: number | undefined
-  ): Uint8Array {
+  ): Promise<Uint8Array> {
+    await initCoverCrypt();
     return webassembly_decrypt_hybrid_block(
       symmetricKey,
       uid,
@@ -86,7 +89,9 @@ export class CoverCryptHybridDecryption {
    * @param  {Uint8Array} ciphertext the encrypted data
    * @returns {Uint8Array} the cleartext value
    */
-  public decrypt(ciphertext: Uint8Array): Uint8Array {
+  public async decrypt(ciphertext: Uint8Array): Promise<Uint8Array> {
+    await initCoverCrypt();
+
     logger.log(() => `decrypt for encryptedData: ${ciphertext.toString()}`)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
@@ -104,13 +109,11 @@ export class CoverCryptHybridDecryption {
     )
 
     // HEADER decryption: asymmetric decryption
-    const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
-    logger.log(
-      () => `decrypt for cleartextHeader: ${JSON.stringify(cleartextHeader)}`
-    )
+    const cleartextHeader = await this.decryptHybridHeader(asymmetricHeader)
+    logger.log(() => `decrypt for cleartextHeader: ${JSON.stringify(cleartextHeader)}`)
 
     // AES_DATA: AES Symmetric part decryption
-    const cleartext = this.decryptHybridBlock(
+    const cleartext = await this.decryptHybridBlock(
       cleartextHeader.symmetricKey,
       encryptedSymmetricBytes,
       cleartextHeader.metadata.uid,
@@ -126,13 +129,14 @@ export class CoverCryptHybridDecryption {
    * @param databaseEntries a list of encrypted database entries to decrypt
    * @returns a list of cleartext values
    */
-  public decryptBatch(databaseEntries: Uint8Array[]): Uint8Array[] {
-    const cleartextValues: Uint8Array[] = []
-    databaseEntries.forEach((encryptedValue: Uint8Array) => {
-      const cleartext = this.decrypt(encryptedValue)
+  public async decryptBatch(databaseEntries: Uint8Array[]): Promise<Uint8Array[]> {
+    const cleartextValues = []
+
+    for (const encryptedValue of databaseEntries) {
+      const cleartext = await this.decrypt(encryptedValue)
       logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
       cleartextValues.push(cleartext)
-    })
+    }
 
     return cleartextValues
   }
@@ -143,7 +147,9 @@ export class CoverCryptHybridDecryption {
    * @param abeHeader ABE encrypted value
    * @returns cleartext decrypted ABE value
    */
-  public benchDecryptHybridHeader(abeHeader: Uint8Array): number[] {
+  public async benchDecryptHybridHeader(abeHeader: Uint8Array): Promise<number[]> {
+    await initCoverCrypt();
+
     logger.log(
       () => `benchDecryptHybridHeader for abeHeader: ${abeHeader.toString()}`
     )
@@ -160,7 +166,9 @@ export class CoverCryptHybridDecryption {
     return [ms, -1]
   }
 
-  public getHeaderSize(encryptedBytes: Uint8Array): number {
+  public async getHeaderSize(encryptedBytes: Uint8Array): Promise<number> {
+    await initCoverCrypt();
+
     return webassembly_get_encrypted_header_size(encryptedBytes)
   }
 }

@@ -66,9 +66,9 @@ export class EncryptionDecryptionDemo {
     this.hybridDecryption = hybridDecryption
   }
 
-  public async run() {
+  public async run(): Promise<void> {
     // Verify non regression test vector
-    this.nonRegressionTests()
+    await this.nonRegressionTests()
 
     // Demo of key generation
     const policy = new Policy(
@@ -96,13 +96,13 @@ export class EncryptionDecryptionDemo {
     this.demoKeys.publicKey = masterKeys.publicKey
     this.demoKeys.privateKey = masterKeys.privateKey
     this.demoKeys.topSecretMkgFinUser =
-      this.keyGenerator.generateUserDecryptionKey(
+      await this.keyGenerator.generateUserDecryptionKey(
         masterKeys.privateKey,
         DemoKeys.topSecretMkgFinUserAccessPolicy,
         policy
       )
     this.demoKeys.mediumSecretMkgUser =
-      this.keyGenerator.generateUserDecryptionKey(
+      await this.keyGenerator.generateUserDecryptionKey(
         masterKeys.privateKey,
         DemoKeys.mediumSecretMkgUserAccessPolicy,
         policy
@@ -111,10 +111,10 @@ export class EncryptionDecryptionDemo {
     this.hybridEncryption.publicKey = masterKeys.publicKey
 
     // Run demo scenario (encryption + decryption)
-    this.encryptionDemo()
+    await this.encryptionDemo()
 
     // Rotate attribute
-    const newPolicy = this.keyGenerator.rotateAttributes(
+    const newPolicy = await this.keyGenerator.rotateAttributes(
       ["Security Level::Low Secret", "Department::MKG"],
       policy
     )
@@ -126,13 +126,13 @@ export class EncryptionDecryptionDemo {
     this.demoKeys.publicKey = newMasterKeys.publicKey
     this.demoKeys.privateKey = newMasterKeys.privateKey
     this.demoKeys.topSecretMkgFinUser =
-      this.keyGenerator.generateUserDecryptionKey(
+      await this.keyGenerator.generateUserDecryptionKey(
         newMasterKeys.privateKey,
         DemoKeys.topSecretMkgFinUserAccessPolicy,
         newPolicy
       )
     this.demoKeys.mediumSecretMkgUser =
-      this.keyGenerator.generateUserDecryptionKey(
+      await this.keyGenerator.generateUserDecryptionKey(
         newMasterKeys.privateKey,
         DemoKeys.mediumSecretMkgUserAccessPolicy,
         newPolicy
@@ -141,45 +141,45 @@ export class EncryptionDecryptionDemo {
     this.hybridEncryption.publicKey = newMasterKeys.publicKey
 
     // and restart again demo scenario
-    this.encryptionDemo()
+    await this.encryptionDemo()
   }
 
-  public nonRegressionTests() {
+  public async nonRegressionTests(): Promise<void> {
     const assert = (x: Uint8Array, y: Uint8Array): void => {
       if (new TextDecoder().decode(x) !== new TextDecoder().decode(y)) {
         throw new Error(
-          "Items MUST be equal (left: " + x + " right: " + y + ")"
+          `Items MUST be equal (left: ${hexEncode(x)} right: ${hexEncode(y)})`
         )
       }
     }
 
     this.hybridDecryption.renewKey(this.demoKeys.topSecretMkgFinUser)
-    const cleartext = this.hybridDecryption.decrypt(this.demoKeys.encryptedData)
+    const cleartext = await this.hybridDecryption.decrypt(this.demoKeys.encryptedData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
     assert(this.demoKeys.plaintext, cleartext)
 
-    this.encryptionDemo()
+    await this.encryptionDemo()
   }
 
-  public encryptionDemo() {
+  public async encryptionDemo(): Promise<void> {
     // Init ABE decryption cache
     this.hybridEncryption.renewKey(
       this.demoKeys.policy,
       this.demoKeys.publicKey
     )
-    const lowSecretMkgData = this.hybridEncryption.encrypt(
+    const lowSecretMkgData = await this.hybridEncryption.encrypt(
       ["Security Level::Low Secret", "Department::MKG"],
       this.demoKeys.uid,
       this.demoKeys.plaintext
     )
-    const topSecretMkgData = this.hybridEncryption.encrypt(
+    const topSecretMkgData = await this.hybridEncryption.encrypt(
       ["Security Level::Top Secret", " Department::MKG"],
       this.demoKeys.uid,
       this.demoKeys.plaintext
     )
-    const lowSecretFinData = this.hybridEncryption.encrypt(
+    const lowSecretFinData = await this.hybridEncryption.encrypt(
       ["Security Level::Low Secret", "Department::FIN"],
       this.demoKeys.uid,
       this.demoKeys.plaintext
@@ -192,13 +192,13 @@ export class EncryptionDecryptionDemo {
     const assert = (x: Uint8Array, y: Uint8Array): void => {
       if (new TextDecoder().decode(x) !== new TextDecoder().decode(y))
         throw new Error(
-          "Items MUST be equal (left: " + x + " right: " + y + ")"
+          `Items MUST be equal (left: ${hexEncode(x)} right: ${hexEncode(y)})`
         )
     }
 
     // The medium secret marketing user can successfully decrypt a low security marketing message :
     this.hybridDecryption.renewKey(this.demoKeys.mediumSecretMkgUser)
-    let cleartext = this.hybridDecryption.decrypt(lowSecretMkgData)
+    let cleartext = await this.hybridDecryption.decrypt(lowSecretMkgData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
@@ -206,34 +206,34 @@ export class EncryptionDecryptionDemo {
 
     // .. however it can neither decrypt a marketing message with higher security:
     try {
-      this.hybridDecryption.decrypt(topSecretMkgData)
+      await this.hybridDecryption.decrypt(topSecretMkgData)
     } catch (e) {
-      logger.log(() => "User does not have the right access policy (" + e + ")")
+      logger.log(() => `User does not have the right access policy (${JSON.stringify(e)})`)
     }
 
     // … nor decrypt a message from another department even with a lower security:
     try {
-      this.hybridDecryption.decrypt(lowSecretFinData)
+      await this.hybridDecryption.decrypt(lowSecretFinData)
     } catch (e) {
-      logger.log(() => "User does not have the right access policy (" + e + ")")
+      logger.log(() => `User does not have the right access policy (${JSON.stringify(e)})`)
     }
 
     // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below
     // As expected, the top secret marketing financial user can successfully decrypt all messages
     this.hybridDecryption.renewKey(this.demoKeys.topSecretMkgFinUser)
-    cleartext = this.hybridDecryption.decrypt(lowSecretMkgData)
+    cleartext = await this.hybridDecryption.decrypt(lowSecretMkgData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
     assert(this.demoKeys.plaintext, cleartext)
 
-    cleartext = this.hybridDecryption.decrypt(topSecretMkgData)
+    cleartext = await this.hybridDecryption.decrypt(topSecretMkgData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
     assert(this.demoKeys.plaintext, cleartext)
 
-    cleartext = this.hybridDecryption.decrypt(lowSecretFinData)
+    cleartext = await this.hybridDecryption.decrypt(lowSecretFinData)
     logger.log(
       () => "Decryption succeed: " + new TextDecoder().decode(cleartext)
     )
