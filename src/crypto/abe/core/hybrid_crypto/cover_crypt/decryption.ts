@@ -4,15 +4,34 @@ import {
   webassembly_decrypt_hybrid_header,
   webassembly_get_encrypted_header_size,
 } from "cosmian_cover_crypt"
+import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
 import { logger } from "../../../../../utils/logger"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
-import { HybridDecryption } from "../../../interfaces/decryption"
 
 /**
  * This class exposes the ABE primitives.
  *
  */
-export class CoverCryptHybridDecryption extends HybridDecryption {
+export class CoverCryptHybridDecryption {
+  private _asymmetricDecryptionKey: Uint8Array
+
+  constructor(asymmetricDecryptionKey: PrivateKey | Uint8Array) {
+    if (asymmetricDecryptionKey instanceof PrivateKey) {
+      this._asymmetricDecryptionKey = asymmetricDecryptionKey.bytes()
+    } else {
+      this._asymmetricDecryptionKey = asymmetricDecryptionKey
+    }
+  }
+
+  public set asymmetricDecryptionKey(value: Uint8Array) {
+    this._asymmetricDecryptionKey = value
+  }
+
+  public get asymmetricDecryptionKey(): Uint8Array {
+    return this._asymmetricDecryptionKey
+  }
+
+
   public renewKey(userDecryptionKey: Uint8Array): void {
     this.asymmetricDecryptionKey = userDecryptionKey
   }

@@ -2,10 +2,11 @@ import {
   webassembly_encrypt_hybrid_block,
   webassembly_encrypt_hybrid_header,
 } from "cosmian_cover_crypt"
+import { Policy } from "../../../../../crypto/abe/interfaces/policy"
+import { PublicKey } from "../../../../../kms/objects/PublicKey"
 import { logger } from "../../../../../utils/logger"
 import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
-import { HybridEncryption } from "../../../interfaces/encryption"
 import {
   AbeEncryptionParameters,
   Metadata,
@@ -15,7 +16,39 @@ import {
  * This class exposes the ABE primitives.
  *
  */
-export class CoverCryptHybridEncryption extends HybridEncryption {
+export class CoverCryptHybridEncryption {
+  private _publicKey: Uint8Array
+  private _policy: Uint8Array
+
+  constructor(policy: Policy | Uint8Array, publicKey: PublicKey | Uint8Array) {
+    if (policy instanceof Policy) {
+      this._policy = policy.toJsonEncoded()
+    } else {
+      this._policy = policy
+    }
+    if (publicKey instanceof PublicKey) {
+      this._publicKey = publicKey.bytes()
+    } else {
+      this._publicKey = publicKey
+    }
+  }
+
+  public get policy(): Uint8Array {
+    return this._policy
+  }
+
+  public set policy(value: Uint8Array) {
+    this._policy = value
+  }
+
+  public set publicKey(value: Uint8Array) {
+    this._publicKey = value
+  }
+
+  public get publicKey(): Uint8Array {
+    return this._publicKey
+  }
+
   public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
     this.policy = policy
     this.publicKey = publicKey
