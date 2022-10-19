@@ -4,31 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [3.2.2] - 2022-10-19
-
-### Added
-
-### Changed
-
-### Fixed
-
-- search of the simple API
-
-### Removed
-
----
-
----
-
 ## [3.2.1] - 2022-10-19
 
 ### Added
 
 ### Changed
 
-- Strip packaging (removed tests folder)
+- Strip packaging
 
 ### Fixed
+
+- search of the simple API
 
 ### Removed
 
