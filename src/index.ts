@@ -5,10 +5,6 @@ export { CoverCryptKeyGeneration } from "./crypto/abe/core/keygen/cover_crypt"
 export { GpswHybridDecryption } from "./crypto/abe/core/hybrid_crypto/gpsw/decryption"
 export { GpswHybridEncryption } from "./crypto/abe/core/hybrid_crypto/gpsw/encryption"
 export { GpswMasterKeyGeneration } from "./crypto/abe/core/keygen/gpsw_crypt"
-export {
-  EncryptedEntry,
-  WorkerPool,
-} from "./crypto/abe/core/hybrid_crypto/worker/worker_pool"
 export * from "./crypto/abe/interfaces/encryption_parameters"
 export * from "./crypto/abe/interfaces/access_policy"
 export * from "./crypto/abe/interfaces/keygen"
