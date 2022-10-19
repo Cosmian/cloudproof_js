@@ -1,5 +1,8 @@
 import { fromTTLV } from "../../src/kms/deserialize/deserializer"
-import { KmipClient, SymmetricKeyAlgorithm } from "../../src/kms/client/KmipClient"
+import {
+  KmipClient,
+  SymmetricKeyAlgorithm,
+} from "../../src/kms/client/KmipClient"
 import { Create } from "../../src/kms/operations/Create"
 import { toTTLV } from "../../src/kms/serialize/serializer"
 import { Attributes } from "../../src/kms/types/Attributes"
@@ -147,7 +150,7 @@ test("KMS Symmetric Key", async () => {
   )
   expect(
     key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-    TransparentSymmetricKey
+      TransparentSymmetricKey
   ).toBeTruthy()
   const sk = key.keyBlock.key_value.plaintext
     ?.keyMaterial as TransparentSymmetricKey

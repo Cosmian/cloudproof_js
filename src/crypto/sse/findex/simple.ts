@@ -5,7 +5,9 @@ import {
   deserializeList,
   serializeHashMap,
 } from "../../../utils/utils"
+import { Index } from "./interfaces"
 
+/* tslint:disable:max-classes-per-file */
 export class IndexedValue {
   static L_PREFIX = 108
   static W_PREFIX = 119
@@ -91,7 +93,7 @@ export class Label {
 }
 
 /**
- * A new value to index for a given set of keywords: 
+ * A new value to index for a given set of keywords:
  * IndexedValue -> Set<KeyWord>
  */
 export interface IndexedEntry {
@@ -99,44 +101,50 @@ export interface IndexedEntry {
   keywords: Set<Keyword>
 }
 
-
 /**
- * A helper class to create a {@link IndexedEntry} when 
- * indexing a {@link Location} with keywords supplied 
+ * A helper class to create a {@link IndexedEntry} when
+ * indexing a {@link Location} with keywords supplied
  * as arrays of strings or bytes
  */
 export class LocationIndexEntry implements IndexedEntry {
-
   indexedValue: IndexedValue
   keywords: Set<Keyword>
-  constructor(location: string | Uint8Array, keywords: string[] | Uint8Array[]) {
+  constructor(
+    location: string | Uint8Array,
+    keywords: string[] | Uint8Array[]
+  ) {
     if (location instanceof Uint8Array) {
       this.indexedValue = IndexedValue.fromLocation(new Location(location))
     } else {
-      this.indexedValue = IndexedValue.fromLocation(new Location(new TextEncoder().encode(location)))
+      this.indexedValue = IndexedValue.fromLocation(
+        new Location(new TextEncoder().encode(location))
+      )
     }
-    this.keywords = new Set(keywords.map((v) => {
-      if (v instanceof Uint8Array) {
-        return new Keyword(v)
-      }
-      return new Keyword(new TextEncoder().encode(v))
-    }))
+    this.keywords = new Set(
+      keywords.map((v) => {
+        if (v instanceof Uint8Array) {
+          return new Keyword(v)
+        }
+        return new Keyword(new TextEncoder().encode(v))
+      })
+    )
   }
 }
 
 /**
- * A helper class to create a {@link IndexedEntry} when 
+ * A helper class to create a {@link IndexedEntry} when
  * indexing a {@link Keyword} to point to another {@link Keyword}
  */
 export class KeywordIndexEntry implements IndexedEntry {
-
   indexedValue: IndexedValue
   keywords: Set<Keyword>
   constructor(source: string | Uint8Array, destination: string | Uint8Array) {
     if (destination instanceof Uint8Array) {
       this.indexedValue = IndexedValue.fromNextWord(new Keyword(destination))
     } else {
-      this.indexedValue = IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode(destination)))
+      this.indexedValue = IndexedValue.fromNextWord(
+        new Keyword(new TextEncoder().encode(destination))
+      )
     }
     if (source instanceof Uint8Array) {
       this.keywords = new Set([new Keyword(source)])
@@ -149,7 +157,7 @@ export class KeywordIndexEntry implements IndexedEntry {
 /**
  * Represents a `(uid, value)` tuple, i.e. a line, in the Entry or Chain table
  */
-export type UidsAndValues = Array<{ uid: Uint8Array; value: Uint8Array }>
+export type UidsAndValues = Index[]
 
 /**
  * Fetch a uid in the Entry table and return the (uid, value) column
