@@ -1,5 +1,5 @@
 import { logger } from "./logger"
-
+import leb from 'leb128';
 /**
  * Convert the binary string to base64 string and sanitize it.
  *
@@ -107,7 +107,6 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
  * @returns {Uint16Array[]} an array of deserialized items
  */
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
-  const leb = require("leb128")
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
     const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10)
@@ -132,7 +131,6 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
 export function deserializeHashMap(
   serializedItems: Uint8Array
 ): Array<{ uid: Uint8Array; value: Uint8Array }> {
-  const leb = require("leb128")
   const items: Array<{
     uid: Uint8Array
     value: Uint8Array
@@ -175,7 +173,6 @@ export function deserializeHashMap(
  * @returns {Uint8Array} Uint8Array of serialized data
  */
 export function serializeList(list: Uint8Array[]): Uint8Array {
-  const leb = require("leb128")
   let serializedData = new Uint8Array()
   for (const item of list) {
     const itemLen = leb.unsigned.encode(item.length)
@@ -194,7 +191,6 @@ export function serializeList(list: Uint8Array[]): Uint8Array {
 export function serializeHashMap(
   data: Array<{ uid: Uint8Array; value: Uint8Array }>
 ): Uint8Array {
-  const leb = require("leb128")
   let serializedData = new Uint8Array()
   for (const item of data) {
     const keyLen = leb.unsigned.encode(item.uid.length)

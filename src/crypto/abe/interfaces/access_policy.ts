@@ -1,5 +1,5 @@
 import { webassembly_parse_boolean_access_policy } from "cosmian_cover_crypt"
-import { initCoverCrypt } from "utils/utils"
+import { initCoverCrypt } from "../../../utils/utils"
 import { PrivateKey } from "../../../kms/objects/PrivateKey"
 import { Attributes } from "../../../kms/types/Attributes"
 import { VendorAttribute } from "../../../kms/types/VendorAttribute"

@@ -4,7 +4,7 @@ import {
   webassembly_decrypt_hybrid_header,
   webassembly_get_encrypted_header_size,
 } from "cosmian_cover_crypt"
-import { initCoverCrypt } from "utils/utils"
+import { initCoverCrypt } from "../../../../../utils/utils"
 import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
 import { logger } from "../../../../../utils/logger"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"

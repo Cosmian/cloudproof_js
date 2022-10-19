@@ -7,6 +7,7 @@ import {
 } from "../../../utils/utils"
 import { Index } from "./interfaces"
 import { webassembly_search, webassembly_upsert } from 'cosmian_findex';
+import { bytesToBase64 }from "byte-base64";
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
@@ -39,7 +40,7 @@ export class IndexedValue {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return bytesToBase64(this.bytes)
   }
 }
 
@@ -64,7 +65,7 @@ export class Keyword {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return bytesToBase64(this.bytes)
   }
 }
 export class FindexKey {
@@ -74,7 +75,7 @@ export class FindexKey {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return bytesToBase64(this.bytes)
   }
 }
 
