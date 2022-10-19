@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Strip packaging
+- Strip packaging (removed tests folder)
 
 ### Fixed
 
