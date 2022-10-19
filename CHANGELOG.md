@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- search of the simple API
+
 ### Removed
 
 - Remove worker and worker pool
