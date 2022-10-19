@@ -106,7 +106,7 @@ export class CoverCryptHybridDecryption {
 
     // HEADER decryption: asymmetric decryption
     const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
-    logger.log(() => "decrypt for cleartextHeader: " + cleartextHeader)
+    logger.log(() => `decrypt for cleartextHeader: ${JSON.stringify(cleartextHeader)}`)
 
     // AES_DATA: AES Symmetric part decryption
     const cleartext = this.decryptHybridBlock(
@@ -115,7 +115,7 @@ export class CoverCryptHybridDecryption {
       cleartextHeader.metadata.uid,
       0
     )
-    logger.log(() => "cleartext: " + new TextDecoder().decode(cleartext))
+    logger.log(() => `cleartext: ${new TextDecoder().decode(cleartext)}`)
     return cleartext
   }
 

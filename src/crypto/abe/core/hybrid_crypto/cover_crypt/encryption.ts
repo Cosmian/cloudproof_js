@@ -77,7 +77,7 @@ export class CoverCryptHybridEncryption {
       this.publicKey
     )
 
-    logger.log(() => "hybrid header succeeded: " + encryptedHeaderBytes)
+    logger.log(() => `hybrid header succeeded: ${hexEncode(encryptedHeaderBytes)}`)
 
     return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
   }
@@ -118,9 +118,9 @@ export class CoverCryptHybridEncryption {
     uid: Uint8Array,
     plaintext: Uint8Array
   ): Uint8Array {
-    logger.log(() => "encrypt for attributes: " + attributes)
-    logger.log(() => "encrypt for uid: " + uid)
-    logger.log(() => "encrypt for plaintext: " + plaintext)
+    logger.log(() => `encrypt for attributes: ${attributes.join(',' )}`)
+    logger.log(() => `encrypt for uid: ${hexEncode(uid)}`)
+    logger.log(() => `encrypt for plaintext: ${hexEncode(plaintext)}`)
 
     // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
     const encryptionParameters = new AbeEncryptionParameters(
@@ -130,8 +130,7 @@ export class CoverCryptHybridEncryption {
     const hybridHeader = this.encryptHybridHeader(encryptionParameters)
     logger.log(
       () =>
-        "encrypt: encryptedSymmetricKeySizeAsArray:" +
-        hybridHeader.encryptedSymmetricKeySizeAsArray
+        `encrypt: encryptedSymmetricKeySizeAsArray:${hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)}`
     )
     const ciphertext = this.encryptHybridBlock(
       hybridHeader.symmetricKey,
@@ -142,20 +141,17 @@ export class CoverCryptHybridEncryption {
 
     logger.log(
       () =>
-        "encrypt: header size : " +
-        hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)
+        `encrypt: header size : ${hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)}`
     )
     logger.log(
       () =>
-        "encrypt: enc header size : " +
-        hybridHeader.encryptedSymmetricKey.length
+        `encrypt: enc header size : ${hybridHeader.encryptedSymmetricKey.length}`
     )
     logger.log(
       () =>
-        "encrypt: encrypted symmetric key : " +
-        hybridHeader.encryptedSymmetricKey
+        `encrypt: encrypted symmetric key : ${hexEncode(hybridHeader.encryptedSymmetricKey)}`
     )
-    logger.log(() => "encrypt: ciphertext : " + ciphertext)
+    logger.log(() => `encrypt: ciphertext : ${hexEncode(ciphertext)}`)
 
     // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
     const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length
@@ -168,7 +164,7 @@ export class CoverCryptHybridEncryption {
       ciphertext,
       headerSize + hybridHeader.encryptedSymmetricKey.length
     )
-    logger.log(() => "encrypt: encryptedData: " + encryptedData)
+    logger.log(() => `encrypt: encryptedData: ${hexEncode(encryptedData)}`)
 
     return encryptedData
   }
