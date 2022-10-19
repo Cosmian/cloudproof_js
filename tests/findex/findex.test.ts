@@ -49,13 +49,11 @@ test("upsert and search memory", async () => {
   const fetchEntries: FetchEntries = async (uids: Uint8Array[]): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const uid of uids) {
-      console.log("FETCH ENTRY", hexEncode(uid))
       const value = entryTable[hexEncode(uid)]
       if (typeof value !== "undefined") {
         results.push({ uid, value })
       }
     }
-    console.log("RESULTS ENTRY", results)
     return await Promise.resolve(results)
   }
 
@@ -73,7 +71,6 @@ test("upsert and search memory", async () => {
 
   const upsertEntries: UpsertEntries = async (uidsAndValues: UidsAndValues): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
-      console.log("UPSERT ENTRY", hexEncode(uid))
       entryTable[hexEncode(uid)] = value
     }
     return await Promise.resolve()
@@ -105,14 +102,17 @@ test("upsert and search memory", async () => {
     fetchEntries,
     fetchChains
   )
-
-  console.log("ENTRY", entryTable)
-  console.log("CHAIN", chainTable)
-  console.log("IV", results)
-
   expect(results.length).toEqual(1)
 
-  // const label = new Label(new TextEncoder().encode("Q1 2022"))
+  const results2 = await search(
+    new Set(["BOB"]),
+    searchKey,
+    label,
+    100,
+    fetchEntries,
+    fetchChains
+  )
+  expect(results2.length).toEqual(1)
 })
 
 test("in memory", async () => {
