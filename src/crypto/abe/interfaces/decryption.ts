@@ -67,7 +67,6 @@ export abstract class HybridDecryption {
 
 export interface DecryptionWorkerMessage {
   name: "INIT" | "DESTROY" | "DECRYPT" | "SUCCESS" | "ERROR"
-  isGpswImplementation: boolean
   error?: string
   value?: any
 }
