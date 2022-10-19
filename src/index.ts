@@ -4,7 +4,6 @@ export { CoverCryptHybridEncryption } from "./crypto/abe/core/hybrid_crypto/cove
 export { CoverCryptKeyGeneration } from "./crypto/abe/core/keygen/cover_crypt"
 export * from "./crypto/abe/interfaces/encryption_parameters"
 export * from "./crypto/abe/interfaces/access_policy"
-export * from "./crypto/abe/interfaces/keygen"
 export * from "./crypto/abe/interfaces/cleartext_header"
 export * from "./crypto/abe/interfaces/encrypted_header"
 export * from "./crypto/abe/interfaces/policy"

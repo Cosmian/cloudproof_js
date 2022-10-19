@@ -1,7 +1,6 @@
 /* tslint:disable:max-classes-per-file */
 
-import { CoverCryptHybridDecryption, CoverCryptHybridEncryption } from "index"
-import { AbeKeyGeneration } from "../../src/crypto/abe/interfaces/keygen"
+import { CoverCryptHybridDecryption, CoverCryptHybridEncryption, CoverCryptKeyGeneration } from "index"
 import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
 import { logger } from "../../src/utils/logger"
 import { hexEncode } from "../../src/utils/utils"
@@ -46,13 +45,13 @@ export class DemoKeys {
 }
 
 export class EncryptionDecryptionDemo {
-  public keyGenerator: AbeKeyGeneration
+  public keyGenerator: CoverCryptKeyGeneration
   public demoKeys: DemoKeys
   public hybridEncryption: CoverCryptHybridEncryption
   public hybridDecryption: CoverCryptHybridDecryption
 
   constructor(
-    keyGenerator: AbeKeyGeneration,
+    keyGenerator: CoverCryptKeyGeneration,
     demoKeys: DemoKeys,
     hybridEncryption: CoverCryptHybridEncryption,
     hybridDecryption: CoverCryptHybridDecryption
