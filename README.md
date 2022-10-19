@@ -6,11 +6,6 @@ The library provides a Typescript-friendly API to the **Cloudproof Encryption** 
 
 Please [check the online documentation](https://docs.cosmian.com/cloudproof_encryption/use_cases_benefits/) for details on using the CloudProof APIs.
 
-In addition, please have a look at the following tests for implementation examples:
-
-- [TestCoverCrypt](./tests/crypto/abe/cover_crypt/all.test.ts) for using the CoverCrypt scheme with the WASM library
-- [TestFindex](./tests/interface/findex/upsert_search.test.ts) for using the SSE Findex scheme with the WASM library
-
 ## Using in Javascript projects
 
 This library is free software and is available on NPM public repository.
@@ -21,6 +16,66 @@ npm i cloudproof_js
 
 (version before 3.1.0 were called cosmian_js_lib)
 
+## Using in WebPack (not in Node)
+
+The project is supported in WebPack and can be used with this configuration:
+
+```
+const path = require("path")
+const webpack = require("webpack")
+
+module.exports = {
+  mode: "development",
+  entry: ["./src/site/index.ts"],
+  devtool: "inline-source-map",
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+        exclude: [/node_modules/, /\.test.tsx?$/],
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".tsx", ".ts", ".js"],
+    modules: ["node_modules", "src"],
+    alias: {
+      process: "process/browser",
+    },
+  },
+  output: {
+    filename: "main.js",
+    path: path.resolve(__dirname, "dist"),
+  },
+  devServer: {
+    contentBase: "./site",
+  },
+  experiments: {
+    asyncWebAssembly: true,
+  },
+  plugins: [
+    new webpack.EnvironmentPlugin({
+      SERVER: "http://localhost:3000", // default backend URI
+    }),
+    // Work around for Buffer is undefined:
+    // https://github.com/webpack/changelog-v5/issues/10
+    new webpack.ProvidePlugin({
+      Buffer: ["buffer", "Buffer"],
+    }),
+    new webpack.ProvidePlugin({
+      process: "process/browser",
+    }),
+  ],
+}
+```
+
+Then, run:
+
+```
+npx webpack serve
+```
+
 ## Versions Correspondence
 
 Local encryption and decryption with [CoverCrypt](https://github.com/Cosmian/cover_crypt) and SSE Findex Cosmian scheme use WASM libraries which are transparent for Javascript/Typescript usage.
@@ -28,7 +83,7 @@ Local encryption and decryption with [CoverCrypt](https://github.com/Cosmian/cov
 This table shows the minimum version correspondence between the various components.
 
 | KMS Server | Javascript Lib | CoverCrypt lib | Findex |
-| ---------- | -------------- | -------------- | ------ |
+|------------|----------------|----------------|--------|
 | 2.2.0      | 1.0.6          | 6.0.1          | 0.5.0  |
 | 2.3.0      | 3.1.0          | 6.0.7          | 0.7.0  |
 
