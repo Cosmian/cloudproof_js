@@ -246,18 +246,23 @@ export async function upsert(
  * @param {Set<string>} keywords keywords to search inside the indexes
  * @param {FindexKey | SymmetricKey} searchKey Findex's read key
  * @param {Label} label public label for the index
- * @param {number} maxResultsPerKeyword the maximum number of results per keyword
  * @param {FetchEntries} fetchEntries callback to fetch the entries table
  * @param {FetchChains} fetchChains callback to fetch the chains table
+ * @param options
+ * @param options.maxResultsPerKeyword
+ * @param options.maxDepth follow the index graph at this max depth
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
   keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
   searchKey: FindexKey | SymmetricKey,
   label: Label,
-  maxResultsPerKeyword: number,
   fetchEntries: FetchEntries,
-  fetchChains: FetchChains
+  fetchChains: FetchChains,
+  options: { 
+    maxResultsPerKeyword?: number,
+    maxDepth?: number,
+  } = {},
 ): Promise<IndexedValue[]> {
   await initFindex();
 
@@ -266,13 +271,16 @@ export async function search(
     searchKey = new FindexKey(searchKey.bytes())
   }
 
+  console.log(options.maxResultsPerKeyword === undefined ? 0 : options.maxResultsPerKeyword);
+  console.log(options.maxDepth === undefined ? 1000 : options.maxDepth);
+
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
     [...keywords].map((keyword) => keyword instanceof Uint8Array ? keyword :new TextEncoder().encode(keyword)),
-    maxResultsPerKeyword,
-    1000,
-    () => true,
+    options.maxResultsPerKeyword === undefined ? 0 : options.maxResultsPerKeyword,
+    options.maxDepth === undefined ? 1000 : options.maxDepth,
+    () => { console.log('here'); return true },
     async (serializedUids: Uint8Array) => {
       const uids = deserializeList(serializedUids)
       const result = await fetchEntries(uids)

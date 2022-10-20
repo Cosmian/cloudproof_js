@@ -323,7 +323,6 @@ async function run(
       new Set([USERS[0].firstName]),
       searchKey,
       label,
-      1000,
       fetchEntries,
       fetchChains
     )
@@ -357,7 +356,6 @@ async function run(
       new Set(["SomeAlias"]),
       searchKey,
       label,
-      1000,
       fetchEntries,
       fetchChains
     )
