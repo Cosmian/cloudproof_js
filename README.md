@@ -58,11 +58,6 @@ module.exports = {
     new webpack.EnvironmentPlugin({
       SERVER: "http://localhost:3000", // default backend URI
     }),
-    // Work around for Buffer is undefined:
-    // https://github.com/webpack/changelog-v5/issues/10
-    new webpack.ProvidePlugin({
-      Buffer: ["buffer", "Buffer"],
-    }),
     new webpack.ProvidePlugin({
       process: "process/browser",
     }),

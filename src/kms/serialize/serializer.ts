@@ -154,7 +154,6 @@ function parseChildren(value: Object): TTLV[] {
     if (childType === TtlvType.Enumeration) {
       childValue = childMetadata.classOrEnum[childValue]
     } else if (childType === TtlvType.ByteString) {
-      // childValue = Buffer.from(childValue).toString("hex")
       childValue = hexEncode(childValue)
     } else if (childType === TtlvType.DateTimeExtended) {
       childValue = childValue.extendedDate

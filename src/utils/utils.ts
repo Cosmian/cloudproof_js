@@ -1,14 +1,5 @@
 import { logger } from "./logger"
 import leb from 'leb128';
-/**
- * Convert the binary string to base64 string and sanitize it.
- *
- * @param {string} val the binary string
- * @returns {string} the base 64 value
- */
-export function toBase64(val: string): string {
-  return Buffer.from(sanitizeString(val), "binary").toString("base64")
-}
 
 /**
  * Hex encode an array of bytes

@@ -21,6 +21,7 @@ import { createClient } from "redis"
 import { hexEncode } from "../../src/utils/utils"
 import { randomBytes } from "crypto"
 import sqlite3 = require("sqlite3")
+import { base64ToBytes, bytesToBase64 } from "byte-base64"
 
 test("upsert and search memory", async () => {
   const entryLocation: IndexedEntry = {
@@ -133,10 +134,7 @@ test("in memory", async () => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
       for (const { uid, value } of table) {
-        if (
-          Buffer.from(uid).toString("base64") ===
-          Buffer.from(requestedUid).toString("base64")
-        ) {
+        if (bytesToBase64(uid) === bytesToBase64(requestedUid)) {
           results.push({ uid, value })
           break
         }
@@ -150,10 +148,7 @@ test("in memory", async () => {
   ): Promise<void> => {
     for (const { uid: newUid, value: newValue } of uidsAndValues) {
       for (const tableEntry of table) {
-        if (
-          Buffer.from(tableEntry.uid).toString("base64") ===
-          Buffer.from(newUid).toString("base64")
-        ) {
+        if (bytesToBase64(tableEntry.uid) === bytesToBase64(newUid)) {
           tableEntry.value = newValue
           break
         }
@@ -245,7 +240,7 @@ test("Redis", async () => {
       const redisResults = await client.mGet(
         uids.map(
           (uid) =>
-            `${TEST_PREFIX}${prefix}.${Buffer.from(uid).toString("base64")}`
+            `${TEST_PREFIX}${prefix}.${bytesToBase64(uid)}`
         )
       )
 
@@ -254,9 +249,7 @@ test("Redis", async () => {
         if (redisResults[index] !== null) {
           results.push({
             uid: uids[index],
-            value: Uint8Array.from(
-              Buffer.from(redisResults[index] as string, "base64")
-            ),
+            value: base64ToBytes(redisResults[index] as string),
           })
         }
       })
@@ -269,8 +262,8 @@ test("Redis", async () => {
     ): Promise<void> => {
       await client.mSet(
         uidsAndValues.map(({ uid, value }) => [
-          `${TEST_PREFIX}${prefix}.${Buffer.from(uid).toString("base64")}`,
-          Buffer.from(value).toString("base64"),
+          `${TEST_PREFIX}${prefix}.${bytesToBase64(uid)}`,
+          bytesToBase64(value),
         ])
       )
     }

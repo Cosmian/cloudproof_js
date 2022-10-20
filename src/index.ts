@@ -13,7 +13,6 @@ export {
   hexDecode,
   hexEncode,
   sanitizeString,
-  toBase64,
   deserializeList,
   serializeList,
   serializeHashMap,

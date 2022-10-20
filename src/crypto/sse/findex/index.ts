@@ -254,7 +254,7 @@ export async function upsert(
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
-  keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
+  keywords: string | Uint8Array | Set<string | Uint8Array> | Array<string | Uint8Array>,
   searchKey: FindexKey | SymmetricKey,
   label: Label,
   fetchEntries: FetchEntries,
@@ -269,6 +269,10 @@ export async function search(
   // convert key to a single representation
   if (searchKey instanceof SymmetricKey) {
     searchKey = new FindexKey(searchKey.bytes())
+  }
+
+  if (keywords instanceof Uint8Array || typeof keywords === 'string') {
+    keywords = [keywords];
   }
 
   const serializedIndexedValues = await webassembly_search(
