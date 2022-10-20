@@ -107,7 +107,6 @@ test("upsert and search memory", async () => {
     new Set(["ROBERT"]),
     searchKey,
     label,
-    100,
     fetchEntries,
     fetchChains
   )
@@ -117,7 +116,6 @@ test("upsert and search memory", async () => {
     new Set(["BOB"]),
     searchKey,
     label,
-    100,
     fetchEntries,
     fetchChains
   )
