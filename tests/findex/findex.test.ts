@@ -236,6 +236,9 @@ test("Redis", async () => {
   const client = createClient()
   await client.connect()
 
+  const TEST_PREFIX = "findex.test.ts::";
+  await client.del(await client.keys(`${TEST_PREFIX}*`));
+
   try {
     const fetchCallback = async (
       prefix: string,
@@ -244,7 +247,7 @@ test("Redis", async () => {
       const redisResults = await client.mGet(
         uids.map(
           (uid) =>
-            `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`
+            `${TEST_PREFIX}${prefix}.${Buffer.from(uid).toString("base64")}`
         )
       )
 
@@ -268,7 +271,7 @@ test("Redis", async () => {
     ): Promise<void> => {
       await client.mSet(
         uidsAndValues.map(({ uid, value }) => [
-          `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+          `${TEST_PREFIX}${prefix}.${Buffer.from(uid).toString("base64")}`,
           Buffer.from(value).toString("base64"),
         ])
       )

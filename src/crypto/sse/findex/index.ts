@@ -271,16 +271,13 @@ export async function search(
     searchKey = new FindexKey(searchKey.bytes())
   }
 
-  console.log(options.maxResultsPerKeyword === undefined ? 0 : options.maxResultsPerKeyword);
-  console.log(options.maxDepth === undefined ? 1000 : options.maxDepth);
-
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
     [...keywords].map((keyword) => keyword instanceof Uint8Array ? keyword :new TextEncoder().encode(keyword)),
     options.maxResultsPerKeyword === undefined ? 0 : options.maxResultsPerKeyword,
     options.maxDepth === undefined ? 1000 : options.maxDepth,
-    () => { console.log('here'); return true },
+    () => true,
     async (serializedUids: Uint8Array) => {
       const uids = deserializeList(serializedUids)
       const result = await fetchEntries(uids)
