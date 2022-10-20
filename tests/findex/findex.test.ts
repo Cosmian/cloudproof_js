@@ -14,7 +14,7 @@ import {
   UpsertEntries,
   LocationIndexEntry,
   KeywordIndexEntry,
-} from "../../src/crypto/sse/findex/simple"
+} from "../../src/crypto/sse/findex"
 import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
 import { createClient } from "redis"

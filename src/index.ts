@@ -1,4 +1,4 @@
-export * from "./crypto/sse/findex/simple"
+export * from "./crypto/sse/findex"
 export { CoverCryptHybridDecryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
 export { CoverCryptHybridEncryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
 export { CoverCryptKeyGeneration, CoverCryptMasterKey } from "./crypto/abe/core/keygen/cover_crypt"
@@ -7,11 +7,7 @@ export * from "./crypto/abe/interfaces/access_policy"
 export * from "./crypto/abe/interfaces/cleartext_header"
 export * from "./crypto/abe/interfaces/encrypted_header"
 export * from "./crypto/abe/interfaces/policy"
-export * from "./crypto/sse/findex/simple"
-export * from "./crypto/sse/findex/interfaces/dbInterface"
-export * from "./crypto/sse/findex/interfaces/master_keys"
-export * from "./crypto/sse/findex/interfaces/findex"
-export * from "./crypto/sse/findex/interfaces/index"
+export * from "./crypto/sse/findex"
 export { logger } from "./utils/logger"
 export {
   hexDecode,

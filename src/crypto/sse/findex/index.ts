@@ -5,7 +5,6 @@ import {
   initFindex,
   serializeHashMap,
 } from "../../../utils/utils"
-import { Index } from "./interfaces"
 import { webassembly_search, webassembly_upsert } from 'cosmian_findex';
 import { bytesToBase64 }from "byte-base64";
 
@@ -159,7 +158,7 @@ export class KeywordIndexEntry implements IndexedEntry {
 /**
  * Represents a `(uid, value)` tuple, i.e. a line, in the Entry or Chain table
  */
-export type UidsAndValues = Index[]
+export type UidsAndValues = Array<{ uid: Uint8Array, value: Uint8Array }>
 
 /**
  * Fetch a uid in the Entry table and return the (uid, value) column
@@ -219,7 +218,8 @@ export async function upsert(
   }
 
   await webassembly_upsert(
-    JSON.stringify({ k: searchKey.toBase64(), k_star: updateKey.toBase64() }),
+    searchKey.bytes,
+    updateKey.bytes,
     label.bytes,
     JSON.stringify(newIndexedEntriesBase64),
     async (serializedUids: Uint8Array) => {
@@ -252,7 +252,7 @@ export async function upsert(
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
-  keywords: Set<string>,
+  keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
   searchKey: FindexKey | SymmetricKey,
   label: Label,
   maxResultsPerKeyword: number,
@@ -269,7 +269,7 @@ export async function search(
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
-    JSON.stringify([...keywords]),
+    [...keywords].map((keyword) => keyword instanceof Uint8Array ? keyword :new TextEncoder().encode(keyword)),
     maxResultsPerKeyword,
     1000,
     () => true,
