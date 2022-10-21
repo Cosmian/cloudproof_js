@@ -22,18 +22,21 @@ import { hexEncode } from "../../src/utils/utils"
 import { randomBytes } from "crypto"
 import sqlite3 = require("sqlite3")
 
-
 test("upsert and search memory", async () => {
   const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file"))),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
+    indexedValue: IndexedValue.fromLocation(
+      new Location(new TextEncoder().encode("ROBERT file"))
+    ),
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const entryKeyword: IndexedEntry = {
-    indexedValue: IndexedValue.fromNextWord(new Keyword(new TextEncoder().encode("ROBERT"))),
-    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))])
+    indexedValue: IndexedValue.fromNextWord(
+      new Keyword(new TextEncoder().encode("ROBERT"))
+    ),
+    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))]),
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
@@ -46,7 +49,9 @@ test("upsert and search memory", async () => {
   const entryTable: { [uid: string]: Uint8Array } = {}
   const chainTable: { [uid: string]: Uint8Array } = {}
 
-  const fetchEntries: FetchEntries = async (uids: Uint8Array[]): Promise<UidsAndValues> => {
+  const fetchEntries: FetchEntries = async (
+    uids: Uint8Array[]
+  ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const uid of uids) {
       const value = entryTable[hexEncode(uid)]
@@ -57,7 +62,9 @@ test("upsert and search memory", async () => {
     return await Promise.resolve(results)
   }
 
-  const fetchChains: FetchChains = async (uids: Uint8Array[]): Promise<UidsAndValues> => {
+  const fetchChains: FetchChains = async (
+    uids: Uint8Array[]
+  ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const uid of uids) {
       const value = chainTable[hexEncode(uid)]
@@ -68,21 +75,23 @@ test("upsert and search memory", async () => {
     return await Promise.resolve(results)
   }
 
-
-  const upsertEntries: UpsertEntries = async (uidsAndValues: UidsAndValues): Promise<void> => {
+  const upsertEntries: UpsertEntries = async (
+    uidsAndValues: UidsAndValues
+  ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
       entryTable[hexEncode(uid)] = value
     }
     return await Promise.resolve()
   }
 
-  const upsertChains: UpsertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
+  const upsertChains: UpsertChains = async (
+    uidsAndValues: UidsAndValues
+  ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
       chainTable[hexEncode(uid)] = value
     }
     return await Promise.resolve()
   }
-
 
   await upsert(
     [entryLocation, entryKeyword],

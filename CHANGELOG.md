@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+
+---
+
+## [3.2.2] - 2022-10-21
+
+### Added
+
+### Changed
+
+- update findex to 0.8.0
+
+### Fixed
+
+
+### Removed
+
 ---
 
 ## [3.2.1] - 2022-10-19

@@ -31,7 +31,6 @@ export class CoverCryptHybridDecryption {
     return this._asymmetricDecryptionKey
   }
 
-
   public renewKey(userDecryptionKey: Uint8Array): void {
     this.asymmetricDecryptionKey = userDecryptionKey
   }
@@ -106,7 +105,9 @@ export class CoverCryptHybridDecryption {
 
     // HEADER decryption: asymmetric decryption
     const cleartextHeader = this.decryptHybridHeader(asymmetricHeader)
-    logger.log(() => `decrypt for cleartextHeader: ${JSON.stringify(cleartextHeader)}`)
+    logger.log(
+      () => `decrypt for cleartextHeader: ${JSON.stringify(cleartextHeader)}`
+    )
 
     // AES_DATA: AES Symmetric part decryption
     const cleartext = this.decryptHybridBlock(
