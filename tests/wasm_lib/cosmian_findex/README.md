@@ -133,12 +133,12 @@ cargo build --release
 To build the FFI Cosmian interfaces:
 
 ```
-cargo build --release ffi
+cargo build --release --features ffi
 ```
 
 To build the WebAssembly interface:
 ```
-cargo build --release wasm_bindgen
+cargo build --release --features wasm_bindgen
 ```
 
 And finally, to build everything and test it, run:
@@ -265,7 +265,7 @@ Searches: as an average, the search of a word (part or full) will return a numbe
 - `martin` -> {locations}
 - `martine` -> {locations}
 
-*Graphs*: 
+*Graphs*:
 - `mar` -> `mart`
 - `mart` -> `marti`
 - `marti` -> `martin`
