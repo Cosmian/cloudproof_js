@@ -48,20 +48,20 @@ build_node_18:
   extends: .test
   image: node:18
 
-cloudproof_js_demo:
-  stage: prebuild
-  # stage: pack
-  before_script:
-    - npm install -g typescript
-  script:
-    - npm install
-    - git clone --branch fix/packaging http://gitlab.cosmian.com/core/cloudproof_js_demo.git
-    - cd cloudproof_js_demo
-    # - npm install || true
-    - npm install .. --save
-    - cat package.json
-    - npx webpack
-  allow_failure: true
+# cloudproof_js_demo:
+#   stage: prebuild
+#   # stage: pack
+#   before_script:
+#     - npm install -g typescript
+#   script:
+#     - npm install
+#     - git clone --branch fix/packaging http://gitlab.cosmian.com/core/cloudproof_js_demo.git
+#     - cd cloudproof_js_demo
+#     # - npm install || true
+#     - npm install .. --save
+#     - cat package.json
+#     - npx webpack
+#   allow_failure: true
 
 pack:
   stage: pack
