@@ -1,6 +1,10 @@
 /* tslint:disable:max-classes-per-file */
 
-import { CoverCryptHybridDecryption, CoverCryptHybridEncryption, CoverCryptKeyGeneration } from "index"
+import {
+  CoverCryptHybridDecryption,
+  CoverCryptHybridEncryption,
+  CoverCryptKeyGeneration,
+} from "index"
 import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
 import { logger } from "../../src/utils/logger"
 import { hexEncode } from "../../src/utils/utils"

@@ -77,7 +77,9 @@ export class CoverCryptHybridEncryption {
       this.publicKey
     )
 
-    logger.log(() => `hybrid header succeeded: ${hexEncode(encryptedHeaderBytes)}`)
+    logger.log(
+      () => `hybrid header succeeded: ${hexEncode(encryptedHeaderBytes)}`
+    )
 
     return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
   }
@@ -118,7 +120,7 @@ export class CoverCryptHybridEncryption {
     uid: Uint8Array,
     plaintext: Uint8Array
   ): Uint8Array {
-    logger.log(() => `encrypt for attributes: ${attributes.join(',' )}`)
+    logger.log(() => `encrypt for attributes: ${attributes.join(",")}`)
     logger.log(() => `encrypt for uid: ${hexEncode(uid)}`)
     logger.log(() => `encrypt for plaintext: ${hexEncode(plaintext)}`)
 
@@ -130,7 +132,9 @@ export class CoverCryptHybridEncryption {
     const hybridHeader = this.encryptHybridHeader(encryptionParameters)
     logger.log(
       () =>
-        `encrypt: encryptedSymmetricKeySizeAsArray:${hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)}`
+        `encrypt: encryptedSymmetricKeySizeAsArray:${hexEncode(
+          hybridHeader.encryptedSymmetricKeySizeAsArray
+        )}`
     )
     const ciphertext = this.encryptHybridBlock(
       hybridHeader.symmetricKey,
@@ -141,7 +145,9 @@ export class CoverCryptHybridEncryption {
 
     logger.log(
       () =>
-        `encrypt: header size : ${hexEncode(hybridHeader.encryptedSymmetricKeySizeAsArray)}`
+        `encrypt: header size : ${hexEncode(
+          hybridHeader.encryptedSymmetricKeySizeAsArray
+        )}`
     )
     logger.log(
       () =>
@@ -149,7 +155,9 @@ export class CoverCryptHybridEncryption {
     )
     logger.log(
       () =>
-        `encrypt: encrypted symmetric key : ${hexEncode(hybridHeader.encryptedSymmetricKey)}`
+        `encrypt: encrypted symmetric key : ${hexEncode(
+          hybridHeader.encryptedSymmetricKey
+        )}`
     )
     logger.log(() => `encrypt: ciphertext : ${hexEncode(ciphertext)}`)
 
