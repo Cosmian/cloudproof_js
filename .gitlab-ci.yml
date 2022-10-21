@@ -49,7 +49,10 @@ build_node_18:
   image: node:18
 
 cloudproof_js_demo:
-  stage: pack
+  stage: prebuild
+  # stage: pack
+  before_script:
+    - npm install -g typescript
   script:
     - npm install
     - git clone http://gitlab.cosmian.com/core/cloudproof_js_demo.git
@@ -57,6 +60,7 @@ cloudproof_js_demo:
     - npm install | true
     - npm install .. --save
     - npx webpack
+  allow_failure: true
 
 pack:
   stage: pack
