@@ -207,18 +207,23 @@ export async function upsert(
     updateKey = new FindexKey(updateKey.bytes())
   }
 
-  const newIndexedEntriesBase64: { [key: string]: string[] } = {}
+  const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
   for (const newIndexedEntry of newIndexedEntries) {
-    newIndexedEntriesBase64[newIndexedEntry.indexedValue.toBase64()] = [
-      ...newIndexedEntry.keywords,
-    ].map((keyword) => keyword.toBase64())
+    const keywords: Uint8Array[] = []
+    newIndexedEntry.keywords.forEach(kw => {
+      keywords.push(kw.bytes)
+    })
+    indexedValuesAndWords.push({
+      indexedValue: newIndexedEntry.indexedValue.bytes,
+      keywords
+    })
   }
 
   await webassembly_upsert(
     searchKey.bytes,
     updateKey.bytes,
     label.bytes,
-    JSON.stringify(newIndexedEntriesBase64),
+    indexedValuesAndWords,
     async (uids: Uint8Array[]) => {
       return await fetchEntries(uids)
     },

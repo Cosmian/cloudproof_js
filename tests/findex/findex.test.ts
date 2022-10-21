@@ -100,6 +100,8 @@ test("upsert and search memory", async () => {
     return await Promise.resolve()
   }
 
+  console.log("UPSERT 1")
+
   await upsert(
     [entryLocation, entryKeyword, arrayLocation],
     searchKey,
@@ -109,6 +111,9 @@ test("upsert and search memory", async () => {
     upsertEntries,
     upsertChains
   )
+
+  console.log("UPSERT 2")
+
 
   const results0 = await search(
     new Set(["ROBERT"]),
@@ -120,6 +125,9 @@ test("upsert and search memory", async () => {
   )
   expect(results0.length).toEqual(2)
 
+  console.log("SEARCH 1")
+
+
   const results1 = await search(
     new Set([new TextEncoder().encode("ROBERT")]),
     searchKey,
@@ -129,6 +137,9 @@ test("upsert and search memory", async () => {
     fetchChains
   )
   expect(results1.length).toEqual(2)
+
+  console.log("SEARCH 2")
+
 
   const results2 = await search(
     new Set(["BOB"]),

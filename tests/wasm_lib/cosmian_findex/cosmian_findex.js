@@ -1,7 +1,7 @@
 let imports = {};
 imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
-const { TextDecoder, TextEncoder } = require(`util`);
+const { TextDecoder } = require(`util`);
 
 const heap = new Array(32).fill(undefined);
 
@@ -77,74 +77,18 @@ function __wbg_adapter_22(arg0, arg1, arg2) {
     wasm.__wbindgen_export_1(arg0, arg1, addHeapObject(arg2));
 }
 
-let WASM_VECTOR_LEN = 0;
-
-let cachedTextEncoder = new TextEncoder('utf-8');
-
-const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
-    ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
-}
-    : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
-
-function passStringToWasm0(arg, malloc, realloc) {
-
-    if (realloc === undefined) {
-        const buf = cachedTextEncoder.encode(arg);
-        const ptr = malloc(buf.length);
-        getUint8Memory0().subarray(ptr, ptr + buf.length).set(buf);
-        WASM_VECTOR_LEN = buf.length;
-        return ptr;
-    }
-
-    let len = arg.length;
-    let ptr = malloc(len);
-
-    const mem = getUint8Memory0();
-
-    let offset = 0;
-
-    for (; offset < len; offset++) {
-        const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
-        mem[ptr + offset] = code;
-    }
-
-    if (offset !== len) {
-        if (offset !== 0) {
-            arg = arg.slice(offset);
-        }
-        ptr = realloc(ptr, len, len = offset + arg.length * 3);
-        const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
-        const ret = encodeString(arg, view);
-
-        offset += ret.written;
-    }
-
-    WASM_VECTOR_LEN = offset;
-    return ptr;
-}
 /**
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
-* @param {string} indexed_values_and_words
+* @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_and_words
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} upsert_entries
 * @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} upsert_chains
 * @returns {Promise<void>}
 */
 module.exports.webassembly_upsert = function(search_key, update_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entries, upsert_chains) {
-    const ptr0 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), ptr0, len0, addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(upsert_chains));
+    const ret = wasm.webassembly_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), addHeapObject(indexed_values_and_words), addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(upsert_chains));
     return takeObject(ret);
 };
 
@@ -152,16 +96,14 @@ module.exports.webassembly_upsert = function(search_key, update_key, label_bytes
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
-* @param {string} indexed_values_and_words
+* @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_and_words
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} upsert_entries
 * @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} upsert_chains
 * @returns {Promise<void>}
 */
 module.exports.webassembly_graph_upsert = function(search_key, update_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entries, upsert_chains) {
-    const ptr0 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_graph_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), ptr0, len0, addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(upsert_chains));
+    const ret = wasm.webassembly_graph_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), addHeapObject(indexed_values_and_words), addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(upsert_chains));
     return takeObject(ret);
 };
 
@@ -185,7 +127,7 @@ function handleError(f, args) {
     try {
         return f.apply(this, args);
     } catch (e) {
-        wasm.__wbindgen_export_4(addHeapObject(e));
+        wasm.__wbindgen_export_2(addHeapObject(e));
     }
 }
 
@@ -193,18 +135,8 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 function __wbg_adapter_70(arg0, arg1, arg2, arg3) {
-    wasm.__wbindgen_export_5(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+    wasm.__wbindgen_export_3(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
-
-module.exports.__wbindgen_cb_drop = function(arg0) {
-    const obj = takeObject(arg0).original;
-    if (obj.cnt-- == 1) {
-        obj.a = 0;
-        return true;
-    }
-    const ret = false;
-    return ret;
-};
 
 module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
@@ -223,6 +155,16 @@ module.exports.__wbindgen_object_clone_ref = function(arg0) {
 module.exports.__wbindgen_boolean_get = function(arg0) {
     const v = getObject(arg0);
     const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
+    return ret;
+};
+
+module.exports.__wbindgen_cb_drop = function(arg0) {
+    const obj = takeObject(arg0).original;
+    if (obj.cnt-- == 1) {
+        obj.a = 0;
+        return true;
+    }
+    const ret = false;
     return ret;
 };
 
@@ -471,8 +413,8 @@ module.exports.__wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_closure_wrapper278 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 70, __wbg_adapter_22);
+module.exports.__wbindgen_closure_wrapper250 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 63, __wbg_adapter_22);
     return addHeapObject(ret);
 };
 
