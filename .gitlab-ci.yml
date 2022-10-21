@@ -57,7 +57,7 @@ cloudproof_js_demo:
     - npm install
     - git clone --branch fix/packaging http://gitlab.cosmian.com/core/cloudproof_js_demo.git
     - cd cloudproof_js_demo
-    - npm install | true
+    - npm install || true
     - npm install .. --save
     - npx webpack
   allow_failure: true
