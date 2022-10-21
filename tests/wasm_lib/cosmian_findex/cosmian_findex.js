@@ -132,56 +132,52 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
-* @param {string} master_keys
+* @param {Uint8Array} search_key
+* @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
 * @param {string} indexed_values_and_words
-* @param {Function} fetch_entry
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {Function} upsert_entry
 * @param {Function} upsert_chain
 * @returns {Promise<void>}
 */
-module.exports.webassembly_upsert = function(master_keys, label_bytes, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
-    const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
+module.exports.webassembly_upsert = function(search_key, update_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entry, upsert_chain) {
+    const ptr0 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
     const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_upsert(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
+    const ret = wasm.webassembly_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), ptr0, len0, addHeapObject(fetch_entries), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
     return takeObject(ret);
 };
 
 /**
-* @param {string} master_keys
+* @param {Uint8Array} search_key
+* @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
 * @param {string} indexed_values_and_words
-* @param {Function} fetch_entry
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {Function} upsert_entry
 * @param {Function} upsert_chain
 * @returns {Promise<void>}
 */
-module.exports.webassembly_graph_upsert = function(master_keys, label_bytes, indexed_values_and_words, fetch_entry, upsert_entry, upsert_chain) {
-    const ptr0 = passStringToWasm0(master_keys, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
+module.exports.webassembly_graph_upsert = function(search_key, update_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entry, upsert_chain) {
+    const ptr0 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
     const len0 = WASM_VECTOR_LEN;
-    const ptr1 = passStringToWasm0(indexed_values_and_words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
-    const len1 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_graph_upsert(ptr0, len0, addHeapObject(label_bytes), ptr1, len1, addHeapObject(fetch_entry), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
+    const ret = wasm.webassembly_graph_upsert(addHeapObject(search_key), addHeapObject(update_key), addHeapObject(label_bytes), ptr0, len0, addHeapObject(fetch_entries), addHeapObject(upsert_entry), addHeapObject(upsert_chain));
     return takeObject(ret);
 };
 
 /**
 * @param {Uint8Array} search_key
 * @param {Uint8Array} label_bytes
-* @param {string} words
-* @param {number} loop_iteration_limit
+* @param {Array<Uint8Array>} keywords
+* @param {number} max_results_per_word
 * @param {number} max_depth
 * @param {Function} progress
-* @param {Function} fetch_entry
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {Function} fetch_chain
 * @returns {Promise<Uint8Array>}
 */
-module.exports.webassembly_search = function(search_key, label_bytes, words, loop_iteration_limit, max_depth, progress, fetch_entry, fetch_chain) {
-    const ptr0 = passStringToWasm0(words, wasm.__wbindgen_export_2, wasm.__wbindgen_export_3);
-    const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.webassembly_search(addHeapObject(search_key), addHeapObject(label_bytes), ptr0, len0, loop_iteration_limit, max_depth, addHeapObject(progress), addHeapObject(fetch_entry), addHeapObject(fetch_chain));
+module.exports.webassembly_search = function(search_key, label_bytes, keywords, max_results_per_word, max_depth, progress, fetch_entries, fetch_chain) {
+    const ret = wasm.webassembly_search(addHeapObject(search_key), addHeapObject(label_bytes), addHeapObject(keywords), max_results_per_word, max_depth, addHeapObject(progress), addHeapObject(fetch_entries), addHeapObject(fetch_chain));
     return takeObject(ret);
 };
 
@@ -196,17 +192,12 @@ function handleError(f, args) {
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_50(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_56(arg0, arg1, arg2, arg3) {
     wasm.__wbindgen_export_5(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 module.exports.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
-};
-
-module.exports.__wbindgen_string_new = function(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
-    return addHeapObject(ret);
 };
 
 module.exports.__wbindgen_cb_drop = function(arg0) {
@@ -218,6 +209,25 @@ module.exports.__wbindgen_cb_drop = function(arg0) {
     const ret = false;
     return ret;
 };
+
+module.exports.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+};
+
+module.exports.__wbindgen_boolean_get = function(arg0) {
+    const v = getObject(arg0);
+    const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
+    return ret;
+};
+
+module.exports.__wbg_randomFillSync_065afffde01daa66 = function() { return handleError(function (arg0, arg1, arg2) {
+    getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
+}, arguments) };
+
+module.exports.__wbg_getRandomValues_b99eec4244a475bb = function() { return handleError(function (arg0, arg1) {
+    getObject(arg0).getRandomValues(getObject(arg1));
+}, arguments) };
 
 module.exports.__wbindgen_boolean_get = function(arg0) {
     const v = getObject(arg0);
@@ -259,6 +269,16 @@ module.exports.__wbindgen_is_string = function(arg0) {
     return ret;
 };
 
+module.exports.__wbg_static_accessor_NODE_MODULE_cf6401cc1091279e = function() {
+    const ret = module;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_require_a746e79b322b9336 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = getObject(arg0).require(getStringFromWasm0(arg1, arg2));
+    return addHeapObject(ret);
+}, arguments) };
+
 module.exports.__wbg_crypto_2036bed7c44c25e7 = function(arg0) {
     const ret = getObject(arg0).crypto;
     return addHeapObject(ret);
@@ -269,15 +289,15 @@ module.exports.__wbg_msCrypto_a21fc88caf1ecdc8 = function(arg0) {
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_static_accessor_NODE_MODULE_cf6401cc1091279e = function() {
-    const ret = module;
+module.exports.__wbg_get_57245cc7d7c7619d = function(arg0, arg1) {
+    const ret = getObject(arg0)[arg1 >>> 0];
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_require_a746e79b322b9336 = function() { return handleError(function (arg0, arg1, arg2) {
-    const ret = getObject(arg0).require(getStringFromWasm0(arg1, arg2));
-    return addHeapObject(ret);
-}, arguments) };
+module.exports.__wbg_length_6e3bbe7c8bd4dbd8 = function(arg0) {
+    const ret = getObject(arg0).length;
+    return ret;
+};
 
 module.exports.__wbg_newnoargs_b5b063fc6c2f0376 = function(arg0, arg1) {
     const ret = new Function(getStringFromWasm0(arg0, arg1));
@@ -319,6 +339,11 @@ module.exports.__wbindgen_is_undefined = function(arg0) {
     return ret;
 };
 
+module.exports.__wbg_from_7ce3cb27cb258569 = function(arg0) {
+    const ret = Array.from(getObject(arg0));
+    return addHeapObject(ret);
+};
+
 module.exports.__wbg_call_168da88779e35f61 = function() { return handleError(function (arg0, arg1, arg2) {
     const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
     return addHeapObject(ret);
@@ -331,7 +356,7 @@ module.exports.__wbg_new_9962f939219f1820 = function(arg0, arg1) {
             const a = state0.a;
             state0.a = 0;
             try {
-                return __wbg_adapter_50(a, state0.b, arg0, arg1);
+                return __wbg_adapter_56(a, state0.b, arg0, arg1);
             } finally {
                 state0.a = a;
             }
@@ -401,8 +426,8 @@ module.exports.__wbindgen_memory = function() {
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_closure_wrapper289 = function(arg0, arg1, arg2) {
-    const ret = makeMutClosure(arg0, arg1, 79, __wbg_adapter_22);
+module.exports.__wbindgen_closure_wrapper283 = function(arg0, arg1, arg2) {
+    const ret = makeMutClosure(arg0, arg1, 71, __wbg_adapter_22);
     return addHeapObject(ret);
 };
 

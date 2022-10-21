@@ -67,14 +67,19 @@ export class Keyword {
   }
 }
 export class FindexKey {
-  bytes: Uint8Array
+  _bytes: Uint8Array
   constructor(bytes: Uint8Array) {
-    this.bytes = bytes
+    this._bytes = bytes
   }
 
   toBase64(): string {
     return Buffer.from(this.bytes).toString("base64")
   }
+
+  public get bytes(): Uint8Array {
+    return this._bytes
+  }
+
 }
 
 export class Label {
@@ -215,7 +220,8 @@ export async function upsert(
   }
 
   await webassembly_upsert(
-    JSON.stringify({ k: searchKey.toBase64(), k_star: updateKey.toBase64() }),
+    searchKey.bytes,
+    updateKey.bytes,
     label.bytes,
     JSON.stringify(newIndexedEntriesBase64),
     async (serializedUids: Uint8Array) => {
@@ -248,7 +254,7 @@ export async function upsert(
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
-  keywords: Set<string>,
+  keywords: Set<string | Uint8Array>,
   searchKey: FindexKey | SymmetricKey,
   label: Label,
   maxResultsPerKeyword: number,
@@ -260,10 +266,19 @@ export async function search(
     searchKey = new FindexKey(searchKey.bytes())
   }
 
+  const kws: Uint8Array[] = []
+  keywords.forEach(k => {
+    if (typeof k === "string") {
+      kws.push(new TextEncoder().encode(k))
+    } else {
+      kws.push(k)
+    }
+  })
+
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
-    JSON.stringify([...keywords]),
+    kws,
     maxResultsPerKeyword,
     1000,
     () => true,
