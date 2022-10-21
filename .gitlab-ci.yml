@@ -53,7 +53,7 @@ cloudproof_js_demo:
   # stage: pack
   script:
     # - npm install
-    - git clone git@gitlab.cosmian.com:core/cloudproof_js_demo.git
+    - git clone http://gitlab.cosmian.com/core/cloudproof_js_demo.git
     - cd cloudproof_js_demo
 
 pack:
