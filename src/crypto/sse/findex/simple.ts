@@ -1,10 +1,5 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
-import {
-  deserializeHashMap,
-  deserializeList,
-  serializeHashMap,
-} from "../../../utils/utils"
 import { Index } from "./interfaces"
 
 /* tslint:disable:max-classes-per-file */
@@ -224,20 +219,14 @@ export async function upsert(
     updateKey.bytes,
     label.bytes,
     JSON.stringify(newIndexedEntriesBase64),
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchEntries(uids)
-      return serializeHashMap(result)
+    async (uids: Uint8Array[]) => {
+      return await fetchEntries(uids)
     },
-    async (serializedUidsAndValues: Uint8Array) => {
-      const uidsAndValues = deserializeHashMap(serializedUidsAndValues)
-      await upsertEntries(uidsAndValues)
-      return uidsAndValues.length
+    async (uidsAndValues: UidsAndValues) => {
+      return await upsertEntries(uidsAndValues)
     },
-    async (serializedUidsAndValues: Uint8Array) => {
-      const uidsAndValues = deserializeHashMap(serializedUidsAndValues)
-      await upsertChains(uidsAndValues)
-      return uidsAndValues.length
+    async (uidsAndValues: UidsAndValues) => {
+      return await upsertChains(uidsAndValues)
     }
   )
 }
@@ -281,20 +270,20 @@ export async function search(
     kws,
     maxResultsPerKeyword,
     1000,
-    () => true,
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchEntries(uids)
-      return serializeHashMap(result)
+    async (serializedIndexedValues: Uint8Array[]) => {
+      const indexedValues = serializedIndexedValues.map(bytes => {
+        return new IndexedValue(bytes)
+      })
+      console.log("INDEXED VALUES", indexedValues)
+      return true
     },
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchChains(uids)
-      return serializeHashMap(result)
+    async (uids: Uint8Array[]) => {
+      return await fetchEntries(uids)
+    },
+    async (uids: Uint8Array[]) => {
+      return await fetchChains(uids)
     }
   )
 
-  return deserializeList(serializedIndexedValues).map(
-    (bytes) => new IndexedValue(bytes)
-  )
+  return serializedIndexedValues.map(bytes => { return new IndexedValue(bytes) })
 }
