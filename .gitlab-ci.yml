@@ -52,9 +52,12 @@ cloudproof_js_demo:
   stage: prebuild
   # stage: pack
   script:
-    # - npm install
+    - npm install
     - git clone http://gitlab.cosmian.com/core/cloudproof_js_demo.git
     - cd cloudproof_js_demo
+    - npm install | true
+    - npm install .. --save
+    - npx webpack
 
 pack:
   stage: pack
