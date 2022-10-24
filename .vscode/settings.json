@@ -4,6 +4,7 @@
     "cosmian",
     "deserialization",
     "Deserialization",
+    "findex",
     "Findex",
     "kmip",
     "Kmip",
@@ -13,5 +14,13 @@
     "webassembly"
   ],
   "eslint.format.enable": true,
-  "jestrunner.jestCommand": "node --experimental-fetch --experimental-vm-modules node_modules/.bin/jest"
+  "jestrunner.jestCommand": "node --experimental-fetch --experimental-vm-modules node_modules/.bin/jest",
+  "cSpell.customDictionaries": {
+    "custom-dictionary-workspace": {
+      "name": "custom-dictionary-workspace",
+      "path": "${workspaceFolder:cloudproof_js}/.cspell/custom-dictionary-workspace.txt",
+      "addWords": true,
+      "scope": "workspace"
+    }
+  }
 }

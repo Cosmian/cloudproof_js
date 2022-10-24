@@ -13,7 +13,6 @@ export * from "./crypto/abe/interfaces/policy"
 export * from "./crypto/sse/findex/simple"
 export * from "./crypto/sse/findex/interfaces/dbInterface"
 export * from "./crypto/sse/findex/interfaces/master_keys"
-export * from "./crypto/sse/findex/interfaces/findex"
 export * from "./crypto/sse/findex/interfaces/index"
 export { logger } from "./utils/logger"
 export {

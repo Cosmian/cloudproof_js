@@ -32,6 +32,13 @@ test("upsert and search memory", async () => {
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
+  const arrayLocation: IndexedEntry = {
+    indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file array"))),
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
+  }
+  const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [new TextEncoder().encode("ROBERT")])
+  expect(arrayLocation_).toEqual(arrayLocation)
+
   const entryKeyword: IndexedEntry = {
     indexedValue: IndexedValue.fromNextWord(
       new Keyword(new TextEncoder().encode("ROBERT"))
@@ -93,8 +100,10 @@ test("upsert and search memory", async () => {
     return await Promise.resolve()
   }
 
+  console.log("UPSERT 1")
+
   await upsert(
-    [entryLocation, entryKeyword],
+    [entryLocation, entryKeyword, arrayLocation],
     searchKey,
     updateKey,
     label,
@@ -103,7 +112,10 @@ test("upsert and search memory", async () => {
     upsertChains
   )
 
-  const results = await search(
+  console.log("SEARCH 1")
+
+
+  const results0 = await search(
     new Set(["ROBERT"]),
     searchKey,
     label,
@@ -111,7 +123,23 @@ test("upsert and search memory", async () => {
     fetchEntries,
     fetchChains
   )
-  expect(results.length).toEqual(1)
+  expect(results0.length).toEqual(2)
+
+  console.log("SEARCH 2")
+
+
+  const results1 = await search(
+    new Set([new TextEncoder().encode("ROBERT")]),
+    searchKey,
+    label,
+    100,
+    fetchEntries,
+    fetchChains
+  )
+  expect(results1.length).toEqual(2)
+
+  console.log("SEARCH 3")
+
 
   const results2 = await search(
     new Set(["BOB"]),
@@ -121,7 +149,7 @@ test("upsert and search memory", async () => {
     fetchEntries,
     fetchChains
   )
-  expect(results2.length).toEqual(1)
+  expect(results2.length).toEqual(2)
 })
 
 test("in memory", async () => {
