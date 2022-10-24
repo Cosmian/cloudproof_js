@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [4.0.0] - 2022-10-24
+
+### Added
+
+### Changed
+
+- update findex to 0.9.0: no custom conversions but with direct reflection in JS types
+
+### Fixed
+
+
+### Removed
+
+---
+
 ## [3.2.2] - 2022-10-21
 
 ### Added
