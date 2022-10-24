@@ -1,4 +1,5 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
+import { toBase64 } from "utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
 
@@ -209,9 +210,14 @@ export async function upsert(
 
   const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
   for (const newIndexedEntry of newIndexedEntries) {
+
+
+    console.log("JS IV", toBase64(newIndexedEntry.indexedValue.bytes))
+
     const keywords: Uint8Array[] = []
     newIndexedEntry.keywords.forEach(kw => {
       keywords.push(kw.bytes)
+      console.log("    KW", toBase64(kw.bytes))
     })
     indexedValuesAndWords.push({
       indexedValue: newIndexedEntry.indexedValue.bytes,
@@ -219,7 +225,7 @@ export async function upsert(
     })
   }
 
-  await webassembly_upsert(
+  return await webassembly_upsert(
     searchKey.bytes,
     updateKey.bytes,
     label.bytes,
@@ -262,10 +268,10 @@ export async function search(
 
   const kws: Uint8Array[] = []
   keywords.forEach(k => {
-    if (typeof k === "string") {
-      kws.push(new TextEncoder().encode(k))
-    } else {
+    if (k instanceof Uint8Array) {
       kws.push(k)
+    } else {
+      kws.push(new TextEncoder().encode(k))
     }
   })
 

@@ -4,10 +4,13 @@ import * as leb from "leb128"
 /**
  * Convert the binary string to base64 string and sanitize it.
  *
- * @param {string} val the binary string
+ * @param {Uint8Array | string} val the binary string
  * @returns {string} the base 64 value
  */
-export function toBase64(val: string): string {
+export function toBase64(val: Uint8Array | string): string {
+  if (val instanceof Uint8Array) {
+    return Buffer.from(val).toString('base64')
+  }
   return Buffer.from(sanitizeString(val), "binary").toString("base64")
 }
 

@@ -112,7 +112,7 @@ test("upsert and search memory", async () => {
     upsertChains
   )
 
-  console.log("UPSERT 2")
+  console.log("SEARCH 1")
 
 
   const results0 = await search(
@@ -125,7 +125,7 @@ test("upsert and search memory", async () => {
   )
   expect(results0.length).toEqual(2)
 
-  console.log("SEARCH 1")
+  console.log("SEARCH 2")
 
 
   const results1 = await search(
@@ -138,7 +138,7 @@ test("upsert and search memory", async () => {
   )
   expect(results1.length).toEqual(2)
 
-  console.log("SEARCH 2")
+  console.log("SEARCH 3")
 
 
   const results2 = await search(
