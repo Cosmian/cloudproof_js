@@ -1,6 +1,16 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+* Upsert a map of IndexedValue -> [Keywords] in the encrypted index
+*
+* # Parameters
+* - `search_key`  : the search key (a.k.a `k`) bytes
+* - `update_key`  : the update key (a.k.a `k*`) bytes
+* - `label`       : the public label bytes
+* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed keywords bytes
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `upsert_entries`: the callback to insert/update in the entry table
+* - `upsert_chains` : the callback to insert/update in the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
@@ -12,6 +22,25 @@
 */
 export function webassembly_upsert(search_key: Uint8Array, update_key: Uint8Array, label_bytes: Uint8Array, indexed_values_and_words: Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>, fetch_entries: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, upsert_entries: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>, upsert_chains: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>): Promise<void>;
 /**
+* Build the graph of a `Word` and upsert it.
+*
+* A graph is built with the sub-words starting from 3 letters.
+* If the `Word` is smaller than 3, the graph
+* will be empty.
+*
+* Graph example for `robert`: `rob` -> `robe` -> `rober` -> `robert`
+*
+* *Note*: the `Location` associated to the `Word` needs to be upserted
+* using a regular upsert.
+*
+* # Parameters
+* - `search_key`  : the search key (a.k.a `k`) bytes
+* - `update_key`  : the update key (a.k.a `k*`) bytes
+* - `label`       : the public label bytes
+* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed keywords bytes
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `upsert_entries`: the callback to insert/update in the entry table
+* - `upsert_chains` : the callback to insert/update in the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
@@ -23,6 +52,17 @@ export function webassembly_upsert(search_key: Uint8Array, update_key: Uint8Arra
 */
 export function webassembly_graph_upsert(search_key: Uint8Array, update_key: Uint8Array, label_bytes: Uint8Array, indexed_values_and_words: Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>, fetch_entries: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, upsert_entries: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>, upsert_chains: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>): Promise<void>;
 /**
+* Search Keywords in the index, returning a list of IndexedValues
+*
+* # Parameters
+* - `search_key`    : the search key (a.k.a `k`) bytes
+* - `label`         : the public label bytes
+* - `keywords`      : a list of keyword (bytes) to search
+* - `max_results_per_word`: the maximum results returned for a keyword
+* - `max_depth`: the maximum depth the search graph will be walked
+* - `progress` : the progress callback called as a graph is walked; returning `false` stops the walk
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `fetch_chains` : the callback to fetch from the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} label_bytes
 * @param {Array<Uint8Array>} keywords

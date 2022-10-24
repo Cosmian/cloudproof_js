@@ -78,6 +78,16 @@ function __wbg_adapter_22(arg0, arg1, arg2) {
 }
 
 /**
+* Upsert a map of IndexedValue -> [Keywords] in the encrypted index
+*
+* # Parameters
+* - `search_key`  : the search key (a.k.a `k`) bytes
+* - `update_key`  : the update key (a.k.a `k*`) bytes
+* - `label`       : the public label bytes
+* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed keywords bytes
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `upsert_entries`: the callback to insert/update in the entry table
+* - `upsert_chains` : the callback to insert/update in the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
@@ -93,6 +103,25 @@ module.exports.webassembly_upsert = function(search_key, update_key, label_bytes
 };
 
 /**
+* Build the graph of a `Word` and upsert it.
+*
+* A graph is built with the sub-words starting from 3 letters.
+* If the `Word` is smaller than 3, the graph
+* will be empty.
+*
+* Graph example for `robert`: `rob` -> `robe` -> `rober` -> `robert`
+*
+* *Note*: the `Location` associated to the `Word` needs to be upserted
+* using a regular upsert.
+*
+* # Parameters
+* - `search_key`  : the search key (a.k.a `k`) bytes
+* - `update_key`  : the update key (a.k.a `k*`) bytes
+* - `label`       : the public label bytes
+* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed keywords bytes
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `upsert_entries`: the callback to insert/update in the entry table
+* - `upsert_chains` : the callback to insert/update in the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} update_key
 * @param {Uint8Array} label_bytes
@@ -108,6 +137,17 @@ module.exports.webassembly_graph_upsert = function(search_key, update_key, label
 };
 
 /**
+* Search Keywords in the index, returning a list of IndexedValues
+*
+* # Parameters
+* - `search_key`    : the search key (a.k.a `k`) bytes
+* - `label`         : the public label bytes
+* - `keywords`      : a list of keyword (bytes) to search
+* - `max_results_per_word`: the maximum results returned for a keyword
+* - `max_depth`: the maximum depth the search graph will be walked
+* - `progress` : the progress callback called as a graph is walked; returning `false` stops the walk
+* - `fetch_entries` : the callback to fetch from the entry table
+* - `fetch_chains` : the callback to fetch from the chain table
 * @param {Uint8Array} search_key
 * @param {Uint8Array} label_bytes
 * @param {Array<Uint8Array>} keywords
@@ -165,20 +205,6 @@ module.exports.__wbindgen_cb_drop = function(arg0) {
         return true;
     }
     const ret = false;
-    return ret;
-};
-
-module.exports.__wbg_randomFillSync_065afffde01daa66 = function() { return handleError(function (arg0, arg1, arg2) {
-    getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
-}, arguments) };
-
-module.exports.__wbg_getRandomValues_b99eec4244a475bb = function() { return handleError(function (arg0, arg1) {
-    getObject(arg0).getRandomValues(getObject(arg1));
-}, arguments) };
-
-module.exports.__wbindgen_boolean_get = function(arg0) {
-    const v = getObject(arg0);
-    const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
     return ret;
 };
 
