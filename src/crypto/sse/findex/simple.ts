@@ -1,10 +1,5 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
-import {
-  deserializeHashMap,
-  deserializeList,
-  serializeHashMap,
-} from "../../../utils/utils"
 import { Index } from "./interfaces"
 
 /* tslint:disable:max-classes-per-file */
@@ -67,14 +62,19 @@ export class Keyword {
   }
 }
 export class FindexKey {
-  bytes: Uint8Array
+  _bytes: Uint8Array
   constructor(bytes: Uint8Array) {
-    this.bytes = bytes
+    this._bytes = bytes
   }
 
   toBase64(): string {
     return Buffer.from(this.bytes).toString("base64")
   }
+
+  public get bytes(): Uint8Array {
+    return this._bytes
+  }
+
 }
 
 export class Label {
@@ -180,6 +180,13 @@ export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
 export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**
+ * Called with results found at every node while the search walks the search graph.
+ * Returning false, stops the walk.
+ */
+export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
+
+
+/**
  * Insert or update existing (a.k.a upsert) entries in the index
  *
  * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
@@ -207,31 +214,31 @@ export async function upsert(
     updateKey = new FindexKey(updateKey.bytes())
   }
 
-  const newIndexedEntriesBase64: { [key: string]: string[] } = {}
+  const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
   for (const newIndexedEntry of newIndexedEntries) {
-    newIndexedEntriesBase64[newIndexedEntry.indexedValue.toBase64()] = [
-      ...newIndexedEntry.keywords,
-    ].map((keyword) => keyword.toBase64())
+    const keywords: Uint8Array[] = []
+    newIndexedEntry.keywords.forEach(kw => {
+      keywords.push(kw.bytes)
+    })
+    indexedValuesAndWords.push({
+      indexedValue: newIndexedEntry.indexedValue.bytes,
+      keywords
+    })
   }
 
-  await webassembly_upsert(
-    JSON.stringify({ k: searchKey.toBase64(), k_star: updateKey.toBase64() }),
+  return await webassembly_upsert(
+    searchKey.bytes,
+    updateKey.bytes,
     label.bytes,
-    JSON.stringify(newIndexedEntriesBase64),
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchEntries(uids)
-      return serializeHashMap(result)
+    indexedValuesAndWords,
+    async (uids: Uint8Array[]) => {
+      return await fetchEntries(uids)
     },
-    async (serializedUidsAndValues: Uint8Array) => {
-      const uidsAndValues = deserializeHashMap(serializedUidsAndValues)
-      await upsertEntries(uidsAndValues)
-      return uidsAndValues.length
+    async (uidsAndValues: UidsAndValues) => {
+      return await upsertEntries(uidsAndValues)
     },
-    async (serializedUidsAndValues: Uint8Array) => {
-      const uidsAndValues = deserializeHashMap(serializedUidsAndValues)
-      await upsertChains(uidsAndValues)
-      return uidsAndValues.length
+    async (uidsAndValues: UidsAndValues) => {
+      return await upsertChains(uidsAndValues)
     }
   )
 }
@@ -245,41 +252,55 @@ export async function upsert(
  * @param {number} maxResultsPerKeyword the maximum number of results per keyword
  * @param {FetchEntries} fetchEntries callback to fetch the entries table
  * @param {FetchChains} fetchChains callback to fetch the chains table
+ * @param {Progress} progress the optional callback of found values as the search graph is walked. 
+ *    Returning false stops the walk
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
-  keywords: Set<string>,
+  keywords: Set<string | Uint8Array>,
   searchKey: FindexKey | SymmetricKey,
   label: Label,
   maxResultsPerKeyword: number,
   fetchEntries: FetchEntries,
-  fetchChains: FetchChains
+  fetchChains: FetchChains,
+  progress?: Progress
 ): Promise<IndexedValue[]> {
   // convert key to a single representation
   if (searchKey instanceof SymmetricKey) {
     searchKey = new FindexKey(searchKey.bytes())
   }
 
+  const kws: Uint8Array[] = []
+  for (const k of keywords) {
+    kws.push(k instanceof Uint8Array ? k : new TextEncoder().encode(k))
+  }
+
+  const progress_: Progress =
+    (typeof progress === "undefined") ?
+      async (indexedValues_: IndexedValue[]) => true
+      :
+      progress
+
+
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
-    JSON.stringify([...keywords]),
+    kws,
     maxResultsPerKeyword,
     1000,
-    () => true,
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchEntries(uids)
-      return serializeHashMap(result)
+    async (serializedIndexedValues: Uint8Array[]) => {
+      const indexedValues = serializedIndexedValues.map(bytes => {
+        return new IndexedValue(bytes)
+      })
+      return await progress_(indexedValues)
     },
-    async (serializedUids: Uint8Array) => {
-      const uids = deserializeList(serializedUids)
-      const result = await fetchChains(uids)
-      return serializeHashMap(result)
+    async (uids: Uint8Array[]) => {
+      return await fetchEntries(uids)
+    },
+    async (uids: Uint8Array[]) => {
+      return await fetchChains(uids)
     }
   )
 
-  return deserializeList(serializedIndexedValues).map(
-    (bytes) => new IndexedValue(bytes)
-  )
+  return serializedIndexedValues.map(bytes => new IndexedValue(bytes))
 }
