@@ -1,5 +1,4 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
-import { toBase64 } from "utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
 
@@ -181,6 +180,13 @@ export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
 export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**
+ * Called with results found at every node while the search walks the search graph.
+ * Returning false, stops the walk.
+ */
+export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
+
+
+/**
  * Insert or update existing (a.k.a upsert) entries in the index
  *
  * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
@@ -210,14 +216,9 @@ export async function upsert(
 
   const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
   for (const newIndexedEntry of newIndexedEntries) {
-
-
-    console.log("JS IV", toBase64(newIndexedEntry.indexedValue.bytes))
-
     const keywords: Uint8Array[] = []
     newIndexedEntry.keywords.forEach(kw => {
       keywords.push(kw.bytes)
-      console.log("    KW", toBase64(kw.bytes))
     })
     indexedValuesAndWords.push({
       indexedValue: newIndexedEntry.indexedValue.bytes,
@@ -251,6 +252,8 @@ export async function upsert(
  * @param {number} maxResultsPerKeyword the maximum number of results per keyword
  * @param {FetchEntries} fetchEntries callback to fetch the entries table
  * @param {FetchChains} fetchChains callback to fetch the chains table
+ * @param {Progress} progress the optional callback of found values as the search graph is walked. 
+ *    Returning false stops the walk
  * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
  */
 export async function search(
@@ -259,7 +262,8 @@ export async function search(
   label: Label,
   maxResultsPerKeyword: number,
   fetchEntries: FetchEntries,
-  fetchChains: FetchChains
+  fetchChains: FetchChains,
+  progress?: Progress
 ): Promise<IndexedValue[]> {
   // convert key to a single representation
   if (searchKey instanceof SymmetricKey) {
@@ -275,6 +279,13 @@ export async function search(
     }
   })
 
+  const progress_: Progress =
+    (typeof progress === "undefined") ?
+      async (indexedValues_: IndexedValue[]) => true
+      :
+      progress
+
+
   const serializedIndexedValues = await webassembly_search(
     searchKey.bytes,
     label.bytes,
@@ -285,8 +296,7 @@ export async function search(
       const indexedValues = serializedIndexedValues.map(bytes => {
         return new IndexedValue(bytes)
       })
-      console.log("INDEXED VALUES", indexedValues)
-      return true
+      return await progress_(indexedValues)
     },
     async (uids: Uint8Array[]) => {
       return await fetchEntries(uids)

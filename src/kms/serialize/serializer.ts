@@ -94,7 +94,6 @@ function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
   // We need to flatten that to the type of the child
   // Exemple: LinkedObjectIdentifier
   if (type === TtlvType.Choice) {
-    // console.log("FOUND A CHOICE ", children)
     return children[0]
   }
 
@@ -125,8 +124,8 @@ function parseChildren(value: Object): TTLV[] {
     if (typeof childMetadata === "undefined") {
       console.error(
         "Serializer: child Metadata is not defined for " +
-          propertyName +
-          " in ",
+        propertyName +
+        " in ",
         childrenMetadata
       )
       throw new Error(
@@ -135,7 +134,6 @@ function parseChildren(value: Object): TTLV[] {
     }
     const childName = childMetadata.name
     const childType = childMetadata.type
-    // console.log("PROPERTY", propertyName, childName, childType, childValue, childMetadata.classOrEnum)
 
     if (childType === TtlvType.Ignore) {
       continue

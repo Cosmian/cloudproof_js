@@ -150,7 +150,7 @@ test("KMS Symmetric Key", async () => {
   )
   expect(
     key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-      TransparentSymmetricKey
+    TransparentSymmetricKey
   ).toBeTruthy()
   const sk = key.keyBlock.key_value.plaintext
     ?.keyMaterial as TransparentSymmetricKey
