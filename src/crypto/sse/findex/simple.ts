@@ -299,5 +299,5 @@ export async function search(
     }
   )
 
-  return serializedIndexedValues.map(bytes => { return new IndexedValue(bytes) })
+  return serializedIndexedValues.map(bytes => new IndexedValue(bytes))
 }
