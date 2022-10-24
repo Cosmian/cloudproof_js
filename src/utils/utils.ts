@@ -105,29 +105,6 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
 }
 
 
-// /**
-//  * Deserialize a vector of vectors of bytes
-//  *
-//  * @param {Uint8Array} serializedItems Uint8Array of serialized data
-//  * @returns {Uint8Array[]} an array of deserialized items
-//  */
-// export function deserializeBytesVectors(serializedItems: Uint8Array): Uint8Array[] {
-//   const items: Uint8Array[] = []
-//   while (serializedItems.length > 1) {
-//     const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10)
-//     const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
-
-//     const item = serializedItems.slice(
-//       sizeNumberOfBytes,
-//       sizeNumberOfBytes + itemLen
-//     )
-//     serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen)
-//     items.push(item)
-//   }
-//   return items
-// }
-
-
 /**
  * Deserialize Uint8Array as a list of Uint8Array
  *

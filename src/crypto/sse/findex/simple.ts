@@ -270,7 +270,10 @@ export async function search(
     searchKey = new FindexKey(searchKey.bytes())
   }
 
-  const kws = keywords.map((k) => k instanceof Uint8Array ? k : new TextEncoder().encode(k));
+  const kws: Uint8Array[] = []
+  for (const k of keywords) {
+    kws.push(k instanceof Uint8Array ? k : new TextEncoder().encode(k))
+  }
 
   const progress_: Progress =
     (typeof progress === "undefined") ?
