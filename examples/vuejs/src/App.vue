@@ -332,7 +332,7 @@ export default {
       let unavailableAttributes = {
         'aliceKey': ['email', 'securityNumber'],
         'bobKey': ['securityNumber'],
-        'charlieKey': [] as Array<keyof User>,
+        'charlieKey': ['securityNumber'],
       }[this.key];
 
       if (unavailableAttributes.includes(attribute)) {
