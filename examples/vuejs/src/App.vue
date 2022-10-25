@@ -1,25 +1,28 @@
 <script lang="ts">
 import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmipClient } from 'cloudproof_js';
+import Key from './Key.vue';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'];
 const DEPARTMENTS = ['Marketing', 'HR', 'Security'];
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
-// Not used. TODO explain?
-const METADATA_UID = Uint8Array.from([0, 0, 1]);
+
+type User = { first: string, last: string, department: typeof DEPARTMENTS[0], country: typeof COUNTRIES[0], email: string, securityNumber: number };
 
 export default {
+  components: { Key },
+
   data() {
-    let users: Array<{ first: string, last: string, department: typeof DEPARTMENTS[0], country: typeof COUNTRIES[0], email: string, securityNumber: number }> = [];
+    let users: Array<User> = [];
 
     let names = [
       { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-      { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 2 },
+      { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
       { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
       { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
       { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
       { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
       { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-      { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 8 },
+      { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
       { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
     ];
 
@@ -53,7 +56,7 @@ export default {
       indexing: false,
       indexingDone: false,
 
-      key: 'aliceKey' as 'aliceKey' | 'bobKey' | 'charlieKey',
+      key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
       query: '',
       searchResults: [] as Array<{ first?: string, last?: string, department?: string, country?: string, email?: string, securityNumber?: number }>,
     }
@@ -239,7 +242,7 @@ export default {
     },
 
     async search() {
-      if (!this.query) return [];
+      if (!this.query || !this.key) return [];
       let { search } = await Findex();
       let { CoverCryptHybridDecryption } = await CoverCrypt();
 
@@ -279,6 +282,32 @@ export default {
       }
 
       this.searchResults = results;
+    },
+
+    canAccessUser(user: User, attribute: keyof User): boolean {
+      if (!this.key) return true;
+
+      let countries = {
+        'aliceKey': ['France'],
+        'bobKey': ['Spain'],
+        'charlieKey': ['France', 'Spain'],
+      }[this.key];
+
+      if (!countries.includes(user.country)) {
+        return false;
+      }
+
+      let unavailableAttributes = {
+        'aliceKey': ['email', 'securityNumber'],
+        'bobKey': ['securityNumber'],
+        'charlieKey': [] as Array<keyof User>,
+      }[this.key];
+
+      if (unavailableAttributes.includes(attribute)) {
+        return false;
+      }
+
+      return true;
     },
 
     decode(value: Uint8Array): string {
@@ -330,7 +359,7 @@ export default {
       <hr>
     </details>
 
-    <table class="table">
+    <table class="table mb-5">
       <thead>
         <tr>
           <th scope="col">First</th>
@@ -343,12 +372,12 @@ export default {
       </thead>
       <tbody>
         <tr v-for="user in users">
-          <td>{{ user.first }}</td>
-          <td>{{ user.last }}</td>
-          <td>{{ user.department }}</td>
-          <td>{{ user.country }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.securityNumber }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'first') }">{{ user.first }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'last') }">{{ user.last }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'department') }">{{ user.department }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'country') }">{{ user.country }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'email') }">{{ user.email }}</td>
+          <td :class="{ 'opacity-25': !canAccessUser(user, 'securityNumber') }">{{ user.securityNumber }}</td>
         </tr>
       </tbody>
     </table>
@@ -365,7 +394,7 @@ export default {
       </div>
     </div>
 
-    <table class="table" v-show="encryptedUsers.length">
+    <table class="table mb-5" v-show="encryptedUsers.length">
       <thead>
         <tr>
           <th scope="col">Marketing</th>
@@ -397,23 +426,65 @@ export default {
 
     <div v-show="indexingDone">
       <div class="mb-3">
-        <div class="input-group">
-          <div class="form-check me-3">
+        <div class="input-group mb-3">
+          <div class="form-check me-5">
             <label class="form-check-label">
-              <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
-              <span>Alice (France && Marketing)</span>
+              <div class="d-flex align-items-center">
+                <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" width="40px">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <div>
+                  <div class="fs-5 ms-1">Alice</div>
+                  <div class="d-flex">
+                    <Key name="France" class="text-bg-danger me-1" />
+                    <Key name="Marketing" class="text-bg-primary opacity-50" />
+                  </div>
+                </div>
+              </div>
             </label>
           </div>
-          <div class="form-check me-3">
+          <div class="form-check me-5">
             <label class="form-check-label">
-              <input class="form-check-input" type="radio" v-model="key" value="bobKey">
-              <span>Bob (Spain && (Marketing || HR))</span>
+              <div class="d-flex align-items-center">
+                <input class="form-check-input" type="radio" v-model="key" value="bobKey">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" width="40px">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <div>
+                  <div class="fs-5 ms-1">Bob</div>
+                  <div class="d-flex">
+                    <Key name="Spain" class="text-bg-warning me-1" />
+                    <Key name="Marketing" class="text-bg-primary opacity-50 me-1" />
+                    <Key name="HR" class="text-bg-primary opacity-75" />
+                  </div>
+                </div>
+              </div>
             </label>
           </div>
-          <div class="form-check me-3">
+          <div class="form-check me-5">
             <label class="form-check-label">
-              <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
-              <span>Charlie ((France || Spain) && (Marketing || HR))</span>
+              <div class="d-flex align-items-center">
+                <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                  stroke="currentColor" width="40px">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+                <div>
+                  <div class="fs-5 ms-1">Charlie</div>
+                  <div class="d-flex">
+                    <Key name="France" class="text-bg-danger me-1" />
+                    <Key name="Spain" class="text-bg-warning me-1" />
+                    <Key name="Marketing" class="text-bg-primary opacity-50 me-1" />
+                    <Key name="HR" class="text-bg-primary opacity-75" />
+                  </div>
+                </div>
+              </div>
             </label>
           </div>
         </div>
