@@ -68,7 +68,7 @@ export class CoverCryptKeyGeneration {
    * @param {Policy} policy the policy of the master key
    * @returns {Uint8Array} the user decryption key bytes
    */
-  public generateUserDecryptionKey(
+  public generateUserSecretKey(
     mastersecretKeyBytes: Uint8Array,
     accessPolicy: string,
     policy: Policy
@@ -111,5 +111,3 @@ export class CoverCryptKeyGeneration {
     return Policy.fromJsonEncoded(newPolicyString)
   }
 }
-
-

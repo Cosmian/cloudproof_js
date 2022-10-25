@@ -67,17 +67,17 @@ function App() {
     const keygen = new CoverCryptKeyGeneration()
     let masterKeysCoverCrypt = await keygen.generateMasterKeys(policy);
 
-    setAliceKey(await keygen.generateUserDecryptionKey(
+    setAliceKey(await keygen.generateUserSecretKey(
       masterKeysCoverCrypt.secretKey,
       "country::France && department::Marketing",
       policy
     ))
-    setBobKey(await keygen.generateUserDecryptionKey(
+    setBobKey(await keygen.generateUserSecretKey(
       masterKeysCoverCrypt.secretKey,
       "country::Spain && (department::HR || department::Marketing)",
       policy
     ))
-    setCharlieKey(await keygen.generateUserDecryptionKey(
+    setCharlieKey(await keygen.generateUserSecretKey(
       masterKeysCoverCrypt.secretKey,
       "(country::France || country::Spain) && (department::HR || department::Marketing)",
       policy

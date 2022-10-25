@@ -114,17 +114,17 @@ export default {
         let masterKeysCoverCrypt = keygen.generateMasterKeys(policy)
         masterPublicKey = masterKeysCoverCrypt.publicKey;
 
-        this.aliceKey = keygen.generateUserDecryptionKey(
+        this.aliceKey = keygen.generateUserSecretKey(
           masterKeysCoverCrypt.secretKey,
           "country::France && department::Marketing",
           policy
         )
-        this.bobKey = keygen.generateUserDecryptionKey(
+        this.bobKey = keygen.generateUserSecretKey(
           masterKeysCoverCrypt.secretKey,
           "country::Spain && (department::HR || department::Marketing)",
           policy
         )
-        this.charlieKey = keygen.generateUserDecryptionKey(
+        this.charlieKey = keygen.generateUserSecretKey(
           masterKeysCoverCrypt.secretKey,
           "(country::France || country::Spain) && (department::HR || department::Marketing)",
           policy

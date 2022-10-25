@@ -85,7 +85,7 @@ export class CoverCryptHybridEncryption {
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    * @returns {Uint8Array} encrypted block
    */
-  public encryptHybridBlock(
+  public encryptBlock(
     symmetricKey: Uint8Array,
     plaintext: Uint8Array,
     options: {
