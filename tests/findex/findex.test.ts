@@ -324,7 +324,10 @@ async function run(
         indexedValue: IndexedValue.fromLocation(
           Location.fromUtf8String(user.id)
         ),
-        keywords: new Set([Keyword.fromUtf8String(user.firstName)]),
+        keywords: new Set([
+          Keyword.fromUtf8String(user.firstName),
+          Keyword.fromUtf8String(user.country),
+        ]),
       })
     }
 
@@ -351,6 +354,21 @@ async function run(
     expect(results[0]).toEqual(
       IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id))
     )
+  }
+
+  {
+    // Test with multiple results.
+
+    const results = await findex.search(
+      new Set(["Spain"]),
+      searchKey,
+      label,
+      1000,
+      fetchEntries,
+      fetchChains
+    )
+
+    expect(results.length).toEqual(30)
   }
 
   {

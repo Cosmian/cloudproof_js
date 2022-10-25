@@ -57,6 +57,7 @@ export default {
       indexingDone: false,
 
       key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
+      doOr: false,
       query: '',
       searchResults: [] as Array<{ first?: string, last?: string, department?: string, country?: string, email?: string, securityNumber?: number }>,
     }
@@ -252,14 +253,49 @@ export default {
       let key = this[this.key];
       if (!key) throw "No decryption key";
 
-      const indexedValues = await search(
-        new Set([this.query]),
-        this.findexKeys.searchKey,
-        FINDEX_LABEL,
-        1000,
-        async (uids) => await this.fetchCallback("entries", uids),
-        async (uids) => await this.fetchCallback("chains", uids),
-      );
+      let keywords = this.query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
+      console.log(keywords);
+      if (keywords.length === 0) return;
+
+      let indexedValues: Array<IndexedValue> | null = null;
+      if (this.doOr) {
+        console.log("door");
+        indexedValues = await search(
+          new Set(keywords),
+          this.findexKeys.searchKey,
+          FINDEX_LABEL,
+          1000,
+          async (uids) => await this.fetchCallback("entries", uids),
+          async (uids) => await this.fetchCallback("chains", uids),
+        );
+      } else {
+        for (const keyword of keywords) {
+          const newIndexedValues = await search(
+            new Set([keyword]),
+            this.findexKeys.searchKey,
+            FINDEX_LABEL,
+            1000,
+            async (uids) => await this.fetchCallback("entries", uids),
+            async (uids) => await this.fetchCallback("chains", uids),
+          );
+
+          if (indexedValues === null) {
+            indexedValues = newIndexedValues;
+          } else {
+            indexedValues = indexedValues.filter((alreadyReturnedIndexedValue) => {
+              for (let newIndexedValue of newIndexedValues) {
+                if (this.uint8ArrayEquals(newIndexedValue.bytes, alreadyReturnedIndexedValue.bytes)) {
+                  return true;
+                }
+              }
+
+              return false;
+            })
+          }
+        }
+      }
+
+      if (indexedValues === null) throw Error("Indexed values cannot be null when a query is provided");
 
       let coverCryptDecryption = new CoverCryptHybridDecryption(key);
 
@@ -333,6 +369,9 @@ export default {
       this.search();
     },
     key() {
+      this.search();
+    },
+    doOr() {
       this.search();
     },
   },
@@ -489,7 +528,16 @@ export default {
           </div>
         </div>
         <div class="mb-3">
-          <input type="email" class="form-control" placeholder="Recherche" v-model="query">
+          <div class="input-group">
+            <div class="input-group-text">
+              <label class="form-check-label me-2" for="andOrOr">AND</label>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="andOrOr" v-model="doOr">
+                <label class="form-check-label" for="andOrOr">OR</label>
+              </div>
+            </div>
+            <input type="email" class="form-control" placeholder="Recherche" v-model="query">
+          </div>
         </div>
       </div>
 
