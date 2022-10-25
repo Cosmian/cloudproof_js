@@ -1,9 +1,7 @@
 import { webassembly_search, webassembly_upsert } from "cosmian_findex"
-import { initFindex } from "utils/utils"
+import { initFindex } from "../../../utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
-
-
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
