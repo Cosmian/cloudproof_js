@@ -375,10 +375,16 @@ export default {
 </script>
 
 <template>
+  <nav class="navbar navbar-expand-lg bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">
+        <img src="/logo.png" alt="" style="height: 30px">
+        <span class="fw-bold ms-4">Clouproof Demo</span>
+      </a>
+    </div>
+  </nav>
   <main class="container">
-    <h1>Cloudproof VueJS Demo</h1>
-
-    <details class="mb-3">
+    <details class="mt-3 mb-3">
       <summary>Options…</summary>
 
       <div class="mt-3">
@@ -394,68 +400,88 @@ export default {
       <hr>
     </details>
 
-    <table class="table mb-5">
-      <thead>
-        <tr>
-          <th colspan="4" class="text-center">
-            <Key name="Marketing" class="me-1" />
-          </th>
-          <th colspan="2" class="ps-2">
-            <Key name="HR" class="me-1" />
-          </th>
-          <th class="ps-2">
-            <Key name="Security" class="me-1" />
-          </th>
-        </tr>
-        <tr>
-          <th scope="col">
-            First
-          </th>
-          <th scope="col">
-            Last
-          </th>
-          <th scope="col">
-            Country
-          </th>
-          <th scope="col"></th>
-          <th scope="col">
-            Email
-          </th>
-          <th scope="col"></th>
-          <th scope="col">
-            Security Number
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in users">
-          <td :class="{
-            'table-warning': key && !canAccessUser(user, 'first'),
-            'table-success': key && canAccessUser(user, 'first'),
-          }">{{ user.first }}</td>
-          <td :class="{
-            'table-warning': key && !canAccessUser(user, 'last'),
-            'table-success': key && canAccessUser(user, 'last'),
-          }">{{ user.last }}</td>
-          <td :class="{
-            'table-warning': key && !canAccessUser(user, 'country'),
-            'table-success': key && canAccessUser(user, 'country'),
-          }">
-            <Key :name="user.country" />
-          </td>
-          <td class="border-start pe-3"></td>
-          <td :class="{
-            'table-warning': key && !canAccessUser(user, 'email'),
-            'table-success': key && canAccessUser(user, 'email'),
-          }">{{ user.email }}</td>
-          <td class="border-start pe-3"></td>
-          <td :class="{
-            'table-warning': key && !canAccessUser(user, 'securityNumber'),
-            'table-success': key && canAccessUser(user, 'securityNumber'),
-          }"> {{ user.securityNumber }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="fs-5 mb-5">
+      <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
+
+      <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
+
+      <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
+        under
+        NDA.</p>
+
+      <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
+    </div>
+
+    <div class="card mb-5">
+      <img src="/database.png" class="card-img-top" alt="...">
+      <div class="card-body">
+        <h5 class="card-title">Cleartext Database</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th colspan="4" class="text-center">
+                <Key name="Marketing" class="me-1" />
+              </th>
+              <th colspan="2" class="ps-2">
+                <Key name="HR" class="me-1" />
+              </th>
+              <th class="ps-2">
+                <Key name="Security" class="me-1" />
+              </th>
+            </tr>
+            <tr>
+              <th scope="col">
+                First
+              </th>
+              <th scope="col">
+                Last
+              </th>
+              <th scope="col">
+                Country
+              </th>
+              <th scope="col"></th>
+              <th scope="col">
+                Email
+              </th>
+              <th scope="col"></th>
+              <th scope="col">
+                Security Number
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users">
+              <td :class="{
+                'table-warning opacity-25': key && !canAccessUser(user, 'first'),
+                'table-success': key && canAccessUser(user, 'first'),
+              }">{{ user.first }}</td>
+              <td :class="{
+                'table-warning opacity-25': key && !canAccessUser(user, 'last'),
+                'table-success': key && canAccessUser(user, 'last'),
+              }">{{ user.last }}</td>
+              <td :class="{
+                'table-warning opacity-25': key && !canAccessUser(user, 'country'),
+                'table-success': key && canAccessUser(user, 'country'),
+              }">
+                <Key :name="user.country" />
+              </td>
+              <td class="border-start pe-3"></td>
+              <td :class="{
+                'table-warning opacity-25': key && !canAccessUser(user, 'email'),
+                'table-success': key && canAccessUser(user, 'email'),
+              }">{{ user.email }}</td>
+              <td class="border-start pe-3"></td>
+              <td :class="{
+                'table-warning opacity-25': key && !canAccessUser(user, 'securityNumber'),
+                'table-success': key && canAccessUser(user, 'securityNumber'),
+              }"> {{ user.securityNumber }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
 
     <div v-show="encryptedUsers.length < users.length">
       <div class="d-flex justify-content-center align-items-center">
@@ -469,23 +495,28 @@ export default {
       </div>
     </div>
 
-    <table class="table mb-5" v-show="encryptedUsers.length">
-      <thead>
-        <tr>
-          <th scope="col">Marketing</th>
-          <th scope="col">HR</th>
-          <th scope="col">Security</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="user in encryptedUsers">
-          <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
-          <td>{{ decode(user.hr).substring(0, 30) }}…</td>
-          <td>{{ decode(user.security).substring(0, 30) }}…</td>
-        </tr>
-      </tbody>
-    </table>
-
+    <div class="card mb-5" v-show="encryptedUsers.length">
+      <img src="/database_encrypted.png" class="card-img-top" alt="...">
+      <div class="card-body">
+        <h5 class="card-title">Encrypted Database</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Marketing</th>
+              <th scope="col">HR</th>
+              <th scope="col">Security</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in encryptedUsers">
+              <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
+              <td>{{ decode(user.hr).substring(0, 30) }}…</td>
+              <td>{{ decode(user.security).substring(0, 30) }}…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <div v-show="encryptedUsers.length === users.length && !indexingDone">
       <div class="d-flex justify-content-center align-items-center">
@@ -499,109 +530,113 @@ export default {
       </div>
     </div>
 
-    <div v-show="indexingDone">
-      <div class="mb-3">
-        <div class="input-group mb-3">
-          <div class="form-check me-5">
-            <label class="form-check-label">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" width="40px">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                <div>
-                  <div class="fs-5 ms-1">Alice</div>
-                  <div class="d-flex">
-                    <Key name="France" class="me-1" />
-                    <Key name="Marketing" />
-                  </div>
-                </div>
-              </div>
-            </label>
-          </div>
-          <div class="form-check me-5">
-            <label class="form-check-label">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input" type="radio" v-model="key" value="bobKey">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" width="40px">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                <div>
-                  <div class="fs-5 ms-1">Bob</div>
-                  <div class="d-flex">
-                    <Key name="Spain" class="me-1" />
-                    <Key name="Marketing" class="me-1" />
-                    <Key name="HR" />
-                  </div>
-                </div>
-              </div>
-            </label>
-          </div>
-          <div class="form-check me-5">
-            <label class="form-check-label">
-              <div class="d-flex align-items-center">
-                <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                  stroke="currentColor" width="40px">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                <div>
-                  <div class="fs-5 ms-1">Charlie</div>
-                  <div class="d-flex">
-                    <Key name="France" class="me-1" />
-                    <Key name="Spain" class="me-1" />
-                    <Key name="Marketing" class="me-1" />
-                    <Key name="HR" />
-                  </div>
-                </div>
-              </div>
-            </label>
-          </div>
-        </div>
+    <div class="card mb-5" v-show="indexingDone">
+      <div class="card-body">
+        <h5 class="card-title">Search</h5>
         <div class="mb-3">
-          <div class="input-group">
-            <div class="input-group-text">
-              <label class="form-check-label me-2" for="andOrOr">AND</label>
-              <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="andOrOr" v-model="doOr">
-                <label class="form-check-label" for="andOrOr">OR</label>
-              </div>
+          <div class="input-group mb-3">
+            <div class="form-check me-5">
+              <label class="form-check-label">
+                <div class="d-flex align-items-center">
+                  <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" width="40px">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div class="fs-5 ms-1">Alice</div>
+                    <div class="d-flex">
+                      <Key name="France" class="me-1" />
+                      <Key name="Marketing" />
+                    </div>
+                  </div>
+                </div>
+              </label>
             </div>
-            <input type="email" class="form-control" placeholder="Recherche" v-model="query">
+            <div class="form-check me-5">
+              <label class="form-check-label">
+                <div class="d-flex align-items-center">
+                  <input class="form-check-input" type="radio" v-model="key" value="bobKey">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" width="40px">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div class="fs-5 ms-1">Bob</div>
+                    <div class="d-flex">
+                      <Key name="Spain" class="me-1" />
+                      <Key name="Marketing" class="me-1" />
+                      <Key name="HR" />
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+            <div class="form-check me-5">
+              <label class="form-check-label">
+                <div class="d-flex align-items-center">
+                  <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" width="40px">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div class="fs-5 ms-1">Charlie</div>
+                    <div class="d-flex">
+                      <Key name="France" class="me-1" />
+                      <Key name="Spain" class="me-1" />
+                      <Key name="Marketing" class="me-1" />
+                      <Key name="HR" />
+                    </div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="input-group">
+              <div class="input-group-text">
+                <label class="form-check-label me-2" for="andOrOr">AND</label>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="andOrOr" v-model="doOr">
+                  <label class="form-check-label" for="andOrOr">OR</label>
+                </div>
+              </div>
+              <input type="email" class="form-control" placeholder="Recherche" v-model="query">
+            </div>
           </div>
         </div>
-      </div>
 
-      <table class="table" v-show="searchResults.length">
-        <thead>
-          <tr>
-            <th scope="col">First</th>
-            <th scope="col">Last</th>
-            <th scope="col">Country</th>
-            <th scope="col">Email</th>
-            <th scope="col">Security Number</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in searchResults">
-            <td v-if="user.first">{{ user.first }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            <td v-if="user.last">{{ user.last }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            <td v-if="user.country">{{ user.country }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            <td v-if="user.email">{{ user.email }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            <td v-if="user.securityNumber">{{ user.securityNumber }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-          </tr>
-        </tbody>
-      </table>
+        <table class="table" v-show="searchResults.length">
+          <thead>
+            <tr>
+              <th scope="col">First</th>
+              <th scope="col">Last</th>
+              <th scope="col">Country</th>
+              <th scope="col">Email</th>
+              <th scope="col">Security Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in searchResults">
+              <td v-if="user.first">{{ user.first }}</td>
+              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+              <td v-if="user.last">{{ user.last }}</td>
+              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+              <td v-if="user.country">{{ user.country }}</td>
+              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+              <td v-if="user.email">{{ user.email }}</td>
+              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+              <td v-if="user.securityNumber">{{ user.securityNumber }}</td>
+              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
   </main>
 </template>
