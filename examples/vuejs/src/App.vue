@@ -6,7 +6,7 @@ const COUNTRIES = ['France', 'Spain', 'Germany'];
 const DEPARTMENTS = ['Marketing', 'HR', 'Security'];
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
-type User = { first: string, last: string, department: typeof DEPARTMENTS[0], country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type User = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 
 export default {
   components: { Key },
@@ -31,7 +31,7 @@ export default {
       for (const department of DEPARTMENTS) {
         const name = names.pop();
         if (!name) throw "Not enought names"
-        users.push({ ...name, department, country });
+        users.push({ ...name, country });
       }
     }
 
@@ -59,7 +59,7 @@ export default {
       key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
       doOr: false,
       query: '',
-      searchResults: [] as Array<{ first?: string, last?: string, department?: string, country?: string, email?: string, securityNumber?: number }>,
+      searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>,
     }
   },
 
@@ -141,7 +141,6 @@ export default {
           new TextEncoder().encode(JSON.stringify({
             first: user.first,
             last: user.last,
-            department: user.department,
             country: user.country,
           })),
         )
@@ -189,7 +188,6 @@ export default {
             keywords: new Set([
               Keyword.fromUtf8String(user.first),
               Keyword.fromUtf8String(user.last),
-              Keyword.fromUtf8String(user.department),
               Keyword.fromUtf8String(user.country),
               Keyword.fromUtf8String(user.email),
               Keyword.fromUtf8String(user.securityNumber.toString()),
@@ -254,12 +252,10 @@ export default {
       if (!key) throw "No decryption key";
 
       let keywords = this.query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
-      console.log(keywords);
       if (keywords.length === 0) return;
 
       let indexedValues: Array<IndexedValue> | null = null;
       if (this.doOr) {
-        console.log("door");
         indexedValues = await search(
           new Set(keywords),
           this.findexKeys.searchKey,
@@ -401,22 +397,62 @@ export default {
     <table class="table mb-5">
       <thead>
         <tr>
-          <th scope="col">First</th>
-          <th scope="col">Last</th>
-          <th scope="col">Department</th>
-          <th scope="col">Country</th>
-          <th scope="col">Email</th>
-          <th scope="col">Security Number</th>
+          <th colspan="4" class="text-center">
+            <Key name="Marketing" class="me-1" />
+          </th>
+          <th colspan="2" class="ps-2">
+            <Key name="HR" class="me-1" />
+          </th>
+          <th class="ps-2">
+            <Key name="Security" class="me-1" />
+          </th>
+        </tr>
+        <tr>
+          <th scope="col">
+            First
+          </th>
+          <th scope="col">
+            Last
+          </th>
+          <th scope="col">
+            Country
+          </th>
+          <th scope="col"></th>
+          <th scope="col">
+            Email
+          </th>
+          <th scope="col"></th>
+          <th scope="col">
+            Security Number
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="user in users">
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'first') }">{{ user.first }}</td>
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'last') }">{{ user.last }}</td>
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'department') }">{{ user.department }}</td>
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'country') }">{{ user.country }}</td>
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'email') }">{{ user.email }}</td>
-          <td :class="{ 'opacity-25': !canAccessUser(user, 'securityNumber') }">{{ user.securityNumber }}</td>
+          <td :class="{
+            'table-warning': key && !canAccessUser(user, 'first'),
+            'table-success': key && canAccessUser(user, 'first'),
+          }">{{ user.first }}</td>
+          <td :class="{
+            'table-warning': key && !canAccessUser(user, 'last'),
+            'table-success': key && canAccessUser(user, 'last'),
+          }">{{ user.last }}</td>
+          <td :class="{
+            'table-warning': key && !canAccessUser(user, 'country'),
+            'table-success': key && canAccessUser(user, 'country'),
+          }">
+            <Key :name="user.country" />
+          </td>
+          <td class="border-start pe-3"></td>
+          <td :class="{
+            'table-warning': key && !canAccessUser(user, 'email'),
+            'table-success': key && canAccessUser(user, 'email'),
+          }">{{ user.email }}</td>
+          <td class="border-start pe-3"></td>
+          <td :class="{
+            'table-warning': key && !canAccessUser(user, 'securityNumber'),
+            'table-success': key && canAccessUser(user, 'securityNumber'),
+          }"> {{ user.securityNumber }}</td>
         </tr>
       </tbody>
     </table>
@@ -478,8 +514,8 @@ export default {
                 <div>
                   <div class="fs-5 ms-1">Alice</div>
                   <div class="d-flex">
-                    <Key name="France" class="text-bg-danger me-1" />
-                    <Key name="Marketing" class="text-bg-primary opacity-50" />
+                    <Key name="France" class="me-1" />
+                    <Key name="Marketing" />
                   </div>
                 </div>
               </div>
@@ -497,9 +533,9 @@ export default {
                 <div>
                   <div class="fs-5 ms-1">Bob</div>
                   <div class="d-flex">
-                    <Key name="Spain" class="text-bg-warning me-1" />
-                    <Key name="Marketing" class="text-bg-primary opacity-50 me-1" />
-                    <Key name="HR" class="text-bg-primary opacity-75" />
+                    <Key name="Spain" class="me-1" />
+                    <Key name="Marketing" class="me-1" />
+                    <Key name="HR" />
                   </div>
                 </div>
               </div>
@@ -517,10 +553,10 @@ export default {
                 <div>
                   <div class="fs-5 ms-1">Charlie</div>
                   <div class="d-flex">
-                    <Key name="France" class="text-bg-danger me-1" />
-                    <Key name="Spain" class="text-bg-warning me-1" />
-                    <Key name="Marketing" class="text-bg-primary opacity-50 me-1" />
-                    <Key name="HR" class="text-bg-primary opacity-75" />
+                    <Key name="France" class="me-1" />
+                    <Key name="Spain" class="me-1" />
+                    <Key name="Marketing" class="me-1" />
+                    <Key name="HR" />
                   </div>
                 </div>
               </div>
@@ -546,7 +582,6 @@ export default {
           <tr>
             <th scope="col">First</th>
             <th scope="col">Last</th>
-            <th scope="col">Department</th>
             <th scope="col">Country</th>
             <th scope="col">Email</th>
             <th scope="col">Security Number</th>
@@ -557,8 +592,6 @@ export default {
             <td v-if="user.first">{{ user.first }}</td>
             <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
             <td v-if="user.last">{{ user.last }}</td>
-            <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            <td v-if="user.department">{{ user.department }}</td>
             <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
             <td v-if="user.country">{{ user.country }}</td>
             <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
