@@ -3,6 +3,26 @@ imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
 const { TextDecoder, TextEncoder } = require(`util`);
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+function getObject(idx) { return heap[idx]; }
+
+let heap_next = heap.length;
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
+}
+
 let cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
@@ -20,12 +40,6 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
-const heap = new Array(32).fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-let heap_next = heap.length;
-
 function addHeapObject(obj) {
     if (heap_next === heap.length) heap.push(heap.length + 1);
     const idx = heap_next;
@@ -33,20 +47,6 @@ function addHeapObject(obj) {
 
     heap[idx] = obj;
     return idx;
-}
-
-function getObject(idx) { return heap[idx]; }
-
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
 }
 
 let cachedInt32Memory0 = new Int32Array();
@@ -60,8 +60,7 @@ function getInt32Memory0() {
 /**
 * Generate the master authority keys for supplied Policy
 *
-*  - `policy_bytes` : Policy to use to generate the keys (serialized from
-*    JSON)
+*  - `policy_bytes` : Policy to use to generate the keys (serialized from JSON)
 * @param {Uint8Array} policy_bytes
 * @returns {Uint8Array}
 */
@@ -136,23 +135,22 @@ function passStringToWasm0(arg, malloc, realloc) {
     return ptr;
 }
 /**
-* Generate a user private key.
+* Generate a user secret key.
 *
-* - `master_private_key_bytes`    : master private key in bytes
-* - `access_policy_str`           : user access policy (boolean expression as
-*   string)
-* - `policy_bytes`                : global policy (serialized from JSON)
-* @param {Uint8Array} master_private_key_bytes
+* - `msk_bytes`           : master secret key in bytes
+* - `access_policy_str`   : user access policy (boolean expression as string)
+* - `policy_bytes`        : global policy (serialized from JSON)
+* @param {Uint8Array} msk_bytes
 * @param {string} access_policy_str
 * @param {Uint8Array} policy_bytes
 * @returns {Uint8Array}
 */
-module.exports.webassembly_generate_user_private_key = function(master_private_key_bytes, access_policy_str, policy_bytes) {
+module.exports.webassembly_generate_user_secret_key = function(msk_bytes, access_policy_str, policy_bytes) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(access_policy_str, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
         const len0 = WASM_VECTOR_LEN;
-        wasm.webassembly_generate_user_private_key(retptr, addHeapObject(master_private_key_bytes), ptr0, len0, addHeapObject(policy_bytes));
+        wasm.webassembly_generate_user_secret_key(retptr, addHeapObject(msk_bytes), ptr0, len0, addHeapObject(policy_bytes));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -226,37 +224,19 @@ module.exports.webassembly_parse_boolean_access_policy = function(boolean_expres
 };
 
 /**
-* Extract header from encrypted bytes
-* @param {Uint8Array} encrypted_bytes
-* @returns {number}
-*/
-module.exports.webassembly_get_encrypted_header_size = function(encrypted_bytes) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_get_encrypted_header_size(retptr, addHeapObject(encrypted_bytes));
-        var r0 = getInt32Memory0()[retptr / 4 + 0];
-        var r1 = getInt32Memory0()[retptr / 4 + 1];
-        var r2 = getInt32Memory0()[retptr / 4 + 2];
-        if (r2) {
-            throw takeObject(r1);
-        }
-        return r0 >>> 0;
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-};
-
-/**
-* @param {Uint8Array} metadata_bytes
 * @param {Uint8Array} policy_bytes
-* @param {Uint8Array} attributes_bytes
+* @param {string} access_policy
 * @param {Uint8Array} public_key_bytes
+* @param {Uint8Array} additional_data
+* @param {Uint8Array} authenticated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_hybrid_header = function(metadata_bytes, policy_bytes, attributes_bytes, public_key_bytes) {
+module.exports.webassembly_encrypt_hybrid_header = function(policy_bytes, access_policy, public_key_bytes, additional_data, authenticated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_encrypt_hybrid_header(retptr, addHeapObject(metadata_bytes), addHeapObject(policy_bytes), addHeapObject(attributes_bytes), addHeapObject(public_key_bytes));
+        const ptr0 = passStringToWasm0(access_policy, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.webassembly_encrypt_hybrid_header(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(public_key_bytes), addHeapObject(additional_data), addHeapObject(authenticated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -272,14 +252,15 @@ module.exports.webassembly_encrypt_hybrid_header = function(metadata_bytes, poli
 /**
 * Decrypt with a user decryption key an encrypted header
 * of a resource encrypted using an hybrid crypto scheme.
-* @param {Uint8Array} user_decryption_key_bytes
+* @param {Uint8Array} usk_bytes
 * @param {Uint8Array} encrypted_header_bytes
+* @param {Uint8Array} authenticated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_hybrid_header = function(user_decryption_key_bytes, encrypted_header_bytes) {
+module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted_header_bytes, authenticated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(user_decryption_key_bytes), addHeapObject(encrypted_header_bytes));
+        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_header_bytes), addHeapObject(authenticated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -292,21 +273,17 @@ module.exports.webassembly_decrypt_hybrid_header = function(user_decryption_key_
     }
 };
 
-function isLikeNone(x) {
-    return x === undefined || x === null;
-}
 /**
 * Symmetrically Encrypt plaintext data in a block.
 * @param {Uint8Array} symmetric_key_bytes
-* @param {Uint8Array | undefined} uid_bytes
-* @param {number | undefined} block_number
 * @param {Uint8Array} plaintext_bytes
+* @param {Uint8Array} associated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_hybrid_block = function(symmetric_key_bytes, uid_bytes, block_number, plaintext_bytes) {
+module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, associated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_encrypt_hybrid_block(retptr, addHeapObject(symmetric_key_bytes), isLikeNone(uid_bytes) ? 0 : addHeapObject(uid_bytes), !isLikeNone(block_number), isLikeNone(block_number) ? 0 : block_number, addHeapObject(plaintext_bytes));
+        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(associated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -322,15 +299,79 @@ module.exports.webassembly_encrypt_hybrid_block = function(symmetric_key_bytes, 
 /**
 * Symmetrically Decrypt encrypted data in a block.
 * @param {Uint8Array} symmetric_key_bytes
-* @param {Uint8Array | undefined} uid_bytes
-* @param {number | undefined} block_number
 * @param {Uint8Array} encrypted_bytes
+* @param {Uint8Array} authenticated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_hybrid_block = function(symmetric_key_bytes, uid_bytes, block_number, encrypted_bytes) {
+module.exports.webassembly_decrypt_symmetric_block = function(symmetric_key_bytes, encrypted_bytes, authenticated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_hybrid_block(retptr, addHeapObject(symmetric_key_bytes), isLikeNone(uid_bytes) ? 0 : addHeapObject(uid_bytes), !isLikeNone(block_number), isLikeNone(block_number) ? 0 : block_number, addHeapObject(encrypted_bytes));
+        wasm.webassembly_decrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(encrypted_bytes), addHeapObject(authenticated_data));
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+/**
+* Generates both a encrypted header and a DEM encryption of the `plaintext`,
+* with the header metadata as associated data.
+*
+* - `metadata_bytes`      : serialized metadata
+* - `policy_bytes`        : serialized policy
+* - `attribute_bytes`     : serialized attributes to use in the encapsulation
+* - `pk`                  : CoverCrypt public key
+* - `plaintext`           : message to encrypt with the DEM
+* - `additional_data`     : additional data to symmetrically encrypt in the header
+* - `autenticated_data`   : data authenticated with the symmetric encryption
+* @param {Uint8Array} policy_bytes
+* @param {string} access_policy
+* @param {Uint8Array} pk
+* @param {Uint8Array} plaintext
+* @param {Uint8Array} additional_data
+* @param {Uint8Array} authenticated_data
+* @returns {Uint8Array}
+*/
+module.exports.webassembly_hybrid_encrypt = function(policy_bytes, access_policy, pk, plaintext, additional_data, authenticated_data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(access_policy, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.webassembly_hybrid_encrypt(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(pk), addHeapObject(plaintext), addHeapObject(additional_data), addHeapObject(authenticated_data));
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+};
+
+/**
+* Decrypt the DEM ciphertext with the header encapsulated symmetric key,
+* with the header metadata as associated data.
+*
+* - `usk_bytes`           : serialized user secret key
+* - `encrypted_bytes`     : concatenation of the encrypted header and the DEM ciphertext
+* - `autenticated_data`   : data authenticated with the symmetric encryption
+* @param {Uint8Array} usk_bytes
+* @param {Uint8Array} encrypted_bytes
+* @param {Uint8Array} authenticated_data
+* @returns {Uint8Array}
+*/
+module.exports.webassembly_hybrid_decrypt = function(usk_bytes, encrypted_bytes, authenticated_data) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.webassembly_hybrid_decrypt(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_bytes), addHeapObject(authenticated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -355,25 +396,30 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
+module.exports.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
+};
+
 module.exports.__wbindgen_string_new = function(arg0, arg1) {
     const ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
 };
 
-module.exports.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
+module.exports.__wbindgen_is_null = function(arg0) {
+    const ret = getObject(arg0) === null;
+    return ret;
 };
 
-module.exports.__wbg_randomFillSync_065afffde01daa66 = function() { return handleError(function (arg0, arg1, arg2) {
+module.exports.__wbg_randomFillSync_6894564c2c334c42 = function() { return handleError(function (arg0, arg1, arg2) {
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
 }, arguments) };
 
-module.exports.__wbg_getRandomValues_b99eec4244a475bb = function() { return handleError(function (arg0, arg1) {
+module.exports.__wbg_getRandomValues_805f1c3d65988a5a = function() { return handleError(function (arg0, arg1) {
     getObject(arg0).getRandomValues(getObject(arg1));
 }, arguments) };
 
-module.exports.__wbg_process_0cc2ada8524d6f83 = function(arg0) {
-    const ret = getObject(arg0).process;
+module.exports.__wbg_crypto_e1d53a1d73fb10b8 = function(arg0) {
+    const ret = getObject(arg0).crypto;
     return addHeapObject(ret);
 };
 
@@ -383,12 +429,17 @@ module.exports.__wbindgen_is_object = function(arg0) {
     return ret;
 };
 
-module.exports.__wbg_versions_c11acceab27a6c87 = function(arg0) {
+module.exports.__wbg_process_038c26bf42b093f8 = function(arg0) {
+    const ret = getObject(arg0).process;
+    return addHeapObject(ret);
+};
+
+module.exports.__wbg_versions_ab37218d2f0b24a8 = function(arg0) {
     const ret = getObject(arg0).versions;
     return addHeapObject(ret);
 };
 
-module.exports.__wbg_node_7ff1ce49caf23815 = function(arg0) {
+module.exports.__wbg_node_080f4b19d15bc1fe = function(arg0) {
     const ret = getObject(arg0).node;
     return addHeapObject(ret);
 };
@@ -398,25 +449,20 @@ module.exports.__wbindgen_is_string = function(arg0) {
     return ret;
 };
 
-module.exports.__wbg_crypto_2036bed7c44c25e7 = function(arg0) {
-    const ret = getObject(arg0).crypto;
+module.exports.__wbg_require_78a3dcfbdba9cbce = function() { return handleError(function () {
+    const ret = module.require;
     return addHeapObject(ret);
+}, arguments) };
+
+module.exports.__wbindgen_is_function = function(arg0) {
+    const ret = typeof(getObject(arg0)) === 'function';
+    return ret;
 };
 
-module.exports.__wbg_msCrypto_a21fc88caf1ecdc8 = function(arg0) {
+module.exports.__wbg_msCrypto_6e7d3e1f92610cbb = function(arg0) {
     const ret = getObject(arg0).msCrypto;
     return addHeapObject(ret);
 };
-
-module.exports.__wbg_static_accessor_NODE_MODULE_cf6401cc1091279e = function() {
-    const ret = module;
-    return addHeapObject(ret);
-};
-
-module.exports.__wbg_require_a746e79b322b9336 = function() { return handleError(function (arg0, arg1, arg2) {
-    const ret = getObject(arg0).require(getStringFromWasm0(arg1, arg2));
-    return addHeapObject(ret);
-}, arguments) };
 
 module.exports.__wbg_newnoargs_b5b063fc6c2f0376 = function(arg0, arg1) {
     const ret = new Function(getStringFromWasm0(arg0, arg1));
@@ -457,6 +503,11 @@ module.exports.__wbindgen_is_undefined = function(arg0) {
     const ret = getObject(arg0) === undefined;
     return ret;
 };
+
+module.exports.__wbg_call_168da88779e35f61 = function() { return handleError(function (arg0, arg1, arg2) {
+    const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
+    return addHeapObject(ret);
+}, arguments) };
 
 module.exports.__wbg_buffer_3f3d764d4747d564 = function(arg0) {
     const ret = getObject(arg0).buffer;

@@ -188,6 +188,7 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  */
 export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
   await initFindex();
 

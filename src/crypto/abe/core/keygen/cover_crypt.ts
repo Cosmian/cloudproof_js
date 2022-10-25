@@ -1,7 +1,7 @@
 /* tslint:disable:max-classes-per-file */
 import {
   webassembly_generate_master_keys,
-  webassembly_generate_user_private_key,
+  webassembly_generate_user_secret_key,
   webassembly_rotate_attributes,
 } from "cosmian_cover_crypt"
 import { logger } from "../../../../utils/logger"
@@ -9,16 +9,16 @@ import { fromBeBytes, hexEncode } from "../../../../utils/utils"
 import { Policy } from "../../interfaces/policy"
 
 export class CoverCryptMasterKey {
-  private _privateKey: Uint8Array
+  private _secretKey: Uint8Array
   private _publicKey: Uint8Array
 
   // Getters and setters
-  public get privateKey(): Uint8Array {
-    return this._privateKey
+  public get secretKey(): Uint8Array {
+    return this._secretKey
   }
 
-  public set privateKey(value: Uint8Array) {
-    this._privateKey = value
+  public set secretKey(value: Uint8Array) {
+    this._secretKey = value
   }
 
   public get publicKey(): Uint8Array {
@@ -30,8 +30,8 @@ export class CoverCryptMasterKey {
   }
 
   // Constructor
-  constructor(privateKey: Uint8Array, publicKey: Uint8Array) {
-    this._privateKey = privateKey
+  constructor(secretKey: Uint8Array, publicKey: Uint8Array) {
+    this._secretKey = secretKey
     this._publicKey = publicKey
   }
 }
@@ -51,40 +51,40 @@ export class CoverCryptKeyGeneration {
 
     const policyBytes = policy.toJsonEncoded()
     const masterKeys = webassembly_generate_master_keys(policyBytes)
-    const privateKeySize = fromBeBytes(masterKeys.slice(0, 4))
-    logger.log(() => `private key size: ${privateKeySize}`)
+    const secretKeySize = fromBeBytes(masterKeys.slice(0, 4))
+    logger.log(() => `private key size: ${secretKeySize}`)
     return new CoverCryptMasterKey(
-      masterKeys.slice(4, 4 + privateKeySize),
-      masterKeys.slice(4 + privateKeySize, masterKeys.length)
+      masterKeys.slice(4, 4 + secretKeySize),
+      masterKeys.slice(4 + secretKeySize, masterKeys.length)
     )
   }
 
   /**
    * Generate a User Decryption Key
    *
-   * @param {Uint8Array} masterPrivateKeyBytes The Master Private Key Bytes
+   * @param {Uint8Array} mastersecretKeyBytes The Master Private Key Bytes
    * @param {string} accessPolicy the access policy as a boolean expression
    *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
    * @param {Policy} policy the policy of the master key
-   * @returns the user decryption key bytes
+   * @returns {Uint8Array} the user decryption key bytes
    */
   public generateUserDecryptionKey(
-    masterPrivateKeyBytes: Uint8Array,
+    mastersecretKeyBytes: Uint8Array,
     accessPolicy: string,
     policy: Policy
   ): Uint8Array {
-    logger.log(() => `privateKey: ${hexEncode(masterPrivateKeyBytes)}`)
+    logger.log(() => `secretKey: ${hexEncode(mastersecretKeyBytes)}`)
     logger.log(() => "accessPolicy: " + accessPolicy)
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
-    const userPrivateKey = webassembly_generate_user_private_key(
-      masterPrivateKeyBytes,
+    const usersecretKey = webassembly_generate_user_secret_key(
+      mastersecretKeyBytes,
       accessPolicy,
       policyBytes
     )
 
-    return userPrivateKey
+    return usersecretKey
   }
 
   /**
@@ -111,3 +111,5 @@ export class CoverCryptKeyGeneration {
     return Policy.fromJsonEncoded(newPolicyString)
   }
 }
+
+

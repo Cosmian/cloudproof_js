@@ -226,10 +226,22 @@ export function sanitizeString(str: string): string {
     .replace(/[^\w-]+/g, "-")
 }
 
-
+/**
+ * Init wasm for Findex
+ */
 export async function initFindex(): Promise<void> {
   if (typeof process === 'undefined' || process.env.JEST_WORKER_ID === undefined) {
     const module = await import("cosmian_findex");
+    await module.default();
+  }
+}
+
+/**
+ * Init wasm for CoverCrypt
+ */
+export async function initCoverCrypt(): Promise<void> {
+  if (typeof process === 'undefined' || process.env.JEST_WORKER_ID === undefined) {
+    const module = await import("cosmian_cover_crypt");
     await module.default();
   }
 }
