@@ -225,3 +225,11 @@ export function sanitizeString(str: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w-]+/g, "-")
 }
+
+
+export async function initFindex(): Promise<void> {
+  if (typeof process === 'undefined' || process.env.JEST_WORKER_ID === undefined) {
+    const module = await import("cosmian_findex");
+    await module.default();
+  }
+}

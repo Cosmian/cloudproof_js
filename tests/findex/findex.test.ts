@@ -7,9 +7,8 @@ import {
   Keyword,
   Label,
   Location,
-  search,
+  Findex,
   UidsAndValues,
-  upsert,
   UpsertChains,
   UpsertEntries,
   LocationIndexEntry,
@@ -23,6 +22,8 @@ import { randomBytes } from "crypto"
 import sqlite3 = require("sqlite3")
 
 test("upsert and search memory", async () => {
+  const findex = await Findex();
+
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
       new Location(new TextEncoder().encode("ROBERT file"))
@@ -100,9 +101,7 @@ test("upsert and search memory", async () => {
     return await Promise.resolve()
   }
 
-  console.log("UPSERT 1")
-
-  await upsert(
+  await findex.upsert(
     [entryLocation, entryKeyword, arrayLocation],
     searchKey,
     updateKey,
@@ -112,10 +111,7 @@ test("upsert and search memory", async () => {
     upsertChains
   )
 
-  console.log("SEARCH 1")
-
-
-  const results0 = await search(
+  const results0 = await findex.search(
     new Set(["ROBERT"]),
     searchKey,
     label,
@@ -125,10 +121,7 @@ test("upsert and search memory", async () => {
   )
   expect(results0.length).toEqual(2)
 
-  console.log("SEARCH 2")
-
-
-  const results1 = await search(
+  const results1 = await findex.search(
     new Set([new TextEncoder().encode("ROBERT")]),
     searchKey,
     label,
@@ -138,10 +131,7 @@ test("upsert and search memory", async () => {
   )
   expect(results1.length).toEqual(2)
 
-  console.log("SEARCH 3")
-
-
-  const results2 = await search(
+  const results2 = await findex.search(
     new Set(["BOB"]),
     searchKey,
     label,
@@ -322,6 +312,7 @@ async function run(
   upsertEntries: UpsertEntries,
   upsertChains: UpsertChains
 ): Promise<void> {
+  const findex = await Findex();
   const searchKey = new FindexKey(randomBytes(32))
   const updateKey = new FindexKey(randomBytes(32))
   const label = new Label(randomBytes(10))
@@ -337,7 +328,7 @@ async function run(
       })
     }
 
-    await upsert(
+    await findex.upsert(
       newIndexedEntries,
       searchKey,
       updateKey,
@@ -347,7 +338,7 @@ async function run(
       upsertChains
     )
 
-    const results = await search(
+    const results = await findex.search(
       new Set([USERS[0].firstName]),
       searchKey,
       label,
@@ -364,7 +355,7 @@ async function run(
 
   {
     // Test upsert an alias to the first user.
-    await upsert(
+    await findex.upsert(
       [
         {
           indexedValue: IndexedValue.fromNextWord(
@@ -381,7 +372,7 @@ async function run(
       upsertChains
     )
 
-    const results = await search(
+    const results = await findex.search(
       new Set(["SomeAlias"]),
       searchKey,
       label,
