@@ -55,6 +55,9 @@ example_vuejs:
     - cd examples/vuejs
     - npm install
     - npm run build
+    - cd dist
+    - python -m http.server&
+    - node ../test/chrome.mjs
 
 example_reactjs:
   stage: test

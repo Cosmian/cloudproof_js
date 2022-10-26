@@ -417,7 +417,7 @@ export default defineComponent({
       <img src="/database.png" class="card-img-top" alt="...">
       <div class="card-body">
         <h5 class="card-title">Cleartext Database</h5>
-        <table class="table">
+        <table class="table" id="table_cleartext_users">
           <thead>
             <tr>
               <th colspan="4" class="text-center">
@@ -482,12 +482,10 @@ export default defineComponent({
       </div>
     </div>
 
-
-
     <div v-show="encryptedUsers.length < users.length">
       <div class="d-flex justify-content-center align-items-center">
-        <button type="button" @click="encrypt" class="btn btn-primary btn-lg d-flex justify-content-center"
-          :disabled="encrypting">
+        <button type="button" id="encrypt_user" @click="encrypt"
+          class="btn btn-primary btn-lg d-flex justify-content-center" :disabled="encrypting">
           <div v-show="encrypting">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
@@ -500,7 +498,7 @@ export default defineComponent({
       <img src="/database_encrypted.png" class="card-img-top" alt="...">
       <div class="card-body">
         <h5 class="card-title">Encrypted Database</h5>
-        <table class="table">
+        <table class="table" id="table_encrypted_users">
           <thead>
             <tr>
               <th scope="col">Marketing</th>
@@ -521,7 +519,7 @@ export default defineComponent({
 
     <div v-show="encryptedUsers.length === users.length && !indexingDone">
       <div class="d-flex justify-content-center align-items-center">
-        <button type="button" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center"
+        <button type="button" id="index" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center"
           :disabled="indexing">
           <div v-show="indexing">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
@@ -532,7 +530,7 @@ export default defineComponent({
     </div>
 
     <div class="card mb-5" v-show="indexingDone">
-      <div class="card-body">
+      <div class="card-body" id="search">
         <h5 class="card-title">Search</h5>
         <div class="mb-3">
           <div class="input-group mb-3">
@@ -606,7 +604,7 @@ export default defineComponent({
                   <label class="form-check-label" for="andOrOr">OR</label>
                 </div>
               </div>
-              <input type="email" class="form-control" placeholder="Recherche" v-model="query">
+              <input type="text" class="form-control" placeholder="Recherche" v-model="query">
             </div>
           </div>
         </div>
