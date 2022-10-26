@@ -1,14 +1,15 @@
 <script lang="ts">
 import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmipClient } from 'cloudproof_js';
+import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
-const COUNTRIES = ['France', 'Spain', 'Germany'];
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'];
+const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
 type User = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 
-export default {
+export default defineComponent({
   components: { Key },
 
   data() {
@@ -371,7 +372,7 @@ export default {
       this.search();
     },
   },
-}
+})
 </script>
 
 <template>

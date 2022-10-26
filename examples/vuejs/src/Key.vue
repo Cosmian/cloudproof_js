@@ -1,23 +1,30 @@
 <script lang="ts">
-export default {
-    props: ['name'],
+import { defineComponent, type PropType } from 'vue';
+
+const CLASSES = {
+    'France': 'text-bg-danger',
+    'Spain': 'text-bg-warning',
+    'Germany': 'text-bg-success',
+
+    'Marketing': 'text-bg-primary opacity-50',
+    'HR': 'text-bg-primary opacity-75',
+    'Security': 'text-bg-primary',
+};
+
+export default defineComponent({
+    props: {
+        name: {
+            required: true,
+            type: String as PropType<keyof typeof CLASSES>,
+        },
+    },
 
     computed: {
         classes(): string {
-            const CLASSES = {
-                'France': 'text-bg-danger',
-                'Spain': 'text-bg-warning',
-                'Germany': 'text-bg-success',
-
-                'Marketing': 'text-bg-primary opacity-50',
-                'HR': 'text-bg-primary opacity-75',
-                'Security': 'text-bg-primary',
-            };
-
             return CLASSES[this.name];
         },
     },
-}
+})
 </script>
 <template>
     <span class="badge rounded-pill d-inline-flex align-items-center" :class="classes">
