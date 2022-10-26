@@ -140,7 +140,7 @@ import puppeteer from 'puppeteer';
       const greenCount = await countSelector(page, '#table_cleartext_users tbody td.table-success');
       if (greenCount !== GREEN_CELLS[expectedResult.key]) await reportError(page, `Should have ${GREEN_CELLS[expectedResult.key]} cells green. ${greenCount} found.`);
       
-      await page.type('#search input[type=text]', expectedResult.query);
+      await page.type('#search input[type=text]', expectedResult.query, { delay: 30 });
       await new Promise((resolve) => setTimeout(resolve, 500));
       const notDecryptedCount = await countSelector(page, '#search table td .badge');
       if (notDecryptedCount !== expectedResult.notDecryptedCount) await reportError(page, `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found.`);

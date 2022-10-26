@@ -1,31 +1,57 @@
 import { Policy, PolicyAxis, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, CoverCrypt } from 'cloudproof_js';
 import { useEffect, useState } from 'react';
 
-const COUNTRIES = ['France', 'Spain', 'Germany'];
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'];
+const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
+type User = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 
 let names = [
   { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-  { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 2 },
+  { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
   { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
   { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
   { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
   { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
   { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-  { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 8 },
+  { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
   { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
 ];
-let users: Array<{ first: string, last: string, department: typeof DEPARTMENTS[0], country: typeof COUNTRIES[0], email: string, securityNumber: number }> = [];
+let users: Array<User> = [];
 for (const country of COUNTRIES) {
   for (const department of DEPARTMENTS) {
     const name = names.pop();
     if (!name) throw new Error("Not enought names")
-    users.push({ ...name, department, country });
+    users.push({ ...name, country });
   }
 }
 
+const CLASSES = {
+  'France': 'text-bg-danger',
+  'Spain': 'text-bg-warning',
+  'Germany': 'text-bg-success',
+
+  'Marketing': 'text-bg-primary opacity-50',
+  'HR': 'text-bg-primary opacity-75',
+  'Security': 'text-bg-primary',
+};
+
+function Key(name: keyof typeof CLASSES) {
+  return (
+    <span className={`badge rounded-pill d-inline-flex align-items-center ${CLASSES[name]}`}>
+        <svg xmlns=" http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+            stroke="currentColor" width="15px" className="me-1">
+            <path strokeLinecap="round" strokeLinejoin="round"
+                d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+        </svg>
+        <span>{name}</span>
+    </span>
+  );
+}
+
 function App() {
+  const [kmsServer, setKmsServer] = useState('');
+
   const [encrypting, setEncrypting] = useState(false);
   const [encryptedUsers, setEncryptedUsers] = useState([] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[]);
 
@@ -40,11 +66,11 @@ function App() {
   const [indexing, setIndexing] = useState(false);
   const [indexingDone, setIndexingDone] = useState(false);
 
-
-  const [selectedKey, setSelectedKey] = useState('aliceKey' as 'aliceKey' | 'bobKey' | 'charlieKey');
+  const [selectedKey, setSelectedKey] = useState(null as null | 'aliceKey' | 'bobKey' | 'charlieKey');
+  const [doOr, setDoOr] = useState(false);
   const [query, setQuery] = useState('');
 
-  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, department?: string, country?: string, email?: string, securityNumber?: number }>);
+  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>);
 
   const encrypt = async () => {
     setEncrypting(true);
@@ -94,7 +120,6 @@ function App() {
         new TextEncoder().encode(JSON.stringify({
           first: user.first,
           last: user.last,
-          department: user.department,
           country: user.country,
         })),
       )
@@ -143,7 +168,6 @@ function App() {
           keywords: new Set([
             Keyword.fromUtf8String(user.first),
             Keyword.fromUtf8String(user.last),
-            Keyword.fromUtf8String(user.department),
             Keyword.fromUtf8String(user.country),
             Keyword.fromUtf8String(user.email),
             Keyword.fromUtf8String(user.securityNumber.toString()),
@@ -198,8 +222,40 @@ function App() {
     }
   };
 
+  const canAccessUserClassnames = (user: User, attribute: keyof User): string => {
+    if (! selectedKey) return '';
+    return canAccessUser(user, attribute) ? 'table-success' :  'table-warning opacity-25';
+  };
+
+  const canAccessUser = (user: User, attribute: keyof User): boolean => {
+    if (!selectedKey) return true;
+
+    let countries = {
+      'aliceKey': ['France'],
+      'bobKey': ['Spain'],
+      'charlieKey': ['France', 'Spain'],
+    }[selectedKey];
+
+    if (!countries.includes(user.country)) {
+      return false;
+    }
+
+    let unavailableAttributes = {
+      'aliceKey': ['email', 'securityNumber'],
+      'bobKey': ['securityNumber'],
+      'charlieKey': ['securityNumber'],
+    }[selectedKey];
+
+    if (unavailableAttributes.includes(attribute)) {
+      return false;
+    }
+
+    return true;
+  };
+
   const doSearch = async () => {
     if (!query) return [];
+    if (! selectedKey) return [];
     if (!findexKeys) throw new Error("No Findex key");
 
     const { search } = await Findex();
@@ -215,14 +271,48 @@ function App() {
     }
     if (!key) throw new Error("No decryption key");
 
-    const indexedValues = await search(
-      new Set([query]),
-      findexKeys.searchKey,
-      FINDEX_LABEL,
-      1000,
-      async (uids) => await fetchCallback("entries", uids),
-      async (uids) => await fetchCallback("chains", uids),
-    );
+    let keywords = query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
+    if (keywords.length === 0) return;
+
+    let indexedValues: Array<IndexedValue> | null = null;
+    if (doOr) {
+      indexedValues = await search(
+        new Set(keywords),
+        findexKeys.searchKey,
+        FINDEX_LABEL,
+        1000,
+        async (uids) => await fetchCallback("entries", uids),
+        async (uids) => await fetchCallback("chains", uids),
+      );
+    } else {
+      for (const keyword of keywords) {
+        const newIndexedValues = await search(
+          new Set([keyword]),
+          findexKeys.searchKey,
+          FINDEX_LABEL,
+          1000,
+          async (uids) => await fetchCallback("entries", uids),
+          async (uids) => await fetchCallback("chains", uids),
+        );
+
+        if (indexedValues === null) {
+          indexedValues = newIndexedValues;
+        } else {
+          indexedValues = indexedValues.filter((alreadyReturnedIndexedValue) => {
+            for (let newIndexedValue of newIndexedValues) {
+              if (uint8ArrayEquals(newIndexedValue.bytes, alreadyReturnedIndexedValue.bytes)) {
+                return true;
+              }
+            }
+
+            return false;
+          })
+        }
+      }
+    }
+   
+    if (indexedValues === null) throw Error("Indexed values cannot be null when a query is provided");
+
 
     let coverCryptDecryption = new CoverCryptHybridDecryption(key);
 
@@ -252,7 +342,7 @@ function App() {
 
   useEffect(() => {
     doSearch().catch(console.error);
-  }, [selectedKey, query]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedKey, doOr, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const decode = (value: Uint8Array): string => {
     return new TextDecoder().decode(value);
@@ -271,6 +361,9 @@ function App() {
     return true;
   };
 
+  
+
+
   const showTdOrDecryptFail = (value: string | number | undefined) => {
     if (value) {
       return (<td>{value}</td>);
@@ -280,17 +373,76 @@ function App() {
   }
 
   return (
-    <main className="container" >
-      <h1>Cloudproof VueJS Demo </h1>
+    <div className="pb-5">
+    <nav className="navbar navbar-expand-lg bg-light">
+    <div className="container-fluid">
+      <a className="navbar-brand" href="/">
+        <img src="/logo.png" alt="" style={{ height: '30px'}} />
+        <span className="fw-bold ms-4">Clouproof Demo</span>
+      </a>
+    </div>
+  </nav>
+  <main className="container">
+    <details className="mt-3 mb-3">
+      <summary>Options…</summary>
 
-      < table className="table" >
+      <div className="mt-3">
+        <label htmlFor="kmsServer" className="form-label">KMS Server URL</label>
+        <div className="input-group mb-3">
+          <input type="text" className="form-control" id="kmsServer" v-model="kmsServerUrl"
+            placeholder="http://localhost:9998/kmip/2_1" />
+          <button className="btn btn-outline-secondary" type="button"
+            onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Default</button>
+        </div>
+      </div>
+
+      <hr/>
+    </details>
+
+    <div className="fs-5 mb-5">
+      <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
+
+      <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
+
+      <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
+        under
+        NDA.</p>
+
+      <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
+    </div>
+
+    <div className="card mb-5">
+      <img src="/database.png" className="card-img-top" alt="..." />
+      <div className="card-body">
+        <h5 className="card-title">Cleartext Database</h5>
+        <table className="table" id="table_cleartext_users">
         <thead>
+          <tr>
+              <th colSpan={4} className="text-center">
+                <span className="me-1">
+                  {Key("Marketing")}
+                </span>
+              </th>
+              <th colSpan={2} className="ps-2">
+                <span className="me-1">
+                  {Key("HR")}
+                </span>
+              </th>
+              <th className="ps-2">
+                <span className="me-1">
+                  {Key("Security")}
+                </span>
+              </th>
+            </tr>
           <tr>
             <th scope="col">First</th>
             <th scope="col">Last</th>
-            <th scope="col">Department</th>
             <th scope="col">Country</th>
+            <th scope="col"></th>
+
             <th scope="col">Email</th>
+            <th scope="col"></th>
+
             <th scope="col">Security Number</th>
           </tr>
         </thead>
@@ -298,33 +450,39 @@ function App() {
           {
             users.map((user, index) => (
               <tr key={`cleartext_${index}`}>
-                <td>{user.first}</td>
-                <td>{user.last}</td>
-                <td>{user.department}</td>
-                <td>{user.country}</td>
-                <td>{user.email}</td>
-                <td>{user.securityNumber}</td>
+                <td className={canAccessUserClassnames(user, 'first')}>{user.first}</td>
+                <td className={canAccessUserClassnames(user, 'last')}>{user.last}</td>
+                <td className={canAccessUserClassnames(user, 'country')}>{Key(user.country)}</td>
+                <td className="border-start pe-3"></td>
+                <td className={canAccessUserClassnames(user, 'email')}>{user.email}</td>
+                <td className="border-start pe-3"></td>
+                <td className={canAccessUserClassnames(user, 'securityNumber')}>{user.securityNumber}</td>
               </tr>
             ))
           }
         </tbody>
       </table>
+      </div>
+      </div>
 
       {
         encryptedUsers.length < users.length && <div className="d-flex justify-content-center align-items-center" >
-          <button type="button" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center" disabled={encrypting} >
+          <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center" disabled={encrypting} >
             {encrypting && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
             <div>Encrypt users</div>
           </button>
         </div>}
 
       {
-        encryptedUsers.length > 0 && <table className="table" v-show="encryptedUsers.length">
+        encryptedUsers.length > 0 && <div className="card mb-5">
+        <img src="/database_encrypted.png" className="card-img-top" alt="..." />
+        <div className="card-body">
+          <h5 className="card-title">Encrypted Database</h5><table className="table" id="table_encrypted_users">
           <thead>
             <tr>
-              <th scope="col">Marketing</th>
-              <th scope="col">HR</th>
-              <th scope="col">Security</th>
+              <th scope="col">{Key('Marketing')}</th>
+              <th scope="col">{Key('HR')}</th>
+              <th scope="col">{Key('Security')}</th>
             </tr>
           </thead>
           <tbody>
@@ -338,12 +496,12 @@ function App() {
               ))
             }
           </tbody>
-        </table>}
+        </table></div></div>}
 
       {
         (encryptedUsers.length === users.length && !indexingDone) && <div>
           <div className="d-flex justify-content-center align-items-center">
-            <button type="button" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center"
+            <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center"
               disabled={indexing}>
               {indexing && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
               <div>Index users</div>
@@ -353,42 +511,93 @@ function App() {
 
       {
         indexingDone &&
+        <div className="card mb-5">
+        <div className="card-body" id="search">
+        <h5 className="card-title">Search</h5>
         <div className="mb-3" >
-          <div className="input-group" >
-            <div className="form-check me-3" >
-              <label className="form-check-label" >
+        <div className="input-group mb-3">
+            <div className="form-check me-5">
+              <label className="form-check-label">
+                <div className="d-flex align-items-center">
                 <input className="form-check-input" type="radio" checked={selectedKey === "aliceKey"} onChange={() => setSelectedKey("aliceKey")} value="aliceKey" />
-                <span>Alice(France && Marketing) </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                    stroke="currentColor" width="40px">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div className="fs-5 ms-1">Alice</div>
+                    <div className="d-flex">
+                      <span className="me-1">{Key('France')}</span>
+                      <span>{Key('Marketing')}</span>
+                    </div>
+                  </div>
+                </div>
               </label>
             </div>
-            < div className="form-check me-3" >
-              <label className="form-check-label" >
+            <div className="form-check me-5">
+              <label className="form-check-label">
+                <div className="d-flex align-items-center">
                 <input className="form-check-input" type="radio" checked={selectedKey === "bobKey"} onChange={() => setSelectedKey("bobKey")} value="bobKey" />
-                <span>Bob(Spain && (Marketing || HR)) </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                    stroke="currentColor" width="40px">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div className="fs-5 ms-1">Bob</div>
+                    <div className="d-flex">
+                      <span className="me-1">{Key('Spain')}</span>
+                      <span className="me-1">{Key('Marketing')}</span>
+                      <span>{Key('HR')}</span>
+                    </div>
+                  </div>
+                </div>
               </label>
             </div>
-            < div className="form-check me-3" >
-              <label className="form-check-label" >
+            <div className="form-check me-5">
+              <label className="form-check-label">
+                <div className="d-flex align-items-center">
                 <input className="form-check-input" type="radio" checked={selectedKey === "charlieKey"} onChange={() => setSelectedKey("charlieKey")} value="charlieKey" />
-                <span>Charlie((France || Spain) && (Marketing || HR)) </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                    stroke="currentColor" width="40px">
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                  </svg>
+                  <div>
+                    <div className="fs-5 ms-1">Charlie</div>
+                    <div className="d-flex">
+                      <span className="me-1">{Key('France')}</span>
+                      <span className="me-1">{Key('Spain')}</span>
+                      <span className="me-1">{Key('Marketing')}</span>
+                      <span>{Key('HR')}</span>
+                    </div>
+                  </div>
+                </div>
               </label>
             </div>
-          </div>
-          < div className="mb-3" >
-            <input type="email" className="form-control" placeholder="Recherche" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </div>
+          <div className="mb-3">
+          <div className="input-group">
+              <div className="input-group-text">
+                <label className="form-check-label me-2" htmlFor="andOrOr">AND</label>
+                <div className="form-check form-switch">
+                  <input className="form-check-input" type="checkbox" role="switch" id="andOrOr" checked={doOr} onChange={(e) => setDoOr(e.target.checked)} />
+                  <label className="form-check-label" htmlFor="andOrOr">OR</label>
+                </div>
+              </div>
+              <input type="text" className="form-control" placeholder="Recherche" value={query} onChange={(e) => setQuery(e.target.value)} />
+            </div>
+            
           </div>
         </div>
-      }
-
-
-      {
+        {
         searchResults.length > 0 &&
         <table className="table" v-show="searchResults.length">
           <thead>
             <tr>
               <th scope="col">First</th>
               <th scope="col">Last</th>
-              <th scope="col">Department</th>
               <th scope="col">Country</th>
               <th scope="col">Email</th>
               <th scope="col">Security Number</th>
@@ -400,7 +609,6 @@ function App() {
                 <tr key={`results_${index}`}>
                   {showTdOrDecryptFail(user.first)}
                   {showTdOrDecryptFail(user.last)}
-                  {showTdOrDecryptFail(user.department)}
                   {showTdOrDecryptFail(user.country)}
                   {showTdOrDecryptFail(user.email)}
                   {showTdOrDecryptFail(user.securityNumber)}
@@ -410,7 +618,14 @@ function App() {
           </tbody>
         </table>
       }
+        </div>
+        </div>
+      }
+
+
+      
     </main>
+    </div>
   );
 }
 

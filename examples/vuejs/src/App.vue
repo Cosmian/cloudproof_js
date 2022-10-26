@@ -384,14 +384,14 @@ export default defineComponent({
       </a>
     </div>
   </nav>
-  <main class="container">
+  <main class="container pb-5">
     <details class="mt-3 mb-3">
       <summary>Options…</summary>
 
       <div class="mt-3">
         <label for="kmsServer" class="form-label">KMS Server URL</label>
         <div class="input-group mb-3">
-          <input type="email" class="form-control" id="kmsServer" v-model="kmsServerUrl"
+          <input type="text" class="form-control" id="kmsServer" v-model="kmsServerUrl"
             placeholder="http://localhost:9998/kmip/2_1">
           <button class="btn btn-outline-secondary" type="button"
             @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Default</button>
