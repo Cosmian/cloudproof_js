@@ -60,10 +60,10 @@ export function webassembly_decrypt_hybrid_header(usk_bytes: Uint8Array, encrypt
 * Symmetrically Encrypt plaintext data in a block.
 * @param {Uint8Array} symmetric_key_bytes
 * @param {Uint8Array} plaintext_bytes
-* @param {Uint8Array} associated_data
+* @param {Uint8Array} authenticated_data
 * @returns {Uint8Array}
 */
-export function webassembly_encrypt_symmetric_block(symmetric_key_bytes: Uint8Array, plaintext_bytes: Uint8Array, associated_data: Uint8Array): Uint8Array;
+export function webassembly_encrypt_symmetric_block(symmetric_key_bytes: Uint8Array, plaintext_bytes: Uint8Array, authenticated_data: Uint8Array): Uint8Array;
 /**
 * Symmetrically Decrypt encrypted data in a block.
 * @param {Uint8Array} symmetric_key_bytes

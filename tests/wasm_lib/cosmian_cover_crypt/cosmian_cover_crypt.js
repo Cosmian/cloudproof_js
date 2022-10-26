@@ -277,13 +277,13 @@ module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted
 * Symmetrically Encrypt plaintext data in a block.
 * @param {Uint8Array} symmetric_key_bytes
 * @param {Uint8Array} plaintext_bytes
-* @param {Uint8Array} associated_data
+* @param {Uint8Array} authenticated_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, associated_data) {
+module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, authenticated_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(associated_data));
+        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(authenticated_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];

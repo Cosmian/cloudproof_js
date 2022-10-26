@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "@types/uuid": "^8.3.4",
-        "cosmian_cover_crypt": "file:../cover_crypt/pkg/bundler",
+        "cosmian_cover_crypt": "7.0.0",
         "cosmian_findex": "file:../findex/pkg/bundler",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
