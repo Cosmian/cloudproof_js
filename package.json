@@ -21,7 +21,7 @@
     "dependencies": {
         "@types/uuid": "^8.3.4",
         "cosmian_cover_crypt": "7.0.0",
-        "cosmian_findex": "file:../findex/pkg/bundler",
+        "cosmian_findex": "0.10.0",
         "js-crypto-hmac": "^1.0.4",
         "leb128": "0.0.5",
         "process": "^0.11.10",
