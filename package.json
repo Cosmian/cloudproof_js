@@ -10,7 +10,7 @@
         "dist"
     ],
     "scripts": {
-        "prepare": "rm -rf dist && tsc -p tsconfig-esm.json",
+        "prepare": "rm -rf dist && tsc --version && tsc -p tsconfig-esm.json",
         "test": "jest",
         "lint": "npx eslint src tests",
         "lint:fix": "npm run lint -- --fix",
