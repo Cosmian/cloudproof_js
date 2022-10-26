@@ -11,6 +11,7 @@ variables:
 stages:
   - prebuild
   - build
+  - test
   - pack
   - publish
   - deploy
@@ -49,14 +50,14 @@ build_node_18:
   image: node:18
 
 example_vuejs:
-  stage: prebuild
+  stage: test
   script:
     - cd examples/vuejs
     - npm install
     - npm run build
 
 example_reactjs:
-  stage: prebuild
+  stage: test
   script:
     - cd examples/reactjs
     - npm install
