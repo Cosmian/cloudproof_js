@@ -55,6 +55,13 @@ example_vuejs:
     - npm install
     - npm run build
 
+example_reactjs:
+  stage: prebuild
+  script:
+    - cd examples/reactjs
+    - npm install
+    - npm run build
+
 pack:
   stage: pack
   before_script:
