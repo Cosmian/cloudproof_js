@@ -306,7 +306,6 @@ test("KMS CoverCrypt keys", async () => {
   )
   // decryption
   console.log("...decryption")
-  console.log(udk);
   const decrypter = new CoverCryptHybridDecryption(udk)
   const plaintext_ = decrypter.decrypt(ciphertext)
   expect(plaintext_).toEqual(plaintext)

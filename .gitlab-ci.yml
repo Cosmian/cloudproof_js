@@ -26,12 +26,6 @@ stages:
     - npm --version
     - npm install
 
-.test:
-  stage: build
-  extends: .services
-  script:
-    - npm test
-
 eslint:
   extends: .services
   stage: prebuild
@@ -39,17 +33,12 @@ eslint:
     - npm run format
   allow_failure: true
 
-build_node_14:
-  extends: .test
-  image: node:14
-
-build_node_16:
-  extends: .test
-  image: node:16
-
 build_node_18:
-  extends: .test
   image: node:18
+  stage: build
+  extends: .services
+  script:
+    - npm test
 
 example_vuejs:
   stage: test
