@@ -20,8 +20,10 @@ let names = [
 ];
 let users: Array<User> = [];
 let id = 0;
+const NUMBER_OF_USER_BY_COUNTRY = names.length / COUNTRIES.length;
 for (const country of COUNTRIES) {
-  for (let index = 0; index < names.length / COUNTRIES.length; index++) {
+  for (let index = 0; index < NUMBER_OF_USER_BY_COUNTRY; index++) {
+    console.log(index);
     const name = names.pop();
     if (!name) throw new Error("Not enought names")
     users.push({ id, ...name, country });
@@ -509,15 +511,15 @@ function App() {
                     </tr>
                   ))
                 }
-                <tr id="newUserRow">
+                <tr id="new_user_row">
                   <td>
-                    <input form="newUser" type="text" placeholder="Firstname" className="form-control form-control-sm" value={newUser.first} onChange={(e) => setNewUser({ ...newUser, first: e.target.value })} required />
+                    <input form="newUser" id="new_user_first" type="text" placeholder="Firstname" className="form-control form-control-sm" value={newUser.first} onChange={(e) => setNewUser({ ...newUser, first: e.target.value })} required />
                   </td>
                   <td>
-                    <input form="newUser" type="text" placeholder="Lastname" className="form-control form-control-sm" value={newUser.last} onChange={(e) => setNewUser({ ...newUser, last: e.target.value })} required />
+                    <input form="newUser" id="new_user_last" type="text" placeholder="Lastname" className="form-control form-control-sm" value={newUser.last} onChange={(e) => setNewUser({ ...newUser, last: e.target.value })} required />
                   </td>
                   <td>
-                    <select form="newUser" className="form-select form-select-sm" value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value as any })} required>
+                    <select form="newUser" id="new_user_country" className="form-select form-select-sm" value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value as any })} required>
                       {
                         COUNTRIES.map((country) => (
                           <option key={country} value={country}>{country}</option>
@@ -528,12 +530,12 @@ function App() {
                   </td>
                   <td className="border-start pe-3"></td>
                   <td>
-                    <input form="newUser" type="email" placeholder="Email" className="form-control form-control-sm" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
+                    <input form="newUser" id="new_user_email" type="email" placeholder="Email" className="form-control form-control-sm" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
                   </td>
                   <td className="border-start pe-3"></td>
                   <td>
                     <form onSubmit={(e) => addUser(e)} id="newUser" className="d-flex align-items-start">
-                      <input type="number" style={{ width: '75px' }} className="form-control form-control-sm" value={newUser.securityNumber} onChange={(e) => setNewUser({ ...newUser, securityNumber: parseInt(e.target.value) })} required />
+                      <input type="number" id="new_user_security_number" style={{ width: '75px' }} className="form-control form-control-sm" value={newUser.securityNumber} onChange={(e) => setNewUser({ ...newUser, securityNumber: parseInt(e.target.value) })} required />
                       <button type="submit" className="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
                         {addingUser && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" ></div>}
                         {!addingUser && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px">

@@ -16,24 +16,39 @@ import puppeteer from 'puppeteer';
 
   await page.goto('http://localhost:8000');
 
-  await page.waitForSelector('#table_cleartext_users', { timeout: 5000 });
-  const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#newUserRow)');
-  if (clearTextUsersCount !== 9) await reportError(page, `Should have 9 cleartext users. Found ${clearTextUsersCount}`);
+  {
+    await page.waitForSelector('#table_cleartext_users', { timeout: 5000 });
+    const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
+    if (clearTextUsersCount !== 9) await reportError(page, `Should have 9 cleartext users. Found ${clearTextUsersCount}`);
+  }
   
-  await page.waitForSelector('#encrypt_user', { timeout: 500 });
+  await page.type('#new_user_row input#new_user_first', 'John');
+  await page.type('#new_user_row input#new_user_last', 'Doe');
+  await page.select('#new_user_row select#new_user_country', 'France');
+  await page.type('#new_user_row input#new_user_email', 'john@example.org');
+  await page.type('#new_user_row input#new_user_security_number', '42');
+  await page.click('#new_user_row button');
+
+  {
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
+    if (clearTextUsersCount !== 10) await reportError(page, `Should have 10 cleartext users. Found ${clearTextUsersCount}`);
+  }
+  
   await page.click('#encrypt_user');
+  await new Promise((resolve) => setTimeout(resolve, 5000));
 
   await page.waitForSelector('#table_encrypted_users', { timeout: 500 });
   const encryptedUsersCount = await countSelector(page, '#table_encrypted_users tbody tr');
-  if (encryptedUsersCount !== clearTextUsersCount) await reportError(page, `EncryptedUsersCount ${encryptedUsersCount} is not equal to CleartextUsersCount ${clearTextUsersCount}`);
+  if (encryptedUsersCount !== 10) await reportError(page, `EncryptedUsersCount ${encryptedUsersCount} is not equal to CleartextUsersCount 10`);
 
   await page.click('#index');
   await page.waitForSelector('#search', { timeout: 500 });
 
   const GREEN_CELLS = {
-    aliceKey: 9,
+    aliceKey: 12,
     bobKey: 12,
-    charlieKey: 24,
+    charlieKey: 28,
   }
 
   const EXPECTED_RESULTS = [
@@ -104,22 +119,22 @@ import puppeteer from 'puppeteer';
       key: 'aliceKey',
       doOr: true,
       query: 'Thibaud France',
-      lines: 4,
-      notDecryptedCount: 11,
+      lines: 5,
+      notDecryptedCount: 13,
     },
     {
       key: 'bobKey',
       doOr: true,
       query: 'Thibaud France',
-      lines: 4,
-      notDecryptedCount: 20,
+      lines: 5,
+      notDecryptedCount: 25,
     },
     {
       key: 'charlieKey',
       doOr: true,
       query: 'Thibaud France',
-      lines: 4,
-      notDecryptedCount: 8,
+      lines: 5,
+      notDecryptedCount: 9,
     },
   ].sort((a, b) => 0.5 - Math.random());
 
@@ -138,12 +153,12 @@ import puppeteer from 'puppeteer';
       previousDoOr = expectedResult.doOr;
   
       const greenCount = await countSelector(page, '#table_cleartext_users tbody td.table-success');
-      if (greenCount !== GREEN_CELLS[expectedResult.key]) await reportError(page, `Should have ${GREEN_CELLS[expectedResult.key]} cells green. ${greenCount} found.`);
+      if (greenCount !== GREEN_CELLS[expectedResult.key]) await reportError(page, `Should have ${GREEN_CELLS[expectedResult.key]} cells green. ${greenCount} found.  (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr})`);
       
       await page.type('#search input[type=text]', expectedResult.query, { delay: 30 });
       await new Promise((resolve) => setTimeout(resolve, 500));
       const notDecryptedCount = await countSelector(page, '#search table td .badge');
-      if (notDecryptedCount !== expectedResult.notDecryptedCount) await reportError(page, `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found.`);
+      if (notDecryptedCount !== expectedResult.notDecryptedCount) await reportError(page, `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`);
   }
   
   await browser.close();
