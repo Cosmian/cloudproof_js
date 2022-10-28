@@ -17,7 +17,7 @@ import puppeteer from 'puppeteer';
   await page.goto('http://localhost:8000');
 
   await page.waitForSelector('#table_cleartext_users', { timeout: 5000 });
-  const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr');
+  const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#newUserRow)');
   if (clearTextUsersCount !== 9) await reportError(page, `Should have 9 cleartext users. Found ${clearTextUsersCount}`);
   
   await page.waitForSelector('#encrypt_user', { timeout: 500 });

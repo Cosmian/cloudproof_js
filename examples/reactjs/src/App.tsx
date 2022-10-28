@@ -21,7 +21,7 @@ let names = [
 let users: Array<User> = [];
 let id = 0;
 for (const country of COUNTRIES) {
-  for (const department of DEPARTMENTS) {
+  for (let index = 0; index < names.length / COUNTRIES.length; index++) {
     const name = names.pop();
     if (!name) throw new Error("Not enought names")
     users.push({ id, ...name, country });
@@ -509,7 +509,7 @@ function App() {
                     </tr>
                   ))
                 }
-                <tr>
+                <tr id="newUserRow">
                   <td>
                     <input form="newUser" type="text" placeholder="Firstname" className="form-control form-control-sm" value={newUser.first} onChange={(e) => setNewUser({ ...newUser, first: e.target.value })} required />
                   </td>
