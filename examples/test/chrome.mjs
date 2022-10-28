@@ -21,23 +21,16 @@ import puppeteer from 'puppeteer';
     const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
     if (clearTextUsersCount !== 9) await reportError(page, `Should have 9 cleartext users. Found ${clearTextUsersCount}`);
   }
-  
-  await page.type('#new_user_row input#new_user_first', 'John');
-  await page.type('#new_user_row input#new_user_last', 'Doe');
-  await page.select('#new_user_row select#new_user_country', 'France');
-  await page.type('#new_user_row input#new_user_email', 'john@example.org');
-  await page.type('#new_user_row input#new_user_security_number', '42');
-  await page.click('#new_user_row button');
 
-  {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
-    if (clearTextUsersCount !== 10) await reportError(page, `Should have 10 cleartext users. Found ${clearTextUsersCount}`);
-  }
+  await addNewUser(page, {
+    first: 'John',
+    last: 'Doe',
+    country: 'France',
+    email: 'john@example.org',
+    securityNumber: '42',
+  }, 10);
   
   await page.click('#encrypt_user');
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
   await page.waitForSelector('#table_encrypted_users', { timeout: 500 });
   const encryptedUsersCount = await countSelector(page, '#table_encrypted_users tbody tr');
   if (encryptedUsersCount !== 10) await reportError(page, `EncryptedUsersCount ${encryptedUsersCount} is not equal to CleartextUsersCount 10`);
@@ -51,7 +44,7 @@ import puppeteer from 'puppeteer';
     charlieKey: 28,
   }
 
-  const EXPECTED_RESULTS = [
+  let expectedResults = [
     {
       key: 'aliceKey',
       doOr: false,
@@ -139,7 +132,7 @@ import puppeteer from 'puppeteer';
   ].sort((a, b) => 0.5 - Math.random());
 
   let previousDoOr = false;
-  for (const expectedResult of EXPECTED_RESULTS) {
+  for (const expectedResult of expectedResults) {
       const input = await page.$('#search input[type=text]')
       await input.click({ clickCount: 3 })
       await page.keyboard.press('Backspace')
@@ -160,8 +153,44 @@ import puppeteer from 'puppeteer';
       const notDecryptedCount = await countSelector(page, '#search table td .badge');
       if (notDecryptedCount !== expectedResult.notDecryptedCount) await reportError(page, `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`);
   }
+
+  await addNewUser(page, {
+    first: 'Jane',
+    last: 'Doe',
+    country: 'Germany',
+    email: 'jane@example.org',
+    securityNumber: '42',
+  }, 11);
+  expectedResults.unshift({
+    key: 'charlieKey',
+    doOr: false,
+    query: 'Doe',
+    lines: 2,
+    notDecryptedCount: 6,
+  });
+
+  for (const expectedResult of expectedResults) {
+    const input = await page.$('#search input[type=text]')
+    await input.click({ clickCount: 3 })
+    await page.keyboard.press('Backspace')
+
+    await page.click(`#search input[value=${expectedResult.key}]`);
+
+    if (previousDoOr !== expectedResult.doOr) {
+      await page.click(`#search input[type=checkbox]`);
+    }
+
+    previousDoOr = expectedResult.doOr;
+    
+    await page.type('#search input[type=text]', expectedResult.query, { delay: 30 });
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const notDecryptedCount = await countSelector(page, '#search table td .badge');
+    if (notDecryptedCount !== expectedResult.notDecryptedCount) await reportError(page, `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`);
+  }
   
   await browser.close();
+
+  console.log('\x1b[32m', '✓ All Good!');
 })();
 
 async function reportError(page, message) {
@@ -173,4 +202,17 @@ async function countSelector(page, selector) {
   return await page.evaluate(selector => {
     return document.querySelectorAll(selector).length;
   }, selector);
+}
+
+async function addNewUser(page, newUser, newCount) {
+  await page.type('#new_user_row input#new_user_first', newUser.first);
+  await page.type('#new_user_row input#new_user_last', newUser.last);
+  await page.select('#new_user_row select#new_user_country', newUser.country);
+  await page.type('#new_user_row input#new_user_email', newUser.email);
+  await page.type('#new_user_row input#new_user_security_number', newUser.securityNumber);
+  await page.click('#new_user_row button');
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
+  if (clearTextUsersCount !== newCount) await reportError(page, `Should have ${newCount} cleartext users. Found ${clearTextUsersCount}`);
 }
