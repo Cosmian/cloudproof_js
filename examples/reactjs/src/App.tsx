@@ -23,7 +23,6 @@ let id = 0;
 const NUMBER_OF_USER_BY_COUNTRY = names.length / COUNTRIES.length;
 for (const country of COUNTRIES) {
   for (let index = 0; index < NUMBER_OF_USER_BY_COUNTRY; index++) {
-    console.log(index);
     const name = names.pop();
     if (!name) throw new Error("Not enought names")
     users.push({ id, ...name, country });
@@ -125,10 +124,10 @@ function App() {
     return newCoverCryptHybridEncryption
   }
 
-  const encryptAndSaveUser = (hybridCryptoEncrypt: any, user: User) => {
+  const encryptAndSaveUser = (coverCryptHybridEncryption: CoverCryptHybridEncryption, user: User) => {
     // Encrypt user personal data for the marketing team
     // of the corresponding country
-    const encryptedForMarketing = hybridCryptoEncrypt.encrypt(
+    const encryptedForMarketing = coverCryptHybridEncryption.encrypt(
       `department::Marketing && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
         first: user.first,
@@ -139,7 +138,7 @@ function App() {
 
     // Encrypt user contact information for the HR team of
     // the corresponding country
-    const encryptedForHr = hybridCryptoEncrypt.encrypt(
+    const encryptedForHr = coverCryptHybridEncryption.encrypt(
       `department::HR && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
         email: user.email,
@@ -148,7 +147,7 @@ function App() {
 
     // Encrypt the user security level for the security
     // team of the corresponding country
-    const encryptedForSecurity = hybridCryptoEncrypt.encrypt(
+    const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
       `department::Security && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
         securityNumber: user.securityNumber,

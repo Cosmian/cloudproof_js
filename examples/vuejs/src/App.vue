@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmipClient } from 'cloudproof_js';
+import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmipClient, type CoverCryptHybridEncryption } from 'cloudproof_js';
 import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
@@ -7,7 +7,16 @@ const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | '
 const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
-type User = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type User = { id: number } & NewUser;
+
+const DEFAULT_USER: NewUser = {
+  first: '',
+  last: '',
+  country: 'France',
+  email: '',
+  securityNumber: 0,
+}
 
 export default defineComponent({
   components: { Key },
@@ -28,11 +37,14 @@ export default defineComponent({
     ];
 
 
+    let id = 0;
+    const NUMBER_OF_USER_BY_COUNTRY = names.length / COUNTRIES.length;
     for (const country of COUNTRIES) {
-      for (const department of DEPARTMENTS) {
+      for (let index = 0; index < NUMBER_OF_USER_BY_COUNTRY; index++) {
         const name = names.pop();
-        if (!name) throw "Not enought names"
-        users.push({ ...name, country });
+        if (!name) throw new Error("Not enought names")
+        users.push({ id, ...name, country });
+        id++;
       }
     }
 
@@ -40,10 +52,13 @@ export default defineComponent({
       kmsServerUrl: '',
 
       users,
+      addingUser: false,
+      newUser: { ...DEFAULT_USER },
 
       encrypting: false,
       encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[],
 
+      coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
       masterKeysCoverCrypt: null as CoverCryptMasterKey | null,
       aliceKey: null as Uint8Array | null,
       bobKey: null as Uint8Array | null,
@@ -61,17 +76,15 @@ export default defineComponent({
       doOr: false,
       query: '',
       searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>,
+
+      COUNTRIES,
     }
   },
 
   methods: {
-    async encrypt() {
+    async generateCoverCryptHybridEncryption() {
       let { CoverCryptKeyGeneration, CoverCryptHybridEncryption } = await CoverCrypt();
 
-      this.encrypting = true;
-      //
-      // Create Policy
-      //
       const policy = new Policy(
         [
           new PolicyAxis("department", DEPARTMENTS, false),
@@ -81,9 +94,6 @@ export default defineComponent({
       );
       const policyBytes = policy.toJsonEncoded()
 
-      //
-      // Key generation
-      //
       const keygen = new CoverCryptKeyGeneration()
 
       let masterPublicKey;
@@ -132,55 +142,58 @@ export default defineComponent({
         )
       }
 
-      const hybridCryptoEncrypt = new CoverCryptHybridEncryption(policyBytes, masterPublicKey)
+      return this.coverCryptHybridEncryption = new CoverCryptHybridEncryption(policyBytes, masterPublicKey)
+    },
+
+    encryptAndSaveUser(coverCryptHybridEncryption: CoverCryptHybridEncryption, user: User) {
+      // Encrypt user personal data for the marketing team
+      // of the corresponding country
+      const encryptedForMarketing = coverCryptHybridEncryption.encrypt(
+        `department::Marketing && country::${user.country}`,
+        new TextEncoder().encode(JSON.stringify({
+          first: user.first,
+          last: user.last,
+          country: user.country,
+        })),
+      )
+
+      // Encrypt user contact information for the HR team of
+      // the corresponding country
+      const encryptedForHr = coverCryptHybridEncryption.encrypt(
+        `department::HR && country::${user.country}`,
+        new TextEncoder().encode(JSON.stringify({
+          email: user.email,
+        })),
+      )
+
+      // Encrypt the user security level for the security
+      // team of the corresponding country
+      const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
+        `department::Security && country::${user.country}`,
+        new TextEncoder().encode(JSON.stringify({
+          securityNumber: user.securityNumber,
+        })),
+      )
+
+      this.encryptedUsers.push({
+        marketing: encryptedForMarketing,
+        hr: encryptedForHr,
+        security: encryptedForSecurity,
+      })
+    },
+
+    async encrypt() {
+      this.encrypting = true;
+      const coverCryptHybridEncryption = this.coverCryptHybridEncryption = await this.generateCoverCryptHybridEncryption();
 
       for (const user of this.users) {
-        // Encrypt user personal data for the marketing team
-        // of the corresponding country
-        const encryptedForMarketing = await hybridCryptoEncrypt.encrypt(
-          `department::Marketing && country::${user.country}`,
-          new TextEncoder().encode(JSON.stringify({
-            first: user.first,
-            last: user.last,
-            country: user.country,
-          })),
-        )
-
-        // Encrypt user contact information for the HR team of
-        // the corresponding country
-        const encryptedForHr = await hybridCryptoEncrypt.encrypt(
-          `department::HR && country::${user.country}`,
-          new TextEncoder().encode(JSON.stringify({
-            email: user.email,
-          })),
-        )
-
-        // Encrypt the user security level for the security
-        // team of the corresponding country
-        const encryptedForSecurity = await hybridCryptoEncrypt.encrypt(
-          `department::Security && country::${user.country}`,
-          new TextEncoder().encode(JSON.stringify({
-            securityNumber: user.securityNumber,
-          })),
-        )
-
-        this.encryptedUsers.push({
-          marketing: encryptedForMarketing,
-          hr: encryptedForHr,
-          security: encryptedForSecurity,
-        })
+        this.encryptAndSaveUser(coverCryptHybridEncryption, user);
       }
       this.encrypting = false;
     },
 
-    async index() {
-      this.indexing = true;
+    async indexUsers(findexKeys: Exclude<typeof this.findexKeys, null>, users: User[]) {
       let { upsert } = await Findex();
-
-      this.findexKeys = {
-        searchKey: new FindexKey(Uint8Array.from(Array(32).fill(1))),
-        updateKey: new FindexKey(Uint8Array.from(Array(32).fill(2))),
-      };
 
       await upsert(
         this.users.map((user, index) => {
@@ -195,13 +208,24 @@ export default defineComponent({
             ]),
           };
         }),
-        this.findexKeys.searchKey,
-        this.findexKeys.updateKey,
+        findexKeys.searchKey,
+        findexKeys.updateKey,
         FINDEX_LABEL,
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
         async (uidsAndValues) => await this.upsertCallback("chains", uidsAndValues),
       );
+    },
+
+    async index() {
+      this.indexing = true;
+
+      this.findexKeys = {
+        searchKey: new FindexKey(Uint8Array.from(Array(32).fill(1))),
+        updateKey: new FindexKey(Uint8Array.from(Array(32).fill(2))),
+      };
+
+      this.indexUsers(this.findexKeys, this.users);
 
       console.log(`Done indexing ${this.indexes.entries.length} entries / ${this.indexes.chains.length} chains`);
       this.indexing = false;
@@ -315,6 +339,27 @@ export default defineComponent({
       }
 
       this.searchResults = results;
+    },
+
+    async addUser() {
+      this.addingUser = true;
+
+      let user = { id: this.users.length, ...this.newUser };
+      this.users.push(user);
+
+      // Only if we didn't encrypt/index yet, encrypt and index this new user otherwise wait for the global encrypt/index
+      if (this.encryptedUsers.length > 0) {
+        if (!this.coverCryptHybridEncryption) throw new Error("CoverCryptHybridEncryption should be present when first encrypting is done");
+        this.encryptAndSaveUser(this.coverCryptHybridEncryption as CoverCryptHybridEncryption, user);
+      }
+
+      if (this.indexingDone) {
+        if (!this.findexKeys) throw new Error("FindexKeys should be present when first indexing is done");
+        await this.indexUsers(this.findexKeys, [user]);
+      }
+
+      this.addingUser = false;
+      this.newUser = { ...DEFAULT_USER };
     },
 
     canAccessUser(user: User, attribute: keyof User): boolean {
@@ -476,6 +521,44 @@ export default defineComponent({
                 'table-warning opacity-25': key && !canAccessUser(user, 'securityNumber'),
                 'table-success': key && canAccessUser(user, 'securityNumber'),
               }"> {{ user.securityNumber }}</td>
+            </tr>
+            <tr id="new_user_row">
+              <td>
+                <input form="newUser" id="new_user_first" type="text" placeholder="Firstname"
+                  class="form-control form-control-sm" v-model="newUser.first" required />
+              </td>
+              <td>
+                <input form="newUser" id="new_user_last" type="text" placeholder="Lastname"
+                  class="form-control form-control-sm" v-model="newUser.last" required />
+              </td>
+              <td>
+                <select form="newUser" id="new_user_country" class="form-select form-select-sm"
+                  v-model="newUser.country" required>
+                  <option v-for="country in COUNTRIES" :key="country" :value="country">{{ country }}</option>
+                </select>
+              </td>
+              <td class="border-start pe-3"></td>
+              <td>
+                <input form="newUser" id="new_user_email" type="email" placeholder="Email"
+                  class="form-control form-control-sm" v-model="newUser.email" required />
+              </td>
+              <td class="border-start pe-3"></td>
+              <td>
+                <form @submit.prevent="addUser" id="newUser" class="d-flex align-items-start">
+                  <input type="number" id="new_user_security_number" style="width: 75px"
+                    class="form-control form-control-sm" v-model="newUser.securityNumber" required />
+                  <button type="submit"
+                    class="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
+                    <div v-if="addingUser" class="spinner-border text-light me-3 spinner-border-sm" role="status">
+                    </div>
+                    <svg v-if="!addingUser" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                      stroke-width="1.5" stroke="currentColor" width="20px" height="20px">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                    </svg>
+                  </button>
+                </form>
+              </td>
             </tr>
           </tbody>
         </table>
