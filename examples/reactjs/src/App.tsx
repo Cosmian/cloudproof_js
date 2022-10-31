@@ -467,7 +467,7 @@ function App() {
       </nav>
       <main className="container">
         <details className="mt-3 mb-3">
-          <summary>Options…</summary>
+          <summary id="options">Options…</summary>
 
           <div className="mt-3">
             <label htmlFor="kmsServer" className="form-label">KMS Server URL</label>

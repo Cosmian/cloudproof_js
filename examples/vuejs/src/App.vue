@@ -435,7 +435,7 @@ export default defineComponent({
   </nav>
   <main class="container pb-5">
     <details class="mt-3 mb-3">
-      <summary>Options…</summary>
+      <summary id="options">Options…</summary>
 
       <div class="mt-3">
         <label for="kmsServer" class="form-label">KMS Server URL</label>

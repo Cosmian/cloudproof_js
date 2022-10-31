@@ -1,6 +1,32 @@
 import puppeteer from 'puppeteer';
 
 (async () => {
+  await runTest("without graphs");
+  await runTest("with graphs", async (page) => {
+    await page.click('#options');
+    await page.click("#usingGraphs");
+  }, (expectedResults) => {
+    expectedResults.push({
+      key: 'aliceKey',
+      doOr: false,
+      query: 'Ma',
+      lines: 0,
+      notDecryptedCount: 0,
+    })
+    expectedResults.push({
+      key: 'aliceKey',
+      doOr: false,
+      query: 'Mal',
+      lines: 1,
+      notDecryptedCount: 2,
+    })
+
+    return expectedResults;
+  });
+})();
+
+
+async function runTest(name, optionsCallback = (async () => {}), expectedResultsCallback = ((e) => e)) {
   const browser = await puppeteer.launch({ headless: process.env.CI !== undefined });
   const page = await browser.newPage();
   await page.setViewport({
@@ -21,6 +47,8 @@ import puppeteer from 'puppeteer';
     const clearTextUsersCount = await countSelector(page, '#table_cleartext_users tbody tr:not(#new_user_row)');
     if (clearTextUsersCount !== 9) await reportError(page, `Should have 9 cleartext users. Found ${clearTextUsersCount}`);
   }
+
+  await optionsCallback(page);
 
   await addNewUser(page, {
     first: 'John',
@@ -44,7 +72,7 @@ import puppeteer from 'puppeteer';
     charlieKey: 28,
   }
 
-  let expectedResults = [
+  const expectedResults = expectedResultsCallback([
     {
       key: 'aliceKey',
       doOr: false,
@@ -129,7 +157,7 @@ import puppeteer from 'puppeteer';
       lines: 5,
       notDecryptedCount: 9,
     },
-  ].sort((a, b) => 0.5 - Math.random());
+  ].sort((a, b) => 0.5 - Math.random()));
 
   let previousDoOr = false;
   for (const expectedResult of expectedResults) {
@@ -190,8 +218,8 @@ import puppeteer from 'puppeteer';
   
   await browser.close();
 
-  console.log('\x1b[32m', '✓ All Good!');
-})();
+  console.log('\x1b[32m', `✓ All Good for ${name}!`);
+}
 
 async function reportError(page, message) {
   await page.screenshot({ path: 'error.png', fullPage: true });
