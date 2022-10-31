@@ -63,6 +63,7 @@ function Key(name: keyof typeof CLASSES) {
 
 function App() {
   const [kmsServer, setKmsServer] = useState('');
+  const [usingGraphs, setUsingGraphs] = useState(false);
 
   const [addingUser, setAddingUser] = useState(false);
   const [newUser, setNewUser] = useState(DEFAULT_USER);
@@ -225,6 +226,9 @@ function App() {
       async (uids) => await fetchCallback("entries", uids),
       async (uidsAndValues) => await upsertCallback("entries", uidsAndValues),
       async (uidsAndValues) => await upsertCallback("chains", uidsAndValues),
+      {
+        generateGraphs: usingGraphs,
+      },
     );
   }
 
@@ -473,6 +477,13 @@ function App() {
               <button className="btn btn-outline-secondary" type="button"
                 onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Default</button>
             </div>
+          </div>
+
+          <div className="form-check">
+            <input className="form-check-input" type="checkbox" onChange={(e) => setUsingGraphs(e.target.checked)} checked={usingGraphs} id="usingGraphs" />
+            <label className="form-check-label" htmlFor="usingGraphs">
+              Generate graphs during indexing
+            </label>
           </div>
 
           <hr />

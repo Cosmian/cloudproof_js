@@ -1,4 +1,4 @@
-import { webassembly_search, webassembly_upsert } from "cosmian_findex"
+import { webassembly_graph_upsert, webassembly_search, webassembly_upsert } from "cosmian_findex"
 import { initFindex } from "../../../utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
@@ -201,6 +201,8 @@ export async function Findex() {
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
      * @param {UpsertChains} upsertChains callback to upsert inside chains table
+     * @param {object} options
+     * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
      */
     upsert: async (
       newIndexedEntries: IndexedEntry[],
@@ -209,7 +211,10 @@ export async function Findex() {
       label: Label,
       fetchEntries: FetchEntries,
       upsertEntries: UpsertEntries,
-      upsertChains: UpsertChains
+      upsertChains: UpsertChains,
+      options: {
+        generateGraphs?: boolean,
+      } = {},
     ):  Promise<void> => {
       // convert key to a single representation
       if (searchKey instanceof SymmetricKey) {
@@ -218,6 +223,8 @@ export async function Findex() {
       if (updateKey instanceof SymmetricKey) {
         updateKey = new FindexKey(updateKey.bytes())
       }
+
+      const generateGraphs = typeof options.generateGraphs === 'undefined' ? false : options.generateGraphs;
 
       const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
       for (const newIndexedEntry of newIndexedEntries) {
@@ -231,7 +238,8 @@ export async function Findex() {
         })
       }
 
-      return await webassembly_upsert(
+      const upsertFn = generateGraphs ? webassembly_graph_upsert : webassembly_upsert;
+      return await upsertFn(
         searchKey.bytes,
         updateKey.bytes,
         label.bytes,

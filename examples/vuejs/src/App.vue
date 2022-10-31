@@ -50,6 +50,7 @@ export default defineComponent({
 
     return {
       kmsServerUrl: '',
+      usingGraphs: false,
 
       users,
       addingUser: false,
@@ -214,6 +215,9 @@ export default defineComponent({
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
         async (uidsAndValues) => await this.upsertCallback("chains", uidsAndValues),
+        {
+          generateGraphs: this.usingGraphs,
+        },
       );
     },
 
@@ -442,6 +446,14 @@ export default defineComponent({
             @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Default</button>
         </div>
       </div>
+
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" v-model="usingGraphs" id="usingGraphs" />
+        <label class="form-check-label" for="usingGraphs">
+          Generate graphs during indexing
+        </label>
+      </div>
+
 
       <hr>
     </details>
