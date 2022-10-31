@@ -1,4 +1,4 @@
-import { Policy, PolicyAxis, Findex, FindexKey, type UidsAndValues, CoverCryptHybridEncryption, Label, IndexedValue, Location, Keyword, CoverCrypt } from 'cloudproof_js';
+import { Policy, PolicyAxis, Findex, FindexKey, type UidsAndValues, CoverCryptHybridEncryption, Label, IndexedValue, Location, Keyword, CoverCrypt, KmipClient } from 'cloudproof_js';
 import { FormEvent, useEffect, useState } from 'react';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
@@ -98,28 +98,57 @@ function App() {
       ],
       100,
     );
-
-    const keygen = new CoverCryptKeyGeneration()
-    let masterKeysCoverCrypt = keygen.generateMasterKeys(policy);
-
-    setAliceKey(keygen.generateUserSecretKey(
-      masterKeysCoverCrypt.secretKey,
-      "country::France && department::Marketing",
-      policy
-    ))
-    setBobKey(keygen.generateUserSecretKey(
-      masterKeysCoverCrypt.secretKey,
-      "country::Spain && (department::HR || department::Marketing)",
-      policy
-    ))
-    setCharlieKey(keygen.generateUserSecretKey(
-      masterKeysCoverCrypt.secretKey,
-      "(country::France || country::Spain) && (department::HR || department::Marketing)",
-      policy
-    ))
-
     const policyBytes = policy.toJsonEncoded()
-    const newCoverCryptHybridEncryption = new CoverCryptHybridEncryption(policyBytes, masterKeysCoverCrypt.publicKey);
+
+    let masterPublicKey;
+    if (kmsServer) {
+      console.log('Using KMS server');
+
+      const client = new KmipClient(new URL(kmsServer))
+      const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
+      masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
+
+      let aliceUid = await client.createAbeUserDecryptionKey(
+        "country::France && department::Marketing",
+        privateMasterKeyUID,
+      )
+      setAliceKey((await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes());
+
+      let bobUid = await client.createAbeUserDecryptionKey(
+        "country::Spain && (department::HR || department::Marketing)",
+        privateMasterKeyUID,
+      )
+      setBobKey((await client.retrieveAbeUserDecryptionKey(bobUid)).bytes());
+
+      let charlieUid = await client.createAbeUserDecryptionKey(
+        "(country::France || country::Spain) && (department::HR || department::Marketing)",
+        privateMasterKeyUID,
+      )
+      setCharlieKey((await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes());
+    } else {
+
+      const keygen = new CoverCryptKeyGeneration()
+      let masterKeys = keygen.generateMasterKeys(policy);
+      masterPublicKey = masterKeys.publicKey;
+
+      setAliceKey(keygen.generateUserSecretKey(
+        masterKeys.secretKey,
+        "country::France && department::Marketing",
+        policy
+      ))
+      setBobKey(keygen.generateUserSecretKey(
+        masterKeys.secretKey,
+        "country::Spain && (department::HR || department::Marketing)",
+        policy
+      ))
+      setCharlieKey(keygen.generateUserSecretKey(
+        masterKeys.secretKey,
+        "(country::France || country::Spain) && (department::HR || department::Marketing)",
+        policy
+      ))
+    }
+
+    const newCoverCryptHybridEncryption = new CoverCryptHybridEncryption(policyBytes, masterPublicKey);
     setCoverCryptHybridEncryption(newCoverCryptHybridEncryption);
     return newCoverCryptHybridEncryption
   }
@@ -439,7 +468,7 @@ function App() {
           <div className="mt-3">
             <label htmlFor="kmsServer" className="form-label">KMS Server URL</label>
             <div className="input-group mb-3">
-              <input type="text" className="form-control" id="kmsServer" v-model="kmsServerUrl"
+              <input type="text" className="form-control" id="kmsServer" value={kmsServer} onChange={(e) => setKmsServer(e.target.value)}
                 placeholder="http://localhost:9998/kmip/2_1" />
               <button className="btn btn-outline-secondary" type="button"
                 onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Default</button>

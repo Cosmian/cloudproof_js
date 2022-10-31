@@ -100,7 +100,7 @@ export default defineComponent({
       if (this.kmsServerUrl) {
         console.log('Using KMS server');
 
-        const client = new KmipClient(new URL("http://localhost:9998/kmip/2_1"))
+        const client = new KmipClient(new URL(this.kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
         masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
 
