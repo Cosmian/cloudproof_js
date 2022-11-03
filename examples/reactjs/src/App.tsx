@@ -94,7 +94,7 @@ function App() {
 
     const policy = new Policy(
       [
-        new PolicyAxis("department", DEPARTMENTS, false),
+        new PolicyAxis("department", DEPARTMENTS, true),
         new PolicyAxis("country", COUNTRIES, false),
       ],
       100,
@@ -116,13 +116,15 @@ function App() {
       setAliceKey((await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes());
 
       let bobUid = await client.createAbeUserDecryptionKey(
-        "country::Spain && (department::HR || department::Marketing)",
+        // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
+        "country::Spain && department::HR",
         privateMasterKeyUID,
       )
       setBobKey((await client.retrieveAbeUserDecryptionKey(bobUid)).bytes());
 
       let charlieUid = await client.createAbeUserDecryptionKey(
-        "(country::France || country::Spain) && (department::HR || department::Marketing)",
+        // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
+        "(country::France || country::Spain) && department::HR",
         privateMasterKeyUID,
       )
       setCharlieKey((await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes());
@@ -139,12 +141,14 @@ function App() {
       ))
       setBobKey(keygen.generateUserSecretKey(
         masterKeys.secretKey,
-        "country::Spain && (department::HR || department::Marketing)",
+        // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
+        "country::Spain && department::HR",
         policy
       ))
       setCharlieKey(keygen.generateUserSecretKey(
         masterKeys.secretKey,
-        "(country::France || country::Spain) && (department::HR || department::Marketing)",
+        // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
+        "(country::France || country::Spain) && department::HR",
         policy
       ))
     }

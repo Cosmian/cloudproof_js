@@ -88,7 +88,7 @@ export default defineComponent({
 
       const policy = new Policy(
         [
-          new PolicyAxis("department", DEPARTMENTS, false),
+          new PolicyAxis("department", DEPARTMENTS, true),
           new PolicyAxis("country", COUNTRIES, false),
         ],
         100,
@@ -112,13 +112,15 @@ export default defineComponent({
         this.aliceKey = (await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes();
 
         let bobUid = await client.createAbeUserDecryptionKey(
-          "country::Spain && (department::HR || department::Marketing)",
+          // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
+          "country::Spain && department::HR",
           privateMasterKeyUID,
         )
         this.bobKey = (await client.retrieveAbeUserDecryptionKey(bobUid)).bytes();
 
         let charlieUid = await client.createAbeUserDecryptionKey(
-          "(country::France || country::Spain) && (department::HR || department::Marketing)",
+          // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
+          "(country::France || country::Spain) && department::HR",
           privateMasterKeyUID,
         )
         this.charlieKey = (await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes();
@@ -133,12 +135,14 @@ export default defineComponent({
         )
         this.bobKey = keygen.generateUserSecretKey(
           masterKeysCoverCrypt.secretKey,
-          "country::Spain && (department::HR || department::Marketing)",
+          // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
+          "country::Spain && department::HR",
           policy
         )
         this.charlieKey = keygen.generateUserSecretKey(
           masterKeysCoverCrypt.secretKey,
-          "(country::France || country::Spain) && (department::HR || department::Marketing)",
+          // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
+          "(country::France || country::Spain) && department::HR",
           policy
         )
       }
