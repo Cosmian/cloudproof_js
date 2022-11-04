@@ -334,13 +334,13 @@ export default defineComponent({
         let decryptedUser = {};
 
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await coverCryptDecryption.decrypt(encryptedUser.marketing))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.marketing))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await coverCryptDecryption.decrypt(encryptedUser.hr))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await coverCryptDecryption.decrypt(encryptedUser.security))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.security))) };
         } catch (e) { }
 
         results.push(decryptedUser);
