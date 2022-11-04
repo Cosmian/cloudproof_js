@@ -9,12 +9,9 @@ variables:
   KMS_SHARED_PATH: /tmp
 
 stages:
-  - prebuild
-  - build
   - test
   - pack
   - publish
-  - deploy
 
 .services:
   services:
@@ -28,13 +25,13 @@ stages:
 
 eslint:
   extends: .services
-  stage: prebuild
+  stage: test
   script:
     - npm run format
   allow_failure: true
 
 build:
-  stage: build
+  stage: test
   extends: .services
   script:
     - npm test
