@@ -27,7 +27,7 @@ import puppeteer from 'puppeteer';
 
 
 async function runTest(name, optionsCallback = (async () => {}), expectedResultsCallback = ((e) => e)) {
-  const browser = await puppeteer.launch({ headless: process.env.CI !== undefined });
+  const browser = await puppeteer.launch({ headless: process.env.CI !== undefined, args: ['--no-sandbox'], });
   const page = await browser.newPage();
   await page.setViewport({
     width: 1920,
