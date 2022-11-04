@@ -40,7 +40,7 @@ async function runTest(name, optionsCallback = (async () => {}), expectedResults
     await reportError(page, `Page Error: ${err.toString()}`);
   });
 
-  await page.goto('http://localhost:8000');
+  await page.goto('http://localhost:8080');
 
   {
     await page.waitForSelector('#table_cleartext_users', { timeout: 5000 });

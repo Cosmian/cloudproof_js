@@ -43,9 +43,8 @@ example_vuejs:
     - cd examples/vuejs
     - npm install
     - npm run build
-    - cd dist
-    - python -m http.server&
-    - node ../../test/chrome.mjs
+    - npm run serve&
+    - node ../test/chrome.mjs
 
 example_reactjs:
   stage: test
@@ -54,9 +53,8 @@ example_reactjs:
     - cd examples/reactjs
     - npm install
     - npm run build
-    - cd build
-    - python -m http.server&
-    - node ../../test/chrome.mjs
+    - npm run serve&
+    - node ../test/chrome.mjs
 
 pack:
   stage: pack
