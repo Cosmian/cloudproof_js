@@ -18,7 +18,7 @@ stages:
 
 .services:
   services:
-    - name: gitlab.cosmian.com:5000/core/kms:${KMS_VERSION}_ci
+    - name: gitlab.cosmian.com:5000/core/kms:develop_ci
       alias: kms_ci
     - redis:latest
   before_script:
