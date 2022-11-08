@@ -20,13 +20,15 @@ npm i cloudproof_js
 
 The project is supported in WebPack and can be used with this configuration:
 
+Context of `webpack.config.js`:
+
 ```
 const path = require("path")
 const webpack = require("webpack")
 
 module.exports = {
   mode: "development",
-  entry: ["./src/site/index.ts"],
+  entry: ["./index.js"],
   devtool: "inline-source-map",
   module: {
     rules: [
@@ -49,7 +51,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
   },
   devServer: {
-    contentBase: "./site",
+    static: "./site",
   },
   experiments: {
     asyncWebAssembly: true,
@@ -70,11 +72,27 @@ module.exports = {
 }
 ```
 
-Then, run:
+Then, add these dependencies to your package.json:
+
+```
+  "dependencies": {
+    "cloudproof_js": "X.Y.Z",
+    "webpack": "^5.74.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.11.1"
+  }
+
+```
+
+And finally run:
 
 ```
 npx webpack serve
 ```
+
+**This project DOES NOT support Node.**
 
 ## Versions Correspondence
 

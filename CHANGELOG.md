@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-
 ---
 
-## Unreleased
+## [5.0.0] - 2022-11-08
 
 ### Added
 
 - VueJS and ReactJS dome
+- example for a CoverCrypt encryption using Webpack 5
 
 ### Changed
 
@@ -17,13 +17,15 @@ All notable changes to this project will be documented in this file.
 - simplify signatures for encrypt/decrypt
 - update findex to 0.10.0
 - update cover crypt to 7.0.1
+- update webpack-dev-server version to `4.11.1`
 
 ### Fixed
 
+- Support for NodeJS 14 and NodeJS 16
+- CoverCrypt encryption UID is now optional
+- fix all eslint errors
 
 ### Removed
-
-- Support for NodeJS 14 and NodeJS 16
 
 ---
 
@@ -36,7 +38,6 @@ All notable changes to this project will be documented in this file.
 - update findex to 0.9.0: no custom conversions but with direct reflection in JS types
 
 ### Fixed
-
 
 ### Removed
 
@@ -51,7 +52,6 @@ All notable changes to this project will be documented in this file.
 - update findex to 0.8.0
 
 ### Fixed
-
 
 ### Removed
 

@@ -53,7 +53,7 @@ export class KmipChoiceAttributeReference<C1, C2, C3> {
   }
 
   public equals(o: object): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof KmipChoiceAttributeReference)) {
@@ -64,6 +64,8 @@ export class KmipChoiceAttributeReference<C1, C2, C3> {
   }
 
   public toString(): string {
-    return "{" + " attribute_reference='" + (this.c1, this.c2, this.c3) + "}"
+    return `{ AttributeReference='(${this.c1?.toString() as string}, ${
+      this.c2?.toString() as string
+    }, ${this.c3?.toString() as string}})`
   }
 }

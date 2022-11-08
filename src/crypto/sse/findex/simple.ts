@@ -1,4 +1,8 @@
-import { webassembly_graph_upsert, webassembly_search, webassembly_upsert } from "cosmian_findex"
+import {
+  webassembly_graph_upsert,
+  webassembly_search,
+  webassembly_upsert
+} from "cosmian_findex"
 import { initFindex } from "../../../utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
@@ -75,7 +79,6 @@ export class FindexKey {
   public get bytes(): Uint8Array {
     return this._bytes
   }
-
 }
 
 export class Label {
@@ -186,9 +189,12 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  */
 export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
 
+/**
+ *
+ */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
-  await initFindex();
+  await initFindex()
 
   return {
     /**
@@ -213,9 +219,9 @@ export async function Findex() {
       upsertEntries: UpsertEntries,
       upsertChains: UpsertChains,
       options: {
-        generateGraphs?: boolean,
-      } = {},
-    ):  Promise<void> => {
+        generateGraphs?: boolean
+      } = {}
+    ): Promise<void> => {
       // convert key to a single representation
       if (searchKey instanceof SymmetricKey) {
         searchKey = new FindexKey(searchKey.bytes())
@@ -224,12 +230,18 @@ export async function Findex() {
         updateKey = new FindexKey(updateKey.bytes())
       }
 
-      const generateGraphs = typeof options.generateGraphs === 'undefined' ? false : options.generateGraphs;
+      const generateGraphs =
+        typeof options.generateGraphs === "undefined"
+          ? false
+          : options.generateGraphs
 
-      const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
+      const indexedValuesAndWords: Array<{
+        indexedValue: Uint8Array
+        keywords: Uint8Array[]
+      }> = []
       for (const newIndexedEntry of newIndexedEntries) {
         const keywords: Uint8Array[] = []
-        newIndexedEntry.keywords.forEach(kw => {
+        newIndexedEntry.keywords.forEach((kw) => {
           keywords.push(kw.bytes)
         })
         indexedValuesAndWords.push({
@@ -238,7 +250,9 @@ export async function Findex() {
         })
       }
 
-      const upsertFn = generateGraphs ? webassembly_graph_upsert : webassembly_upsert;
+      const upsertFn = generateGraphs
+        ? webassembly_graph_upsert
+        : webassembly_upsert
       return await upsertFn(
         searchKey.bytes,
         updateKey.bytes,
@@ -265,7 +279,7 @@ export async function Findex() {
      * @param {number} maxResultsPerKeyword the maximum number of results per keyword
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {FetchChains} fetchChains callback to fetch the chains table
-     * @param {Progress} progress the optional callback of found values as the search graph is walked. 
+     * @param {Progress} progress the optional callback of found values as the search graph is walked.
      *    Returning false stops the walk
      * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
      */
@@ -289,11 +303,9 @@ export async function Findex() {
       }
 
       const progress_: Progress =
-        (typeof progress === "undefined") ?
-          async (indexedValues_: IndexedValue[]) => true
-          :
-          progress
-
+        typeof progress === "undefined"
+          ? async (indexedValues_: IndexedValue[]) => true
+          : progress
 
       const serializedIndexedValues = await webassembly_search(
         searchKey.bytes,
@@ -302,7 +314,7 @@ export async function Findex() {
         maxResultsPerKeyword,
         1000,
         async (serializedIndexedValues: Uint8Array[]) => {
-          const indexedValues = serializedIndexedValues.map(bytes => {
+          const indexedValues = serializedIndexedValues.map((bytes) => {
             return new IndexedValue(bytes)
           })
           return await progress_(indexedValues)
@@ -315,8 +327,7 @@ export async function Findex() {
         }
       )
 
-      return serializedIndexedValues.map(bytes => new IndexedValue(bytes))
+      return serializedIndexedValues.map((bytes) => new IndexedValue(bytes))
     }
-  };
-};
-
+  }
+}

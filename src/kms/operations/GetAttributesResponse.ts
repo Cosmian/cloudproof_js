@@ -40,7 +40,7 @@ export class GetAttributesResponse implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof GetAttributesResponse)) {
@@ -54,15 +54,6 @@ export class GetAttributesResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " uniqueIdentifier='" +
-      this._uniqueIdentifier +
-      "'" +
-      ", attributes='" +
-      this._attributes +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${this._uniqueIdentifier.toString()}', Attributes='${this._attributes.toString()}'}`
   }
 }

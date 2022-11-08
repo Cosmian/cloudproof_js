@@ -6,7 +6,7 @@
   "extends": [
     "standard-with-typescript",
     "plugin:jsdoc/recommended",
-    "prettier" // Make sure this is the last
+    "prettier"
   ],
   "overrides": [],
   "parserOptions": {
@@ -19,7 +19,9 @@
   "plugins": [
     "jsdoc"
   ],
-  "rules": {},
+  "rules": {
+    "@typescript-eslint/no-empty-interface": 0
+  },
   "ignorePatterns": [
     "tests/wasm_lib"
   ]

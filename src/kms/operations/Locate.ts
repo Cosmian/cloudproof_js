@@ -11,7 +11,7 @@ export class Locate implements KmipStruct {
     name: "MaximumItems",
     type: TtlvType.Integer,
   })
-  private _maximum_items?: number
+  private _maximumItems?: number
 
   /// An Integer object that indicates the number of object identifiers to
   /// skip that satisfy the identification criteria specified in the request.
@@ -19,7 +19,7 @@ export class Locate implements KmipStruct {
     name: "OffsetItems",
     type: TtlvType.Integer,
   })
-  private _offset_items?: number
+  private _offsetItems?: number
 
   /// An Integer object (used as a bit mask) that indicates whether only
   /// on-line objects, only archived objects, destroyed objects or any
@@ -30,7 +30,7 @@ export class Locate implements KmipStruct {
     name: "StorageStatusMask",
     type: TtlvType.Integer,
   })
-  private _storage_status_mask?: number
+  private _storageStatusMask?: number
 
   /// An Enumeration object that indicates the object group member type.
   @metadata({
@@ -38,7 +38,7 @@ export class Locate implements KmipStruct {
     type: TtlvType.Enumeration,
     classOrEnum: ObjectGroupMember,
   })
-  private _object_group_member?: ObjectGroupMember
+  private _objectGroupMember?: ObjectGroupMember
 
   /// Specifies an attribute and its value(s) that are REQUIRED to match those
   /// in a candidate object (according to the matching rules defined above).
@@ -50,48 +50,48 @@ export class Locate implements KmipStruct {
 
   constructor(
     attributes: Attributes,
-    maximum_items?: number,
-    offset_items?: number,
-    storage_status_mask?: number,
-    object_group_member?: ObjectGroupMember
+    maximumItems?: number,
+    offsetItems?: number,
+    storageStatusMask?: number,
+    objectGroupMember?: ObjectGroupMember
   ) {
-    this._maximum_items = maximum_items
-    this._offset_items = offset_items
-    this._storage_status_mask = storage_status_mask
-    this._object_group_member = object_group_member
+    this._maximumItems = maximumItems
+    this._offsetItems = offsetItems
+    this._storageStatusMask = storageStatusMask
+    this._objectGroupMember = objectGroupMember
     this._attributes = attributes
   }
 
   public get maximum_items(): number | undefined {
-    return this._maximum_items
+    return this._maximumItems
   }
 
   public set maximum_items(value: number | undefined) {
-    this._maximum_items = value
+    this._maximumItems = value
   }
 
   public get offset_items(): number | undefined {
-    return this._offset_items
+    return this._offsetItems
   }
 
   public set offset_items(value: number | undefined) {
-    this._offset_items = value
+    this._offsetItems = value
   }
 
   public get storage_status_mask(): number | undefined {
-    return this._storage_status_mask
+    return this._storageStatusMask
   }
 
   public set storage_status_mask(value: number | undefined) {
-    this._storage_status_mask = value
+    this._storageStatusMask = value
   }
 
   public get object_group_member(): ObjectGroupMember | undefined {
-    return this._object_group_member
+    return this._objectGroupMember
   }
 
   public set object_group_member(value: ObjectGroupMember | undefined) {
-    this._object_group_member = value
+    this._objectGroupMember = value
   }
 
   public get attributes(): Attributes {
@@ -103,7 +103,7 @@ export class Locate implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof Locate)) {
@@ -111,32 +111,22 @@ export class Locate implements KmipStruct {
     }
     const locate = o
     return (
-      this._maximum_items === locate.maximum_items &&
-      this._offset_items === locate.offset_items &&
-      this._storage_status_mask === locate.storage_status_mask &&
+      this._maximumItems === locate.maximum_items &&
+      this._offsetItems === locate.offset_items &&
+      this._storageStatusMask === locate.storage_status_mask &&
       this._attributes === locate.attributes
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " maximum_items='" +
-      this._maximum_items +
-      "'" +
-      ", offset_items='" +
-      this._offset_items +
-      "'" +
-      ", storage_status_mask='" +
-      this._storage_status_mask +
-      "'" +
-      ", object_group_member='" +
-      this._object_group_member +
-      "'" +
-      ", attributes='" +
-      this._attributes +
-      "'" +
-      "}"
-    )
+    return `{ MaximumItems='${
+      this._maximumItems?.toString() as string
+    }', OffsetItems='${
+      this._offsetItems?.toString() as string
+    }', StorageStatusMask='${
+      this._storageStatusMask?.toString() as string
+    }', ObjectGroupMember='${
+      this._objectGroupMember?.toString() as string
+    }', Attributes='${this._attributes.toString()}'}`
   }
 }
