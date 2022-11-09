@@ -20,10 +20,10 @@
     },
     "dependencies": {
         "@types/uuid": "^8.3.4",
-        "cosmian_cover_crypt": "7.0.1",
-        "cosmian_findex": "0.10.0",
+        "cosmian_cover_crypt": "^7.0.1",
+        "cosmian_findex": "^0.10.0",
         "js-crypto-hmac": "^1.0.4",
-        "leb128": "0.0.5",
+        "leb128": "^0.0.5",
         "process": "^0.11.10",
         "reflect-metadata": "^0.1.13",
         "stream-browserify": "^3.0.0"
