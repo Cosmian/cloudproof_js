@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## Unreleased
+
+### Added
+
+- VueJS and ReactJS dome
+
+### Changed
+
+- refactor wasm loading to async functions
+- simplify signatures for encrypt/decrypt
+- update findex to 0.10.0
+- update cover crypt to 7.0.1
+
+### Fixed
+
+
+### Removed
+
+- Support for NodeJS 14 and NodeJS 16
+
+---
+
 ## [4.0.0] - 2022-10-24
 
 ### Added

@@ -20,8 +20,7 @@ import { TTLV } from "../../src/kms/serialize/Ttlv"
 import { VendorAttribute } from "../../src/kms/types/VendorAttribute"
 import { TtlvType } from "../../src/kms/serialize/TtlvType"
 import { AccessPolicy } from "../../src/crypto/abe/interfaces/access_policy"
-import { CoverCryptHybridEncryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
-import { CoverCryptHybridDecryption } from "../../src/crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
+import { CoverCrypt } from "index"
 
 test("ser-de Create", () => {
   const create = new Create(
@@ -258,6 +257,8 @@ test("KMS CoverCrypt Access Policy", async () => {
 })
 
 test("KMS CoverCrypt keys", async () => {
+  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } = await CoverCrypt();
+
   const client: KmipClient = new KmipClient(
     new URL("http://localhost:9998/kmip/2_1")
   )
@@ -300,9 +301,8 @@ test("KMS CoverCrypt keys", async () => {
   const plaintext = new TextEncoder().encode("abcdefgh")
   const encrypter = new CoverCryptHybridEncryption(policy, mpk)
   const ciphertext = encrypter.encrypt(
-    ["Department::FIN", "Security Level::Confidential"],
-    new Uint8Array([42]),
-    plaintext
+    "Department::FIN && Security Level::Confidential",
+    plaintext,
   )
   // decryption
   console.log("...decryption")
@@ -326,9 +326,8 @@ test("KMS CoverCrypt keys", async () => {
   const plaintext2 = new TextEncoder().encode("abcdefgh")
   const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
   const ciphertext2 = encrypter2.encrypt(
-    ["Department::FIN", "Security Level::Confidential"],
-    new Uint8Array([42]),
-    plaintext2
+    "Department::FIN && Security Level::Confidential",
+    plaintext2,
   )
   // decryption
   console.log("...decryption rotated old")

@@ -1,24 +1,21 @@
 import {
-  webassembly_encrypt_hybrid_block,
+  webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
+  webassembly_hybrid_encrypt,
 } from "cosmian_cover_crypt"
 import { Policy } from "../../../../../crypto/abe/interfaces/policy"
 import { PublicKey } from "../../../../../kms/objects/PublicKey"
 import { logger } from "../../../../../utils/logger"
 import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
-import {
-  AbeEncryptionParameters,
-  Metadata,
-} from "../../../interfaces/encryption_parameters"
 
 /**
  * This class exposes the ABE primitives.
  *
  */
 export class CoverCryptHybridEncryption {
-  private _publicKey: Uint8Array
-  private _policy: Uint8Array
+  private readonly _publicKey: Uint8Array
+  private readonly _policy: Uint8Array
 
   constructor(policy: Policy | Uint8Array, publicKey: PublicKey | Uint8Array) {
     if (policy instanceof Policy) {
@@ -37,44 +34,38 @@ export class CoverCryptHybridEncryption {
     return this._policy
   }
 
-  public set policy(value: Uint8Array) {
-    this._policy = value
-  }
-
-  public set publicKey(value: Uint8Array) {
-    this._publicKey = value
-  }
-
   public get publicKey(): Uint8Array {
     return this._publicKey
   }
 
-  public renewKey(policy: Uint8Array, publicKey: Uint8Array): void {
-    this.policy = policy
-    this.publicKey = publicKey
-  }
-
   /**
-   * Destroy encryption
+   * 
    */
-  public destroyInstance(): void {
-    logger.log(() => "DestroyInstance Abe")
-  }
-
   /**
-   * Generate and encrypt a symmetric key using the public key and policy. Must return ciphertext value if everything went well
+   * Generate and encrypt a symmetric key using the public key and policy.
    *
-   * @param parameters ABE encryption parameters
-   * @returns an encrypted header witch contains the clear and encrypted symmetric key
+   * @param {string} accessPolicy Encrypt with this access policy
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during 
+   * @returns {Uint8Array} encrypted header
    */
   public encryptHybridHeader(
-    parameters: AbeEncryptionParameters
+    accessPolicy: string,
+    options: {
+      additionalData?: Uint8Array,
+      authenticatedData?: Uint8Array,
+    } = {},
   ): EncryptedHeader {
+    const additionalData = typeof options.additionalData === 'undefined' ? new Uint8Array : options.additionalData;
+    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
+
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
-      parameters.metadata.toJsonEncoded(),
       this.policy,
-      new TextEncoder().encode(JSON.stringify(parameters.attributes)),
-      this.publicKey
+      accessPolicy,
+      this.publicKey,
+      additionalData,
+      authenticatedData,
     )
 
     logger.log(
@@ -84,127 +75,53 @@ export class CoverCryptHybridEncryption {
     return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
   }
 
+
   /**
    * Encrypts a AES256-GCM block
    *
-   * @param symmetricKey AES key
-   * @param plaintext encrypted data
-   * @param uid uid used as additional data
-   * @param blockNumber
-   * @returns the cleartext if everything succeeded
+   * @param {Uint8Array} symmetricKey Symmetric key to use to encrypt
+   * @param {Uint8Array} plaintext Stuff to encrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @returns {Uint8Array} encrypted block
    */
-  public encryptHybridBlock(
+  public encryptBlock(
     symmetricKey: Uint8Array,
     plaintext: Uint8Array,
-    uid: Uint8Array | undefined,
-    blockNumber: number | undefined
+    options: {
+      authenticatedData?: Uint8Array,
+    } = {},
   ): Uint8Array {
-    return webassembly_encrypt_hybrid_block(
+    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
+
+    return webassembly_encrypt_symmetric_block(
       symmetricKey,
-      uid,
-      blockNumber,
-      plaintext
+      plaintext,
+      authenticatedData,
     )
   }
 
   /**
    * Hybrid encrypt wrapper: ABE encrypt then AES encrypt
    *
-   * @param attributes
-   * @param uid
-   * @param plaintext
-   * @returns
+   * @param {string} accessPolicy Encrypt with this access policy
+   * @param {Uint8Array} plaintext Stuff to encrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @returns {Uint8Array} encrypted
    */
   public encrypt(
-    attributes: string[],
-    uid: Uint8Array,
-    plaintext: Uint8Array
+    accessPolicy: string,
+    plaintext: Uint8Array,
+    options: {
+      additionalData?: Uint8Array,
+      authenticatedData?: Uint8Array,
+    } = {},
   ): Uint8Array {
-    logger.log(() => `encrypt for attributes: ${attributes.join(",")}`)
-    logger.log(() => `encrypt for uid: ${hexEncode(uid)}`)
-    logger.log(() => `encrypt for plaintext: ${hexEncode(plaintext)}`)
+    const additionalData = typeof options.additionalData === 'undefined' ? new Uint8Array : options.additionalData;
+    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
 
-    // Encrypted value is composed of: HEADER_LEN | HEADER | AES_DATA
-    const encryptionParameters = new AbeEncryptionParameters(
-      attributes,
-      new Metadata(uid, new Uint8Array(1))
-    )
-    const hybridHeader = this.encryptHybridHeader(encryptionParameters)
-    logger.log(
-      () =>
-        `encrypt: encryptedSymmetricKeySizeAsArray:${hexEncode(
-          hybridHeader.encryptedSymmetricKeySizeAsArray
-        )}`
-    )
-    const ciphertext = this.encryptHybridBlock(
-      hybridHeader.symmetricKey,
-      plaintext,
-      uid,
-      0
-    )
-
-    logger.log(
-      () =>
-        `encrypt: header size : ${hexEncode(
-          hybridHeader.encryptedSymmetricKeySizeAsArray
-        )}`
-    )
-    logger.log(
-      () =>
-        `encrypt: enc header size : ${hybridHeader.encryptedSymmetricKey.length}`
-    )
-    logger.log(
-      () =>
-        `encrypt: encrypted symmetric key : ${hexEncode(
-          hybridHeader.encryptedSymmetricKey
-        )}`
-    )
-    logger.log(() => `encrypt: ciphertext : ${hexEncode(ciphertext)}`)
-
-    // Encrypted value is composed of: HEADER_LEN (4 bytes) | HEADER | AES_DATA
-    const headerSize = hybridHeader.encryptedSymmetricKeySizeAsArray.length
-    const encryptedData = new Uint8Array(
-      headerSize + hybridHeader.encryptedSymmetricKey.length + ciphertext.length
-    )
-    encryptedData.set(hybridHeader.encryptedSymmetricKeySizeAsArray)
-    encryptedData.set(hybridHeader.encryptedSymmetricKey, headerSize)
-    encryptedData.set(
-      ciphertext,
-      headerSize + hybridHeader.encryptedSymmetricKey.length
-    )
-    logger.log(() => `encrypt: encryptedData: ${hexEncode(encryptedData)}`)
-
-    return encryptedData
-  }
-
-  /**
-   * Bench ABE encryption
-   *
-   * @param publicKey the master public key
-   * @param policy the policy serialized
-   * @param attributes ABE attributes used for encryption
-   * @param uid header integrity param
-   * @returns timings for encryption
-   */
-  public benchEncryptHybridHeader(
-    attributes: string[],
-    uid: Uint8Array
-  ): number[] {
-    const loops = 100
-    const startDate = new Date().getTime()
-    const metadata = new Metadata(uid)
-    for (let i = 0; i < loops; i++) {
-      webassembly_encrypt_hybrid_header(
-        metadata.toJsonEncoded(),
-        this.policy,
-        new TextEncoder().encode(JSON.stringify(attributes)),
-        this.publicKey
-      )
-    }
-    const endDate = new Date().getTime()
-    const ms = (endDate - startDate) / loops
-    logger.log(() => `webassembly-JS avg time: ${ms}ms`)
-
-    return [ms, -1]
+    return webassembly_hybrid_encrypt(this._policy, accessPolicy, this._publicKey, plaintext, additionalData, authenticatedData)
   }
 }

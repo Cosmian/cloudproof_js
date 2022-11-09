@@ -1,4 +1,4 @@
-image: node:16
+image: node:18
 
 variables:
   SCCACHE_DIR: ${CI_PROJECT_DIR}/.cache/sccache
@@ -9,11 +9,9 @@ variables:
   KMS_SHARED_PATH: /tmp
 
 stages:
-  - prebuild
-  - build
+  - test
   - pack
   - publish
-  - deploy
 
 .services:
   services:
@@ -21,47 +19,44 @@ stages:
       alias: kms_ci
     - redis:latest
   before_script:
+    - node --version
+    - npm --version
     - npm install
-
-.test:
-  stage: build
-  extends: .services
-  script:
-    - npm test
 
 eslint:
   extends: .services
-  stage: prebuild
+  stage: test
   script:
     - npm run format
   allow_failure: true
 
-build_node_14:
-  extends: .test
-  image: node:14
+build:
+  stage: test
+  extends: .services
+  script:
+    - npm test
 
-build_node_16:
-  extends: .test
-  image: node:16
+example_vuejs:
+  stage: test
+  script:
+    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+    - npm install
+    - cd examples/vuejs
+    - npm install
+    - npm run build
+    - npm run serve&
+    - node ../test/chrome.mjs
 
-build_node_18:
-  extends: .test
-  image: node:18
-
-# cloudproof_js_demo:
-#   stage: prebuild
-#   # stage: pack
-#   before_script:
-#     - npm install -g typescript
-#   script:
-#     - npm install
-#     - git clone --branch fix/packaging http://gitlab.cosmian.com/core/cloudproof_js_demo.git
-#     - cd cloudproof_js_demo
-#     # - npm install || true
-#     - npm install .. --save
-#     - cat package.json
-#     - npx webpack
-#   allow_failure: true
+example_reactjs:
+  stage: test
+  script:
+    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+    - npm install
+    - cd examples/reactjs
+    - npm install
+    - npm run build
+    - npm run serve&
+    - node ../test/chrome.mjs
 
 pack:
   stage: pack

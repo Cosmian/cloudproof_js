@@ -64,6 +64,15 @@
     // "skipLibCheck": true,                     /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   },
-  "include": ["src", "tests", "@types"],
-  "exclude": ["node_modules", "**/__tests__/*", "tests/wasm_lib"]
+  "include": [
+    "src",
+    "tests",
+    "@types"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/__tests__/*",
+    "tests/wasm_lib",
+    "examples"
+  ]
 }
