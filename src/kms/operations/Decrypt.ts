@@ -92,7 +92,7 @@ export class Decrypt implements KmipStruct {
     initIndicator?: boolean,
     finalIndicator?: boolean,
     authenticatedEncryptionAdditionalData?: Uint8Array,
-    authenticatedEncryptionTag?: Uint8Array
+    authenticatedEncryptionTag?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._cryptographicParameters = cryptographicParameters
@@ -134,7 +134,7 @@ export class Decrypt implements KmipStruct {
   }
 
   public set cryptographic_parameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }
@@ -162,7 +162,7 @@ export class Decrypt implements KmipStruct {
   }
 
   public set authenticated_encryption_additional_data(
-    value: Uint8Array | undefined
+    value: Uint8Array | undefined,
   ) {
     this._authenticatedEncryptionAdditionalData = value
   }

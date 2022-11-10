@@ -58,7 +58,7 @@ export class EncryptResponse implements KmipStruct {
     data?: Uint8Array,
     ivCounterNonce?: Uint8Array,
     correlationValue?: Uint8Array,
-    authenticatedEncryptionAdditionalData?: Uint8Array
+    authenticatedEncryptionAdditionalData?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._data = data
@@ -107,7 +107,7 @@ export class EncryptResponse implements KmipStruct {
   }
 
   public set authenticated_encryption_additional_data(
-    value: Uint8Array | undefined
+    value: Uint8Array | undefined,
   ) {
     this._authenticatedEncryptionAdditionalData = value
   }

@@ -28,6 +28,12 @@ import puppeteer from "puppeteer"
   )
 })()
 
+/**
+ *
+ * @param name
+ * @param optionsCallback
+ * @param expectedResultsCallback
+ */
 async function runTest(
   name,
   optionsCallback = async () => {},
@@ -185,6 +191,7 @@ async function runTest(
         lines: 5,
         notDecryptedCount: 9,
       },
+      // eslint-disable-next-line no-unused-vars
     ].sort((a, b) => 0.5 - Math.random()),
   )
 
@@ -283,17 +290,33 @@ async function runTest(
   console.log("\x1b[32m", `✓ All Good for ${name}!`)
 }
 
+/**
+ *
+ * @param page
+ * @param message
+ */
 async function reportError(page, message) {
   await page.screenshot({ path: "error.png", fullPage: true })
   throw new Error(message)
 }
 
+/**
+ *
+ * @param page
+ * @param selector
+ */
 async function countSelector(page, selector) {
   return await page.evaluate((selector) => {
     return document.querySelectorAll(selector).length
   }, selector)
 }
 
+/**
+ *
+ * @param page
+ * @param newUser
+ * @param newCount
+ */
 async function addNewUser(page, newUser, newCount) {
   await page.type("#new_user_row input#new_user_first", newUser.first)
   await page.type("#new_user_row input#new_user_last", newUser.last)

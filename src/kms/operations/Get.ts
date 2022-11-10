@@ -51,7 +51,7 @@ export class Get implements KmipStruct {
     keyFormatType?: KeyFormatType,
     keyWrapType?: KeyWrapType,
     keyCompressionType?: KeyCompressionType,
-    keyWrappingData?: KeyWrappingData
+    keyWrappingData?: KeyWrappingData,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._key_format_type = keyFormatType

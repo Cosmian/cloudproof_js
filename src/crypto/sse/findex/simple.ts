@@ -1,10 +1,10 @@
 import {
   webassembly_graph_upsert,
   webassembly_search,
-  webassembly_upsert
+  webassembly_upsert,
 } from "cosmian_findex"
-import { initFindex } from "../../../utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
+import { initFindex } from "../../../utils/utils"
 import { Index } from "./interfaces"
 
 /* tslint:disable:max-classes-per-file */
@@ -115,13 +115,13 @@ export class LocationIndexEntry implements IndexedEntry {
   keywords: Set<Keyword>
   constructor(
     location: string | Uint8Array,
-    keywords: string[] | Uint8Array[]
+    keywords: string[] | Uint8Array[],
   ) {
     if (location instanceof Uint8Array) {
       this.indexedValue = IndexedValue.fromLocation(new Location(location))
     } else {
       this.indexedValue = IndexedValue.fromLocation(
-        new Location(new TextEncoder().encode(location))
+        new Location(new TextEncoder().encode(location)),
       )
     }
     this.keywords = new Set(
@@ -130,7 +130,7 @@ export class LocationIndexEntry implements IndexedEntry {
           return new Keyword(v)
         }
         return new Keyword(new TextEncoder().encode(v))
-      })
+      }),
     )
   }
 }
@@ -147,7 +147,7 @@ export class KeywordIndexEntry implements IndexedEntry {
       this.indexedValue = IndexedValue.fromNextWord(new Keyword(destination))
     } else {
       this.indexedValue = IndexedValue.fromNextWord(
-        new Keyword(new TextEncoder().encode(destination))
+        new Keyword(new TextEncoder().encode(destination)),
       )
     }
     if (source instanceof Uint8Array) {
@@ -220,7 +220,7 @@ export async function Findex() {
       upsertChains: UpsertChains,
       options: {
         generateGraphs?: boolean
-      } = {}
+      } = {},
     ): Promise<void> => {
       // convert key to a single representation
       if (searchKey instanceof SymmetricKey) {
@@ -246,7 +246,7 @@ export async function Findex() {
         })
         indexedValuesAndWords.push({
           indexedValue: newIndexedEntry.indexedValue.bytes,
-          keywords
+          keywords,
         })
       }
 
@@ -266,7 +266,7 @@ export async function Findex() {
         },
         async (uidsAndValues: UidsAndValues) => {
           return await upsertChains(uidsAndValues)
-        }
+        },
       )
     },
 
@@ -290,7 +290,7 @@ export async function Findex() {
       maxResultsPerKeyword: number,
       fetchEntries: FetchEntries,
       fetchChains: FetchChains,
-      progress?: Progress
+      progress?: Progress,
     ): Promise<IndexedValue[]> => {
       // convert key to a single representation
       if (searchKey instanceof SymmetricKey) {
@@ -303,9 +303,7 @@ export async function Findex() {
       }
 
       const progress_: Progress =
-        typeof progress === "undefined"
-          ? async (indexedValues_: IndexedValue[]) => true
-          : progress
+        typeof progress === "undefined" ? async () => true : progress
 
       const serializedIndexedValues = await webassembly_search(
         searchKey.bytes,
@@ -324,10 +322,10 @@ export async function Findex() {
         },
         async (uids: Uint8Array[]) => {
           return await fetchChains(uids)
-        }
+        },
       )
 
       return serializedIndexedValues.map((bytes) => new IndexedValue(bytes))
-    }
+    },
   }
 }

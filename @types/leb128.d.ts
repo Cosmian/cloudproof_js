@@ -1,1 +1,1 @@
-declare module 'leb128'
+declare module "leb128"

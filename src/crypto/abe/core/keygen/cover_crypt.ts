@@ -55,36 +55,36 @@ export class CoverCryptKeyGeneration {
     logger.log(() => `private key size: ${secretKeySize}`)
     return new CoverCryptMasterKey(
       masterKeys.slice(4, 4 + secretKeySize),
-      masterKeys.slice(4 + secretKeySize, masterKeys.length)
+      masterKeys.slice(4 + secretKeySize, masterKeys.length),
     )
   }
 
   /**
    * Generate a User Decryption Key
    *
-   * @param {Uint8Array} mastersecretKeyBytes The Master Private Key Bytes
+   * @param {Uint8Array} masterSecretKeyBytes The Master Private Key Bytes
    * @param {string} accessPolicy the access policy as a boolean expression
    *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
    * @param {Policy} policy the policy of the master key
    * @returns {Uint8Array} the user decryption key bytes
    */
   public generateUserSecretKey(
-    mastersecretKeyBytes: Uint8Array,
+    masterSecretKeyBytes: Uint8Array,
     accessPolicy: string,
-    policy: Policy
+    policy: Policy,
   ): Uint8Array {
-    logger.log(() => `secretKey: ${hexEncode(mastersecretKeyBytes)}`)
-    logger.log(() => "accessPolicy: " + accessPolicy)
+    logger.log(() => `secretKey: ${hexEncode(masterSecretKeyBytes)}`)
+    logger.log(() => `accessPolicy: ${accessPolicy}`)
     logger.log(() => `policy: ${policy.toString()}`)
 
     const policyBytes = policy.toJsonEncoded()
-    const usersecretKey = webassembly_generate_user_secret_key(
-      mastersecretKeyBytes,
+    const userSecretKey = webassembly_generate_user_secret_key(
+      masterSecretKeyBytes,
       accessPolicy,
-      policyBytes
+      policyBytes,
     )
 
-    return usersecretKey
+    return userSecretKey
   }
 
   /**
@@ -105,7 +105,7 @@ export class CoverCryptKeyGeneration {
     const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
     const newPolicyString = webassembly_rotate_attributes(
       attributesBytes,
-      policyBytes
+      policyBytes,
     )
 
     return Policy.fromJsonEncoded(newPolicyString)

@@ -18,7 +18,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
 
   constructor(
     uniqueIdentifier: string,
-    cryptographicParameters?: CryptographicParameters
+    cryptographicParameters?: CryptographicParameters,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._cryptographicParameters = cryptographicParameters
@@ -37,7 +37,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
   }
 
   public set cryptographicParameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }

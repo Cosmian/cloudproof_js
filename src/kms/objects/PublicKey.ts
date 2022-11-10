@@ -50,7 +50,7 @@ export class PublicKey {
     }
     const ptKv = kv.plaintext
     if (typeof ptKv === "undefined") {
-      throw new Error(`no key bytes found on the public key`)
+      throw new Error("no key bytes found on the public key")
     }
     if (ptKv.keyMaterial instanceof Uint8Array) {
       return ptKv.keyMaterial
@@ -58,6 +58,6 @@ export class PublicKey {
     if (ptKv.keyMaterial instanceof TransparentECPublicKey) {
       return ptKv.keyMaterial.qString
     }
-    throw new Error(`no key bytes found: invalid public key`)
+    throw new Error("no key bytes found: invalid public key")
   }
 }

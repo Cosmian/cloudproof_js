@@ -32,7 +32,7 @@ export class DecryptResponse implements KmipStruct {
   constructor(
     uniqueIdentifier: string,
     data?: Uint8Array,
-    correlationValue?: Uint8Array
+    correlationValue?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._data = data

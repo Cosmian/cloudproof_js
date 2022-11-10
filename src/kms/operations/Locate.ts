@@ -53,7 +53,7 @@ export class Locate implements KmipStruct {
     maximumItems?: number,
     offsetItems?: number,
     storageStatusMask?: number,
-    objectGroupMember?: ObjectGroupMember
+    objectGroupMember?: ObjectGroupMember,
   ) {
     this._maximumItems = maximumItems
     this._offsetItems = offsetItems

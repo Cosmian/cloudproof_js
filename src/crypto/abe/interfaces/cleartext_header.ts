@@ -34,13 +34,9 @@ export class ClearTextHeader {
    * @param cleartextHeader a raw header
    * @returns the object deserialized
    */
-  public static parseLEB128(cleartextHeader: Uint8Array): ClearTextHeader {
-    logger.log(
-      () => `parseLEB128: cleartextHeader: ${cleartextHeader.toString()}`
-    )
-    logger.log(
-      () => `parseLEB128: cleartextHeader length: ${cleartextHeader.length}`
-    )
+  public static parse(cleartextHeader: Uint8Array): ClearTextHeader {
+    logger.log(() => `parse: cleartextHeader: ${cleartextHeader.toString()}`)
+    logger.log(() => `parse: cleartextHeader length: ${cleartextHeader.length}`)
     const symmetricKey = cleartextHeader.slice(0, SYMMETRIC_KEY_SIZE)
     if (cleartextHeader.length === SYMMETRIC_KEY_SIZE + 1) {
       return new ClearTextHeader(symmetricKey)
@@ -55,58 +51,17 @@ export class ClearTextHeader {
     const serializedMetadata = cleartextHeaderVec[0]
     if (serializedMetadata.length < 4) {
       throw new Error(
-        "Deserialize metadata failed. Length must be at least 4 bytes"
+        "Deserialize metadata failed. Length must be at least 4 bytes",
       )
     }
     const metadataSize = fromBeBytes(serializedMetadata.slice(0, 4))
     if (metadataSize === 0) {
       throw new Error(
-        "Deserialize metadata failed. Length must be strictly positive"
+        "Deserialize metadata failed. Length must be strictly positive",
       )
     }
     const uid = serializedMetadata.slice(4, 4 + metadataSize)
     const additionalData = serializedMetadata.slice(4 + metadataSize)
-
-    return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
-  }
-
-  public static parseRaw(cleartextHeader: Uint8Array): ClearTextHeader {
-    if (cleartextHeader.length < 4) {
-      throw new Error(
-        "Parse cleartextHeader failed. Length must be at least 4 bytes"
-      )
-    }
-    const headerSize = fromBeBytes(cleartextHeader.slice(0, 4))
-    if (headerSize === 0) {
-      throw new Error(
-        "Parse cleartextHeader failed. Header size is null and must be strictly positive"
-      )
-    }
-    if (cleartextHeader.length < 4 + headerSize) {
-      throw new Error(
-        "cleartextHeader length is less than " + (4 + headerSize).toString()
-      )
-    }
-    const symmetricKey = cleartextHeader.slice(4, 4 + headerSize)
-    const serializedMetadata = cleartextHeader.slice(4 + headerSize)
-    logger.log(() => `metadata: ${serializedMetadata.toString()}`)
-    if (serializedMetadata.length < 4) {
-      throw new Error("Parse metadata failed. Length must be at least 4 bytes")
-    }
-    const metadataSize = fromBeBytes(serializedMetadata.slice(0, 4))
-    if (metadataSize === 0) {
-      throw new Error("Metadata length cannot be 0")
-    }
-    if (serializedMetadata.length < 4 + metadataSize) {
-      throw new Error(
-        "serializedMetadata length is less than: " +
-          (4 + metadataSize).toString()
-      )
-    }
-    const uid = serializedMetadata.slice(4, 4 + metadataSize)
-    const additionalData = serializedMetadata.slice(4 + metadataSize)
-    logger.log(() => `uid: ${uid.toString()}`)
-    logger.log(() => `additionalData: ${additionalData.toString()}`)
 
     return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
   }

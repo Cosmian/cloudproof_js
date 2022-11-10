@@ -53,7 +53,7 @@ export class Policy {
     axes: PolicyAxis[],
     maxAttributeCreations?: number,
     lastAttributeValue?: number,
-    attributeToInt?: { [attribute: string]: number[] }
+    attributeToInt?: { [attribute: string]: number[] },
   ) {
     this._axes = axes
     this._maxAttributeCreations = maxAttributeCreations ?? (2 ^ 32) - 1
@@ -65,7 +65,7 @@ export class Policy {
       this._axes.forEach((axis: PolicyAxis) => {
         axis.attributes.forEach((attr: string) => {
           attributeNb++
-          this._attributeToInt[axis.name + "::" + attr] = [attributeNb]
+          this._attributeToInt[`${axis.name}::${attr}`] = [attributeNb]
         })
       })
     }
@@ -73,12 +73,12 @@ export class Policy {
       this._lastAttributeValue = lastAttributeValue
     } else {
       let lastVal = 0
-      Object.entries(this._attributeToInt).forEach(([att, values]) =>
+      Object.entries(this._attributeToInt).forEach(([, values]) =>
         values.forEach((v) => {
           if (v > lastVal) {
             lastVal = v
           }
-        })
+        }),
       )
       this._lastAttributeValue = lastVal
     }
@@ -115,8 +115,11 @@ export class Policy {
     const policyJson = JSON.parse(jsonPolicy)
     logger.log(
       () =>
-        "fromJsonEncoded: input policy json: " +
-        JSON.stringify(policyJson, null, 4)
+        `fromJsonEncoded: input policy json: ${JSON.stringify(
+          policyJson,
+          null,
+          4,
+        )}`,
     )
 
     // Fill Policy Axis
@@ -124,7 +127,7 @@ export class Policy {
     for (const axis of Object.keys(policyJson.axes)) {
       const value = policyJson.axes[axis]
       logger.log(
-        () => `fromJsonEncoded: axis: ${axis}, value: ${value[0] as string}`
+        () => `fromJsonEncoded: axis: ${axis}, value: ${value[0] as string}`,
       )
       axes.push(new PolicyAxis(axis, value[0], value[1]))
     }
@@ -132,7 +135,7 @@ export class Policy {
       axes,
       policyJson.max_attribute_creations,
       policyJson.last_attribute_value,
-      policyJson.attribute_to_int
+      policyJson.attribute_to_int,
     )
   }
 
@@ -145,7 +148,7 @@ export class Policy {
     return new VendorAttribute(
       VendorAttribute.VENDOR_ID_COSMIAN,
       VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
-      this.toJsonEncoded()
+      this.toJsonEncoded(),
     )
   }
 
@@ -158,7 +161,7 @@ export class Policy {
   public static fromAttributes(attributes: Attributes): Policy {
     const attrs = attributes.vendorAttributes
     if (typeof attrs === "undefined" || attrs.length === 0) {
-      throw new Error(`No policy available in the vendor attributes`)
+      throw new Error("No policy available in the vendor attributes")
     }
     for (const att of attrs) {
       if (
@@ -166,11 +169,11 @@ export class Policy {
         att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_POLICY
       ) {
         return Policy.fromJsonEncoded(
-          new TextDecoder().decode(att.attribute_value)
+          new TextDecoder().decode(att.attribute_value),
         )
       }
     }
-    throw new Error(`No policy available in the vendor attributes`)
+    throw new Error("No policy available in the vendor attributes")
   }
 
   /**
@@ -183,10 +186,10 @@ export class Policy {
   public static fromKey(key: PrivateKey | PublicKey): Policy {
     const pt = key.keyBlock.key_value.plaintext
     if (typeof pt === "undefined") {
-      throw new Error(`No policy can be extracted from that key`)
+      throw new Error("No policy can be extracted from that key")
     }
     if (typeof pt.attributes === "undefined") {
-      throw new Error(`No policy can be extracted from that key`)
+      throw new Error("No policy can be extracted from that key")
     }
     return this.fromAttributes(pt.attributes)
   }

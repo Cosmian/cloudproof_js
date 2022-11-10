@@ -22,7 +22,7 @@ export class CertificateRequest {
 
   public constructor(
     certificateRequestType?: CertificateRequestType,
-    certificateRequestValue?: number[]
+    certificateRequestValue?: number[],
   ) {
     this._certificate_request_type =
       certificateRequestType ?? CertificateRequestType.PEM

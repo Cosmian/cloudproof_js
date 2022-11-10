@@ -59,14 +59,14 @@ export class Link implements KmipStruct {
   }
 
   public set linkedObjectIdentifier(
-    linkedObjectIdentifier: LinkedObjectIdentifier
+    linkedObjectIdentifier: LinkedObjectIdentifier,
   ) {
     this._linkedObjectIdentifier = linkedObjectIdentifier
   }
 
   constructor(
     linkType: LinkType,
-    linkedObjectIdentifier: LinkedObjectIdentifier
+    linkedObjectIdentifier: LinkedObjectIdentifier,
   ) {
     this._linkType = linkType
     this._linkedObjectIdentifier = linkedObjectIdentifier

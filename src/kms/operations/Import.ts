@@ -84,7 +84,7 @@ export class Import implements KmipStruct {
     attributes: Attributes,
     object: KmipObject,
     replaceExisting?: boolean,
-    keyWrapType?: KeyWrapType
+    keyWrapType?: KeyWrapType,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._objectType = objectType

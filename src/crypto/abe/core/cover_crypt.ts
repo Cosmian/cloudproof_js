@@ -13,6 +13,6 @@ export async function CoverCrypt() {
   return {
     CoverCryptKeyGeneration,
     CoverCryptHybridDecryption,
-    CoverCryptHybridEncryption
+    CoverCryptHybridEncryption,
   }
 }
