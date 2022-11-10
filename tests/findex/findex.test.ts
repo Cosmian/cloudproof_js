@@ -12,7 +12,7 @@ import {
   UpsertChains,
   UpsertEntries,
   LocationIndexEntry,
-  KeywordIndexEntry,
+  KeywordIndexEntry
 } from "../../src/crypto/sse/findex/simple"
 import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
@@ -22,29 +22,33 @@ import { randomBytes } from "crypto"
 import sqlite3 = require("sqlite3")
 
 test("upsert and search memory", async () => {
-  const findex = await Findex();
+  const findex = await Findex()
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
       new Location(new TextEncoder().encode("ROBERT file"))
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const arrayLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(new Location(new TextEncoder().encode("ROBERT file array"))),
+    indexedValue: IndexedValue.fromLocation(
+      new Location(new TextEncoder().encode("ROBERT file array"))
+    ),
     keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
   }
-  const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [new TextEncoder().encode("ROBERT")])
+  const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
+    new TextEncoder().encode("ROBERT")
+  ])
   expect(arrayLocation_).toEqual(arrayLocation)
 
   const entryKeyword: IndexedEntry = {
     indexedValue: IndexedValue.fromNextWord(
       new Keyword(new TextEncoder().encode("ROBERT"))
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))]),
+    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))])
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
@@ -273,7 +277,7 @@ test("Redis", async () => {
             uid: uids[index],
             value: Uint8Array.from(
               Buffer.from(redisResults[index] as string, "base64")
-            ),
+            )
           })
         }
       })
@@ -287,7 +291,7 @@ test("Redis", async () => {
       await client.mSet(
         uidsAndValues.map(({ uid, value }) => [
           `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
-          Buffer.from(value).toString("base64"),
+          Buffer.from(value).toString("base64")
         ])
       )
     }
@@ -312,7 +316,7 @@ async function run(
   upsertEntries: UpsertEntries,
   upsertChains: UpsertChains
 ): Promise<void> {
-  const findex = await Findex();
+  const findex = await Findex()
   const searchKey = new FindexKey(randomBytes(32))
   const updateKey = new FindexKey(randomBytes(32))
   const label = new Label(randomBytes(10))
@@ -326,8 +330,8 @@ async function run(
         ),
         keywords: new Set([
           Keyword.fromUtf8String(user.firstName),
-          Keyword.fromUtf8String(user.country),
-        ]),
+          Keyword.fromUtf8String(user.country)
+        ])
       })
     }
 
@@ -379,8 +383,8 @@ async function run(
           indexedValue: IndexedValue.fromNextWord(
             Keyword.fromUtf8String(USERS[0].firstName)
           ),
-          keywords: new Set([Keyword.fromUtf8String("SomeAlias")]),
-        },
+          keywords: new Set([Keyword.fromUtf8String("SomeAlias")])
+        }
       ],
       searchKey,
       updateKey,

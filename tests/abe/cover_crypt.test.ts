@@ -20,17 +20,19 @@ const ENCRYPTED_DATA = hexDecode(
 )
 
 test("Non regression tests", async () => {
-  const { CoverCryptHybridDecryption } = await CoverCrypt();
+  const { CoverCryptHybridDecryption } = await CoverCrypt()
 
-  const hybridDecryption = new CoverCryptHybridDecryption(TOP_SECRET_MKG_FIN_USK)
+  const hybridDecryption = new CoverCryptHybridDecryption(
+    TOP_SECRET_MKG_FIN_USK
+  )
   const cleartext = hybridDecryption.decrypt(ENCRYPTED_DATA)
 
-  expect(cleartext).toEqual(PLAINTEXT);
+  expect(cleartext).toEqual(PLAINTEXT)
 })
 
 test("cover_crypt", async () => {
-  const { CoverCryptKeyGeneration } = await CoverCrypt();
-  const keyGenerator = new CoverCryptKeyGeneration();
+  const { CoverCryptKeyGeneration } = await CoverCrypt()
+  const keyGenerator = new CoverCryptKeyGeneration()
 
   const policy = new Policy(
     [
@@ -41,69 +43,76 @@ test("cover_crypt", async () => {
           "Low Secret",
           "Medium Secret",
           "High Secret",
-          "Top Secret",
+          "Top Secret"
         ],
         true
       ),
-      new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false),
+      new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false)
     ],
     100
   )
 
-  await runTests(policy);
+  await runTests(policy)
 
   const newPolicy = keyGenerator.rotateAttributes(
     ["Security Level::Low Secret", "Department::MKG"],
-    policy,
+    policy
   )
 
-  await runTests(newPolicy);
-});
+  await runTests(newPolicy)
+})
 
 /**
  * Run some encryption/decryption tests
- * 
+ *
  * @param {Policy} policy policy to use
  */
 async function runTests(policy: Policy): Promise<void> {
-  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption, CoverCryptKeyGeneration } = await CoverCrypt();
+  const {
+    CoverCryptHybridDecryption,
+    CoverCryptHybridEncryption,
+    CoverCryptKeyGeneration
+  } = await CoverCrypt()
 
-  const keyGenerator = new CoverCryptKeyGeneration();
+  const keyGenerator = new CoverCryptKeyGeneration()
   const newMasterKeys = keyGenerator.generateMasterKeys(policy)
 
-  const topSecretMkgFinUsk =
-    keyGenerator.generateUserSecretKey(
-      newMasterKeys.secretKey,
-      TOP_SECRET_MKG_FIN_USK_ACCESS_POLICY,
-      policy,
-    )
+  const topSecretMkgFinUsk = keyGenerator.generateUserSecretKey(
+    newMasterKeys.secretKey,
+    TOP_SECRET_MKG_FIN_USK_ACCESS_POLICY,
+    policy
+  )
 
-  const mediumSecretMkgUsk =
-    keyGenerator.generateUserSecretKey(
-      newMasterKeys.secretKey,
-      MEDIUM_SECRET_MKG_USK_ACCESS_POLICY,
-      policy,
-    )
+  const mediumSecretMkgUsk = keyGenerator.generateUserSecretKey(
+    newMasterKeys.secretKey,
+    MEDIUM_SECRET_MKG_USK_ACCESS_POLICY,
+    policy
+  )
 
-  const hybridEncryption = new CoverCryptHybridEncryption(policy, newMasterKeys.publicKey)
+  const hybridEncryption = new CoverCryptHybridEncryption(
+    policy,
+    newMasterKeys.publicKey
+  )
 
   const lowSecretMkgData = hybridEncryption.encrypt(
     "Security Level::Low Secret && Department::MKG",
-    PLAINTEXT,
+    PLAINTEXT
   )
   const topSecretMkgData = hybridEncryption.encrypt(
     "Security Level::Top Secret &&  Department::MKG",
-    PLAINTEXT,
+    PLAINTEXT
   )
   const lowSecretFinData = hybridEncryption.encrypt(
     "Security Level::Low Secret && Department::FIN",
-    PLAINTEXT,
+    PLAINTEXT
   )
 
   // The medium secret marketing user can successfully decrypt a low security marketing message :
-  const hybridDecryptionMediumSecret = new CoverCryptHybridDecryption(mediumSecretMkgUsk)
+  const hybridDecryptionMediumSecret = new CoverCryptHybridDecryption(
+    mediumSecretMkgUsk
+  )
   let cleartext = hybridDecryptionMediumSecret.decrypt(lowSecretMkgData)
-  expect(cleartext).toEqual(PLAINTEXT);
+  expect(cleartext).toEqual(PLAINTEXT)
 
   // .. however it can neither decrypt a marketing message with higher security:
   expect(() => hybridDecryptionMediumSecret.decrypt(topSecretMkgData)).toThrow()
@@ -113,7 +122,9 @@ async function runTests(policy: Policy): Promise<void> {
 
   // The "top secret-marketing-financial" user can decrypt messages from the marketing department OR the financial department that have a security level of Top Secret or below
   // As expected, the top secret marketing financial user can successfully decrypt all messages
-  const hybridDecryptionTopSecret = new CoverCryptHybridDecryption(topSecretMkgFinUsk)
+  const hybridDecryptionTopSecret = new CoverCryptHybridDecryption(
+    topSecretMkgFinUsk
+  )
   cleartext = hybridDecryptionTopSecret.decrypt(lowSecretMkgData)
   expect(cleartext).toEqual(PLAINTEXT)
 

@@ -23,7 +23,7 @@ export class ImportResponse implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof ImportResponse)) {
@@ -34,6 +34,6 @@ export class ImportResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return "{" + " uniqueIdentifier='" + this._uniqueIdentifier + "'" + "}"
+    return "{" + " UniqueIdentifier='" + this._uniqueIdentifier + "'" + "}"
   }
 }

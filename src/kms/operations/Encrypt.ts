@@ -14,7 +14,7 @@ export class Encrypt implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier?: string
+  private _uniqueIdentifier?: string
 
   /// The Cryptographic Parameters (Block
   /// Cipher Mode, Padding Method,
@@ -31,7 +31,7 @@ export class Encrypt implements KmipStruct {
     name: "CryptographicParameters",
     type: TtlvType.Structure,
   })
-  private _cryptographic_parameters?: CryptographicParameters
+  private _cryptographicParameters?: CryptographicParameters
 
   /// The data to be encrypted
   @metadata({
@@ -46,7 +46,7 @@ export class Encrypt implements KmipStruct {
     name: "IvCounterNonce",
     type: TtlvType.ByteString,
   })
-  private _iv_counter_nonce?: Uint8Array
+  private _ivCounterNonce?: Uint8Array
 
   /// Specifies the existing stream or by-
   /// parts cryptographic operation (as
@@ -56,21 +56,21 @@ export class Encrypt implements KmipStruct {
     name: "CorrelationValue",
     type: TtlvType.ByteString,
   })
-  private _correlation_value?: Uint8Array
+  private _correlationValue?: Uint8Array
 
   /// Initial operation as Boolean
   @metadata({
     name: "InitIndicator",
     type: TtlvType.Boolean,
   })
-  private _init_indicator?: boolean
+  private _initIndicator?: boolean
 
   /// Final operation as Boolean
   @metadata({
     name: "FinalIndicator",
     type: TtlvType.Boolean,
   })
-  private _final_indicator?: boolean
+  private _finalIndicator?: boolean
 
   /// Any additional data to be authenticated via the Authenticated Encryption
   /// Tag. If supplied in multi-part encryption,
@@ -79,45 +79,45 @@ export class Encrypt implements KmipStruct {
     name: "AuthenticatedEncryptionAdditionalData",
     type: TtlvType.ByteString,
   })
-  private _authenticated_encryption_additional_data?: Uint8Array
+  private _authenticatedEncryptionAdditionalData?: Uint8Array
 
   constructor(
-    unique_identifier?: string,
-    cryptographic_parameters?: CryptographicParameters,
+    uniqueIdentifier?: string,
+    cryptographicParameters?: CryptographicParameters,
     data?: Uint8Array,
-    iv_counter_nonce?: Uint8Array,
-    correlation_value?: Uint8Array,
-    init_indicator?: boolean,
-    final_indicator?: boolean,
-    authenticated_encryption_additional_data?: Uint8Array
+    ivCounterNonce?: Uint8Array,
+    correlationValue?: Uint8Array,
+    initIndicator?: boolean,
+    finalIndicator?: boolean,
+    authenticatedEncryptionAdditionalData?: Uint8Array
   ) {
-    this._unique_identifier = unique_identifier
-    this._cryptographic_parameters = cryptographic_parameters
+    this._uniqueIdentifier = uniqueIdentifier
+    this._cryptographicParameters = cryptographicParameters
     this._data = data
-    this._iv_counter_nonce = iv_counter_nonce
-    this._correlation_value = correlation_value
-    this._init_indicator = init_indicator
-    this._final_indicator = final_indicator
-    this._authenticated_encryption_additional_data =
-      authenticated_encryption_additional_data
+    this._ivCounterNonce = ivCounterNonce
+    this._correlationValue = correlationValue
+    this._initIndicator = initIndicator
+    this._finalIndicator = finalIndicator
+    this._authenticatedEncryptionAdditionalData =
+      authenticatedEncryptionAdditionalData
   }
 
   public get unique_identifier(): string | undefined {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string | undefined) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get cryptographic_parameters(): CryptographicParameters | undefined {
-    return this._cryptographic_parameters
+    return this._cryptographicParameters
   }
 
   public set cryptographic_parameters(
     value: CryptographicParameters | undefined
   ) {
-    this._cryptographic_parameters = value
+    this._cryptographicParameters = value
   }
 
   public get data(): Uint8Array | undefined {
@@ -129,96 +129,83 @@ export class Encrypt implements KmipStruct {
   }
 
   public get iv_counter_nonce(): Uint8Array | undefined {
-    return this._iv_counter_nonce
+    return this._ivCounterNonce
   }
 
   public set iv_counter_nonce(value: Uint8Array | undefined) {
-    this._iv_counter_nonce = value
+    this._ivCounterNonce = value
   }
 
   public get correlation_value(): Uint8Array | undefined {
-    return this._correlation_value
+    return this._correlationValue
   }
 
   public set correlation_value(value: Uint8Array | undefined) {
-    this._correlation_value = value
+    this._correlationValue = value
   }
 
   public get init_indicator(): boolean | undefined {
-    return this._init_indicator
+    return this._initIndicator
   }
 
   public set init_indicator(value: boolean | undefined) {
-    this._init_indicator = value
+    this._initIndicator = value
   }
 
   public get final_indicator(): boolean | undefined {
-    return this._final_indicator
+    return this._finalIndicator
   }
 
   public set final_indicator(value: boolean | undefined) {
-    this._final_indicator = value
+    this._finalIndicator = value
   }
 
   public get authenticated_encryption_additional_data():
     | Uint8Array
     | undefined {
-    return this._authenticated_encryption_additional_data
+    return this._authenticatedEncryptionAdditionalData
   }
 
   public set authenticated_encryption_additional_data(
     value: Uint8Array | undefined
   ) {
-    this._authenticated_encryption_additional_data = value
+    this._authenticatedEncryptionAdditionalData = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) return true
+    if (o === this) return true
     if (!(o instanceof Encrypt)) {
       return false
     }
     const encrypt = o
     return (
-      this._unique_identifier === encrypt.unique_identifier &&
-      this._cryptographic_parameters === encrypt.cryptographic_parameters &&
+      this._uniqueIdentifier === encrypt.unique_identifier &&
+      this._cryptographicParameters === encrypt.cryptographic_parameters &&
       this._data === encrypt.data &&
-      this._iv_counter_nonce === encrypt.iv_counter_nonce &&
-      this._correlation_value === encrypt.correlation_value &&
-      this._init_indicator === encrypt.init_indicator &&
-      this._final_indicator === encrypt.final_indicator &&
-      this._authenticated_encryption_additional_data ===
+      this._ivCounterNonce === encrypt.iv_counter_nonce &&
+      this._correlationValue === encrypt.correlation_value &&
+      this._initIndicator === encrypt.init_indicator &&
+      this._finalIndicator === encrypt.final_indicator &&
+      this._authenticatedEncryptionAdditionalData ===
         encrypt.authenticated_encryption_additional_data
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", cryptographic_parameters='" +
-      this._cryptographic_parameters +
-      "'" +
-      ", data='" +
-      this._data +
-      "'" +
-      ", iv_counter_nonce='" +
-      this._iv_counter_nonce +
-      "'" +
-      ", correlation_value='" +
-      this._correlation_value +
-      "'" +
-      ", init_indicator='" +
-      this._init_indicator +
-      "'" +
-      ", final_indicator='" +
-      this._final_indicator +
-      "'" +
-      ", authenticated_encryption_additional_data='" +
-      this._authenticated_encryption_additional_data +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${
+      this._uniqueIdentifier?.toString() as string
+    }', CryptographicParameters='${
+      this._cryptographicParameters?.toString() as string
+    }', Data='${this._data?.toString() as string}', IvCounterNonce='${
+      this._ivCounterNonce?.toString() as string
+    }', CorrelationValue='${
+      this._correlationValue?.toString() as string
+    }', InitIndicator='${
+      this._initIndicator?.toString() as string
+    }', FinalIndicator='${
+      this._finalIndicator?.toString() as string
+    }', AuthenticatedEncryptionAdditionalData='${
+      this._authenticatedEncryptionAdditionalData?.toString() as string
+    }'}`
   }
 }

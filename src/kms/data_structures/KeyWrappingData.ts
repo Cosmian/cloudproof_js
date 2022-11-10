@@ -1,10 +1,10 @@
+import { metadata } from "../../kms/decorators/function"
 import { KmipStruct } from "../../kms/json/KmipStruct"
+import { TtlvType } from "../../kms/serialize/TtlvType"
 import { EncodingOption } from "../../kms/types/EncodingOption"
 import { EncryptionKeyInformation } from "../../kms/types/EncryptionKeyInformation"
 import { MacSignatureKeyInformation } from "../../kms/types/MacSignatureKeyInformation"
 import { WrappingMethod } from "../../kms/types/WrappingMethod"
-import { metadata } from "../../kms/decorators/function"
-import { TtlvType } from "../../kms/serialize/TtlvType"
 
 /**
  * The Key Block MAY also supply OPTIONAL information about a cryptographic key wrapping mechanism used to wrap the Key
@@ -41,37 +41,37 @@ export class KeyWrappingData implements KmipStruct {
     type: TtlvType.Enumeration,
     classOrEnum: WrappingMethod,
   })
-  private _wrapping_method: WrappingMethod
+  private _wrappingMethod: WrappingMethod
 
   @metadata({
     name: "EncryptionKeyInformation",
     type: TtlvType.Structure,
   })
-  private _encryption_key_information?: EncryptionKeyInformation
+  private _encryptionKeyInformation?: EncryptionKeyInformation
 
   @metadata({
     name: "MacOrSignatureKeyInformation",
     type: TtlvType.Structure,
   })
-  private _mac_or_signature_key_information?: MacSignatureKeyInformation
+  private _macOrSignatureKeyInformation?: MacSignatureKeyInformation
 
   @metadata({
     name: "MacOrSignature",
     type: TtlvType.ByteString,
   })
-  private _mac_or_signature?: Uint8Array
+  private _macOrSignature?: Uint8Array
 
   @metadata({
     name: "IvCounterNonce",
     type: TtlvType.ByteString,
   })
-  private _iv_counter_nonce?: Uint8Array
+  private _ivCounterNonce?: Uint8Array
 
   /**
    * Specifies the encoding of the Key Value Byte String. If not present, the wrapped Key Value structure SHALL be
    * TTLV encoded.
    */
-  private _encoding_option?: EncodingOption
+  private _encodingOption?: EncodingOption
 
   constructor(
     wrappingMethod: WrappingMethod,
@@ -81,68 +81,66 @@ export class KeyWrappingData implements KmipStruct {
     ivCounterNonce?: Uint8Array,
     encodingOption?: EncodingOption
   ) {
-    this._wrapping_method = wrappingMethod
-    this._encryption_key_information = encryptionKeyInformation
-    this._mac_or_signature_key_information = macOrSignatureKeyInformation
-    this._mac_or_signature = macOrSignature
-    this._iv_counter_nonce = ivCounterNonce
-    this._encoding_option = encodingOption
+    this._wrappingMethod = wrappingMethod
+    this._encryptionKeyInformation = encryptionKeyInformation
+    this._macOrSignatureKeyInformation = macOrSignatureKeyInformation
+    this._macOrSignature = macOrSignature
+    this._ivCounterNonce = ivCounterNonce
+    this._encodingOption = encodingOption
   }
 
   public get wrapping_method(): WrappingMethod {
-    return this._wrapping_method
+    return this._wrappingMethod
   }
 
   public set wrapping_method(value: WrappingMethod) {
-    this._wrapping_method = value
+    this._wrappingMethod = value
   }
 
-  public get encryption_key_information():
-    | EncryptionKeyInformation
-    | undefined {
-    return this._encryption_key_information
+  public get encryptionKeyInformation(): EncryptionKeyInformation | undefined {
+    return this._encryptionKeyInformation
   }
 
-  public set encryption_key_information(
+  public set encryptionKeyInformation(
     value: EncryptionKeyInformation | undefined
   ) {
-    this._encryption_key_information = value
+    this._encryptionKeyInformation = value
   }
 
-  public get mac_or_signature_key_information():
+  public get macOrSignatureKeyInformation():
     | MacSignatureKeyInformation
     | undefined {
-    return this._mac_or_signature_key_information
+    return this._macOrSignatureKeyInformation
   }
 
-  public set mac_or_signature_key_information(
+  public set macOrSignatureKeyInformation(
     value: MacSignatureKeyInformation | undefined
   ) {
-    this._mac_or_signature_key_information = value
+    this._macOrSignatureKeyInformation = value
   }
 
-  public get mac_or_signature(): Uint8Array | undefined {
-    return this._mac_or_signature
+  public get macOrSignature(): Uint8Array | undefined {
+    return this._macOrSignature
   }
 
-  public set mac_or_signature(value: Uint8Array | undefined) {
-    this._mac_or_signature = value
+  public set macOrSignature(value: Uint8Array | undefined) {
+    this._macOrSignature = value
   }
 
-  public get iv_counter_nonce(): Uint8Array | undefined {
-    return this._iv_counter_nonce
+  public get ivCounterNonce(): Uint8Array | undefined {
+    return this._ivCounterNonce
   }
 
-  public set iv_counter_nonce(value: Uint8Array | undefined) {
-    this._iv_counter_nonce = value
+  public set ivCounterNonce(value: Uint8Array | undefined) {
+    this._ivCounterNonce = value
   }
 
-  public get encoding_option(): EncodingOption | undefined {
-    return this._encoding_option
+  public get encodingOption(): EncodingOption | undefined {
+    return this._encodingOption
   }
 
-  public set encoding_option(value: EncodingOption | undefined) {
-    this._encoding_option = value
+  public set encodingOption(value: EncodingOption | undefined) {
+    this._encodingOption = value
   }
 
   public equals(o: any): boolean {
@@ -155,25 +153,27 @@ export class KeyWrappingData implements KmipStruct {
     const keyWrappingData = o
     return (
       this.wrapping_method === keyWrappingData.wrapping_method &&
-      this.encryption_key_information ===
-        keyWrappingData.encryption_key_information &&
-      this.mac_or_signature_key_information ===
-        keyWrappingData.mac_or_signature_key_information &&
-      this.mac_or_signature === keyWrappingData.mac_or_signature &&
-      this.iv_counter_nonce === keyWrappingData.iv_counter_nonce &&
-      this.encoding_option === keyWrappingData.encoding_option
+      this.encryptionKeyInformation ===
+        keyWrappingData.encryptionKeyInformation &&
+      this.macOrSignatureKeyInformation ===
+        keyWrappingData.macOrSignatureKeyInformation &&
+      this.macOrSignature === keyWrappingData.macOrSignature &&
+      this.ivCounterNonce === keyWrappingData.ivCounterNonce &&
+      this.encodingOption === keyWrappingData.encodingOption
     )
   }
 
   public toString(): string {
     return `{ wrapping_method=${
       this.wrapping_method
-    }, encryption_key_information=${
-      this.encryption_key_information ?? "N/A"
-    }, mac_or_signature_key_information=${
-      this.mac_or_signature_key_information ?? "N/A"
-    }, mac_or_signature=${this.mac_or_signature ?? "N/A"}, iv_counter_nonce=${
-      this.iv_counter_nonce ?? "N/A"
-    }, encoding_option=${this.encoding_option ?? "N/A"}}`
+    }, EncryptionKeyInformation=${
+      this.encryptionKeyInformation?.toString() ?? "N/A"
+    }, MacOrSignatureKeyInformation=${
+      this.macOrSignatureKeyInformation?.toString() ?? "N/A"
+    }, MacOrSignature=${
+      this.macOrSignature?.toString() ?? "N/A"
+    }, IvCounterNonce=${
+      this.ivCounterNonce?.toString() ?? "N/A"
+    }, EncodingOption=${this.encodingOption ?? "N/A"}}`
   }
 }

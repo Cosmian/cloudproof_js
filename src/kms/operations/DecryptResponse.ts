@@ -10,7 +10,7 @@ export class DecryptResponse implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier: string
+  private _uniqueIdentifier: string
 
   /// The decrypted data (as a Byte String).
   @metadata({
@@ -27,24 +27,24 @@ export class DecryptResponse implements KmipStruct {
     name: "CorrelationValue",
     type: TtlvType.ByteString,
   })
-  private _correlation_value?: Uint8Array
+  private _correlationValue?: Uint8Array
 
   constructor(
-    unique_identifier: string,
+    uniqueIdentifier: string,
     data?: Uint8Array,
-    correlation_value?: Uint8Array
+    correlationValue?: Uint8Array
   ) {
-    this._unique_identifier = unique_identifier
+    this._uniqueIdentifier = uniqueIdentifier
     this._data = data
-    this._correlation_value = correlation_value
+    this._correlationValue = correlationValue
   }
 
   public get unique_identifier(): string {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get data(): Uint8Array | undefined {
@@ -56,15 +56,15 @@ export class DecryptResponse implements KmipStruct {
   }
 
   public get correlation_value(): Uint8Array | undefined {
-    return this._correlation_value
+    return this._correlationValue
   }
 
   public set correlation_value(value: Uint8Array | undefined) {
-    this._correlation_value = value
+    this._correlationValue = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof DecryptResponse)) {
@@ -72,25 +72,15 @@ export class DecryptResponse implements KmipStruct {
     }
     const decryptResponse = o
     return (
-      this._unique_identifier === decryptResponse.unique_identifier &&
+      this._uniqueIdentifier === decryptResponse.unique_identifier &&
       this._data === decryptResponse.data &&
-      this._correlation_value === decryptResponse.correlation_value
+      this._correlationValue === decryptResponse.correlation_value
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", data='" +
-      this._data +
-      "'" +
-      ", correlation_value='" +
-      this._correlation_value +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${this._uniqueIdentifier}', Data='${
+      this._data?.toString() as string
+    }', CorrelationValue='${this._correlationValue?.toString() as string}'}`
   }
 }

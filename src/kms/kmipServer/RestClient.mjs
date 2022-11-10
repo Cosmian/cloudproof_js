@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import fetch from "node-fetch"
 
 const url = "http://localhost:9998/kmip/2_1"

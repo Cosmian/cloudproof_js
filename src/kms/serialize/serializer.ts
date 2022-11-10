@@ -16,7 +16,7 @@ export function toTTLV(value: Object): TTLV {
   // The top level object is always a structure
   return _toTTLV(value, {
     name: value.constructor.name,
-    type: TtlvType.Structure,
+    type: TtlvType.Structure
   })
 }
 
@@ -63,7 +63,7 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   // same metadata for all children of the array which are all of the same type
   // but make it a structure
   const childMetadata = Object.assign({}, metadata, {
-    type: TtlvType.Structure,
+    type: TtlvType.Structure
   })
   for (const child of array) {
     children.push(_toTTLV(child, childMetadata))
@@ -124,8 +124,8 @@ function parseChildren(value: Object): TTLV[] {
     if (typeof childMetadata === "undefined") {
       console.error(
         "Serializer: child Metadata is not defined for " +
-        propertyName +
-        " in ",
+          propertyName +
+          " in ",
         childrenMetadata
       )
       throw new Error(

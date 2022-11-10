@@ -11,37 +11,37 @@ export class VendorAttributeReference {
     name: "VendorIdentification",
     type: TtlvType.TextString,
   })
-  private _vendor_identification: string
+  private _vendorIdentification: string
 
   @metadata({
     name: "AttributeName",
     type: TtlvType.TextString,
   })
-  private _attribute_name: string
+  private _attributeName: string
 
-  constructor(vendor_identification: string, attribute_name: string) {
-    this._vendor_identification = vendor_identification
-    this._attribute_name = attribute_name
+  constructor(vendorIdentification: string, attributeName: string) {
+    this._vendorIdentification = vendorIdentification
+    this._attributeName = attributeName
   }
 
   public get vendor_identification(): string {
-    return this._vendor_identification
+    return this._vendorIdentification
   }
 
   public set vendor_identification(value: string) {
-    this._vendor_identification = value
+    this._vendorIdentification = value
   }
 
   public get attribute_name(): string {
-    return this._attribute_name
+    return this._attributeName
   }
 
   public set attribute_name(value: string) {
-    this._attribute_name = value
+    this._attributeName = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof VendorAttributeReference)) {
@@ -49,9 +49,9 @@ export class VendorAttributeReference {
     }
     const vendorAttributeReference = o
     return (
-      this._vendor_identification ===
+      this._vendorIdentification ===
         vendorAttributeReference.vendor_identification &&
-      this._attribute_name === vendorAttributeReference.attribute_name
+      this._attributeName === vendorAttributeReference.attribute_name
     )
   }
 
@@ -59,10 +59,10 @@ export class VendorAttributeReference {
     return (
       "{" +
       " vendor_identification='" +
-      this._vendor_identification +
+      this._vendorIdentification +
       "'" +
       ", attribute_name='" +
-      this._attribute_name +
+      this._attributeName +
       "'" +
       "}"
     )

@@ -8,42 +8,42 @@ export class EncryptionKeyInformation implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier: string
+  private _uniqueIdentifier: string
 
   @metadata({
     name: "CryptographicParameters",
     type: TtlvType.Structure,
   })
-  private _cryptographic_parameters?: CryptographicParameters
+  private _cryptographicParameters?: CryptographicParameters
 
   constructor(
-    unique_identifier: string,
-    cryptographic_parameters?: CryptographicParameters
+    uniqueIdentifier: string,
+    cryptographicParameters?: CryptographicParameters
   ) {
-    this._unique_identifier = unique_identifier
-    this._cryptographic_parameters = cryptographic_parameters
+    this._uniqueIdentifier = uniqueIdentifier
+    this._cryptographicParameters = cryptographicParameters
   }
 
   public get unique_identifier(): string {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get cryptographic_parameters(): CryptographicParameters | undefined {
-    return this._cryptographic_parameters
+    return this._cryptographicParameters
   }
 
   public set cryptographic_parameters(
     value: CryptographicParameters | undefined
   ) {
-    this._cryptographic_parameters = value
+    this._cryptographicParameters = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof EncryptionKeyInformation)) {
@@ -58,15 +58,10 @@ export class EncryptionKeyInformation implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this.unique_identifier +
-      "'" +
-      ", cryptographic_parameters='" +
-      this.cryptographic_parameters +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${
+      this.unique_identifier
+    }', CryptographicParameters='${
+      this.cryptographic_parameters?.toString() as string
+    }'}`
   }
 }

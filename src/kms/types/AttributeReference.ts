@@ -7,14 +7,6 @@ export class AttributeReference extends KmipChoiceAttributeReference<
   VendorAttributeReference,
   Tag
 > {
-  constructor(
-    value1?: string,
-    value2?: VendorAttributeReference,
-    value3?: Tag
-  ) {
-    super(value1, value2, value3)
-  }
-
   public equals(o: any): boolean {
     return super.equals(o)
   }

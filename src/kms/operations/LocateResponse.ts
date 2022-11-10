@@ -14,38 +14,38 @@ export class LocateResponse implements KmipStruct {
     name: "LocatedItems",
     type: TtlvType.Integer,
   })
-  private _located_items?: number
+  private _locatedItems?: number
 
   /// The Unique Identifier of the located objects.
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier: string[]
+  private _uniqueIdentifier: string[]
 
-  constructor(unique_identifier: string[], located_items?: number) {
-    this._located_items = located_items
-    this._unique_identifier = unique_identifier
+  constructor(uniqueIdentifier: string[], locatedItems?: number) {
+    this._locatedItems = locatedItems
+    this._uniqueIdentifier = uniqueIdentifier
   }
 
   public get located_items(): number | undefined {
-    return this._located_items
+    return this._locatedItems
   }
 
   public set located_items(value: number | undefined) {
-    this._located_items = value
+    this._locatedItems = value
   }
 
   public get unique_identifier(): string[] {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string[]) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof LocateResponse)) {
@@ -53,21 +53,14 @@ export class LocateResponse implements KmipStruct {
     }
     const locateResponse = o
     return (
-      this._located_items === locateResponse.located_items &&
-      this._unique_identifier === locateResponse.unique_identifier
+      this._locatedItems === locateResponse.located_items &&
+      this._uniqueIdentifier === locateResponse.unique_identifier
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " located_items='" +
-      this._located_items +
-      "'" +
-      ", unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      "}"
-    )
+    return `{ LocatedItems='${
+      this._locatedItems?.toString() as string
+    }', UniqueIdentifier='${this._uniqueIdentifier.toString()}'}`
   }
 }

@@ -1,7 +1,7 @@
 import {
   webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
-  webassembly_hybrid_encrypt,
+  webassembly_hybrid_encrypt
 } from "cosmian_cover_crypt"
 import { Policy } from "../../../../../crypto/abe/interfaces/policy"
 import { PublicKey } from "../../../../../kms/objects/PublicKey"
@@ -39,33 +39,36 @@ export class CoverCryptHybridEncryption {
   }
 
   /**
-   * 
-   */
-  /**
    * Generate and encrypt a symmetric key using the public key and policy.
    *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.additionalData Data encrypted in the header
-   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during 
+   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
    * @returns {Uint8Array} encrypted header
    */
   public encryptHybridHeader(
     accessPolicy: string,
     options: {
-      additionalData?: Uint8Array,
-      authenticatedData?: Uint8Array,
-    } = {},
+      additionalData?: Uint8Array
+      authenticatedData?: Uint8Array
+    } = {}
   ): EncryptedHeader {
-    const additionalData = typeof options.additionalData === 'undefined' ? new Uint8Array : options.additionalData;
-    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
+    const additionalData =
+      typeof options.additionalData === "undefined"
+        ? new Uint8Array()
+        : options.additionalData
+    const authenticatedData =
+      typeof options.authenticatedData === "undefined"
+        ? new Uint8Array()
+        : options.authenticatedData
 
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
       this.policy,
       accessPolicy,
       this.publicKey,
       additionalData,
-      authenticatedData,
+      authenticatedData
     )
 
     logger.log(
@@ -74,7 +77,6 @@ export class CoverCryptHybridEncryption {
 
     return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
   }
-
 
   /**
    * Encrypts a AES256-GCM block
@@ -89,15 +91,18 @@ export class CoverCryptHybridEncryption {
     symmetricKey: Uint8Array,
     plaintext: Uint8Array,
     options: {
-      authenticatedData?: Uint8Array,
-    } = {},
+      authenticatedData?: Uint8Array
+    } = {}
   ): Uint8Array {
-    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
+    const authenticatedData =
+      typeof options.authenticatedData === "undefined"
+        ? new Uint8Array()
+        : options.authenticatedData
 
     return webassembly_encrypt_symmetric_block(
       symmetricKey,
       plaintext,
-      authenticatedData,
+      authenticatedData
     )
   }
 
@@ -115,13 +120,26 @@ export class CoverCryptHybridEncryption {
     accessPolicy: string,
     plaintext: Uint8Array,
     options: {
-      additionalData?: Uint8Array,
-      authenticatedData?: Uint8Array,
-    } = {},
+      additionalData?: Uint8Array
+      authenticatedData?: Uint8Array
+    } = {}
   ): Uint8Array {
-    const additionalData = typeof options.additionalData === 'undefined' ? new Uint8Array : options.additionalData;
-    const authenticatedData = typeof options.authenticatedData === 'undefined' ? new Uint8Array : options.authenticatedData;
+    const additionalData =
+      typeof options.additionalData === "undefined"
+        ? new Uint8Array()
+        : options.additionalData
+    const authenticatedData =
+      typeof options.authenticatedData === "undefined"
+        ? new Uint8Array()
+        : options.authenticatedData
 
-    return webassembly_hybrid_encrypt(this._policy, accessPolicy, this._publicKey, plaintext, additionalData, authenticatedData)
+    return webassembly_hybrid_encrypt(
+      this._policy,
+      accessPolicy,
+      this._publicKey,
+      plaintext,
+      additionalData,
+      authenticatedData
+    )
   }
 }

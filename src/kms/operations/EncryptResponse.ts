@@ -10,7 +10,7 @@ export class EncryptResponse implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier?: string
+  private _uniqueIdentifier?: string
 
   /// The encrypted data (as a Byte String).
   @metadata({
@@ -29,7 +29,7 @@ export class EncryptResponse implements KmipStruct {
     name: "IvCounterNonce",
     type: TtlvType.ByteString,
   })
-  private _iv_counter_nonce?: Uint8Array
+  private _ivCounterNonce?: Uint8Array
 
   /// Specifies the existing stream or by-
   /// parts cryptographic operation (as
@@ -39,7 +39,7 @@ export class EncryptResponse implements KmipStruct {
     name: "CorrelationValue",
     type: TtlvType.ByteString,
   })
-  private _correlation_value?: Uint8Array
+  private _correlationValue?: Uint8Array
 
   /// Specifies the tag that will be needed to
   /// authenticate the decrypted data (and
@@ -51,29 +51,29 @@ export class EncryptResponse implements KmipStruct {
     name: "AuthenticatedEncryptionAdditionalData",
     type: TtlvType.ByteString,
   })
-  private _authenticated_encryption_additional_data?: Uint8Array
+  private _authenticatedEncryptionAdditionalData?: Uint8Array
 
   constructor(
-    unique_identifier?: string,
+    uniqueIdentifier?: string,
     data?: Uint8Array,
-    iv_counter_nonce?: Uint8Array,
-    correlation_value?: Uint8Array,
-    authenticated_encryption_additional_data?: Uint8Array
+    ivCounterNonce?: Uint8Array,
+    correlationValue?: Uint8Array,
+    authenticatedEncryptionAdditionalData?: Uint8Array
   ) {
-    this._unique_identifier = unique_identifier
+    this._uniqueIdentifier = uniqueIdentifier
     this._data = data
-    this._iv_counter_nonce = iv_counter_nonce
-    this._correlation_value = correlation_value
-    this._authenticated_encryption_additional_data =
-      authenticated_encryption_additional_data
+    this._ivCounterNonce = ivCounterNonce
+    this._correlationValue = correlationValue
+    this._authenticatedEncryptionAdditionalData =
+      authenticatedEncryptionAdditionalData
   }
 
   public get unique_identifier(): string | undefined {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string | undefined) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get data(): Uint8Array | undefined {
@@ -85,35 +85,35 @@ export class EncryptResponse implements KmipStruct {
   }
 
   public get iv_counter_nonce(): Uint8Array | undefined {
-    return this._iv_counter_nonce
+    return this._ivCounterNonce
   }
 
   public set iv_counter_nonce(value: Uint8Array | undefined) {
-    this._iv_counter_nonce = value
+    this._ivCounterNonce = value
   }
 
   public get correlation_value(): Uint8Array | undefined {
-    return this._correlation_value
+    return this._correlationValue
   }
 
   public set correlation_value(value: Uint8Array | undefined) {
-    this._correlation_value = value
+    this._correlationValue = value
   }
 
   public get authenticated_encryption_additional_data():
     | Uint8Array
     | undefined {
-    return this._authenticated_encryption_additional_data
+    return this._authenticatedEncryptionAdditionalData
   }
 
   public set authenticated_encryption_additional_data(
     value: Uint8Array | undefined
   ) {
-    this._authenticated_encryption_additional_data = value
+    this._authenticatedEncryptionAdditionalData = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof EncryptResponse)) {
@@ -121,34 +121,24 @@ export class EncryptResponse implements KmipStruct {
     }
     const encrypt = o
     return (
-      this._unique_identifier === encrypt.unique_identifier &&
+      this._uniqueIdentifier === encrypt.unique_identifier &&
       this._data === encrypt.data &&
-      this._iv_counter_nonce === encrypt.iv_counter_nonce &&
-      this._correlation_value === encrypt.correlation_value &&
-      this._authenticated_encryption_additional_data ===
+      this._ivCounterNonce === encrypt.iv_counter_nonce &&
+      this._correlationValue === encrypt.correlation_value &&
+      this._authenticatedEncryptionAdditionalData ===
         encrypt.authenticated_encryption_additional_data
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", data='" +
-      this._data +
-      "'" +
-      ", iv_counter_nonce='" +
-      this._iv_counter_nonce +
-      "'" +
-      ", correlation_value='" +
-      this._correlation_value +
-      "'" +
-      ", authenticated_encryption_additional_data='" +
-      this._authenticated_encryption_additional_data +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${
+      this._uniqueIdentifier?.toString() as string
+    }', Data='${this._data?.toString() as string}', IvCounterNonce='${
+      this._ivCounterNonce?.toString() as string
+    }', CorrelationValue='${
+      this._correlationValue?.toString() as string
+    }', AuthenticatedEncryptionAdditionalData='${
+      this._authenticatedEncryptionAdditionalData?.toString() as string
+    }'}`
   }
 }

@@ -1,7 +1,7 @@
 import { fromTTLV } from "../../src/kms/deserialize/deserializer"
 import {
   KmipClient,
-  SymmetricKeyAlgorithm,
+  SymmetricKeyAlgorithm
 } from "../../src/kms/client/KmipClient"
 import { Create } from "../../src/kms/operations/Create"
 import { toTTLV } from "../../src/kms/serialize/serializer"
@@ -149,7 +149,7 @@ test("KMS Symmetric Key", async () => {
   )
   expect(
     key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-    TransparentSymmetricKey
+      TransparentSymmetricKey
   ).toBeTruthy()
   const sk = key.keyBlock.key_value.plaintext
     ?.keyMaterial as TransparentSymmetricKey
@@ -184,7 +184,7 @@ test("Policy", async () => {
         ["Protected", "Confidential", "Top Secret"],
         true
       ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
     ],
     20
   )
@@ -195,7 +195,7 @@ test("Policy", async () => {
   expect(json.attribute_to_int["Department::FIN"]).toEqual([4])
   expect(json.axes["Security Level"]).toEqual([
     ["Protected", "Confidential", "Top Secret"],
-    true,
+    true
   ])
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
@@ -257,7 +257,8 @@ test("KMS CoverCrypt Access Policy", async () => {
 })
 
 test("KMS CoverCrypt keys", async () => {
-  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } = await CoverCrypt();
+  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
+    await CoverCrypt()
 
   const client: KmipClient = new KmipClient(
     new URL("http://localhost:9998/kmip/2_1")
@@ -273,7 +274,7 @@ test("KMS CoverCrypt keys", async () => {
       ["Protected", "Confidential", "Top Secret"],
       true
     ),
-    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
   ])
 
   // create master keys
@@ -302,7 +303,7 @@ test("KMS CoverCrypt keys", async () => {
   const encrypter = new CoverCryptHybridEncryption(policy, mpk)
   const ciphertext = encrypter.encrypt(
     "Department::FIN && Security Level::Confidential",
-    plaintext,
+    plaintext
   )
   // decryption
   console.log("...decryption")
@@ -313,7 +314,7 @@ test("KMS CoverCrypt keys", async () => {
   // rotate
   const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, [
     "Department::FIN",
-    "Department::MKG",
+    "Department::MKG"
   ])
   expect(mskID_).toEqual(mskID)
   expect(mpkID_).toEqual(mpkID)
@@ -327,7 +328,7 @@ test("KMS CoverCrypt keys", async () => {
   const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
   const ciphertext2 = encrypter2.encrypt(
     "Department::FIN && Security Level::Confidential",
-    plaintext2,
+    plaintext2
   )
   // decryption
   console.log("...decryption rotated old")
