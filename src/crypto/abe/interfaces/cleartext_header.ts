@@ -4,7 +4,7 @@ import { Metadata, SYMMETRIC_KEY_SIZE } from "./encryption_parameters"
 
 export class ClearTextHeader {
   private _symmetricKey: Uint8Array
-  private _metadata: Metadata
+  private _metadata: Metadata | undefined
 
   /* Getter / Setters */
   public get symmetricKey(): Uint8Array {
@@ -15,15 +15,15 @@ export class ClearTextHeader {
     this._symmetricKey = value
   }
 
-  public get metadata(): Metadata {
+  public get metadata(): Metadata | undefined {
     return this._metadata
   }
 
-  public set metadata(value: Metadata) {
+  public set metadata(value: Metadata | undefined) {
     this._metadata = value
   }
 
-  constructor(symmetricKey: Uint8Array, metadata: Metadata) {
+  constructor(symmetricKey: Uint8Array, metadata?: Metadata) {
     this._symmetricKey = symmetricKey
     this._metadata = metadata
   }
@@ -35,7 +35,17 @@ export class ClearTextHeader {
    * @returns the object deserialized
    */
   public static parseLEB128(cleartextHeader: Uint8Array): ClearTextHeader {
+    logger.log(
+      () => `parseLEB128: cleartextHeader: ${cleartextHeader.toString()}`
+    )
+    logger.log(
+      () => `parseLEB128: cleartextHeader length: ${cleartextHeader.length}`
+    )
     const symmetricKey = cleartextHeader.slice(0, SYMMETRIC_KEY_SIZE)
+    if (cleartextHeader.length === SYMMETRIC_KEY_SIZE + 1) {
+      return new ClearTextHeader(symmetricKey)
+    }
+
     const leftover = cleartextHeader.slice(SYMMETRIC_KEY_SIZE)
     const cleartextHeaderVec = deserializeList(leftover)
     if (cleartextHeaderVec.length !== 1) {

@@ -12,7 +12,7 @@ export class GetAttributes implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier?: string
+  private _uniqueIdentifier?: string
 
   /// Specifies an attribute associated with
   /// the object.
@@ -20,34 +20,34 @@ export class GetAttributes implements KmipStruct {
     name: "AttributesReferences",
     type: TtlvType.Structure,
   })
-  private _attribute_references?: AttributeReference[]
+  private _attributeReferences?: AttributeReference[]
 
   constructor(
-    unique_identifier?: string,
-    attribute_references?: AttributeReference[]
+    uniqueIdentifier?: string,
+    attributeReferences?: AttributeReference[]
   ) {
-    this.unique_identifier = unique_identifier
-    this.attribute_references = attribute_references
+    this.unique_identifier = uniqueIdentifier
+    this.attribute_references = attributeReferences
   }
 
   public get unique_identifier(): string | undefined {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string | undefined) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get attribute_references(): AttributeReference[] | undefined {
-    return this._attribute_references
+    return this._attributeReferences
   }
 
   public set attribute_references(value: AttributeReference[] | undefined) {
-    this._attribute_references = value
+    this._attributeReferences = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof GetAttributes)) {
@@ -55,21 +55,16 @@ export class GetAttributes implements KmipStruct {
     }
     const getAttributes = o
     return (
-      this._unique_identifier === getAttributes.unique_identifier &&
-      this._attribute_references === getAttributes.attribute_references
+      this._uniqueIdentifier === getAttributes.unique_identifier &&
+      this._attributeReferences === getAttributes.attribute_references
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", attribute_references='" +
-      this._attribute_references +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${
+      this._uniqueIdentifier?.toString() as string
+    }', AttributeReferences='${
+      this._attributeReferences?.toString() as string
+    }'}`
   }
 }

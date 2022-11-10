@@ -7,7 +7,7 @@ export class Metadata {
   ///    block when symmetrically encrypting data. It prevents an attacker from
   ///    moving blocks between resources.
   ///  - when using FPE, it is the "tweak"
-  private _uid: Uint8Array
+  private _uid: Uint8Array | undefined
 
   /// The `additional_data` is not used as a security parameter. It is optional
   /// data (such as index tags) symmetrically encrypted as part of the header.
@@ -15,11 +15,11 @@ export class Metadata {
   private _additionalData?: Uint8Array | undefined
 
   // Getters and setters
-  public get uid(): Uint8Array {
+  public get uid(): Uint8Array | undefined {
     return this._uid
   }
 
-  public set uid(value: Uint8Array) {
+  public set uid(value: Uint8Array | undefined) {
     this._uid = value
   }
 
@@ -31,7 +31,7 @@ export class Metadata {
     this._additionalData = value
   }
 
-  constructor(uid: Uint8Array, additionalData?: Uint8Array) {
+  constructor(uid?: Uint8Array, additionalData?: Uint8Array) {
     this._uid = uid
     this._additionalData = additionalData
   }
@@ -43,7 +43,11 @@ export class Metadata {
    */
   public toJsonEncoded(): Uint8Array {
     const metadata: any = {}
-    metadata.uid = Array.from(this._uid)
+    if (this._uid !== undefined) {
+      metadata.uid = Array.from(this._uid)
+    } else {
+      metadata.uid = []
+    }
     if (this._additionalData !== undefined) {
       metadata.additionalData = Array.from(this._additionalData)
     }

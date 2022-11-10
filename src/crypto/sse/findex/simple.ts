@@ -1,4 +1,9 @@
-import { webassembly_search, webassembly_upsert } from "cosmian_findex"
+import {
+  webassembly_graph_upsert,
+  webassembly_search,
+  webassembly_upsert
+} from "cosmian_findex"
+import { initFindex } from "../../../utils/utils"
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
 
@@ -74,7 +79,6 @@ export class FindexKey {
   public get bytes(): Uint8Array {
     return this._bytes
   }
-
 }
 
 export class Label {
@@ -185,122 +189,145 @@ export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  */
 export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
 
-
 /**
- * Insert or update existing (a.k.a upsert) entries in the index
  *
- * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
- * @param {FindexKey | SymmetricKey} searchKey Findex's read key
- * @param {FindexKey | SymmetricKey} updateKey Findex's write key
- * @param {Label} label public label for the index
- * @param {FetchEntries} fetchEntries callback to fetch the entries table
- * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
- * @param {UpsertChains} upsertChains callback to upsert inside chains table
  */
-export async function upsert(
-  newIndexedEntries: IndexedEntry[],
-  searchKey: FindexKey | SymmetricKey,
-  updateKey: FindexKey | SymmetricKey,
-  label: Label,
-  fetchEntries: FetchEntries,
-  upsertEntries: UpsertEntries,
-  upsertChains: UpsertChains
-): Promise<void> {
-  // convert key to a single representation
-  if (searchKey instanceof SymmetricKey) {
-    searchKey = new FindexKey(searchKey.bytes())
-  }
-  if (updateKey instanceof SymmetricKey) {
-    updateKey = new FindexKey(updateKey.bytes())
-  }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export async function Findex() {
+  await initFindex()
 
-  const indexedValuesAndWords: Array<{ indexedValue: Uint8Array, keywords: Uint8Array[] }> = []
-  for (const newIndexedEntry of newIndexedEntries) {
-    const keywords: Uint8Array[] = []
-    newIndexedEntry.keywords.forEach(kw => {
-      keywords.push(kw.bytes)
-    })
-    indexedValuesAndWords.push({
-      indexedValue: newIndexedEntry.indexedValue.bytes,
-      keywords
-    })
-  }
+  return {
+    /**
+     * Insert or update existing (a.k.a upsert) entries in the index
+     *
+     * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
+     * @param {FindexKey | SymmetricKey} searchKey Findex's read key
+     * @param {FindexKey | SymmetricKey} updateKey Findex's write key
+     * @param {Label} label public label for the index
+     * @param {FetchEntries} fetchEntries callback to fetch the entries table
+     * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
+     * @param {UpsertChains} upsertChains callback to upsert inside chains table
+     * @param {object} options
+     * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
+     */
+    upsert: async (
+      newIndexedEntries: IndexedEntry[],
+      searchKey: FindexKey | SymmetricKey,
+      updateKey: FindexKey | SymmetricKey,
+      label: Label,
+      fetchEntries: FetchEntries,
+      upsertEntries: UpsertEntries,
+      upsertChains: UpsertChains,
+      options: {
+        generateGraphs?: boolean
+      } = {}
+    ): Promise<void> => {
+      // convert key to a single representation
+      if (searchKey instanceof SymmetricKey) {
+        searchKey = new FindexKey(searchKey.bytes())
+      }
+      if (updateKey instanceof SymmetricKey) {
+        updateKey = new FindexKey(updateKey.bytes())
+      }
 
-  return await webassembly_upsert(
-    searchKey.bytes,
-    updateKey.bytes,
-    label.bytes,
-    indexedValuesAndWords,
-    async (uids: Uint8Array[]) => {
-      return await fetchEntries(uids)
+      const generateGraphs =
+        typeof options.generateGraphs === "undefined"
+          ? false
+          : options.generateGraphs
+
+      const indexedValuesAndWords: Array<{
+        indexedValue: Uint8Array
+        keywords: Uint8Array[]
+      }> = []
+      for (const newIndexedEntry of newIndexedEntries) {
+        const keywords: Uint8Array[] = []
+        newIndexedEntry.keywords.forEach((kw) => {
+          keywords.push(kw.bytes)
+        })
+        indexedValuesAndWords.push({
+          indexedValue: newIndexedEntry.indexedValue.bytes,
+          keywords
+        })
+      }
+
+      const upsertFn = generateGraphs
+        ? webassembly_graph_upsert
+        : webassembly_upsert
+      return await upsertFn(
+        searchKey.bytes,
+        updateKey.bytes,
+        label.bytes,
+        indexedValuesAndWords,
+        async (uids: Uint8Array[]) => {
+          return await fetchEntries(uids)
+        },
+        async (uidsAndValues: UidsAndValues) => {
+          return await upsertEntries(uidsAndValues)
+        },
+        async (uidsAndValues: UidsAndValues) => {
+          return await upsertChains(uidsAndValues)
+        }
+      )
     },
-    async (uidsAndValues: UidsAndValues) => {
-      return await upsertEntries(uidsAndValues)
-    },
-    async (uidsAndValues: UidsAndValues) => {
-      return await upsertChains(uidsAndValues)
+
+    /**
+     * Search indexed keywords and return the corresponding IndexedValues
+     *
+     * @param {Set<string>} keywords keywords to search inside the indexes
+     * @param {FindexKey | SymmetricKey} searchKey Findex's read key
+     * @param {Label} label public label for the index
+     * @param {number} maxResultsPerKeyword the maximum number of results per keyword
+     * @param {FetchEntries} fetchEntries callback to fetch the entries table
+     * @param {FetchChains} fetchChains callback to fetch the chains table
+     * @param {Progress} progress the optional callback of found values as the search graph is walked.
+     *    Returning false stops the walk
+     * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
+     */
+    search: async (
+      keywords: Set<string | Uint8Array>,
+      searchKey: FindexKey | SymmetricKey,
+      label: Label,
+      maxResultsPerKeyword: number,
+      fetchEntries: FetchEntries,
+      fetchChains: FetchChains,
+      progress?: Progress
+    ): Promise<IndexedValue[]> => {
+      // convert key to a single representation
+      if (searchKey instanceof SymmetricKey) {
+        searchKey = new FindexKey(searchKey.bytes())
+      }
+
+      const kws: Uint8Array[] = []
+      for (const k of keywords) {
+        kws.push(k instanceof Uint8Array ? k : new TextEncoder().encode(k))
+      }
+
+      const progress_: Progress =
+        typeof progress === "undefined"
+          ? async (indexedValues_: IndexedValue[]) => true
+          : progress
+
+      const serializedIndexedValues = await webassembly_search(
+        searchKey.bytes,
+        label.bytes,
+        kws,
+        maxResultsPerKeyword,
+        1000,
+        async (serializedIndexedValues: Uint8Array[]) => {
+          const indexedValues = serializedIndexedValues.map((bytes) => {
+            return new IndexedValue(bytes)
+          })
+          return await progress_(indexedValues)
+        },
+        async (uids: Uint8Array[]) => {
+          return await fetchEntries(uids)
+        },
+        async (uids: Uint8Array[]) => {
+          return await fetchChains(uids)
+        }
+      )
+
+      return serializedIndexedValues.map((bytes) => new IndexedValue(bytes))
     }
-  )
-}
-
-/**
- * Search indexed keywords and return the corresponding IndexedValues
- *
- * @param {Set<string>} keywords keywords to search inside the indexes
- * @param {FindexKey | SymmetricKey} searchKey Findex's read key
- * @param {Label} label public label for the index
- * @param {number} maxResultsPerKeyword the maximum number of results per keyword
- * @param {FetchEntries} fetchEntries callback to fetch the entries table
- * @param {FetchChains} fetchChains callback to fetch the chains table
- * @param {Progress} progress the optional callback of found values as the search graph is walked. 
- *    Returning false stops the walk
- * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
- */
-export async function search(
-  keywords: Set<string | Uint8Array>,
-  searchKey: FindexKey | SymmetricKey,
-  label: Label,
-  maxResultsPerKeyword: number,
-  fetchEntries: FetchEntries,
-  fetchChains: FetchChains,
-  progress?: Progress
-): Promise<IndexedValue[]> {
-  // convert key to a single representation
-  if (searchKey instanceof SymmetricKey) {
-    searchKey = new FindexKey(searchKey.bytes())
   }
-
-  const kws: Uint8Array[] = []
-  for (const k of keywords) {
-    kws.push(k instanceof Uint8Array ? k : new TextEncoder().encode(k))
-  }
-
-  const progress_: Progress =
-    (typeof progress === "undefined") ?
-      async (indexedValues_: IndexedValue[]) => true
-      :
-      progress
-
-
-  const serializedIndexedValues = await webassembly_search(
-    searchKey.bytes,
-    label.bytes,
-    kws,
-    maxResultsPerKeyword,
-    1000,
-    async (serializedIndexedValues: Uint8Array[]) => {
-      const indexedValues = serializedIndexedValues.map(bytes => {
-        return new IndexedValue(bytes)
-      })
-      return await progress_(indexedValues)
-    },
-    async (uids: Uint8Array[]) => {
-      return await fetchEntries(uids)
-    },
-    async (uids: Uint8Array[]) => {
-      return await fetchChains(uids)
-    }
-  )
-
-  return serializedIndexedValues.map(bytes => new IndexedValue(bytes))
 }

@@ -1,4 +1,6 @@
+import { metadata } from "../decorators/function"
 import { KmipStruct } from "../json/KmipStruct"
+import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicAlgorithm } from "./CryptographicAlgorithm"
 import { CryptographicDomainParameters } from "./CryptographicDomainParameters"
 import { CryptographicParameters } from "./CryptographicParameters"
@@ -6,8 +8,6 @@ import { KeyFormatType } from "./KeyFormatType"
 import { Link } from "./Link"
 import { ObjectType } from "./ObjectType"
 import { VendorAttribute } from "./VendorAttribute"
-import { TtlvType } from "../serialize/TtlvType"
-import { metadata } from "../decorators/function"
 
 /**
  * The following subsections describe the attributes that are associated with
@@ -167,7 +167,7 @@ export class Attributes implements KmipStruct {
     type: TtlvType.Structure,
     classOrEnum: CryptographicParameters,
   })
-  private _cryptographic_parameters?: CryptographicParameters
+  private _cryptographicParameters?: CryptographicParameters
 
   /**
    * The Cryptographic Usage Mask attribute defines the cryptographic usage of a
@@ -220,7 +220,7 @@ export class Attributes implements KmipStruct {
     this._cryptographic_algorithm = cryptographicAlgorithm
     this._cryptographic_length = cryptographicLength
     this._cryptographic_domain_parameters = cryptographicDomainParameters
-    this._cryptographic_parameters = cryptographicParameters
+    this._cryptographicParameters = cryptographicParameters
     this._cryptographic_usage_mask = cryptographicUsageMask
     this._key_format_type = keyFormatType
     this._link = link
@@ -260,13 +260,13 @@ export class Attributes implements KmipStruct {
   }
 
   public get cryptographicParameters(): CryptographicParameters | undefined {
-    return this._cryptographic_parameters
+    return this._cryptographicParameters
   }
 
   public set cryptographicParameters(
     value: CryptographicParameters | undefined
   ) {
-    this._cryptographic_parameters = value
+    this._cryptographicParameters = value
   }
 
   public get cryptographicDomainParameters():

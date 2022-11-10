@@ -13,7 +13,7 @@ export class Get implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier?: string
+  private _uniqueIdentifier?: string
 
   /// Determines the key format type to be returned.
   @metadata({
@@ -53,7 +53,7 @@ export class Get implements KmipStruct {
     keyCompressionType?: KeyCompressionType,
     keyWrappingData?: KeyWrappingData
   ) {
-    this._unique_identifier = uniqueIdentifier
+    this._uniqueIdentifier = uniqueIdentifier
     this._key_format_type = keyFormatType
     this._key_wrap_type = keyWrapType
     this._key_compression_type = keyCompressionType
@@ -61,11 +61,11 @@ export class Get implements KmipStruct {
   }
 
   public get unique_identifier(): string | undefined {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string | undefined) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get key_format_type(): KeyFormatType | undefined {
@@ -109,7 +109,7 @@ export class Get implements KmipStruct {
     }
     const get = o
     return (
-      this._unique_identifier === get.unique_identifier &&
+      this._uniqueIdentifier === get.unique_identifier &&
       this._key_format_type === get.key_format_type &&
       this._key_wrap_type === get.key_wrap_type &&
       this._key_compression_type === get.key_compression_type &&

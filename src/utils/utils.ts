@@ -9,7 +9,7 @@ import * as leb from "leb128"
  */
 export function toBase64(val: Uint8Array | string): string {
   if (val instanceof Uint8Array) {
-    return Buffer.from(val).toString('base64')
+    return Buffer.from(val).toString("base64")
   }
   return Buffer.from(sanitizeString(val), "binary").toString("base64")
 }
@@ -104,7 +104,6 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
   return a.length
 }
 
-
 /**
  * Deserialize Uint8Array as a list of Uint8Array
  *
@@ -158,7 +157,7 @@ export function deserializeHashMap(
       )
       const item: { uid: Uint8Array; value: Uint8Array } = {
         uid: new Uint8Array(),
-        value: new Uint8Array(),
+        value: new Uint8Array()
       }
       if (value.length > 0) {
         item.uid = key
@@ -205,7 +204,7 @@ export function serializeHashMap(
       ...keyLen,
       ...item.uid,
       ...valueLen,
-      ...item.value,
+      ...item.value
     ])
   }
   serializedData = Uint8Array.from([...serializedData, 0])
@@ -224,4 +223,30 @@ export function sanitizeString(str: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w-]+/g, "-")
+}
+
+/**
+ * Init wasm for Findex
+ */
+export async function initFindex(): Promise<void> {
+  if (
+    typeof process === "undefined" ||
+    process.env.JEST_WORKER_ID === undefined
+  ) {
+    const module = await import("cosmian_findex")
+    await module.default()
+  }
+}
+
+/**
+ * Init wasm for CoverCrypt
+ */
+export async function initCoverCrypt(): Promise<void> {
+  if (
+    typeof process === "undefined" ||
+    process.env.JEST_WORKER_ID === undefined
+  ) {
+    const module = await import("cosmian_cover_crypt")
+    await module.default()
+  }
 }

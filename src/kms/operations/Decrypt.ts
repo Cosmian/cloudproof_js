@@ -14,7 +14,7 @@ export class Decrypt implements KmipStruct {
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
   })
-  private _unique_identifier?: string
+  private _uniqueIdentifier?: string
 
   /// The Cryptographic Parameters (Block
   /// Cipher Mode, Padding Method)
@@ -30,7 +30,7 @@ export class Decrypt implements KmipStruct {
     name: "CryptographicParameters",
     type: TtlvType.Structure,
   })
-  private _cryptographic_parameters?: CryptographicParameters
+  private _cryptographicParameters?: CryptographicParameters
 
   /// The data to be decrypted.
   @metadata({
@@ -45,21 +45,21 @@ export class Decrypt implements KmipStruct {
     name: "IvCounterNonce",
     type: TtlvType.ByteString,
   })
-  private _iv_counter_nonce?: Uint8Array
+  private _ivCounterNonce?: Uint8Array
 
   /// Initial operation as Boolean
   @metadata({
     name: "InitIndicator",
     type: TtlvType.Boolean,
   })
-  private _init_indicator?: boolean
+  private _initIndicator?: boolean
 
   /// Final operation as Boolean
   @metadata({
     name: "FinalIndicator",
     type: TtlvType.Boolean,
   })
-  private _final_indicator?: boolean
+  private _finalIndicator?: boolean
 
   /// Additional data to be authenticated via
   /// the Authenticated Encryption Tag. If
@@ -70,7 +70,7 @@ export class Decrypt implements KmipStruct {
     name: "AuthenticatedEncryptionAdditionalData",
     type: TtlvType.ByteString,
   })
-  private _authenticated_encryption_additional_data?: Uint8Array
+  private _authenticatedEncryptionAdditionalData?: Uint8Array
 
   /// Specifies the tag that will be needed to
   /// authenticate the decrypted data and
@@ -82,35 +82,35 @@ export class Decrypt implements KmipStruct {
     name: "AuthenticatedEncryptionTag",
     type: TtlvType.ByteString,
   })
-  private _authenticated_encryption_tag?: Uint8Array
+  private _authenticatedEncryptionTag?: Uint8Array
 
   constructor(
-    unique_identifier?: string,
-    cryptographic_parameters?: CryptographicParameters,
+    uniqueIdentifier?: string,
+    cryptographicParameters?: CryptographicParameters,
     data?: Uint8Array,
-    iv_counter_nonce?: Uint8Array,
-    init_indicator?: boolean,
-    final_indicator?: boolean,
-    authenticated_encryption_additional_data?: Uint8Array,
-    authenticated_encryption_tag?: Uint8Array
+    ivCounterNonce?: Uint8Array,
+    initIndicator?: boolean,
+    finalIndicator?: boolean,
+    authenticatedEncryptionAdditionalData?: Uint8Array,
+    authenticatedEncryptionTag?: Uint8Array
   ) {
-    this._unique_identifier = unique_identifier
-    this._cryptographic_parameters = cryptographic_parameters
+    this._uniqueIdentifier = uniqueIdentifier
+    this._cryptographicParameters = cryptographicParameters
     this._data = data
-    this._iv_counter_nonce = iv_counter_nonce
-    this._init_indicator = init_indicator
-    this._final_indicator = final_indicator
-    this._authenticated_encryption_additional_data =
-      authenticated_encryption_additional_data
-    this._authenticated_encryption_tag = authenticated_encryption_tag
+    this._ivCounterNonce = ivCounterNonce
+    this._initIndicator = initIndicator
+    this._finalIndicator = finalIndicator
+    this._authenticatedEncryptionAdditionalData =
+      authenticatedEncryptionAdditionalData
+    this._authenticatedEncryptionTag = authenticatedEncryptionTag
   }
 
   public get iv_counter_nonce(): Uint8Array | undefined {
-    return this._iv_counter_nonce
+    return this._ivCounterNonce
   }
 
   public set iv_counter_nonce(value: Uint8Array | undefined) {
-    this._iv_counter_nonce = value
+    this._ivCounterNonce = value
   }
 
   public get data(): Uint8Array | undefined {
@@ -122,61 +122,61 @@ export class Decrypt implements KmipStruct {
   }
 
   public get unique_identifier(): string | undefined {
-    return this._unique_identifier
+    return this._uniqueIdentifier
   }
 
   public set unique_identifier(value: string | undefined) {
-    this._unique_identifier = value
+    this._uniqueIdentifier = value
   }
 
   public get cryptographic_parameters(): CryptographicParameters | undefined {
-    return this._cryptographic_parameters
+    return this._cryptographicParameters
   }
 
   public set cryptographic_parameters(
     value: CryptographicParameters | undefined
   ) {
-    this._cryptographic_parameters = value
+    this._cryptographicParameters = value
   }
 
   public get init_indicator(): boolean | undefined {
-    return this._init_indicator
+    return this._initIndicator
   }
 
   public set init_indicator(value: boolean | undefined) {
-    this._init_indicator = value
+    this._initIndicator = value
   }
 
   public get final_indicator(): boolean | undefined {
-    return this._final_indicator
+    return this._finalIndicator
   }
 
   public set final_indicator(value: boolean | undefined) {
-    this._final_indicator = value
+    this._finalIndicator = value
   }
 
   public get authenticated_encryption_additional_data():
     | Uint8Array
     | undefined {
-    return this._authenticated_encryption_additional_data
+    return this._authenticatedEncryptionAdditionalData
   }
 
   public set authenticated_encryption_additional_data(
     value: Uint8Array | undefined
   ) {
-    this._authenticated_encryption_additional_data = value
+    this._authenticatedEncryptionAdditionalData = value
   }
 
   public get authenticated_encryption_tag(): Uint8Array | undefined {
-    return this._authenticated_encryption_tag
+    return this._authenticatedEncryptionTag
   }
 
   public set authenticated_encryption_tag(value: Uint8Array | undefined) {
-    this._authenticated_encryption_tag = value
+    this._authenticatedEncryptionTag = value
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof Decrypt)) {
@@ -184,47 +184,33 @@ export class Decrypt implements KmipStruct {
     }
     const decrypt = o
     return (
-      this._unique_identifier === decrypt.unique_identifier &&
-      this._cryptographic_parameters === decrypt.cryptographic_parameters &&
+      this._uniqueIdentifier === decrypt.unique_identifier &&
+      this._cryptographicParameters === decrypt.cryptographic_parameters &&
       this._data === decrypt.data &&
-      this._iv_counter_nonce === decrypt.iv_counter_nonce &&
-      this._init_indicator === decrypt.init_indicator &&
-      this._final_indicator === decrypt.final_indicator &&
-      this._authenticated_encryption_additional_data ===
+      this._ivCounterNonce === decrypt.iv_counter_nonce &&
+      this._initIndicator === decrypt.init_indicator &&
+      this._finalIndicator === decrypt.final_indicator &&
+      this._authenticatedEncryptionAdditionalData ===
         decrypt.authenticated_encryption_additional_data &&
-      this._authenticated_encryption_tag ===
-        decrypt.authenticated_encryption_tag
+      this._authenticatedEncryptionTag === decrypt.authenticated_encryption_tag
     )
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " unique_identifier='" +
-      this._unique_identifier +
-      "'" +
-      ", cryptographic_parameters='" +
-      this._cryptographic_parameters +
-      "'" +
-      ", data='" +
-      this._data +
-      "'" +
-      ", iv_counter_nonce='" +
-      this._iv_counter_nonce +
-      "'" +
-      ", init_indicator='" +
-      this._init_indicator +
-      "'" +
-      ", final_indicator='" +
-      this._final_indicator +
-      "'" +
-      ", authenticated_encryption_additional_data='" +
-      this._authenticated_encryption_additional_data +
-      "'" +
-      ", authenticated_encryption_tag='" +
-      this._authenticated_encryption_tag +
-      "'" +
-      "}"
-    )
+    return `{ UniqueIdentifier='${
+      this._uniqueIdentifier?.toString() as string
+    }', CryptographicParameters='${
+      this._cryptographicParameters?.toString() as string
+    }', Data='${this._data?.toString() as string}', IvCounterNonce='${
+      this._ivCounterNonce?.toString() as string
+    }', InitIndicator='${
+      this._initIndicator?.toString() as string
+    }', FinalIndicator='${
+      this._finalIndicator?.toString() as string
+    }', AuthenticatedEncryptionAdditional_data='${
+      this._authenticatedEncryptionAdditionalData?.toString() as string
+    }', AuthenticatedEncryptionTag='${
+      this._authenticatedEncryptionTag?.toString() as string
+    }'}`
   }
 }

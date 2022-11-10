@@ -40,7 +40,7 @@ export class CreateResponse implements KmipStruct {
   }
 
   public equals(o: any): boolean {
-    if (o == this) {
+    if (o === this) {
       return true
     }
     if (!(o instanceof CreateResponse)) {
@@ -54,15 +54,6 @@ export class CreateResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " objectType='" +
-      this._objectType +
-      "'" +
-      ", uniqueIdentifier='" +
-      this._uniqueIdentifier +
-      "'" +
-      "}"
-    )
+    return `{ ObjectType='${this._objectType}', UniqueIdentifier='${this._uniqueIdentifier}'}`
   }
 }
