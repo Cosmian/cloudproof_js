@@ -77,7 +77,7 @@ async function runTest(
     }
 
     if (withKms) {
-      await page.type("#kmsServer", `${kmsHost}/kmip/2_1`)
+      await page.type("#kmsServer", `${kmsHost}/kmip/2_1`, { delay: 30 })
     }
   }
 
