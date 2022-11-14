@@ -103,7 +103,7 @@ export default defineComponent({
         const client = new KmipClient(new URL(this.kmsServerUrl))
         console.log('Done with building client. Generating master keys…');
         const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
-        console.log('Done generating master keys…');
+        console.log('Done generating master keys…', privateMasterKeyUID, publicKeyUID);
         masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
 
         let aliceUid = await client.createAbeUserDecryptionKey(
