@@ -1,5 +1,6 @@
 import puppeteer from "puppeteer"
-;(async () => {
+
+(async () => {
   await runTest("without graphs")
   await runTest(
     "with graphs",
@@ -55,7 +56,13 @@ async function runTest(
     await reportError(page, `Page Error: ${err.toString()}`)
   })
 
-  await page.goto("http://localhost:8090")
+  try {
+    await page.goto("http://localhost:8090")
+  } catch {
+    // In case of random error, try again.
+    console.error("Cannot navigate to the example, trying again one time…")
+    await page.goto("http://localhost:8090")
+  }
 
   await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })
   await assertCountSelector(
