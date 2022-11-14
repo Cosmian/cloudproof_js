@@ -57,18 +57,12 @@ async function runTest(
 
   await page.goto("http://localhost:8090")
 
-  {
-    await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })
-    const clearTextUsersCount = await countSelector(
-      page,
-      "#table_cleartext_users tbody tr:not(#new_user_row)",
-    )
-    if (clearTextUsersCount !== 9)
-      await reportError(
-        page,
-        `Should have 9 cleartext users. Found ${clearTextUsersCount}`,
-      )
-  }
+  await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })
+  await assertCountSelector(
+    page,
+    "#table_cleartext_users tbody tr:not(#new_user_row)",
+    9,
+  )
 
   await optionsCallback(page)
 
@@ -86,15 +80,11 @@ async function runTest(
 
   await page.click("#encrypt_user")
   await page.waitForSelector("#table_encrypted_users", { timeout: 500 })
-  const encryptedUsersCount = await countSelector(
+  await assertCountSelector(
     page,
     "#table_encrypted_users tbody tr",
+    10,
   )
-  if (encryptedUsersCount !== 10)
-    await reportError(
-      page,
-      `EncryptedUsersCount ${encryptedUsersCount} is not equal to CleartextUsersCount 10`,
-    )
 
   await page.click("#index")
   await page.waitForSelector("#search", { timeout: 500 })
@@ -209,33 +199,22 @@ async function runTest(
 
     previousDoOr = expectedResult.doOr
 
-    const greenCount = await countSelector(
+    await assertCountSelector(
       page,
       "#table_cleartext_users tbody td.table-success",
+      GREEN_CELLS[expectedResult.key],
+      `(query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr})`,
     )
-    if (greenCount !== GREEN_CELLS[expectedResult.key])
-      await reportError(
-        page,
-        `Should have ${
-          GREEN_CELLS[expectedResult.key]
-        } cells green. ${greenCount} found.  (query ${
-          expectedResult.query
-        }, key ${expectedResult.key}, doOr ${expectedResult.doOr})`,
-      )
 
     await page.type("#search input[type=text]", expectedResult.query, {
       delay: 30,
     })
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const notDecryptedCount = await countSelector(
+    await assertCountSelector(
       page,
       "#search table td .badge",
+      expectedResult.notDecryptedCount,
+      `query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`,
     )
-    if (notDecryptedCount !== expectedResult.notDecryptedCount)
-      await reportError(
-        page,
-        `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`,
-      )
   }
 
   await addNewUser(
@@ -273,16 +252,12 @@ async function runTest(
     await page.type("#search input[type=text]", expectedResult.query, {
       delay: 30,
     })
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    const notDecryptedCount = await countSelector(
+    await assertCountSelector(
       page,
       "#search table td .badge",
+      expectedResult.notDecryptedCount,
+      `(query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`,
     )
-    if (notDecryptedCount !== expectedResult.notDecryptedCount)
-      await reportError(
-        page,
-        `Should have ${expectedResult.notDecryptedCount} errors on decryption. ${notDecryptedCount} found (query ${expectedResult.query}, key ${expectedResult.key}, doOr ${expectedResult.doOr}).`,
-      )
   }
 
   await browser.close()
@@ -304,11 +279,27 @@ async function reportError(page, message) {
  *
  * @param page
  * @param selector
+ * @param expected
+ * @param additionalMessage
+ * @param timeout
  */
-async function countSelector(page, selector) {
-  return await page.evaluate((selector) => {
-    return document.querySelectorAll(selector).length
-  }, selector)
+async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 500) {
+  const start = new Date();
+  let count = null;
+  do {
+    count = await page.evaluate((selector) => {
+      return document.querySelectorAll(selector).length
+    }, selector)
+
+    if (count === expected) return;
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  } while((new Date) - start < timeout)
+  
+  await reportError(
+    page,
+    `"${selector}" should have ${expected} elements, ${count} still found after ${timeout}ms. ${additionalMessage}`,
+  )
 }
 
 /**
@@ -328,14 +319,9 @@ async function addNewUser(page, newUser, newCount) {
   )
   await page.click("#new_user_row button")
 
-  await new Promise((resolve) => setTimeout(resolve, 50))
-  const clearTextUsersCount = await countSelector(
+  await assertCountSelector(
     page,
     "#table_cleartext_users tbody tr:not(#new_user_row)",
+    newCount,
   )
-  if (clearTextUsersCount !== newCount)
-    await reportError(
-      page,
-      `Should have ${newCount} cleartext users. Found ${clearTextUsersCount}`,
-    )
 }
