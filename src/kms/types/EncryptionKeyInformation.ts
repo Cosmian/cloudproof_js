@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicParameters } from "./CryptographicParameters"
 
 export class EncryptionKeyInformation implements KmipStruct {
+  tag = "EncryptionKeyInformation"
+
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,

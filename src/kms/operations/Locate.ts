@@ -5,6 +5,8 @@ import { Attributes } from "../types/Attributes"
 import { ObjectGroupMember } from "../types/ObjectGroupMember"
 
 export class Locate implements KmipStruct {
+  tag = "Locate";
+  
   /// An Integer object that indicates the maximum number of object
   /// identifiers the server MAY return.
   @metadata({

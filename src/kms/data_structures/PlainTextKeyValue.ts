@@ -20,6 +20,8 @@ type KeyMaterial =
   | TransparentSymmetricKey
 
 export class PlainTextKeyValue {
+  tag = "PlainTextKeyValue";
+
   // This property is only used to help deserialization
   // see KeyBlock
   @metadata({

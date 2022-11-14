@@ -35,6 +35,8 @@ import { VendorAttribute } from "./VendorAttribute"
  * on the object type and server policy.
  */
 export class Attributes implements KmipStruct {
+  tag = "Attributes"
+
   /**
    * The Link attribute is a structure used to create a link from one Managed
    * Cryptographic Object to another, closely related target Managed Cryptographic

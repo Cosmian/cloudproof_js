@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { RecommendedCurve } from "../types/RecommendedCurve"
 
 export class TransparentECPublicKey implements KmipStruct {
+  tag = "TransparentECPublicKey";
+
   @metadata({
     name: "RecommendedCurve",
     type: TtlvType.Enumeration,

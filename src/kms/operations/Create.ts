@@ -17,6 +17,8 @@ import { ObjectType } from "../types/ObjectType"
  * this operation into the ID Placeholder variable.
  */
 export class Create implements KmipStruct, Deserialize {
+  tag = "Create";
+
   @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,
@@ -43,8 +45,6 @@ export class Create implements KmipStruct, Deserialize {
   /// object
   /// @see ProtectionStorageMasks
   private _protectionStorageMasks?: number
-
-  constructor()
 
   constructor(
     objectType: ObjectType,

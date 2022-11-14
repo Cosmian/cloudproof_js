@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class ReKeyKeyPairResponse implements KmipStruct {
+  tag = "ReKeyKeyPairResponse";
+  
   @metadata({
     name: "PrivateKeyUniqueIdentifier",
     type: TtlvType.TextString,

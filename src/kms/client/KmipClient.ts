@@ -1,3 +1,4 @@
+import { KmipStruct } from "../../kms/json/KmipStruct"
 import { AccessPolicy } from "../../crypto/abe/interfaces/access_policy"
 import { Policy } from "../../crypto/abe/interfaces/policy"
 import { KeyBlock } from "../../kms/data_structures/KeyBlock"
@@ -63,14 +64,14 @@ export class KmipClient {
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
    *
-   * @param {object} payload a valid KMIP operation
+   * @param {KmipStruct} payload a valid KMIP operation
    * @param {Function} responseClass the class of the expected KMIP response
-   * @returns {object} an instance of the KMIP response
+   * @returns {T} an instance of the KMIP response
    */
-  public async post<P extends Object, R extends Object>(
-    payload: P,
-    responseClass: new (...args: any[]) => R,
-  ): Promise<R> {
+  public async post<T extends Object>(
+    payload: KmipStruct,
+    responseClass: new (...args: any[]) => T,
+  ): Promise<T> {
     const ttlvRequest = toTTLV(payload)
     console.log(JSON.stringify(ttlvRequest));
     const options: RequestInit = {

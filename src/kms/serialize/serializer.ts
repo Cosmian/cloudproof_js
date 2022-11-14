@@ -3,6 +3,7 @@ import "reflect-metadata"
 import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
 import { TtlvType } from "./TtlvType"
 import { hexEncode } from "../../utils/utils"
+import { KmipStruct } from "../json/KmipStruct"
 
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object
@@ -10,12 +11,12 @@ import { hexEncode } from "../../utils/utils"
  * @param {object} value  the KMIP object
  * @returns {TTLV} a TTLV.
  */
-export function toTTLV(value: Object): TTLV {
+export function toTTLV(value: KmipStruct): TTLV {
   // there is no metadata available for the top level object
   // so we use the class name as name.
   // The top level object is always a structure
   return _toTTLV(value, {
-    name: value.constructor.name,
+    name: value.tag,
     type: TtlvType.Structure,
   })
 }

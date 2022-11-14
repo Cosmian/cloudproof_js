@@ -17,6 +17,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { ObjectType } from "../types/ObjectType"
 
 export class GetResponse implements KmipStruct, Deserialize {
+  tag = "GetResponse";
+  
   // Determines the type of object being retrieved.
   @metadata({
     name: "ObjectType",

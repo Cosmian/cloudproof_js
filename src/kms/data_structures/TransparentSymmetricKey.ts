@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class TransparentSymmetricKey implements KmipStruct {
+  tag = "TransparentSymmetricKey";
+
   @metadata({
     name: "Key",
     type: TtlvType.ByteString,

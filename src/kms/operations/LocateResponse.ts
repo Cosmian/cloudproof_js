@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class LocateResponse implements KmipStruct {
+  tag = "LocateResponse";
+  
   /// An Integer object that indicates the number of object identifiers that
   /// satisfy the identification criteria specified in the request. A server
   /// MAY elect to omit this value from the Response if it is unable or

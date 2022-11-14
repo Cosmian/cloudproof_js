@@ -11,6 +11,8 @@ import { hexDecode } from "../../utils/utils"
 import { PlainTextKeyValue } from "./PlainTextKeyValue"
 
 export class KeyBlock {
+  tag = "KeyBlock";
+
   @metadata({
     name: "KeyFormatType",
     type: TtlvType.Enumeration,
