@@ -447,7 +447,9 @@ export default defineComponent({
           <input type="text" class="form-control" id="kmsServer" v-model="kmsServerUrl"
             placeholder="http://localhost:9998/kmip/2_1">
           <button class="btn btn-outline-secondary" type="button"
-            @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Default</button>
+            @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Localhost</button>
+          <button class="btn btn-outline-secondary" type="button"
+            @click="kmsServerUrl = 'http://demo-cloudproof.cosmian.com:9998/kmip/2_1'">Démo</button>
         </div>
       </div>
 

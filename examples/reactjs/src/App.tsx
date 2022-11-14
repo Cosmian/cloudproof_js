@@ -479,7 +479,9 @@ function App() {
               <input type="text" className="form-control" id="kmsServer" value={kmsServer} onChange={(e) => setKmsServer(e.target.value)}
                 placeholder="http://localhost:9998/kmip/2_1" />
               <button className="btn btn-outline-secondary" type="button"
-                onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Default</button>
+                onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Localhost</button>
+              <button className="btn btn-outline-secondary" type="button"
+                onClick={() => setKmsServer('http://demo-cloudproof.cosmian.com:9998/kmip/2_1')}>Démo</button>
             </div>
           </div>
 

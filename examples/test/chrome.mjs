@@ -77,7 +77,7 @@ async function runTest(
 
   if (withKms) {
     await page.click("#options")
-    await page.type("#kmsServer", kmsHost, { delay: 30 })
+    await page.type("#kmsServer", `${kmsHost}/kmip/2_1`, { delay: 30 })
     await page.click("#options")
   }
 
