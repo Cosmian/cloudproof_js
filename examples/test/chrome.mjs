@@ -48,11 +48,13 @@ async function runTest(
     height: 1080,
   })
   page.on("pageerror", async (err) => {
-    await reportError(page, `Page Error: ${err.toString()}`)
+    await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
   page.on("error", async (err) => {
-    await reportError(page, `Page Error: ${err.toString()}`)
+    await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
+  page.on('console', (msg) => console.log(`[PAGE LOG] ${msg.text()}`));
+  page.on('requestfailed', async (request) => await reportError(page, `[PAGE HTTP ERROR] ${request.failure().errorText} ${request.url()}`));
 
   try {
     await page.goto(host)
@@ -77,7 +79,7 @@ async function runTest(
     }
 
     if (withKms) {
-      await page.type("#kmsServer", `${kmsHost}/kmip/2_1`, { delay: 30 })
+      await page.type("#kmsServerUrl", `${kmsHost}/kmip/2_1`, { delay: 30 })
     }
   }
 

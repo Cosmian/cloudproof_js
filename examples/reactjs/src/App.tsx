@@ -62,7 +62,7 @@ function Key(name: keyof typeof CLASSES) {
 }
 
 function App() {
-  const [kmsServer, setKmsServer] = useState('');
+  const [kmsServerUrl, setKmsServerUrl] = useState('');
   const [usingGraphs, setUsingGraphs] = useState(false);
 
   const [addingUser, setAddingUser] = useState(false);
@@ -102,11 +102,13 @@ function App() {
     const policyBytes = policy.toJsonEncoded()
 
     let masterPublicKey;
-    if (kmsServer) {
-      console.log('Using KMS server');
-
-      const client = new KmipClient(new URL(kmsServer))
+    console.log(kmsServerUrl);
+    if (kmsServerUrl) {
+      console.log('Building client…');
+      const client = new KmipClient(new URL(kmsServerUrl))
+      console.log('Done with building client. Generating master keys…');
       const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
+      console.log('Done generating master keys…');
       masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
 
       let aliceUid = await client.createAbeUserDecryptionKey(
@@ -129,7 +131,6 @@ function App() {
       )
       setCharlieKey((await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes());
     } else {
-
       const keygen = new CoverCryptKeyGeneration()
       let masterKeys = keygen.generateMasterKeys(policy);
       masterPublicKey = masterKeys.publicKey;
@@ -474,14 +475,14 @@ function App() {
           <summary id="options">Options…</summary>
 
           <div className="mt-3">
-            <label htmlFor="kmsServer" className="form-label">KMS Server URL</label>
+            <label htmlFor="kmsServerUrl" className="form-label">KMS Server URL</label>
             <div className="input-group mb-3">
-              <input type="text" className="form-control" id="kmsServer" value={kmsServer} onChange={(e) => setKmsServer(e.target.value)}
+              <input type="text" className="form-control" id="kmsServerUrl" value={kmsServerUrl} onChange={(e) => setKmsServerUrl(e.target.value)}
                 placeholder="http://localhost:9998/kmip/2_1" />
               <button className="btn btn-outline-secondary" type="button"
-                onClick={() => setKmsServer('http://localhost:9998/kmip/2_1')}>Localhost</button>
+                onClick={() => setKmsServerUrl('http://localhost:9998/kmip/2_1')}>Localhost</button>
               <button className="btn btn-outline-secondary" type="button"
-                onClick={() => setKmsServer('http://demo-cloudproof.cosmian.com:9998/kmip/2_1')}>Démo</button>
+                onClick={() => setKmsServerUrl('http://demo-cloudproof.cosmian.com:9998/kmip/2_1')}>Démo</button>
             </div>
           </div>
 
