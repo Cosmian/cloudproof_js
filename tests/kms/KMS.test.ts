@@ -298,7 +298,6 @@ test("KMS CoverCrypt keys", async () => {
   expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
   // encryption
-  console.log("...encryption")
   const plaintext = new TextEncoder().encode("abcdefgh")
   const encrypter = new CoverCryptHybridEncryption(policy, mpk)
   const ciphertext = encrypter.encrypt(
@@ -306,7 +305,6 @@ test("KMS CoverCrypt keys", async () => {
     plaintext,
   )
   // decryption
-  console.log("...decryption")
   const decrypter = new CoverCryptHybridDecryption(udk)
   const plaintext_ = decrypter.decrypt(ciphertext)
   expect(plaintext_).toEqual(plaintext)
@@ -323,7 +321,6 @@ test("KMS CoverCrypt keys", async () => {
   const policy2 = Policy.fromKey(mpk2)
 
   // encryption
-  console.log("...encryption")
   const plaintext2 = new TextEncoder().encode("abcdefgh")
   const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
   const ciphertext2 = encrypter2.encrypt(
@@ -331,7 +328,6 @@ test("KMS CoverCrypt keys", async () => {
     plaintext2,
   )
   // decryption
-  console.log("...decryption rotated old")
   try {
     const decrypter2 = new CoverCryptHybridDecryption(udk)
     decrypter2.decrypt(ciphertext2)
@@ -341,7 +337,6 @@ test("KMS CoverCrypt keys", async () => {
   }
   // retrieve refreshed udk
   const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
-  console.log("...decryption rotated 2")
   const decrypter2 = new CoverCryptHybridDecryption(udk2)
   const plaintext2_ = decrypter2.decrypt(ciphertext2)
   expect(plaintext2_).toEqual(plaintext)
