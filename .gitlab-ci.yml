@@ -50,7 +50,7 @@ example_vuejs:
     - npm run build
     - npm run serve -- --port 8090 &
     - sleep 5
-    - node ../test/chrome.mjs http://localhost:8090 http://localhost:9980
+    - node ../test/chrome.mjs http://localhost:8090 http://localhost:9998
   artifacts:
     paths:
       - examples/vuejs/error.png
@@ -70,7 +70,7 @@ example_reactjs:
     - npm run build
     - npm run serve -- --port 8090 &
     - sleep 5
-    - node ../test/chrome.mjs http://localhost:8090 http://localhost:9980
+    - node ../test/chrome.mjs http://localhost:8090 http://localhost:9998
   artifacts:
     paths:
       - examples/reactjs/error.png
