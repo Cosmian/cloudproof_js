@@ -51,8 +51,7 @@ example_vuejs:
     - node ../test/chrome.mjs
   artifacts:
     paths:
-      - examples/vuejs
-    untracked: true
+      - examples/vuejs/error.png
     expire_in: 1 week
 
 example_reactjs:
@@ -70,8 +69,7 @@ example_reactjs:
     - node ../test/chrome.mjs
   artifacts:
     paths:
-      - examples/reactjs
-    untracked: true
+      - examples/reactjs/error.png
     expire_in: 1 week
 
 example_webpack:
