@@ -72,6 +72,7 @@ export class KmipClient {
     responseClass: new (...args: any[]) => R,
   ): Promise<R> {
     const ttlvRequest = toTTLV(payload)
+    console.log(JSON.stringify(ttlvRequest));
     const options: RequestInit = {
       method: "POST",
       body: JSON.stringify(ttlvRequest),
