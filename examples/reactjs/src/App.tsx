@@ -106,6 +106,7 @@ function App() {
     if (kmsServerUrl) {
       console.log('Building client…');
       const client = new KmipClient(new URL(kmsServerUrl))
+      console.log(await client.up());
       console.log('Done with building client. Generating master keys…');
       const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
       console.log('Done generating master keys…');
