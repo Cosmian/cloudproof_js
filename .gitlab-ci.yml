@@ -52,6 +52,7 @@ example_vuejs:
   artifacts:
     paths:
       - examples/vuejs/error.png
+    when: on_failure
     expire_in: 1 week
 
 example_reactjs:
@@ -70,6 +71,7 @@ example_reactjs:
   artifacts:
     paths:
       - examples/reactjs/error.png
+    when: on_failure
     expire_in: 1 week
 
 example_webpack:
