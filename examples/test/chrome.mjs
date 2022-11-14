@@ -18,8 +18,8 @@ if (kmsHost) {
 console.log();
 
 (async () => {
-  // await runTest("JS without graphs", false, false)
-  // await runTest("JS with graphs", true, false)
+  await runTest("JS without graphs", false, false)
+  await runTest("JS with graphs", true, false)
 
   if (kmsHost) {
     await runTest("KMS without graphs", false, true)

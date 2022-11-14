@@ -79,7 +79,7 @@ export class KmipClient {
       headers: this.headers,
     }
     const response = await fetch(this.url as any, options)
-    if (response.status >= 300) {
+    if (response.status >= 400) {
       throw new Error(`KMIP request failed: ${await response.text()}`)
     }
     const content = await response.text()
