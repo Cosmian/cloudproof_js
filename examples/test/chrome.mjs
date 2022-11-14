@@ -55,7 +55,7 @@ async function runTest(
     await reportError(page, `Page Error: ${err.toString()}`)
   })
 
-  await page.goto("http://localhost:8080")
+  await page.goto("http://localhost:8090")
 
   {
     await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })

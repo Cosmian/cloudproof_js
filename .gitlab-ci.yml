@@ -49,6 +49,11 @@ example_vuejs:
     - npm run build
     - npm run serve&
     - node ../test/chrome.mjs
+  artifacts:
+    paths:
+      - examples/vuejs
+    untracked: true
+    expire_in: 1 week
 
 example_reactjs:
   extends: .services
@@ -63,6 +68,11 @@ example_reactjs:
     - npm run build
     - npm run serve&
     - node ../test/chrome.mjs
+  artifacts:
+    paths:
+      - examples/reactjs
+    untracked: true
+    expire_in: 1 week
 
 example_webpack:
   extends: .services
