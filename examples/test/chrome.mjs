@@ -69,17 +69,18 @@ async function runTest(
     9,
   )
 
-  if (withGraphs) {
+  if (withGraphs || withKms) {
     await page.click("#options")
-    await page.click("#usingGraphs")
-    await page.click("#options")
+
+    if (withGraphs) {
+      await page.click("#usingGraphs")
+    }
+
+    if (withKms) {
+      await page.type("#kmsServer", `${kmsHost}/kmip/2_1`)
+    }
   }
 
-  if (withKms) {
-    await page.click("#options")
-    await page.type("#kmsServer", `${kmsHost}/kmip/2_1`, { delay: 30 })
-    await page.click("#options")
-  }
 
   await addNewUser(
     page,
@@ -293,7 +294,7 @@ async function runTest(
 
   await browser.close()
 
-  console.log("\x1b[32m", `✓ All Good for ${name}!`)
+  console.log("\x1b[32m", `✓ All Good for ${name}!`, "\x1b[0m")
 }
 
 /**
@@ -314,7 +315,7 @@ async function reportError(page, message) {
  * @param additionalMessage
  * @param timeout
  */
-async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 500) {
+async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 30000) {
   const start = new Date();
   let count = null;
   do {
