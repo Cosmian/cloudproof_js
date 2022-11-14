@@ -49,7 +49,7 @@ export class SplitKey {
     splitKeyThreshold?: number,
     splitKeyMethod?: SplitKeyMethod,
     keyBlock?: KeyBlock,
-    primeFieldSize?: bigint
+    primeFieldSize?: bigint,
   ) {
     this._split_key_parts = splitKeyParts ?? 0
     this._key_part_identifier = keyPartIdentifier ?? 0

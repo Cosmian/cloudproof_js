@@ -49,7 +49,7 @@ export class KeyValue {
 
   constructor(
     bytes?: Uint8Array | undefined,
-    plaintext?: PlainTextKeyValue | undefined
+    plaintext?: PlainTextKeyValue | undefined,
   ) {
     this._bytes = bytes
     this._plaintext = plaintext

@@ -66,7 +66,7 @@ export class VendorAttribute implements KmipStruct {
   constructor(
     vendorIdentification: string,
     attributeName: string,
-    attributeValue: Uint8Array
+    attributeValue: Uint8Array,
   ) {
     this._vendor_identification = vendorIdentification
     this._attribute_name = attributeName

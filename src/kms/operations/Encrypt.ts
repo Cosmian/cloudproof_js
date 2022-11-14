@@ -89,7 +89,7 @@ export class Encrypt implements KmipStruct {
     correlationValue?: Uint8Array,
     initIndicator?: boolean,
     finalIndicator?: boolean,
-    authenticatedEncryptionAdditionalData?: Uint8Array
+    authenticatedEncryptionAdditionalData?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._cryptographicParameters = cryptographicParameters
@@ -115,7 +115,7 @@ export class Encrypt implements KmipStruct {
   }
 
   public set cryptographic_parameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }
@@ -167,13 +167,15 @@ export class Encrypt implements KmipStruct {
   }
 
   public set authenticated_encryption_additional_data(
-    value: Uint8Array | undefined
+    value: Uint8Array | undefined,
   ) {
     this._authenticatedEncryptionAdditionalData = value
   }
 
   public equals(o: any): boolean {
-    if (o === this) return true
+    if (o === this) {
+      return true
+    }
     if (!(o instanceof Encrypt)) {
       return false
     }

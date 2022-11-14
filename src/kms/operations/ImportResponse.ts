@@ -34,6 +34,6 @@ export class ImportResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return "{" + " UniqueIdentifier='" + this._uniqueIdentifier + "'" + "}"
+    return `{ UniqueIdentifier='${this._uniqueIdentifier}'}`
   }
 }

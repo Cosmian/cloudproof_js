@@ -24,7 +24,9 @@ export class SymmetricKey {
   }
 
   public equals(o: any): boolean {
-    if (o === this) return true
+    if (o === this) {
+      return true
+    }
     if (!(o instanceof SymmetricKey)) {
       return false
     }
@@ -48,7 +50,7 @@ export class SymmetricKey {
     }
     const ptKv = kv.plaintext
     if (typeof ptKv === "undefined") {
-      throw new Error(`no key bytes found on the symmetric key`)
+      throw new Error("no key bytes found on the symmetric key")
     }
     if (ptKv.keyMaterial instanceof Uint8Array) {
       return ptKv.keyMaterial
@@ -56,6 +58,6 @@ export class SymmetricKey {
     if (ptKv.keyMaterial instanceof TransparentSymmetricKey) {
       return ptKv.keyMaterial.key
     }
-    throw new Error(`no key bytes found: invalid symmetric key`)
+    throw new Error("no key bytes found: invalid symmetric key")
   }
 }

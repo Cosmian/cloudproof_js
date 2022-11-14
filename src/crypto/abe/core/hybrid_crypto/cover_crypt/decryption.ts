@@ -1,8 +1,8 @@
 /* tslint:disable:max-classes-per-file */
 import {
-  webassembly_decrypt_symmetric_block,
   webassembly_decrypt_hybrid_header,
-  webassembly_hybrid_decrypt
+  webassembly_decrypt_symmetric_block,
+  webassembly_hybrid_decrypt,
 } from "cosmian_cover_crypt"
 import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
@@ -38,7 +38,7 @@ export class CoverCryptHybridDecryption {
     encryptedHeader: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): ClearTextHeader {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
@@ -48,10 +48,10 @@ export class CoverCryptHybridDecryption {
     const cleartextHeader = webassembly_decrypt_hybrid_header(
       this.asymmetricDecryptionKey,
       encryptedHeader,
-      authenticatedData
+      authenticatedData,
     )
 
-    return ClearTextHeader.parseLEB128(cleartextHeader)
+    return ClearTextHeader.parse(cleartextHeader)
   }
 
   /**
@@ -68,7 +68,7 @@ export class CoverCryptHybridDecryption {
     encryptedBytes: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): Uint8Array {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
@@ -78,7 +78,7 @@ export class CoverCryptHybridDecryption {
     return webassembly_decrypt_symmetric_block(
       symmetricKey,
       encryptedBytes,
-      authenticatedData
+      authenticatedData,
     )
   }
 
@@ -94,7 +94,7 @@ export class CoverCryptHybridDecryption {
     ciphertext: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): Uint8Array {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
@@ -104,7 +104,7 @@ export class CoverCryptHybridDecryption {
     return webassembly_hybrid_decrypt(
       this.asymmetricDecryptionKey,
       ciphertext,
-      authenticatedData
+      authenticatedData,
     )
   }
 }

@@ -134,7 +134,7 @@ export class CreateKeyPair implements KmipStruct {
     publicKeyAttributes?: Attributes,
     commonProtectionStorageMasks?: number,
     privateProtectionStorageMasks?: number,
-    publicProtectionStorageMasks?: number
+    publicProtectionStorageMasks?: number,
   ) {
     this._commonAttributes = commonAttributes
     this._privateKeyAttributes = privateKeyAttributes

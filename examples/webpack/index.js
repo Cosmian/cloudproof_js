@@ -13,8 +13,8 @@ const policy = new Policy([
   new PolicyAxis(
     "Security Level",
     ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"],
-    true
-  )
+    true,
+  ),
 ])
 
 ;(async () => {
@@ -29,7 +29,7 @@ const policy = new Policy([
 
   // fetch the keys from the KMS
   const privateMasterKey = await client.retrieveAbePrivateMasterKey(
-    privateMasterKeyUID
+    privateMasterKeyUID,
   )
   // eslint-disable-next-line no-unused-vars
   const privateMasterKeyBytes = privateMasterKey.bytes()
@@ -48,7 +48,7 @@ const policy = new Policy([
   let encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
   const lowSecretMkgCiphertext = encrypter.encrypt(
     "Department::MKG && Security Level::Low Secret",
-    lowSecretMkgData
+    lowSecretMkgData,
   )
 
   // a top secret marketing message
@@ -56,7 +56,7 @@ const policy = new Policy([
   encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
   const topSecretMkgCiphertext = encrypter.encrypt(
     "Department::MKG && Security Level::Top Secret",
-    topSecretMkgData
+    topSecretMkgData,
   )
 
   // a low secret finance message
@@ -64,7 +64,7 @@ const policy = new Policy([
   encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
   const lowSecretFinCiphertext = encrypter.encrypt(
     "Department::FIN && Security Level::Low Secret",
-    lowSecretFinData
+    lowSecretFinData,
   )
 
   //
@@ -75,10 +75,10 @@ const policy = new Policy([
     "Department::MKG && Security Level::Medium Secret"
   const mediumSecretMkgUserKeyUid = await client.createAbeUserDecryptionKey(
     mediumSecretMkgAccess,
-    privateMasterKeyUID
+    privateMasterKeyUID,
   )
   const mediumSecretMkgUserKey = await client.retrieveAbeUserDecryptionKey(
-    mediumSecretMkgUserKeyUid
+    mediumSecretMkgUserKeyUid,
   )
   const mediumSecretMkgUserKeyBytes = mediumSecretMkgUserKey.bytes()
 
@@ -87,10 +87,10 @@ const policy = new Policy([
     "(Department::MKG || Department::FIN) && Security Level::Top Secret"
   const topSecretMkgFinUserKeyUid = await client.createAbeUserDecryptionKey(
     topSecretMkgFinAccess,
-    privateMasterKeyUID
+    privateMasterKeyUID,
   )
   const topSecretMkgFinUserKey = await client.retrieveAbeUserDecryptionKey(
-    topSecretMkgFinUserKeyUid
+    topSecretMkgFinUserKeyUid,
   )
   const topSecretMkgFinUserKeyBytes = topSecretMkgFinUserKey.bytes()
 
@@ -98,10 +98,10 @@ const policy = new Policy([
   const topSecretFinAccess = "(Department::FIN) && Security Level::Top Secret"
   const topSecretFinUserKeyUid = await client.createAbeUserDecryptionKey(
     topSecretFinAccess,
-    privateMasterKeyUID
+    privateMasterKeyUID,
   )
   const topSecretFinUserKey = await client.retrieveAbeUserDecryptionKey(
-    topSecretFinUserKeyUid
+    topSecretFinUserKeyUid,
   )
   // eslint-disable-next-line no-unused-vars
   const topSecretFinUserKeyBytes = topSecretFinUserKey.bytes()
@@ -111,7 +111,7 @@ const policy = new Policy([
   //
   //  note: the constructor also accepts the private key object returned by the KMS
   const lowSecretMkgCleartext = new CoverCryptHybridDecryption(
-    mediumSecretMkgUserKeyBytes
+    mediumSecretMkgUserKeyBytes,
   ).decrypt(lowSecretMkgCiphertext)
   assert(lowSecretMkgCleartext, lowSecretMkgData)
 
@@ -119,7 +119,7 @@ const policy = new Policy([
   try {
     // will throw
     new CoverCryptHybridDecryption(mediumSecretMkgUserKey).decrypt(
-      topSecretMkgCiphertext
+      topSecretMkgCiphertext,
     )
   } catch (error) {
     // ==> the user is not be able to decrypt
@@ -129,7 +129,7 @@ const policy = new Policy([
   try {
     // will throw
     new CoverCryptHybridDecryption(topSecretFinUserKey).decrypt(
-      lowSecretMkgCiphertext
+      lowSecretMkgCiphertext,
     )
   } catch (error) {
     // ==> the user is not be able to decrypt
@@ -137,19 +137,19 @@ const policy = new Policy([
 
   // lowSecretMkgCiphertext
   const lowSecretMkgCleartext2 = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes
+    topSecretMkgFinUserKeyBytes,
   ).decrypt(lowSecretMkgCiphertext)
   assert(lowSecretMkgData, lowSecretMkgCleartext2)
 
   // lowSecretFinCiphertext
   const topSecretMkgCleartext = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes
+    topSecretMkgFinUserKeyBytes,
   ).decrypt(topSecretMkgCiphertext)
   assert(topSecretMkgData, topSecretMkgCleartext)
 
   // lowSecretFinCiphertext
   const lowSecretFinCleartext = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes
+    topSecretMkgFinUserKeyBytes,
   ).decrypt(lowSecretFinCiphertext)
   assert(lowSecretFinData, lowSecretFinCleartext)
 
@@ -173,12 +173,12 @@ const policy = new Policy([
   // creating a new medium secret marketing message
   //
   const mediumSecretMkgData = new TextEncoder().encode(
-    "medium_secret_mkg_message"
+    "medium_secret_mkg_message",
   )
   encrypter = new CoverCryptHybridEncryption(policy, rekeyedPublicKey)
   const newMediumSecretMkgCiphertext = encrypter.encrypt(
     "Department::MKG && Security Level::Medium Secret",
-    mediumSecretMkgData
+    mediumSecretMkgData,
   )
 
   //
@@ -186,13 +186,13 @@ const policy = new Policy([
   //
   // lowSecretMkgCiphertext
   const oldMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
-    rekeyedMediumSecretMkgUserKey
+    rekeyedMediumSecretMkgUserKey,
   ).decrypt(lowSecretMkgCiphertext)
   assert(lowSecretMkgData, oldMediumSecretMkgCleartext)
 
   // newMediumSecretMkgCiphertext
   const newMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
-    rekeyedMediumSecretMkgUserKey
+    rekeyedMediumSecretMkgUserKey,
   ).decrypt(newMediumSecretMkgCiphertext)
   assert(mediumSecretMkgData, newMediumSecretMkgCleartext)
 
@@ -201,7 +201,7 @@ const policy = new Policy([
   //
   // lowSecretMkgCiphertext
   const plaintext_ = new CoverCryptHybridDecryption(
-    originalMediumSecretMkgUserKey
+    originalMediumSecretMkgUserKey,
   ).decrypt(lowSecretMkgCiphertext)
   assert(lowSecretMkgData, plaintext_)
 
@@ -209,7 +209,7 @@ const policy = new Policy([
   try {
     // will throw
     new CoverCryptHybridDecryption(originalMediumSecretMkgUserKey).decrypt(
-      newMediumSecretMkgCiphertext
+      newMediumSecretMkgCiphertext,
     )
   } catch (error) {
     // ==> the non rekeyed key cannot decrypt new message after rotation

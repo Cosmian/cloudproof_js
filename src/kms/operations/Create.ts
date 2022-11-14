@@ -49,12 +49,12 @@ export class Create implements KmipStruct, Deserialize {
   constructor(
     objectType: ObjectType,
     attributes: Attributes,
-    protectionStorageMasks?: number
+    protectionStorageMasks?: number,
   )
   constructor(
     objectType?: ObjectType,
     attributes?: Attributes,
-    protectionStorageMasks?: number
+    protectionStorageMasks?: number,
   ) {
     this._objectType = objectType ?? ObjectType.SymmetricKey
     this._attributes = attributes ?? new Attributes(ObjectType.SymmetricKey)

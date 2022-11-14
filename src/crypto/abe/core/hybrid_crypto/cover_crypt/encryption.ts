@@ -1,7 +1,7 @@
 import {
   webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
-  webassembly_hybrid_encrypt
+  webassembly_hybrid_encrypt,
 } from "cosmian_cover_crypt"
 import { Policy } from "../../../../../crypto/abe/interfaces/policy"
 import { PublicKey } from "../../../../../kms/objects/PublicKey"
@@ -52,7 +52,7 @@ export class CoverCryptHybridEncryption {
     options: {
       additionalData?: Uint8Array
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): EncryptedHeader {
     const additionalData =
       typeof options.additionalData === "undefined"
@@ -68,11 +68,11 @@ export class CoverCryptHybridEncryption {
       accessPolicy,
       this.publicKey,
       additionalData,
-      authenticatedData
+      authenticatedData,
     )
 
     logger.log(
-      () => `hybrid header succeeded: ${hexEncode(encryptedHeaderBytes)}`
+      () => `hybrid header succeeded: ${hexEncode(encryptedHeaderBytes)}`,
     )
 
     return EncryptedHeader.parseLEB128(encryptedHeaderBytes)
@@ -92,7 +92,7 @@ export class CoverCryptHybridEncryption {
     plaintext: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): Uint8Array {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
@@ -102,7 +102,7 @@ export class CoverCryptHybridEncryption {
     return webassembly_encrypt_symmetric_block(
       symmetricKey,
       plaintext,
-      authenticatedData
+      authenticatedData,
     )
   }
 
@@ -122,7 +122,7 @@ export class CoverCryptHybridEncryption {
     options: {
       additionalData?: Uint8Array
       authenticatedData?: Uint8Array
-    } = {}
+    } = {},
   ): Uint8Array {
     const additionalData =
       typeof options.additionalData === "undefined"
@@ -139,7 +139,7 @@ export class CoverCryptHybridEncryption {
       this._publicKey,
       plaintext,
       additionalData,
-      authenticatedData
+      authenticatedData,
     )
   }
 }

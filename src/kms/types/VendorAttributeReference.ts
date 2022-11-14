@@ -56,15 +56,6 @@ export class VendorAttributeReference {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " vendor_identification='" +
-      this._vendorIdentification +
-      "'" +
-      ", attribute_name='" +
-      this._attributeName +
-      "'" +
-      "}"
-    )
+    return `{ vendor_identification='${this._vendorIdentification}', attribute_name='${this._attributeName}'}`
   }
 }

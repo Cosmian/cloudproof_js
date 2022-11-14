@@ -51,7 +51,7 @@ export class PrivateKey {
     }
     const ptKv = kv.plaintext
     if (typeof ptKv === "undefined") {
-      throw new Error(`no key bytes found on the private key`)
+      throw new Error("no key bytes found on the private key")
     }
     if (ptKv.keyMaterial instanceof Uint8Array) {
       return ptKv.keyMaterial
@@ -59,6 +59,6 @@ export class PrivateKey {
     if (ptKv.keyMaterial instanceof TransparentECPrivateKey) {
       return hexDecode(ptKv.keyMaterial.d.toString(16))
     }
-    throw new Error(`no key bytes found: invalid private key`)
+    throw new Error("no key bytes found: invalid private key")
   }
 }

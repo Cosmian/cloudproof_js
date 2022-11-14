@@ -213,7 +213,7 @@ export class Attributes implements KmipStruct {
     cryptographicDomainParameters?: CryptographicDomainParameters,
     cryptographicParameters?: CryptographicParameters,
     cryptographicUsageMask?: number,
-    keyFormatType?: KeyFormatType
+    keyFormatType?: KeyFormatType,
   ) {
     this._object_type = objectType
     this._activation_date = activationDate
@@ -264,7 +264,7 @@ export class Attributes implements KmipStruct {
   }
 
   public set cryptographicParameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }
@@ -276,7 +276,7 @@ export class Attributes implements KmipStruct {
   }
 
   public set cryptographicDomainParameters(
-    value: CryptographicDomainParameters | undefined
+    value: CryptographicDomainParameters | undefined,
   ) {
     this._cryptographic_domain_parameters = value
   }

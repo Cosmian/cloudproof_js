@@ -18,7 +18,7 @@ export class EncryptionKeyInformation implements KmipStruct {
 
   constructor(
     uniqueIdentifier: string,
-    cryptographicParameters?: CryptographicParameters
+    cryptographicParameters?: CryptographicParameters,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._cryptographicParameters = cryptographicParameters
@@ -37,7 +37,7 @@ export class EncryptionKeyInformation implements KmipStruct {
   }
 
   public set cryptographic_parameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }

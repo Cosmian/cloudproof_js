@@ -20,7 +20,15 @@
     "jsdoc"
   ],
   "rules": {
-    "@typescript-eslint/no-empty-interface": 0
+    "@typescript-eslint/no-empty-interface": 0,
+    "no-unused-vars": [
+      "error",
+      {
+        "vars": "all",
+        "args": "all",
+        "ignoreRestSiblings": false
+      }
+    ]
   },
   "ignorePatterns": [
     "tests/wasm_lib"

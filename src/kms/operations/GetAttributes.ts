@@ -24,7 +24,7 @@ export class GetAttributes implements KmipStruct {
 
   constructor(
     uniqueIdentifier?: string,
-    attributeReferences?: AttributeReference[]
+    attributeReferences?: AttributeReference[],
   ) {
     this.unique_identifier = uniqueIdentifier
     this.attribute_references = attributeReferences

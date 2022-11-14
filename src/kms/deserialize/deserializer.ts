@@ -27,7 +27,7 @@ function factory<T>(
  */
 export function fromTTLV<T extends Object>(
   ConstructibleType: new (...args: any[]) => T,
-  ttlv: TTLV
+  ttlv: TTLV,
 ): T {
   // parse the TTLV from JSON
   const instance: T = factory<T>(ConstructibleType)
@@ -48,7 +48,7 @@ export function fromTTLV<T extends Object>(
 function structureParser<T extends Object>(
   instance: T,
   ttlv: TTLV,
-  propertyName: string
+  propertyName: string,
 ): T {
   // Deactivate for now, too restrictive: ex PlainTextKeyValue -> KeyValue
   // // check names
@@ -85,40 +85,32 @@ function structureParser<T extends Object>(
 export function defaultStructureParser<T extends Object>(
   instance: T,
   ttlv: TTLV,
-  propertyName: string
+  propertyName: string,
 ): T {
   const tagName = ttlv.tag
 
   // check TTLV type
   if (typeof ttlv.type === "undefined" || ttlv.type == null) {
     throw new Error(
-      `Deserializer: no valid type in the TTLV ` +
-        ` for structure: ${tagName}` +
-        ` in ${propertyName}`
+      `Deserializer: no valid type in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
   const ttlvType = ttlv.type
   if (ttlvType !== TtlvType.Structure) {
     throw new Error(
-      `Deserializer: invalid type: ${ttlvType}` +
-        ` for structure ${tagName}` +
-        ` in ${propertyName}`
+      `Deserializer: invalid type: ${ttlvType} for structure ${tagName} in ${propertyName}`,
     )
   }
 
   // check TTLV value
   if (typeof ttlv.value === "undefined" || ttlv.value == null) {
     throw new Error(
-      `Deserializer: no valid value in the TTLV ` +
-        ` for structure: ${tagName}` +
-        ` in ${propertyName}`
+      `Deserializer: no valid value in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
   if (ttlv.value.constructor.name !== "Array") {
     throw new Error(
-      `Deserializer: the value should be an array in the TTLV ` +
-        ` for structure: ${tagName}` +
-        ` in ${propertyName}`
+      `Deserializer: the value should be an array in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
   const ttlvValue = ttlv.value as TTLV[]
@@ -127,9 +119,7 @@ export function defaultStructureParser<T extends Object>(
   const metadata = Reflect.getMetadata(METADATA_KEY, instance)
   if (typeof metadata === "undefined") {
     throw new Error(
-      `Deserializer: metadata is not defined ` +
-        ` for structure: ${tagName}` +
-        ` in ${propertyName}`
+      `Deserializer: metadata is not defined  for structure: ${tagName} in ${propertyName}`,
     )
   }
 
@@ -165,16 +155,14 @@ export function defaultStructureParser<T extends Object>(
 function choiceParser<T extends Object>(
   instance: T,
   ttlv: TTLV,
-  propertyName: string
+  propertyName: string,
 ): T {
   // the type to find in the properties of the instance
   const ttlvType = ttlv.type
   // check TTLV type
   if (typeof ttlv.type === "undefined" || ttlv.type == null) {
     throw new Error(
-      `Deserializer: no valid type in the TTLV ` +
-        ` for choice` +
-        ` in ${propertyName}`
+      `Deserializer: no valid type in the TTLV  for choice in ${propertyName}`,
     )
   }
 
@@ -190,9 +178,7 @@ function choiceParser<T extends Object>(
     }
   }
   throw new Error(
-    `Deserializer: choice of type ${ttlvType} not found` +
-      `for object ${instance.constructor.name}` +
-      ` in ${propertyName}`
+    `Deserializer: choice of type ${ttlvType} not foundfor object ${instance.constructor.name} in ${propertyName}`,
   )
 }
 
@@ -209,31 +195,26 @@ function arrayParser<T extends Object>(
   ttlv: TTLV,
   metadata: PropertyMetadata,
   propertyName: string,
-  parentInstance: Object
+  parentInstance: Object,
 ): T[] {
   // check TTLV type
   const ttlvType = ttlv.type
   // check TTLV type
   if (typeof ttlv.type === "undefined" || ttlv.type == null) {
     throw new Error(
-      `Deserializer: no valid type in the TTLV ` +
-        ` for array ${metadata.name}` +
-        ` in ${propertyName}`
+      `Deserializer: no valid type in the TTLV  for array ${metadata.name} in ${propertyName}`,
     )
   }
   if (ttlvType !== TtlvType.Structure) {
     throw new Error(
-      `Deserializer: invalid type: ${ttlvType}` +
-        ` for array ${metadata.name}` +
-        ` in ${propertyName}`
+      `Deserializer: invalid type: ${ttlvType} for array ${metadata.name} in ${propertyName}`,
     )
   }
 
   // check value is array
   if (ttlv.value.constructor.name !== "Array") {
     throw new Error(
-      `Deserializer: invalid value for structure ${ttlv.tag}: it should be an array` +
-        ` in ${propertyName}`
+      `Deserializer: invalid value for structure ${ttlv.tag}: it should be an array in ${propertyName}`,
     )
   }
 
@@ -242,8 +223,7 @@ function arrayParser<T extends Object>(
   for (const v of ttlvValue) {
     if (v.tag !== ttlv.tag) {
       throw new Error(
-        `Deserializer: invalid child with name ${v.tag} for array of ${ttlv.tag}` +
-          ` in ${propertyName}`
+        `Deserializer: invalid child with name ${v.tag} for array of ${ttlv.tag} in ${propertyName}`,
       )
     }
     // Set the metadata of children to be structures
@@ -268,7 +248,7 @@ export function valueParser(
   ttlv: TTLV,
   metadata: PropertyMetadata,
   propertyName: string,
-  parentInstance: Object
+  parentInstance: Object,
 ): any {
   // if there is a custom parser implemented, use that
   if (typeof metadata.fromTtlv !== "undefined") {
@@ -277,9 +257,7 @@ export function valueParser(
 
   if (typeof metadata.type === "undefined" || metadata.type === null) {
     throw new Error(
-      `Deserializer: no valid type in the TTLV ` +
-        ` for element: ${ttlv.tag}` +
-        ` in ${propertyName}`
+      `Deserializer: no valid type in the TTLV  for element: ${ttlv.tag} in ${propertyName}`,
     )
   }
   const ttlvType: TtlvType = metadata.type
@@ -288,9 +266,7 @@ export function valueParser(
     const constructible = metadata.classOrEnum
     if (typeof constructible === "undefined" || constructible === null) {
       throw new Error(
-        `Deserializer: the class must be specified in the metadata for a structure ` +
-          ` for element: ${ttlv.tag}` +
-          ` in ${propertyName}`
+        `Deserializer: the class must be specified in the metadata for a structure  for element: ${ttlv.tag} in ${propertyName}`,
       )
     }
     const instance: Object = factory(constructible)
@@ -307,9 +283,7 @@ export function valueParser(
     const constructible = metadata.classOrEnum
     if (typeof constructible === "undefined" || constructible === null) {
       throw new Error(
-        `Deserializer: the class must be specified in the metadata for a choice ` +
-          ` for element: ${ttlv.tag}` +
-          ` in ${propertyName}`
+        `Deserializer: the class must be specified in the metadata for a choice  for element: ${ttlv.tag} in ${propertyName}`,
       )
     }
     const instance: Object = factory(constructible)
@@ -320,9 +294,7 @@ export function valueParser(
     const anEnum = metadata.classOrEnum
     if (typeof anEnum === "undefined" || anEnum === null) {
       throw new Error(
-        `Deserializer: the enum must be specified in the metadata for a structure ` +
-          ` for element: ${ttlv.tag}` +
-          ` in ${propertyName}`
+        `Deserializer: the enum must be specified in the metadata for a structure  for element: ${ttlv.tag} in ${propertyName}`,
       )
     }
     return anEnum[ttlv.value as keyof typeof anEnum]
@@ -333,7 +305,7 @@ export function valueParser(
       return parseInt(ttlv.value as string, 10)
     } catch (error) {
       throw new Error(
-        `Deserializer: the child ${propertyName} is a TTLV Integer but its value cannot be parsed as an Integer`
+        `Deserializer: the child ${propertyName} is a TTLV Integer but its value cannot be parsed as an Integer`,
       )
     }
   }
@@ -348,32 +320,32 @@ export function valueParser(
 
   if (ttlvType === TtlvType.BigInteger) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   if (ttlvType === TtlvType.Boolean) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   if (ttlvType === TtlvType.DateTime) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   if (ttlvType === TtlvType.DateTimeExtended) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   if (ttlvType === TtlvType.Interval) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   if (ttlvType === TtlvType.LongInteger) {
     throw new Error(
-      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`
+      `Deserializer: automatic deserialization of ${ttlvType} not supported yet`,
     )
   }
   // This line should never be reached but is a guard against adding a type

@@ -12,7 +12,7 @@ import {
   UpsertChains,
   UpsertEntries,
   LocationIndexEntry,
-  KeywordIndexEntry
+  KeywordIndexEntry,
 } from "../../src/crypto/sse/findex/simple"
 import { USERS } from "../data/users"
 import { expect, test } from "@jest/globals"
@@ -26,29 +26,29 @@ test("upsert and search memory", async () => {
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      new Location(new TextEncoder().encode("ROBERT file"))
+      new Location(new TextEncoder().encode("ROBERT file")),
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const arrayLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      new Location(new TextEncoder().encode("ROBERT file array"))
+      new Location(new TextEncoder().encode("ROBERT file array")),
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))])
+    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
   }
   const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
-    new TextEncoder().encode("ROBERT")
+    new TextEncoder().encode("ROBERT"),
   ])
   expect(arrayLocation_).toEqual(arrayLocation)
 
   const entryKeyword: IndexedEntry = {
     indexedValue: IndexedValue.fromNextWord(
-      new Keyword(new TextEncoder().encode("ROBERT"))
+      new Keyword(new TextEncoder().encode("ROBERT")),
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))])
+    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))]),
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
@@ -62,7 +62,7 @@ test("upsert and search memory", async () => {
   const chainTable: { [uid: string]: Uint8Array } = {}
 
   const fetchEntries: FetchEntries = async (
-    uids: Uint8Array[]
+    uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const uid of uids) {
@@ -75,7 +75,7 @@ test("upsert and search memory", async () => {
   }
 
   const fetchChains: FetchChains = async (
-    uids: Uint8Array[]
+    uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const uid of uids) {
@@ -88,7 +88,7 @@ test("upsert and search memory", async () => {
   }
 
   const upsertEntries: UpsertEntries = async (
-    uidsAndValues: UidsAndValues
+    uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
       entryTable[hexEncode(uid)] = value
@@ -97,7 +97,7 @@ test("upsert and search memory", async () => {
   }
 
   const upsertChains: UpsertChains = async (
-    uidsAndValues: UidsAndValues
+    uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
       chainTable[hexEncode(uid)] = value
@@ -112,7 +112,7 @@ test("upsert and search memory", async () => {
     label,
     fetchEntries,
     upsertEntries,
-    upsertChains
+    upsertChains,
   )
 
   const results0 = await findex.search(
@@ -121,7 +121,7 @@ test("upsert and search memory", async () => {
     label,
     100,
     fetchEntries,
-    fetchChains
+    fetchChains,
   )
   expect(results0.length).toEqual(2)
 
@@ -131,7 +131,7 @@ test("upsert and search memory", async () => {
     label,
     100,
     fetchEntries,
-    fetchChains
+    fetchChains,
   )
   expect(results1.length).toEqual(2)
 
@@ -141,7 +141,7 @@ test("upsert and search memory", async () => {
     label,
     100,
     fetchEntries,
-    fetchChains
+    fetchChains,
   )
   expect(results2.length).toEqual(2)
 })
@@ -152,7 +152,7 @@ test("in memory", async () => {
 
   const fetchCallback = async (
     table: UidsAndValues,
-    uids: Uint8Array[]
+    uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
@@ -170,7 +170,7 @@ test("in memory", async () => {
   }
   const upsertCallback = async (
     table: UidsAndValues,
-    uidsAndValues: UidsAndValues
+    uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid: newUid, value: newValue } of uidsAndValues) {
       for (const tableEntry of table) {
@@ -192,7 +192,7 @@ test("in memory", async () => {
     async (uids) => await fetchCallback(entryTable, uids),
     async (uids) => await fetchCallback(chainTable, uids),
     async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-    async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues)
+    async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues),
   )
 })
 
@@ -201,19 +201,19 @@ test("SQLite", async () => {
   await new Promise((resolve) => {
     db.run(
       "CREATE TABLE entry_table (uid BYTES PRIMARY KEY, value BYTES)",
-      resolve
+      resolve,
     )
   })
   await new Promise((resolve) => {
     db.run(
       "CREATE TABLE chain_table (uid BYTES PRIMARY KEY, value BYTES)",
-      resolve
+      resolve,
     )
   })
 
   const fetchCallback = async (
     table: string,
-    uids: Uint8Array[]
+    uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     return await new Promise((resolve, reject) => {
       db.all(
@@ -224,13 +224,13 @@ test("SQLite", async () => {
         (err: any, rows: UidsAndValues) => {
           if (err !== null && typeof err !== "undefined") reject(err)
           resolve(rows)
-        }
+        },
       )
     })
   }
   const upsertCallback = async (
     table: string,
-    uidsAndValues: UidsAndValues
+    uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
       await new Promise((resolve, reject) => {
@@ -240,7 +240,7 @@ test("SQLite", async () => {
           (err: any) => {
             if (err !== null && typeof err !== "undefined") reject(err)
             resolve(null)
-          }
+          },
         )
       })
     }
@@ -250,7 +250,7 @@ test("SQLite", async () => {
     async (uids) => await fetchCallback("entry_table", uids),
     async (uids) => await fetchCallback("chain_table", uids),
     async (uidsAndValues) => await upsertCallback("entry_table", uidsAndValues),
-    async (uidsAndValues) => await upsertCallback("chain_table", uidsAndValues)
+    async (uidsAndValues) => await upsertCallback("chain_table", uidsAndValues),
   )
 })
 
@@ -261,13 +261,13 @@ test("Redis", async () => {
   try {
     const fetchCallback = async (
       prefix: string,
-      uids: Uint8Array[]
+      uids: Uint8Array[],
     ): Promise<UidsAndValues> => {
       const redisResults = await client.mGet(
         uids.map(
           (uid) =>
-            `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`
-        )
+            `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+        ),
       )
 
       const results: UidsAndValues = []
@@ -276,8 +276,8 @@ test("Redis", async () => {
           results.push({
             uid: uids[index],
             value: Uint8Array.from(
-              Buffer.from(redisResults[index] as string, "base64")
-            )
+              Buffer.from(redisResults[index] as string, "base64"),
+            ),
           })
         }
       })
@@ -286,13 +286,13 @@ test("Redis", async () => {
 
     const upsertCallback = async (
       prefix: string,
-      uidsAndValues: UidsAndValues
+      uidsAndValues: UidsAndValues,
     ): Promise<void> => {
       await client.mSet(
         uidsAndValues.map(({ uid, value }) => [
           `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
-          Buffer.from(value).toString("base64")
-        ])
+          Buffer.from(value).toString("base64"),
+        ]),
       )
     }
 
@@ -302,7 +302,7 @@ test("Redis", async () => {
       async (uidsAndValues) =>
         await upsertCallback("entry_table", uidsAndValues),
       async (uidsAndValues) =>
-        await upsertCallback("chain_table", uidsAndValues)
+        await upsertCallback("chain_table", uidsAndValues),
     )
   } finally {
     await client.disconnect()
@@ -314,7 +314,7 @@ async function run(
   fetchEntries: FetchEntries,
   fetchChains: FetchChains,
   upsertEntries: UpsertEntries,
-  upsertChains: UpsertChains
+  upsertChains: UpsertChains,
 ): Promise<void> {
   const findex = await Findex()
   const searchKey = new FindexKey(randomBytes(32))
@@ -326,12 +326,12 @@ async function run(
     for (const user of USERS) {
       newIndexedEntries.push({
         indexedValue: IndexedValue.fromLocation(
-          Location.fromUtf8String(user.id)
+          Location.fromUtf8String(user.id),
         ),
         keywords: new Set([
           Keyword.fromUtf8String(user.firstName),
-          Keyword.fromUtf8String(user.country)
-        ])
+          Keyword.fromUtf8String(user.country),
+        ]),
       })
     }
 
@@ -342,7 +342,7 @@ async function run(
       label,
       fetchEntries,
       upsertEntries,
-      upsertChains
+      upsertChains,
     )
 
     const results = await findex.search(
@@ -351,12 +351,12 @@ async function run(
       label,
       1000,
       fetchEntries,
-      fetchChains
+      fetchChains,
     )
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id))
+      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)),
     )
   }
 
@@ -369,7 +369,7 @@ async function run(
       label,
       1000,
       fetchEntries,
-      fetchChains
+      fetchChains,
     )
 
     expect(results.length).toEqual(30)
@@ -381,17 +381,17 @@ async function run(
       [
         {
           indexedValue: IndexedValue.fromNextWord(
-            Keyword.fromUtf8String(USERS[0].firstName)
+            Keyword.fromUtf8String(USERS[0].firstName),
           ),
-          keywords: new Set([Keyword.fromUtf8String("SomeAlias")])
-        }
+          keywords: new Set([Keyword.fromUtf8String("SomeAlias")]),
+        },
       ],
       searchKey,
       updateKey,
       label,
       fetchEntries,
       upsertEntries,
-      upsertChains
+      upsertChains,
     )
 
     const results = await findex.search(
@@ -400,12 +400,12 @@ async function run(
       label,
       1000,
       fetchEntries,
-      fetchChains
+      fetchChains,
     )
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id))
+      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)),
     )
   }
 }
