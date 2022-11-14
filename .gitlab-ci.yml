@@ -8,6 +8,7 @@ variables:
   KMS_PUBLIC_PATH: /tmp
   KMS_PRIVATE_PATH: /tmp
   KMS_SHARED_PATH: /tmp
+  CI_DEBUG_SERVICES: "true"
 
 stages:
   - test
