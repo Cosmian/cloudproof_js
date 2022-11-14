@@ -49,7 +49,7 @@ export class PlainTextKeyValue {
       if (ttlv.type === TtlvType.ByteString) {
         return hexDecode(ttlv.value as string)
       }
-      if (ttlv.value.constructor.name !== "Array") {
+      if (! Array.isArray(ttlv.value)) {
         throw new Error(`Invalid KeyMaterial for property ${propertyName}`)
       }
       if (typeof parentInstance._keyFormatType === "undefined") {

@@ -108,12 +108,11 @@ export function defaultStructureParser<T extends Object>(
       `Deserializer: no valid value in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
-  if (ttlv.value.constructor.name !== "Array") {
+  if (! Array.isArray(ttlv.value)) {
     throw new Error(
       `Deserializer: the value should be an array in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
-  const ttlvValue = ttlv.value as TTLV[]
 
   // recover the metadata
   const metadata = Reflect.getMetadata(METADATA_KEY, instance)
@@ -131,7 +130,7 @@ export function defaultStructureParser<T extends Object>(
     }
     const ttlvTag = childMetadata.name
 
-    const child = ttlvValue.find((v) => v.tag === ttlvTag)
+    const child = ttlv.value.find((v) => v.tag === ttlvTag)
     if (typeof child === "undefined") {
       // skip the properties which are not found
       // TODO check if mandatory
@@ -178,7 +177,7 @@ function choiceParser<T extends Object>(
     }
   }
   throw new Error(
-    `Deserializer: choice of type ${ttlvType} not foundfor object ${instance.constructor.name} in ${propertyName}`,
+    `Deserializer: choice of type ${ttlvType} not found for object ${instance.constructor.name} in ${propertyName}`,
   )
 }
 
@@ -212,15 +211,14 @@ function arrayParser<T extends Object>(
   }
 
   // check value is array
-  if (ttlv.value.constructor.name !== "Array") {
+  if (! Array.isArray(ttlv.value)) {
     throw new Error(
       `Deserializer: invalid value for structure ${ttlv.tag}: it should be an array in ${propertyName}`,
     )
   }
 
   const array: T[] = []
-  const ttlvValue = ttlv.value as TTLV[]
-  for (const v of ttlvValue) {
+  for (const v of ttlv.value) {
     if (v.tag !== ttlv.tag) {
       throw new Error(
         `Deserializer: invalid child with name ${v.tag} for array of ${ttlv.tag} in ${propertyName}`,

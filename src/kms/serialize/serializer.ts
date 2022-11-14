@@ -45,7 +45,7 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
     return metadata.toTtlv(value)
   }
 
-  if (value.constructor.name === "Array") {
+  if (Array.isArray(value)) {
     return processArray(value, metadata)
   }
 
