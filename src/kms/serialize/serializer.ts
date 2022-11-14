@@ -112,6 +112,10 @@ function parseChildren(value: Object): TTLV[] {
 
   const children: TTLV[] = []
   for (const pn of Object.getOwnPropertyNames(value)) {
+    // Skip tag since it's a default property with the classname inside it we don't
+    // need to fetch it from the response.
+    if (pn === "tag") continue;
+
     const propertyName = pn as keyof typeof value
 
     // skip processing a property which has an undefined value
