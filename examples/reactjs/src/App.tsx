@@ -197,11 +197,11 @@ function App() {
       security: encryptedForSecurity,
     }
 
-    setRequests((requests) => [...requests, {
+    logRequest({
       method: 'POST',
       url: '/users',
       body: data,
-    }])
+    })
     setEncryptedUsers((users) => [...users, data])
   }
 
@@ -274,12 +274,12 @@ function App() {
       }
     }
 
-    setRequests((requests) => [...requests, {
+    logRequest({
       method: 'GET',
       url: `/index_${table}`,
       body: { uids },
       response: results,
-    }])
+    })
     return results
   };
 
@@ -295,11 +295,11 @@ function App() {
         }
       }
 
-      setRequests((requests) => [...requests, {
+      logRequest({
         method: 'POST',
         url: `/index_${table}`,
         body: { uid: newUid, value: newValue },
-      }])
+      })
       if (table === "entries") {
         setIndexesEntries((entries) => [...entries, { uid: newUid, value: newValue }])
       } else {
@@ -427,11 +427,11 @@ function App() {
     for (const indexedValue of indexedValues) {
       let userId = indexedValue.bytes[1];
       let encryptedUser = encryptedUsers.find((encryptedUser) => encryptedUser.id === userId);
-      setRequests((requests) => [...requests, {
+      logRequest({
         method: 'GET',
         url: `/users/${userId}`,
         response: encryptedUser,
-      }])
+      })
 
       if (!encryptedUser) throw new Error("Cannot remove encrypted users so every indexed ids should be present in the encrypted database");
       let decryptedUser = {};
@@ -458,6 +458,10 @@ function App() {
   useEffect(() => {
     doSearch().catch(console.error);
   }, [selectedKey, doOr, query]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const logRequest = (request: Request) => {
+    setRequests((requests) => [...requests.slice(-9), request])
+  };
 
   const decode = (value: Uint8Array): string => {
     return new TextDecoder().decode(value);

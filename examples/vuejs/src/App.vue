@@ -189,7 +189,7 @@ export default defineComponent({
         security: encryptedForSecurity,
       }
 
-      this.requests.push({
+      this.logRequest({
         method: 'POST',
         url: '/users',
         body: data,
@@ -264,7 +264,7 @@ export default defineComponent({
         }
       }
 
-      this.requests.push({
+      this.logRequest({
         method: 'GET',
         url: `/index_${table}`,
         body: { uids },
@@ -286,7 +286,7 @@ export default defineComponent({
         }
 
         // The uid doesn't exist yet.
-        this.requests.push({
+        this.logRequest({
           method: 'POST',
           url: `/index_${table}`,
           body: { uid: newUid, value: newValue },
@@ -355,7 +355,7 @@ export default defineComponent({
         const userId = indexedValue.bytes[1];
         
         let encryptedUser = this.encryptedUsers[userId];
-        this.requests.push({
+        this.logRequest({
           method: 'GET',
           url: `/users/${userId}`,
           response: { encryptedUser },
@@ -423,6 +423,11 @@ export default defineComponent({
       }
 
       return true;
+    },
+
+    logRequest(request: Request) {
+      this.requests.push(request);
+      this.requests = this.requests.slice(-20);
     },
 
     decode(value: Uint8Array): string {
