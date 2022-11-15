@@ -7,7 +7,7 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 type User = { id: number } & NewUser;
 
-
+type Request = { method: string, url: string, body?: object, response?: object };
 
 let names = [
   { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', securityNumber: 1 },
@@ -64,6 +64,8 @@ function Key(name: keyof typeof CLASSES) {
 }
 
 function App() {
+  const [requests, setRequests] = useState([] as Request[]);
+
   const [kmsServerUrl, setKmsServerUrl] = useState('');
   const [usingGraphs, setUsingGraphs] = useState(false);
 
@@ -188,12 +190,19 @@ function App() {
       })),
     )
 
-    setEncryptedUsers((users) => [...users, {
+    let data = {
       id: user.id,
       marketing: encryptedForMarketing,
       hr: encryptedForHr,
       security: encryptedForSecurity,
+    }
+
+    setRequests((requests) => [...requests, {
+      method: 'POST',
+      url: '/users',
+      body: data,
     }])
+    setEncryptedUsers((users) => [...users, data])
   }
 
   const encrypt = async () => {
@@ -264,6 +273,13 @@ function App() {
         }
       }
     }
+
+    setRequests((requests) => [...requests, {
+      method: 'GET',
+      url: `/index_${table}`,
+      body: { uids },
+      response: results,
+    }])
     return results
   };
 
@@ -279,6 +295,11 @@ function App() {
         }
       }
 
+      setRequests((requests) => [...requests, {
+        method: 'POST',
+        url: `/index_${table}`,
+        body: { uid: newUid, value: newValue },
+      }])
       if (table === "entries") {
         setIndexesEntries((entries) => [...entries, { uid: newUid, value: newValue }])
       } else {
@@ -404,7 +425,14 @@ function App() {
 
     let results = [];
     for (const indexedValue of indexedValues) {
-      let encryptedUser = encryptedUsers.find((encryptedUser) => encryptedUser.id === indexedValue.bytes[1]);
+      let userId = indexedValue.bytes[1];
+      let encryptedUser = encryptedUsers.find((encryptedUser) => encryptedUser.id === userId);
+      setRequests((requests) => [...requests, {
+        method: 'GET',
+        url: `/users/${userId}`,
+        response: encryptedUser,
+      }])
+
       if (!encryptedUser) throw new Error("Cannot remove encrypted users so every indexed ids should be present in the encrypted database");
       let decryptedUser = {};
 
@@ -433,6 +461,16 @@ function App() {
 
   const decode = (value: Uint8Array): string => {
     return new TextDecoder().decode(value);
+  };
+
+  const stringify = (value: object): string => {
+    return JSON.stringify(value, (key, value) => {
+      if (value instanceof Uint8Array) {
+        return decode(value).substring(0, 15)
+      } else {
+        return value
+      }
+    }, 2);
   };
 
   const uint8ArrayEquals = (a: Uint8Array, b: Uint8Array): boolean => {
@@ -784,6 +822,40 @@ function App() {
               </div>
             </div>
           }
+        </div>
+
+        <div className="position-fixed bottom-0 end-0 m-4">
+          <button className="btn btn-primary d-flex justify-content-center align-items-center " type="button" data-bs-toggle="offcanvas" data-bs-target="#requests" aria-controls="requests">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px" className="me-2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+            </svg>
+            <span>Show Cloud Requests</span>
+          </button>
+        </div>
+
+        <div className="offcanvas offcanvas-end" data-bs-scroll="true" tabIndex={-1} id="requests" aria-labelledby="requestsLabel">
+          <div className="offcanvas-header">
+            <h5 className="offcanvas-title" id="requestsLabel">Cloud Requests</h5>
+            <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div className="offcanvas-body">
+            {
+              requests.slice().reverse().map((request, index) => (
+                <div className="mb-1">
+                  <div>
+                    <span className="badge text-bg-primary me-2">{request.method}</span>
+                    <code>{request.url}</code>
+                  </div>
+                  { request.body &&
+                    <pre><code>{stringify(request.body)}</code></pre>
+                  }
+                  { request.response &&
+                    <pre><code>{stringify(request.response)}</code></pre>
+                  }
+                </div>
+              ))
+            }
+          </div>
         </div>
       </main>
     </div >

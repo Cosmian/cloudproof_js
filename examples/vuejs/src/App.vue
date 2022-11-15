@@ -10,6 +10,8 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 type User = { id: number } & NewUser;
 
+type Request = { method: string, url: string, body?: object, response?: object };
+
 const DEFAULT_USER: NewUser = {
   first: '',
   last: '',
@@ -49,6 +51,8 @@ export default defineComponent({
     }
 
     return {
+      requests: [] as Request[],
+
       kmsServerUrl: '',
       usingGraphs: false,
 
@@ -179,11 +183,18 @@ export default defineComponent({
         })),
       )
 
-      this.encryptedUsers.push({
+      let data = {
         marketing: encryptedForMarketing,
         hr: encryptedForHr,
         security: encryptedForSecurity,
-      })
+      }
+
+      this.requests.push({
+        method: 'POST',
+        url: '/users',
+        body: data,
+      });
+      this.encryptedUsers.push(data)
     },
 
     async encrypt() {
@@ -252,6 +263,13 @@ export default defineComponent({
           }
         }
       }
+
+      this.requests.push({
+        method: 'GET',
+        url: `/index_${table}`,
+        body: { uids },
+        response: results,
+      })
       return results
     },
 
@@ -268,6 +286,11 @@ export default defineComponent({
         }
 
         // The uid doesn't exist yet.
+        this.requests.push({
+          method: 'POST',
+          url: `/index_${table}`,
+          body: { uid: newUid, value: newValue },
+        })
         this.indexes[table].push({ uid: newUid, value: newValue })
       }
     },
@@ -329,7 +352,14 @@ export default defineComponent({
 
       let results = [];
       for (const indexedValue of indexedValues) {
-        let encryptedUser = this.encryptedUsers[indexedValue.bytes[1]];
+        const userId = indexedValue.bytes[1];
+        
+        let encryptedUser = this.encryptedUsers[userId];
+        this.requests.push({
+          method: 'GET',
+          url: `/users/${userId}`,
+          response: { encryptedUser },
+        })
         let decryptedUser = {};
 
         try {
@@ -397,6 +427,16 @@ export default defineComponent({
 
     decode(value: Uint8Array): string {
       return new TextDecoder().decode(value);
+    },
+
+    stringify(value: object): string {
+      return JSON.stringify(value, (key, value) => {
+        if (value instanceof Uint8Array) {
+          return this.decode(value).substring(0, 15)
+        } else {
+          return value
+        }
+      }, 2);
     },
 
     uint8ArrayEquals(a: Uint8Array, b: Uint8Array): boolean {
@@ -761,5 +801,30 @@ export default defineComponent({
       </div>
     </div>
 
+    <div class="position-fixed bottom-0 end-0 m-4">
+      <button class="btn btn-primary d-flex justify-content-center align-items-center " type="button" data-bs-toggle="offcanvas" data-bs-target="#requests" aria-controls="requests">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20px" height="20px" class="me-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+        </svg>
+        <span>Show Cloud Requests</span>
+      </button>
+    </div>
+
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="requests" aria-labelledby="requestsLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="requestsLabel">Cloud Requests</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="mb-1" v-for="request in requests.slice().reverse()">
+          <div>
+            <span class="badge text-bg-primary me-2" v-text="request.method"></span>
+            <code v-text="request.url"></code>
+          </div>
+          <pre v-if="request.body"><code v-text="stringify(request.body)"></code></pre>
+          <pre v-if="request.response"><code v-text="stringify(request.response)"></code></pre>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
