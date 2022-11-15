@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicParameters } from "../types/CryptographicParameters"
 
 export class Decrypt implements KmipStruct {
+  tag = "Decrypt"
+
   /// The Unique Identifier of the Managed
   /// Cryptographic Object that is the key to
   /// use for the decryption operation. If

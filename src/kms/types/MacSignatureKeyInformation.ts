@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicParameters } from "./CryptographicParameters"
 
 export class MacSignatureKeyInformation implements KmipStruct {
+  tag = "MacSignatureKeyInformation"
+
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,

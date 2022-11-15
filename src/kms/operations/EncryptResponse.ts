@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class EncryptResponse implements KmipStruct {
+  tag = "EncryptResponse"
+
   /// The Unique Identifier of the Managed
   /// Cryptographic Object that was the key
   /// used for the encryption operation.

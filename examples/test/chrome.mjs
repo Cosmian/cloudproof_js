@@ -1,44 +1,42 @@
+import { exit } from "process";
 import puppeteer from "puppeteer"
 
-(async () => {
-  await runTest("without graphs")
-  await runTest(
-    "with graphs",
-    async (page) => {
-      await page.click("#options")
-      await page.click("#usingGraphs")
-    },
-    (expectedResults) => {
-      expectedResults.push({
-        key: "aliceKey",
-        doOr: false,
-        query: "Ma",
-        lines: 0,
-        notDecryptedCount: 0,
-      })
-      expectedResults.push({
-        key: "aliceKey",
-        doOr: false,
-        query: "Mal",
-        lines: 1,
-        notDecryptedCount: 2,
-      })
+const host = process.argv[2] || undefined;
+const kmsHost = process.argv[3] || undefined;
 
-      return expectedResults
-    },
-  )
+if (! host) {
+  console.error("Please provide host: chome.mjs http://localhost:8080");
+  exit(1);
+}
+
+console.log(`Running tests on ${host}`);
+if (kmsHost) {
+  console.log(`Running KMS tests on ${kmsHost}`);
+} else {
+  console.log("Skip KMS tests because no host provided.");
+}
+console.log();
+
+(async () => {
+  await runTest("JS without graphs", false, false)
+  await runTest("JS with graphs", true, false)
+
+  if (kmsHost) {
+    await runTest("KMS without graphs", false, true)
+    await runTest("KMS with graphs", true, true)
+  }
 })()
 
 /**
  *
  * @param name
- * @param optionsCallback
- * @param expectedResultsCallback
+ * @param withGraphs
+ * @param withKms
  */
 async function runTest(
   name,
-  optionsCallback = async () => {},
-  expectedResultsCallback = (e) => e,
+  withGraphs,
+  withKms,
 ) {
   const browser = await puppeteer.launch({
     headless: process.env.CI !== undefined,
@@ -50,18 +48,20 @@ async function runTest(
     height: 1080,
   })
   page.on("pageerror", async (err) => {
-    await reportError(page, `Page Error: ${err.toString()}`)
+    await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
   page.on("error", async (err) => {
-    await reportError(page, `Page Error: ${err.toString()}`)
+    await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
+  page.on('console', (msg) => console.log(`[PAGE LOG] ${msg.text()}`));
+  page.on('requestfailed', async (request) => console.log(`[PAGE HTTP ERROR] ${request.failure().errorText} ${request.url()}`));
 
   try {
-    await page.goto("http://localhost:8090")
+    await page.goto(host)
   } catch {
     // In case of random error, try again.
     console.error("Cannot navigate to the example, trying again one time…")
-    await page.goto("http://localhost:8090")
+    await page.goto(host)
   }
 
   await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })
@@ -71,7 +71,17 @@ async function runTest(
     9,
   )
 
-  await optionsCallback(page)
+  if (withGraphs || withKms) {
+    await page.click("#options")
+
+    if (withGraphs) {
+      await page.click("#usingGraphs")
+    }
+
+    if (withKms) {
+      await page.type("#kmsServerUrl", `${kmsHost}/kmip/2_1`, { delay: 30 })
+    }
+  }
 
   await addNewUser(
     page,
@@ -102,7 +112,7 @@ async function runTest(
     charlieKey: 28,
   }
 
-  const expectedResults = expectedResultsCallback(
+  const expectedResults = 
     [
       {
         key: "aliceKey",
@@ -189,8 +199,24 @@ async function runTest(
         notDecryptedCount: 9,
       },
       // eslint-disable-next-line no-unused-vars
-    ].sort((a, b) => 0.5 - Math.random()),
-  )
+    ].sort((a, b) => 0.5 - Math.random())
+
+  if (withGraphs) {
+    expectedResults.push({
+      key: "aliceKey",
+      doOr: false,
+      query: "Ma",
+      lines: 0,
+      notDecryptedCount: 0,
+    })
+    expectedResults.push({
+      key: "aliceKey",
+      doOr: false,
+      query: "Mal",
+      lines: 1,
+      notDecryptedCount: 2,
+    })
+  }
 
   let previousDoOr = false
   for (const expectedResult of expectedResults) {
@@ -269,7 +295,7 @@ async function runTest(
 
   await browser.close()
 
-  console.log("\x1b[32m", `✓ All Good for ${name}!`)
+  console.log("\x1b[32m", `✓ All Good for ${name}!`, "\x1b[0m")
 }
 
 /**
@@ -290,7 +316,7 @@ async function reportError(page, message) {
  * @param additionalMessage
  * @param timeout
  */
-async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 500) {
+async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 30000) {
   const start = new Date();
   let count = null;
   do {

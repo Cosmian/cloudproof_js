@@ -18,6 +18,8 @@ import { PlainTextKeyValue } from "./PlainTextKeyValue"
  * field.
  */
 export class KeyValue {
+  tag = "KeyValue"
+
   @metadata({
     name: "KeyValue",
     type: TtlvType.ByteString,

@@ -32,6 +32,8 @@ import { LinkType } from "./LinkType"
  * held in a different manner).
  */
 export class Link implements KmipStruct {
+  tag = "Link"
+
   @metadata({
     name: "LinkType",
     type: TtlvType.Enumeration,

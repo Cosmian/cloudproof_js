@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class TransparentDHPrivateKey implements KmipStruct {
+  tag = "TransparentDHPrivateKey"
+
   @metadata({
     name: "Q",
     type: TtlvType.BigInteger,
