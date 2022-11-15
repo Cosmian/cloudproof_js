@@ -71,6 +71,7 @@ function App() {
   const [newUser, setNewUser] = useState(DEFAULT_USER);
 
   const [encrypting, setEncrypting] = useState(false);
+  const [showEncryptedData, setShowEncryptedData] = useState(true);
   const [coverCryptHybridEncryption, setCoverCryptHybridEncryption] = useState(null as null | CoverCryptHybridEncryption);
   const [encryptedUsers, setEncryptedUsers] = useState([] as { id: number, marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[]);
 
@@ -454,7 +455,7 @@ function App() {
     if (value) {
       return (<td>{value}</td>);
     } else {
-      return (<td><span className="badge text-bg-danger">Impossible to decrypt</span></td>)
+      return (<td><span className="badge text-bg-dark">Impossible to decrypt</span></td>)
     }
   }
 
@@ -606,43 +607,55 @@ function App() {
           encryptedUsers.length < users.length && <div className="d-flex justify-content-center align-items-center" >
             <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center" disabled={encrypting} >
               {encrypting && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
-              <div>Encrypt users</div>
+              <div>Encrypt data</div>
             </button>
           </div>
         }
 
         {
-          encryptedUsers.length > 0 && <div className="card mx-5 mb-4">
-            <div className="row g-0">
-              <div className="col-md-4 d-flex flex-column justify-content-center align-items-center">
-                <h5 className="card-title">Encrypted Database</h5>
-                <img src="/database_encrypted.png" className="card-img-top" alt="..." />
-              </div>
-              <div className="col-md-8">
-                <div className="card-body">
-                  <table className="table table-sm" id="table_encrypted_users">
-                    <thead>
-                      <tr>
-                        <th scope="col">{Key('Marketing')}</th>
-                        <th scope="col">{Key('HR')}</th>
-                        <th scope="col">{Key('Security')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {
-                        encryptedUsers.map((user, index) => (
-                          <tr key={`encrypted_${index}`}>
-                            <td>{decode(user.marketing).substring(0, 30)}…</td>
-                            <td>{decode(user.hr).substring(0, 30)}…</td>
-                            <td>{decode(user.security).substring(0, 30)}…</td>
-                          </tr>
-                        ))
-                      }
-                    </tbody>
-                  </table>
-                </div>
+          encryptedUsers.length > 0 &&
+          <div className="position-relative mx-5 mb-4">
+            <div className="position-absolute pt-2 ps-4" style={{ 'zIndex': '999' }}>
+              <div className="form-check form-switch">
+                <input className="form-check-input" type="checkbox" role="switch" id="hide_encrypted" checked={showEncryptedData} onChange={(e) => setShowEncryptedData(e.target.checked)} />
+                <label className="form-check-label" htmlFor="hide_encrypted">Show encrypted data</label>
               </div>
             </div>
+            {
+              showEncryptedData &&
+              <div className="card">
+                <div className="row g-0">
+                  <div className="col-md-4 d-flex flex-column justify-content-center align-items-center">
+                    <h5 className="card-title">Encrypted Database</h5>
+                    <img src="/database_encrypted.png" className="card-img-top" alt="..." />
+                  </div>
+                  <div className="col-md-8">
+                    <div className="card-body">
+                      <table className="table table-sm" id="table_encrypted_users">
+                        <thead>
+                          <tr>
+                            <th scope="col">{Key('Marketing')}</th>
+                            <th scope="col">{Key('HR')}</th>
+                            <th scope="col">{Key('Security')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {
+                            encryptedUsers.map((user, index) => (
+                              <tr key={`encrypted_${index}`}>
+                                <td>{decode(user.marketing).substring(0, 30)}…</td>
+                                <td>{decode(user.hr).substring(0, 30)}…</td>
+                                <td>{decode(user.security).substring(0, 30)}…</td>
+                              </tr>
+                            ))
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         }
 
@@ -652,7 +665,7 @@ function App() {
               <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center"
                 disabled={indexing}>
                 {indexing && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
-                <div>Index users</div>
+                <div>Index</div>
               </button>
             </div>
           </div >

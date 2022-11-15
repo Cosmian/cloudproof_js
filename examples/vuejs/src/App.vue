@@ -57,6 +57,7 @@ export default defineComponent({
       newUser: { ...DEFAULT_USER },
 
       encrypting: false,
+      showEncryptedData: true,
       encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[],
 
       coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
@@ -596,35 +597,43 @@ export default defineComponent({
           <div v-show="encrypting">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
-          <div>Encrypt users</div>
+          <div>Encrypt data</div>
         </button>
       </div>
     </div>
 
-    <div class="card mx-5 mb-4" v-show="encryptedUsers.length">
-      <div class="row g-0">
-        <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
-          <h5 class="card-title">Encrypted Database</h5>
-          <img src="/database_encrypted.png" class="card-img-top" alt="...">
+    <div class="position-relative mx-5 mb-4" v-show="encryptedUsers.length">
+      <div class="position-absolute pt-2 ps-4" style="z-index: 999">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="hide_encrypted" v-model="showEncryptedData">
+          <label class="form-check-label" for="hide_encrypted">Show encrypted data</label>
         </div>
-        <div class="col-md-8">
-          <div class="card-body">
-            <table class="table table-sm" id="table_encrypted_users">
-              <thead>
-                <tr>
-                  <th scope="col">Marketing</th>
-                  <th scope="col">HR</th>
-                  <th scope="col">Security</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="user in encryptedUsers">
-                  <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
-                  <td>{{ decode(user.hr).substring(0, 30) }}…</td>
-                  <td>{{ decode(user.security).substring(0, 30) }}…</td>
-                </tr>
-              </tbody>
-            </table>
+      </div>
+      <div class="card" v-show="showEncryptedData">
+        <div class="row g-0">
+          <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+            <h5 class="card-title">Encrypted Database</h5>
+            <img src="/database_encrypted.png" class="card-img-top" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <table class="table table-sm" id="table_encrypted_users">
+                <thead>
+                  <tr>
+                    <th scope="col">Marketing</th>
+                    <th scope="col">HR</th>
+                    <th scope="col">Security</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in encryptedUsers">
+                    <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
+                    <td>{{ decode(user.hr).substring(0, 30) }}…</td>
+                    <td>{{ decode(user.security).substring(0, 30) }}…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -637,12 +646,12 @@ export default defineComponent({
           <div v-show="indexing">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
-          <div>Index users</div>
+          <div>Index</div>
         </button>
       </div>
     </div>
-    <div class="container">
 
+    <div class="container">
       <div class="card mb-4" v-show="indexingDone">
         <div class="card-body" id="search">
           <h5 class="card-title">Search</h5>
@@ -736,15 +745,15 @@ export default defineComponent({
             <tbody>
               <tr v-for="user in searchResults">
                 <td v-if="user.first">{{ user.first }}</td>
-                <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
                 <td v-if="user.last">{{ user.last }}</td>
-                <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
                 <td v-if="user.country">{{ user.country }}</td>
-                <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
                 <td v-if="user.email">{{ user.email }}</td>
-                <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
                 <td v-if="user.securityNumber">{{ user.securityNumber }}</td>
-                <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
               </tr>
             </tbody>
           </table>
