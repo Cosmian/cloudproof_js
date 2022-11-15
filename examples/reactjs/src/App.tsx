@@ -506,8 +506,8 @@ function App() {
       <nav className="navbar navbar-expand-lg bg-light">
         <div className="container-fluid">
           <a className="navbar-brand" href="/">
-            <img src="/logo.png" alt="" style={{ height: '30px' }} />
-            <span className="fw-bold ms-4">Clouproof Demo</span>
+            <img src="/logo.svg" alt="" style={{ height: '50px' }} />
+            <span className="fw-bold ms-4">Clouproof JS Demo</span>
           </a>
         </div>
       </nav>

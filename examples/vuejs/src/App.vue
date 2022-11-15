@@ -476,8 +476,8 @@ export default defineComponent({
   <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
-        <img src="/logo.png" alt="" style="height: 30px">
-        <span class="fw-bold ms-4">Clouproof Demo</span>
+        <img src="/logo.svg" alt="" style="height: 50px">
+        <span class="fw-bold ms-4">Clouproof JS Demo</span>
       </a>
     </div>
   </nav>
