@@ -25,15 +25,15 @@ export default defineComponent({
     let users: Array<User> = [];
 
     let names = [
-      { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-      { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
-      { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
-      { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
-      { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
-      { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
-      { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-      { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
-      { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
+      { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', securityNumber: 1 },
+      { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', securityNumber: 2 },
+      { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', securityNumber: 3 },
+      { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', securityNumber: 4 },
+      { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', securityNumber: 5 },
+      { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', securityNumber: 6 },
+      { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', securityNumber: 7 },
+      { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', securityNumber: 8 },
+      { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', securityNumber: 9 },
     ];
 
 
@@ -584,7 +584,7 @@ export default defineComponent({
     <div v-show="encryptedUsers.length < users.length">
       <div class="d-flex justify-content-center align-items-center">
         <button type="button" id="encrypt_user" @click="encrypt"
-          class="btn btn-primary btn-lg d-flex justify-content-center" :disabled="encrypting">
+          class="btn btn-primary btn-lg d-flex justify-content-center align-items-center" :disabled="encrypting">
           <div v-show="encrypting">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
@@ -618,7 +618,7 @@ export default defineComponent({
 
     <div v-show="encryptedUsers.length === users.length && !indexingDone">
       <div class="d-flex justify-content-center align-items-center">
-        <button type="button" id="index" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center"
+        <button type="button" id="index" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center align-items-center"
           :disabled="indexing">
           <div v-show="indexing">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>

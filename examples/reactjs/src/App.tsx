@@ -7,16 +7,18 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
 type User = { id: number } & NewUser;
 
+
+
 let names = [
-  { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-  { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
-  { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
-  { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
-  { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
-  { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
-  { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-  { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
-  { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
+  { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', securityNumber: 1 },
+  { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', securityNumber: 2 },
+  { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', securityNumber: 3 },
+  { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', securityNumber: 4 },
+  { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', securityNumber: 5 },
+  { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', securityNumber: 6 },
+  { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', securityNumber: 7 },
+  { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', securityNumber: 8 },
+  { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', securityNumber: 9 },
 ];
 let users: Array<User> = [];
 let id = 0;
@@ -594,7 +596,7 @@ function App() {
 
         {
           encryptedUsers.length < users.length && <div className="d-flex justify-content-center align-items-center" >
-            <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center" disabled={encrypting} >
+            <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center" disabled={encrypting} >
               {encrypting && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
               <div>Encrypt users</div>
             </button>
@@ -630,7 +632,7 @@ function App() {
         {
           (encryptedUsers.length === users.length && !indexingDone) && <div>
             <div className="d-flex justify-content-center align-items-center">
-              <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center"
+              <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center"
                 disabled={indexing}>
                 {indexing && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
                 <div>Index users</div>
