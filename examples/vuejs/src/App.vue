@@ -7,7 +7,7 @@ const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | '
 const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
-type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
 type User = { id: number } & NewUser;
 
 type Request = { method: string, url: string, body?: object, response?: object };
@@ -17,7 +17,7 @@ const DEFAULT_USER: NewUser = {
   last: '',
   country: 'France',
   email: '',
-  securityNumber: 0,
+  project: '',
 }
 
 export default defineComponent({
@@ -27,15 +27,15 @@ export default defineComponent({
     let users: Array<User> = [];
 
     let names = [
-      { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', securityNumber: 1 },
-      { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', securityNumber: 2 },
-      { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', securityNumber: 3 },
-      { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', securityNumber: 4 },
-      { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', securityNumber: 5 },
-      { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', securityNumber: 6 },
-      { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', securityNumber: 7 },
-      { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', securityNumber: 8 },
-      { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', securityNumber: 9 },
+      { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', project: "women" },
+      { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', project: "ecology" },
+      { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', project: "science" },
+      { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', project: "women" },
+      { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', project: "sport" },
+      { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', project: "civil rights" },
+      { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', project: "science" },
+      { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', project: "science" },
+      { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', project: "women" },
     ];
 
 
@@ -81,7 +81,7 @@ export default defineComponent({
       key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
       doOr: false,
       query: '',
-      searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>,
+      searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>,
 
       COUNTRIES,
     }
@@ -179,7 +179,7 @@ export default defineComponent({
       const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
         `department::Security && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
-          securityNumber: user.securityNumber,
+          project: user.project,
         })),
       )
 
@@ -219,7 +219,7 @@ export default defineComponent({
               Keyword.fromUtf8String(user.last),
               Keyword.fromUtf8String(user.country),
               Keyword.fromUtf8String(user.email),
-              Keyword.fromUtf8String(user.securityNumber.toString()),
+              Keyword.fromUtf8String(user.project.toString()),
             ]),
           };
         }),
@@ -413,9 +413,9 @@ export default defineComponent({
       }
 
       let unavailableAttributes = {
-        'aliceKey': ['email', 'securityNumber'],
-        'bobKey': ['securityNumber'],
-        'charlieKey': ['securityNumber'],
+        'aliceKey': ['email', 'project'],
+        'bobKey': ['project'],
+        'charlieKey': ['project'],
       }[this.key];
 
       if (unavailableAttributes.includes(attribute)) {
@@ -554,7 +554,7 @@ export default defineComponent({
                   </th>
                   <th scope="col"></th>
                   <th scope="col">
-                    Security Number
+                    Project
                   </th>
                 </tr>
               </thead>
@@ -581,9 +581,9 @@ export default defineComponent({
                   }">{{ user.email }}</td>
                   <td class="border-start pe-3"></td>
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'securityNumber'),
-                    'table-success': key && canAccessUser(user, 'securityNumber'),
-                  }"> {{ user.securityNumber }}</td>
+                    'table-warning opacity-25': key && !canAccessUser(user, 'project'),
+                    'table-success': key && canAccessUser(user, 'project'),
+                  }"> {{ user.project }}</td>
                 </tr>
                 <tr id="new_user_row">
                   <td>
@@ -608,8 +608,8 @@ export default defineComponent({
                   <td class="border-start pe-3"></td>
                   <td>
                     <form @submit.prevent="addUser" id="newUser" class="d-flex align-items-start">
-                      <input type="number" id="new_user_security_number" style="width: 75px"
-                        class="form-control form-control-sm" v-model="newUser.securityNumber" required />
+                      <input type="text" id="new_user_project" style="width: 125px"
+                        class="form-control form-control-sm" v-model="newUser.project" required />
                       <button type="submit"
                         class="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
                         <div v-if="addingUser" class="spinner-border text-light me-3 spinner-border-sm" role="status">
@@ -779,7 +779,7 @@ export default defineComponent({
                 <th scope="col">Last</th>
                 <th scope="col">Country</th>
                 <th scope="col">Email</th>
-                <th scope="col">Security Number</th>
+                <th scope="col">Project</th>
               </tr>
             </thead>
             <tbody>
@@ -792,7 +792,7 @@ export default defineComponent({
                 <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
                 <td v-if="user.email">{{ user.email }}</td>
                 <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
-                <td v-if="user.securityNumber">{{ user.securityNumber }}</td>
+                <td v-if="user.project">{{ user.project }}</td>
                 <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
               </tr>
             </tbody>

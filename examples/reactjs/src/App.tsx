@@ -4,21 +4,21 @@ import { FormEvent, useEffect, useState } from 'react';
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
 const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
-type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
 type User = { id: number } & NewUser;
 
 type Request = { method: string, url: string, body?: object, response?: object };
 
 let names = [
-  { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', securityNumber: 1 },
-  { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', securityNumber: 2 },
-  { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', securityNumber: 3 },
-  { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', securityNumber: 4 },
-  { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', securityNumber: 5 },
-  { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', securityNumber: 6 },
-  { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', securityNumber: 7 },
-  { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', securityNumber: 8 },
-  { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', securityNumber: 9 },
+  { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', project: "women" },
+  { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', project: "ecology" },
+  { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', project: "science" },
+  { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', project: "women" },
+  { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', project: "sport" },
+  { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', project: "civil rights" },
+  { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', project: "science" },
+  { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', project: "science" },
+  { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', project: "women" },
 ];
 let users: Array<User> = [];
 let id = 0;
@@ -47,7 +47,7 @@ const DEFAULT_USER: NewUser = {
   last: '',
   country: 'France',
   email: '',
-  securityNumber: 0,
+  project: '',
 }
 
 function Key(name: keyof typeof CLASSES) {
@@ -92,7 +92,7 @@ function App() {
   const [doOr, setDoOr] = useState(false);
   const [query, setQuery] = useState('');
 
-  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>);
+  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>);
 
   const generateCoverCryptHybridEncryption = async (): Promise<CoverCryptHybridEncryption> => {
     const { CoverCryptKeyGeneration, CoverCryptHybridEncryption } = await CoverCrypt();
@@ -186,7 +186,7 @@ function App() {
     const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
       `department::Security && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
-        securityNumber: user.securityNumber,
+        project: user.project,
       })),
     )
 
@@ -229,7 +229,7 @@ function App() {
             Keyword.fromUtf8String(user.last),
             Keyword.fromUtf8String(user.country),
             Keyword.fromUtf8String(user.email),
-            Keyword.fromUtf8String(user.securityNumber.toString()),
+            Keyword.fromUtf8String(user.project.toString()),
           ]),
         };
       }),
@@ -349,9 +349,9 @@ function App() {
     }
 
     let unavailableAttributes = {
-      'aliceKey': ['email', 'securityNumber'],
-      'bobKey': ['securityNumber'],
-      'charlieKey': ['securityNumber'],
+      'aliceKey': ['email', 'project'],
+      'bobKey': ['project'],
+      'charlieKey': ['project'],
     }[selectedKey];
 
     if (unavailableAttributes.includes(attribute)) {
@@ -583,7 +583,7 @@ function App() {
                       <th scope="col">Email</th>
                       <th scope="col"></th>
 
-                      <th scope="col">Security Number</th>
+                      <th scope="col">Project</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -596,7 +596,7 @@ function App() {
                           <td className="border-start pe-3"></td>
                           <td className={canAccessUserClassnames(user, 'email')}>{user.email}</td>
                           <td className="border-start pe-3"></td>
-                          <td className={canAccessUserClassnames(user, 'securityNumber')}>{user.securityNumber}</td>
+                          <td className={canAccessUserClassnames(user, 'project')}>{user.project}</td>
                         </tr>
                       ))
                     }
@@ -624,7 +624,7 @@ function App() {
                       <td className="border-start pe-3"></td>
                       <td>
                         <form onSubmit={(e) => addUser(e)} id="newUser" className="d-flex align-items-start">
-                          <input type="number" id="new_user_security_number" style={{ width: '75px' }} className="form-control form-control-sm" value={newUser.securityNumber} onChange={(e) => setNewUser({ ...newUser, securityNumber: parseInt(e.target.value) })} required />
+                          <input type="text" id="new_user_project" style={{ width: '125px' }} className="form-control form-control-sm" value={newUser.project} onChange={(e) => setNewUser({ ...newUser, project: e.target.value })} required />
                           <button type="submit" className="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
                             {addingUser && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" ></div>}
                             {!addingUser && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px">
@@ -801,7 +801,7 @@ function App() {
                         <th scope="col">Last</th>
                         <th scope="col">Country</th>
                         <th scope="col">Email</th>
-                        <th scope="col">Security Number</th>
+                        <th scope="col">Project</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -812,7 +812,7 @@ function App() {
                             {showTdOrDecryptFail(user.last)}
                             {showTdOrDecryptFail(user.country)}
                             {showTdOrDecryptFail(user.email)}
-                            {showTdOrDecryptFail(user.securityNumber)}
+                            {showTdOrDecryptFail(user.project)}
                           </tr>
                         ))
                       }

@@ -90,7 +90,7 @@ async function runTest(
       last: "Doe",
       country: "France",
       email: "john@example.org",
-      securityNumber: "42",
+      project: "example",
     },
     10,
   )
@@ -264,7 +264,7 @@ async function runTest(
       last: "Doe",
       country: "Germany",
       email: "jane@example.org",
-      securityNumber: "42",
+      project: "example",
     },
     11,
   )
@@ -354,8 +354,8 @@ async function addNewUser(page, newUser, newCount) {
   await page.select("#new_user_row select#new_user_country", newUser.country)
   await page.type("#new_user_row input#new_user_email", newUser.email)
   await page.type(
-    "#new_user_row input#new_user_security_number",
-    newUser.securityNumber,
+    "#new_user_row input#new_user_project",
+    newUser.project,
   )
   await page.click("#new_user_row button")
 
