@@ -3,6 +3,9 @@ FROM node:alpine AS builder
 RUN mkdir -p /app
 COPY . /app
 
+WORKDIR /app
+RUN npm install
+
 WORKDIR /app/examples/reactjs
 
 RUN npm install
