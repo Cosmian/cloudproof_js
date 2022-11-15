@@ -3,7 +3,7 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class TransparentDHPublicKey implements KmipStruct {
-  tag = "TransparentDHPublicKey";
+  tag = "TransparentDHPublicKey"
 
   @metadata({
     name: "P",

@@ -4,8 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicParameters } from "../types/CryptographicParameters"
 
 export class Encrypt implements KmipStruct {
-  tag = "Encrypt";
-  
+  tag = "Encrypt"
+
   /// The Unique Identifier of the Managed
   /// Cryptographic Object that is the key to
   /// use for the encryption operation. If

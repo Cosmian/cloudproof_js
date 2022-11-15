@@ -4,8 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { AttributeReference } from "../types/AttributeReference"
 
 export class GetAttributes implements KmipStruct {
-  tag = "GetAttributes";
-  
+  tag = "GetAttributes"
+
   /// Determines the object whose attributes
   /// are being requested. If omitted, then
   /// the ID Placeholder value is used by the

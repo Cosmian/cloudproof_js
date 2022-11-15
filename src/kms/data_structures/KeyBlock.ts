@@ -11,7 +11,7 @@ import { hexDecode } from "../../utils/utils"
 import { PlainTextKeyValue } from "./PlainTextKeyValue"
 
 export class KeyBlock {
-  tag = "KeyBlock";
+  tag = "KeyBlock"
 
   @metadata({
     name: "KeyFormatType",

@@ -20,7 +20,7 @@ type KeyMaterial =
   | TransparentSymmetricKey
 
 export class PlainTextKeyValue {
-  tag = "PlainTextKeyValue";
+  tag = "PlainTextKeyValue"
 
   // This property is only used to help deserialization
   // see KeyBlock
@@ -49,7 +49,7 @@ export class PlainTextKeyValue {
       if (ttlv.type === TtlvType.ByteString) {
         return hexDecode(ttlv.value as string)
       }
-      if (! Array.isArray(ttlv.value)) {
+      if (!Array.isArray(ttlv.value)) {
         throw new Error(`Invalid KeyMaterial for property ${propertyName}`)
       }
       if (typeof parentInstance._keyFormatType === "undefined") {

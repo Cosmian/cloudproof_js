@@ -1,3 +1,3 @@
 export interface KmipStruct {
-    tag: string,
+  tag: string
 }

@@ -3,8 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class ImportResponse implements KmipStruct {
-  tag = "ImportResponse";
-  
+  tag = "ImportResponse"
+
   // The Unique Identifier of the object to be imported
   @metadata({
     name: "UniqueIdentifier",

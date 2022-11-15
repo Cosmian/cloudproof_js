@@ -3,8 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class RevokeResponse implements KmipStruct {
-  tag = "RevokeResponse";
-  
+  tag = "RevokeResponse"
+
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,

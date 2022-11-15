@@ -14,8 +14,8 @@ import { RevocationReason } from "../types/RevocationReason"
  * to the current date and time.
  */
 export class Revoke implements KmipStruct {
-  tag = "Revoke";
-  
+  tag = "Revoke"
+
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,

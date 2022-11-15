@@ -18,7 +18,7 @@ import { PlainTextKeyValue } from "./PlainTextKeyValue"
  * field.
  */
 export class KeyValue {
-  tag = "KeyValue";
+  tag = "KeyValue"
 
   @metadata({
     name: "KeyValue",

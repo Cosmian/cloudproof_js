@@ -17,7 +17,7 @@ import { ObjectType } from "../types/ObjectType"
  * this operation into the ID Placeholder variable.
  */
 export class Create implements KmipStruct, Deserialize {
-  tag = "Create";
+  tag = "Create"
 
   @metadata({
     name: "ObjectType",

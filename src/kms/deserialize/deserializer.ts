@@ -108,7 +108,7 @@ export function defaultStructureParser<T extends Object>(
       `Deserializer: no valid value in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
   }
-  if (! Array.isArray(ttlv.value)) {
+  if (!Array.isArray(ttlv.value)) {
     throw new Error(
       `Deserializer: the value should be an array in the TTLV  for structure: ${tagName} in ${propertyName}`,
     )
@@ -211,7 +211,7 @@ function arrayParser<T extends Object>(
   }
 
   // check value is array
-  if (! Array.isArray(ttlv.value)) {
+  if (!Array.isArray(ttlv.value)) {
     throw new Error(
       `Deserializer: invalid value for structure ${ttlv.tag}: it should be an array in ${propertyName}`,
     )

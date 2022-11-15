@@ -36,7 +36,7 @@ import { WrappingMethod } from "../../kms/types/WrappingMethod"
  * MAC/Signature Key Information (or both) in the Key Wrapping Data structure SHALL be specified.
  */
 export class KeyWrappingData implements KmipStruct {
-  tag = "KeyWrappingData";
+  tag = "KeyWrappingData"
 
   @metadata({
     name: "WrappingMethod",

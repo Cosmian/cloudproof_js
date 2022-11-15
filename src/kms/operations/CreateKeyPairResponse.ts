@@ -3,7 +3,7 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class CreateKeyPairResponse implements KmipStruct {
-  tag = "CreateKeyPairResponse";
+  tag = "CreateKeyPairResponse"
 
   @metadata({
     name: "PrivateKeyUniqueIdentifier",
