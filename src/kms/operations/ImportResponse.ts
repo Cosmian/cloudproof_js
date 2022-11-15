@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class ImportResponse implements KmipStruct {
+  tag = "ImportResponse"
+
   // The Unique Identifier of the object to be imported
   @metadata({
     name: "UniqueIdentifier",
@@ -34,6 +36,6 @@ export class ImportResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return "{" + " UniqueIdentifier='" + this._uniqueIdentifier + "'" + "}"
+    return `{ UniqueIdentifier='${this._uniqueIdentifier}'}`
   }
 }

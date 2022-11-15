@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { Attributes } from "../types/Attributes"
 
 export class GetAttributesResponse implements KmipStruct {
+  tag = "GetAttributesResponse"
+
   // The Unique Identifier of the object
   @metadata({
     name: "UniqueIdentifier",

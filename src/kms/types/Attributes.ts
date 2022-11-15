@@ -35,6 +35,8 @@ import { VendorAttribute } from "./VendorAttribute"
  * on the object type and server policy.
  */
 export class Attributes implements KmipStruct {
+  tag = "Attributes"
+
   /**
    * The Link attribute is a structure used to create a link from one Managed
    * Cryptographic Object to another, closely related target Managed Cryptographic
@@ -213,7 +215,7 @@ export class Attributes implements KmipStruct {
     cryptographicDomainParameters?: CryptographicDomainParameters,
     cryptographicParameters?: CryptographicParameters,
     cryptographicUsageMask?: number,
-    keyFormatType?: KeyFormatType
+    keyFormatType?: KeyFormatType,
   ) {
     this._object_type = objectType
     this._activation_date = activationDate
@@ -264,7 +266,7 @@ export class Attributes implements KmipStruct {
   }
 
   public set cryptographicParameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }
@@ -276,7 +278,7 @@ export class Attributes implements KmipStruct {
   }
 
   public set cryptographicDomainParameters(
-    value: CryptographicDomainParameters | undefined
+    value: CryptographicDomainParameters | undefined,
   ) {
     this._cryptographic_domain_parameters = value
   }

@@ -18,7 +18,7 @@ export class OpaqueObject {
 
   public constructor(
     opaqueDataType?: OpaqueDataType,
-    opaqueDataValue?: number
+    opaqueDataValue?: number,
   ) {
     this._opaque_data_type = opaqueDataType ?? OpaqueDataType.Unknown
     this._opaque_data_value = opaqueDataValue ?? 0

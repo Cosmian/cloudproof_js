@@ -19,6 +19,8 @@ import { Attributes } from "../types/Attributes"
  * based on the dates of the existing key pair as follows
  */
 export class ReKeyKeyPair implements KmipStruct {
+  tag = "ReKeyKeyPair"
+
   @metadata({
     name: "PrivateKeyUniqueIdentifier",
     type: TtlvType.TextString,
@@ -163,7 +165,7 @@ export class ReKeyKeyPair implements KmipStruct {
     publicKeyAttributes?: Attributes,
     commonProtectionStorageMasks?: number,
     privateProtectionStorageMasks?: number,
-    publicProtectionStorageMasks?: number
+    publicProtectionStorageMasks?: number,
   ) {
     this._privateKeyUniqueIdentifier = privateKeyUniqueIdentifier
     this._offset = offset

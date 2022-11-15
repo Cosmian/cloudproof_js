@@ -44,7 +44,7 @@ export class TTLV {
       this.type === TtlvType.BigInteger ||
       this.type === TtlvType.LongInteger
     ) {
-      obj.value = "0x" + (this.value as BigInt).toString(16).toUpperCase()
+      obj.value = `0x${(this.value as BigInt).toString(16).toUpperCase()}`
     } else {
       obj.value = this.value
     }

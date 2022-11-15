@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { CryptographicParameters } from "./CryptographicParameters"
 
 export class MacSignatureKeyInformation implements KmipStruct {
+  tag = "MacSignatureKeyInformation"
+
   @metadata({
     name: "UniqueIdentifier",
     type: TtlvType.TextString,
@@ -18,7 +20,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
 
   constructor(
     uniqueIdentifier: string,
-    cryptographicParameters?: CryptographicParameters
+    cryptographicParameters?: CryptographicParameters,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._cryptographicParameters = cryptographicParameters
@@ -37,7 +39,7 @@ export class MacSignatureKeyInformation implements KmipStruct {
   }
 
   public set cryptographicParameters(
-    value: CryptographicParameters | undefined
+    value: CryptographicParameters | undefined,
   ) {
     this._cryptographicParameters = value
   }

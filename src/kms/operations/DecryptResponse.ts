@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class DecryptResponse implements KmipStruct {
+  tag = "DecryptResponse"
+
   /// The Unique Identifier of the Managed
   /// Cryptographic Object that was the key
   /// used for the decryption operation.
@@ -32,7 +34,7 @@ export class DecryptResponse implements KmipStruct {
   constructor(
     uniqueIdentifier: string,
     data?: Uint8Array,
-    correlationValue?: Uint8Array
+    correlationValue?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._data = data

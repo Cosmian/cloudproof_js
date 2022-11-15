@@ -1,5 +1,6 @@
-import { logger } from "./logger"
+import { Index } from "crypto/sse/findex/interfaces"
 import * as leb from "leb128"
+import { logger } from "./logger"
 
 /**
  * Convert the binary string to base64 string and sanitize it.
@@ -37,7 +38,7 @@ export function hexDecode(hexString: string): Uint8Array {
     hexString
       .split(/(\w\w)/g)
       .filter((p) => p !== "")
-      .map((c) => parseInt(c, 16))
+      .map((c) => parseInt(c, 16)),
   )
 
   // The regex passed to split captures groups of two characters,
@@ -118,7 +119,7 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
 
     const item = serializedItems.slice(
       sizeNumberOfBytes,
-      sizeNumberOfBytes + itemLen
+      sizeNumberOfBytes + itemLen,
     )
     serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen)
     items.push(item)
@@ -130,21 +131,16 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
  * Deserialize Uint8Array as an array of objects with key and value
  *
  * @param {Uint8Array} serializedItems Uint8Array of serialized data
- * @returns {Array<{ uid: Uint8Array; value: Uint8Array }>} an array of objects with key and value properties as Uint8Array
+ * @returns {Index[]} an array of objects with key and value properties as Uint8Array
  */
-export function deserializeHashMap(
-  serializedItems: Uint8Array
-): Array<{ uid: Uint8Array; value: Uint8Array }> {
-  const items: Array<{
-    uid: Uint8Array
-    value: Uint8Array
-  }> = []
+export function deserializeHashMap(serializedItems: Uint8Array): Index[] {
+  const items: Index[] = []
   while (serializedItems.length > 1) {
     const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10)
     const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
     const key = serializedItems.slice(
       sizeNumberOfBytes,
-      sizeNumberOfBytes + keyLen
+      sizeNumberOfBytes + keyLen,
     )
     serializedItems = serializedItems.slice(sizeNumberOfBytes + keyLen)
 
@@ -153,11 +149,11 @@ export function deserializeHashMap(
       const lengthNbBytes = getSizeNumberOfBytes(serializedItems)
       const value = serializedItems.slice(
         lengthNbBytes,
-        lengthNbBytes + valueLen
+        lengthNbBytes + valueLen,
       )
-      const item: { uid: Uint8Array; value: Uint8Array } = {
+      const item: Index = {
         uid: new Uint8Array(),
-        value: new Uint8Array()
+        value: new Uint8Array(),
       }
       if (value.length > 0) {
         item.uid = key
@@ -189,12 +185,10 @@ export function serializeList(list: Uint8Array[]): Uint8Array {
 /**
  * Serialize an array of uids and values as a Uint8Array
  *
- * @param {Array<{ uid: Uint8Array; value: Uint8Array }>} data  an array of objects containing uids and values
+ * @param {Index[]} data  an array of objects containing uids and values
  * @returns {Uint8Array} Uint8Array of serialized data
  */
-export function serializeHashMap(
-  data: Array<{ uid: Uint8Array; value: Uint8Array }>
-): Uint8Array {
+export function serializeHashMap(data: Index[]): Uint8Array {
   let serializedData = new Uint8Array()
   for (const item of data) {
     const keyLen = leb.unsigned.encode(item.uid.length)
@@ -204,7 +198,7 @@ export function serializeHashMap(
       ...keyLen,
       ...item.uid,
       ...valueLen,
-      ...item.value
+      ...item.value,
     ])
   }
   serializedData = Uint8Array.from([...serializedData, 0])

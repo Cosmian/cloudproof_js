@@ -17,6 +17,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { ObjectType } from "../types/ObjectType"
 
 export class GetResponse implements KmipStruct, Deserialize {
+  tag = "GetResponse"
+
   // Determines the type of object being retrieved.
   @metadata({
     name: "ObjectType",
@@ -36,6 +38,7 @@ export class GetResponse implements KmipStruct, Deserialize {
   @metadata({
     name: "Object",
     type: TtlvType.Structure,
+    // eslint-disable-next-line no-unused-vars
     fromTtlv: (propertyName: string, ttlv: TTLV): Object => {
       // this indicates that deserialization is post-processed in fromTtlv() below
       // The _object property will hold a TTLV until the post process
@@ -47,7 +50,7 @@ export class GetResponse implements KmipStruct, Deserialize {
   constructor(
     objectType: ObjectType,
     uniqueIdentifier: string,
-    object: KmipObject
+    object: KmipObject,
   ) {
     this._objectType = objectType
     this._uniqueIdentifier = uniqueIdentifier
@@ -105,7 +108,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new Certificate(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -113,7 +116,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new CertificateRequest(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -121,7 +124,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new OpaqueObject(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -129,7 +132,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new PGPKey(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -137,7 +140,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new PrivateKey(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -145,7 +148,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new PublicKey(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -153,7 +156,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new SecretData(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -161,7 +164,7 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new SplitKey(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
@@ -169,10 +172,10 @@ export class GetResponse implements KmipStruct, Deserialize {
       this._object = defaultStructureParser(
         new SymmetricKey(),
         this._object as TTLV,
-        "_object"
+        "_object",
       )
       return this
     }
-    throw new Error(`Unsupported Object Type, for a KMIP Object`)
+    throw new Error("Unsupported Object Type, for a KMIP Object")
   }
 }

@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class CreateKeyPairResponse implements KmipStruct {
+  tag = "CreateKeyPairResponse"
+
   @metadata({
     name: "PrivateKeyUniqueIdentifier",
     type: TtlvType.TextString,
@@ -20,7 +22,7 @@ export class CreateKeyPairResponse implements KmipStruct {
 
   constructor(
     privateKeyUniqueIdentifier: string,
-    publicKeyUniqueIdentifier: string
+    publicKeyUniqueIdentifier: string,
   ) {
     this._privateKeyUniqueIdentifier = privateKeyUniqueIdentifier
     this._publicKeyUniqueIdentifier = publicKeyUniqueIdentifier
@@ -59,15 +61,6 @@ export class CreateKeyPairResponse implements KmipStruct {
   }
 
   public toString(): string {
-    return (
-      "{" +
-      " privateKeyUniqueIdentifier='" +
-      this._privateKeyUniqueIdentifier +
-      "'" +
-      ", publicKeyUniqueIdentifier='" +
-      this._publicKeyUniqueIdentifier +
-      "'" +
-      "}"
-    )
+    return `{ privateKeyUniqueIdentifier='${this._privateKeyUniqueIdentifier}', publicKeyUniqueIdentifier='${this._publicKeyUniqueIdentifier}'}`
   }
 }

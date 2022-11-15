@@ -21,6 +21,8 @@ import { KeyWrapType } from "../types/KeyWrapType"
 import { ObjectType } from "../types/ObjectType"
 
 export class Import implements KmipStruct {
+  tag = "Import"
+
   // The Unique Identifier of the object to be imported
   @metadata({
     name: "UniqueIdentifier",
@@ -84,7 +86,7 @@ export class Import implements KmipStruct {
     attributes: Attributes,
     object: KmipObject,
     replaceExisting?: boolean,
-    keyWrapType?: KeyWrapType
+    keyWrapType?: KeyWrapType,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._objectType = objectType

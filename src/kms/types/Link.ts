@@ -32,6 +32,8 @@ import { LinkType } from "./LinkType"
  * held in a different manner).
  */
 export class Link implements KmipStruct {
+  tag = "Link"
+
   @metadata({
     name: "LinkType",
     type: TtlvType.Enumeration,
@@ -59,14 +61,14 @@ export class Link implements KmipStruct {
   }
 
   public set linkedObjectIdentifier(
-    linkedObjectIdentifier: LinkedObjectIdentifier
+    linkedObjectIdentifier: LinkedObjectIdentifier,
   ) {
     this._linkedObjectIdentifier = linkedObjectIdentifier
   }
 
   constructor(
     linkType: LinkType,
-    linkedObjectIdentifier: LinkedObjectIdentifier
+    linkedObjectIdentifier: LinkedObjectIdentifier,
   ) {
     this._linkType = linkType
     this._linkedObjectIdentifier = linkedObjectIdentifier

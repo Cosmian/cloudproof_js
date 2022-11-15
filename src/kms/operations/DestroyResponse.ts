@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class DestroyResponse implements KmipStruct {
+  tag = "DestroyResponse"
+
   /// Determines the object being destroyed. If omitted, then the ID
   /// Placeholder value is used by the server as the Unique Identifier.
   @metadata({

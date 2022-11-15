@@ -11,6 +11,8 @@ import { hexDecode } from "../../utils/utils"
 import { PlainTextKeyValue } from "./PlainTextKeyValue"
 
 export class KeyBlock {
+  tag = "KeyBlock"
+
   @metadata({
     name: "KeyFormatType",
     type: TtlvType.Enumeration,
@@ -25,7 +27,7 @@ export class KeyBlock {
     fromTtlv(
       propertyName: string,
       ttlv: TTLV,
-      parentInstance: Object
+      parentInstance: Object,
     ): KeyValue {
       if (ttlv.type === TtlvType.ByteString) {
         return new KeyValue(hexDecode(ttlv.value as string))
@@ -35,13 +37,13 @@ export class KeyBlock {
         const plainTextKeyValue = new PlainTextKeyValue(kb._key_format_type)
         return new KeyValue(
           undefined,
-          defaultStructureParser(plainTextKeyValue, ttlv, "_key_value")
+          defaultStructureParser(plainTextKeyValue, ttlv, "_key_value"),
         )
       }
       throw new Error(
         `Deserializer: KeyValue has invalid type ${ttlv.type} ` +
           ` in structure: KeyBlock` +
-          ` in ${propertyName}`
+          ` in ${propertyName}`,
       )
     },
   })
@@ -79,7 +81,7 @@ export class KeyBlock {
     cryptographicAlgorithm?: CryptographicAlgorithm,
     cryptographicLength?: number,
     keyCompressionType?: KeyCompressionType,
-    keyWrappingData?: KeyWrappingData
+    keyWrappingData?: KeyWrappingData,
   ) {
     this._key_format_type =
       keyFormatType ?? KeyFormatType.TransparentSymmetricKey

@@ -3,6 +3,7 @@ import "reflect-metadata"
 import { METADATA_KEY, PropertyMetadata } from "../decorators/interface"
 import { TtlvType } from "./TtlvType"
 import { hexEncode } from "../../utils/utils"
+import { KmipStruct } from "../json/KmipStruct"
 
 /**
  * Convert the JSON representation of a TTLV back into a TTLV object
@@ -10,13 +11,13 @@ import { hexEncode } from "../../utils/utils"
  * @param {object} value  the KMIP object
  * @returns {TTLV} a TTLV.
  */
-export function toTTLV(value: Object): TTLV {
+export function toTTLV(value: KmipStruct): TTLV {
   // there is no metadata available for the top level object
   // so we use the class name as name.
   // The top level object is always a structure
   return _toTTLV(value, {
-    name: value.constructor.name,
-    type: TtlvType.Structure
+    name: value.tag,
+    type: TtlvType.Structure,
   })
 }
 
@@ -35,8 +36,8 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
       `Serializer: unknown type ${typeof value} for value: ${JSON.stringify(
         value,
         null,
-        2
-      )}`
+        2,
+      )}`,
     )
   }
 
@@ -44,7 +45,7 @@ function _toTTLV(value: Object, metadata: PropertyMetadata): TTLV {
     return metadata.toTtlv(value)
   }
 
-  if (value.constructor.name === "Array") {
+  if (Array.isArray(value)) {
     return processArray(value, metadata)
   }
 
@@ -63,7 +64,7 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   // same metadata for all children of the array which are all of the same type
   // but make it a structure
   const childMetadata = Object.assign({}, metadata, {
-    type: TtlvType.Structure
+    type: TtlvType.Structure,
   })
   for (const child of array) {
     children.push(_toTTLV(child, childMetadata))
@@ -72,7 +73,7 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
     // there should always be meta data descriptions for arrays
     Reflect.get(metadata, "name") as string,
     TtlvType.Structure,
-    children
+    children,
   )
 }
 
@@ -111,6 +112,10 @@ function parseChildren(value: Object): TTLV[] {
 
   const children: TTLV[] = []
   for (const pn of Object.getOwnPropertyNames(value)) {
+    // Skip tag since it's a default property with the classname inside it we don't
+    // need to fetch it from the response.
+    if (pn === "tag") continue
+
     const propertyName = pn as keyof typeof value
 
     // skip processing a property which has an undefined value
@@ -123,13 +128,11 @@ function parseChildren(value: Object): TTLV[] {
     const childMetadata: PropertyMetadata = childrenMetadata[propertyName]
     if (typeof childMetadata === "undefined") {
       console.error(
-        "Serializer: child Metadata is not defined for " +
-          propertyName +
-          " in ",
-        childrenMetadata
+        `Serializer: child Metadata is not defined for ${propertyName} in `,
+        childrenMetadata,
       )
       throw new Error(
-        "Serializer: child Metadata is not defined for " + propertyName
+        `Serializer: child Metadata is not defined for ${propertyName}`,
       )
     }
     const childName = childMetadata.name
@@ -169,8 +172,8 @@ function parseChildren(value: Object): TTLV[] {
     } else if (childType === TtlvType.TextString) {
       // childValue = childValue
     } else {
-      console.error("Serializer: unknown TTLV type: " + childType)
-      throw new Error("Serializer: unknown TTLV type: " + childType)
+      console.error(`Serializer: unknown TTLV type: ${childType}`)
+      throw new Error(`Serializer: unknown TTLV type: ${childType}`)
     }
 
     children.push(new TTLV(childName, childType, childValue))

@@ -20,6 +20,8 @@ import { Attributes } from "../types/Attributes"
  * Identifier of the Private Key
  */
 export class CreateKeyPair implements KmipStruct {
+  tag = "CreateKeyPair"
+
   @metadata({
     name: "CommonAttributes",
     type: TtlvType.Structure,
@@ -134,7 +136,7 @@ export class CreateKeyPair implements KmipStruct {
     publicKeyAttributes?: Attributes,
     commonProtectionStorageMasks?: number,
     privateProtectionStorageMasks?: number,
-    publicProtectionStorageMasks?: number
+    publicProtectionStorageMasks?: number,
   ) {
     this._commonAttributes = commonAttributes
     this._privateKeyAttributes = privateKeyAttributes

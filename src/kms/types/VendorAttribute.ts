@@ -19,6 +19,8 @@ import { TtlvType } from "../serialize/TtlvType"
  * or deleted by the client.
  */
 export class VendorAttribute implements KmipStruct {
+  tag = "VendorAttribute"
+
   public static VENDOR_ID_COSMIAN = "cosmian"
 
   public static VENDOR_ATTR_ABE_ATTR = "abe_attributes"
@@ -66,7 +68,7 @@ export class VendorAttribute implements KmipStruct {
   constructor(
     vendorIdentification: string,
     attributeName: string,
-    attributeValue: Uint8Array
+    attributeValue: Uint8Array,
   ) {
     this._vendor_identification = vendorIdentification
     this._attribute_name = attributeName

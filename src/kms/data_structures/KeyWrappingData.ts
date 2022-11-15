@@ -36,6 +36,8 @@ import { WrappingMethod } from "../../kms/types/WrappingMethod"
  * MAC/Signature Key Information (or both) in the Key Wrapping Data structure SHALL be specified.
  */
 export class KeyWrappingData implements KmipStruct {
+  tag = "KeyWrappingData"
+
   @metadata({
     name: "WrappingMethod",
     type: TtlvType.Enumeration,
@@ -79,7 +81,7 @@ export class KeyWrappingData implements KmipStruct {
     macOrSignatureKeyInformation?: MacSignatureKeyInformation,
     macOrSignature?: Uint8Array,
     ivCounterNonce?: Uint8Array,
-    encodingOption?: EncodingOption
+    encodingOption?: EncodingOption,
   ) {
     this._wrappingMethod = wrappingMethod
     this._encryptionKeyInformation = encryptionKeyInformation
@@ -102,7 +104,7 @@ export class KeyWrappingData implements KmipStruct {
   }
 
   public set encryptionKeyInformation(
-    value: EncryptionKeyInformation | undefined
+    value: EncryptionKeyInformation | undefined,
   ) {
     this._encryptionKeyInformation = value
   }
@@ -114,7 +116,7 @@ export class KeyWrappingData implements KmipStruct {
   }
 
   public set macOrSignatureKeyInformation(
-    value: MacSignatureKeyInformation | undefined
+    value: MacSignatureKeyInformation | undefined,
   ) {
     this._macOrSignatureKeyInformation = value
   }

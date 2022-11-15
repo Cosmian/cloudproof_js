@@ -3,6 +3,8 @@ import { KmipStruct } from "../json/KmipStruct"
 import { TtlvType } from "../serialize/TtlvType"
 
 export class EncryptResponse implements KmipStruct {
+  tag = "EncryptResponse"
+
   /// The Unique Identifier of the Managed
   /// Cryptographic Object that was the key
   /// used for the encryption operation.
@@ -58,7 +60,7 @@ export class EncryptResponse implements KmipStruct {
     data?: Uint8Array,
     ivCounterNonce?: Uint8Array,
     correlationValue?: Uint8Array,
-    authenticatedEncryptionAdditionalData?: Uint8Array
+    authenticatedEncryptionAdditionalData?: Uint8Array,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._data = data
@@ -107,7 +109,7 @@ export class EncryptResponse implements KmipStruct {
   }
 
   public set authenticated_encryption_additional_data(
-    value: Uint8Array | undefined
+    value: Uint8Array | undefined,
   ) {
     this._authenticatedEncryptionAdditionalData = value
   }

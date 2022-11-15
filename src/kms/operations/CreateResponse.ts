@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { ObjectType } from "../types/ObjectType"
 
 export class CreateResponse implements KmipStruct {
+  tag = "CreateResponse"
+
   @metadata({
     name: "ObjectType",
     type: TtlvType.Enumeration,

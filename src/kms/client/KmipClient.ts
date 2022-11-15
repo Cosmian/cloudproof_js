@@ -1,3 +1,4 @@
+import { KmipStruct } from "../../kms/json/KmipStruct"
 import { AccessPolicy } from "../../crypto/abe/interfaces/access_policy"
 import { Policy } from "../../crypto/abe/interfaces/policy"
 import { KeyBlock } from "../../kms/data_structures/KeyBlock"
@@ -63,14 +64,14 @@ export class KmipClient {
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
    *
-   * @param {object} payload a valid KMIP operation
+   * @param {KmipStruct} payload a valid KMIP operation
    * @param {Function} responseClass the class of the expected KMIP response
-   * @returns {object} an instance of the KMIP response
+   * @returns {T} an instance of the KMIP response
    */
-  public async post<P extends Object, R extends Object>(
-    payload: P,
-    responseClass: new (...args: any[]) => R
-  ): Promise<R> {
+  public async post<T extends Object>(
+    payload: KmipStruct,
+    responseClass: new (...args: any[]) => T,
+  ): Promise<T> {
     const ttlvRequest = toTTLV(payload)
     const options: RequestInit = {
       method: "POST",
@@ -129,20 +130,21 @@ export class KmipClient {
     uniqueIdentifier: string,
     attributes: Attributes,
     object: KmipObject,
-    replaceExisting?: boolean
+    // eslint-disable-next-line no-unused-vars
+    replaceExisting?: boolean,
   ): Promise<T> {
     if (attributes.objectType !== getObjectType(object)) {
       throw new Error(
         `Import: invalid object type ${
           attributes.objectType
-        } for object of type ${getObjectType(object)}`
+        } for object of type ${getObjectType(object)}`,
       )
     }
     const imp = new Import(
       uniqueIdentifier,
       attributes.objectType,
       attributes,
-      object
+      object,
     )
     const response = await this.post(imp, ImportResponse)
     return response.uniqueIdentifier as unknown as T
@@ -156,7 +158,7 @@ export class KmipClient {
    */
   public async revokeObject(
     uniqueIdentifier: string,
-    reason: string
+    reason: string,
   ): Promise<void> {
     const get = new Revoke(uniqueIdentifier, new RevocationReason(reason))
     await this.post(get, RevokeResponse)
@@ -183,7 +185,7 @@ export class KmipClient {
   public async createSymmetricKey(
     algorithm?: SymmetricKeyAlgorithm,
     bits?: number,
-    links?: Link[]
+    links?: Link[],
   ): Promise<string> {
     let algo = CryptographicAlgorithm.AES
     if (algorithm === SymmetricKeyAlgorithm.ChaCha20) {
@@ -201,8 +203,8 @@ export class KmipClient {
         undefined,
         undefined,
         undefined,
-        KeyFormatType.TransparentSymmetricKey
-      )
+        KeyFormatType.TransparentSymmetricKey,
+      ),
     )
     const response = await this.post(create, CreateResponse)
     return response.uniqueIdentifier
@@ -223,7 +225,7 @@ export class KmipClient {
     keyBytes: Uint8Array,
     replaceExisting?: boolean,
     algorithm?: SymmetricKeyAlgorithm,
-    links?: Link[]
+    links?: Link[],
   ): Promise<string> {
     let algo = CryptographicAlgorithm.AES
     if (algorithm === SymmetricKeyAlgorithm.ChaCha20) {
@@ -239,7 +241,7 @@ export class KmipClient {
       undefined,
       undefined,
       CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt,
-      KeyFormatType.TransparentSymmetricKey
+      KeyFormatType.TransparentSymmetricKey,
     )
     const symmetricKey = new SymmetricKey(
       new KeyBlock(
@@ -249,16 +251,16 @@ export class KmipClient {
           new PlainTextKeyValue(
             KeyFormatType.TransparentSymmetricKey,
             new TransparentSymmetricKey(keyBytes),
-            attributes
-          )
-        )
-      )
+            attributes,
+          ),
+        ),
+      ),
     )
     return await this.importObject(
       uniqueIdentifier,
       attributes,
       symmetricKey,
-      replaceExisting
+      replaceExisting,
     )
   }
 
@@ -271,7 +273,7 @@ export class KmipClient {
    * @returns {SymmetricKey} the KMIP symmetric Key
    */
   public async retrieveSymmetricKey(
-    uniqueIdentifier: string
+    uniqueIdentifier: string,
   ): Promise<SymmetricKey> {
     return await this.getObject(uniqueIdentifier)
   }
@@ -284,7 +286,7 @@ export class KmipClient {
    */
   public async revokeSymmetricKey(
     uniqueIdentifier: string,
-    reason: string
+    reason: string,
   ): Promise<void> {
     return await this.revokeObject(uniqueIdentifier, reason)
   }
@@ -307,7 +309,7 @@ export class KmipClient {
 
     const response = await this.post(
       new CreateKeyPair(commonAttributes),
-      CreateKeyPairResponse
+      CreateKeyPairResponse,
     )
     return [
       response.privateKeyUniqueIdentifier,
@@ -325,12 +327,12 @@ export class KmipClient {
    * @returns {PrivateKey} the KMIP symmetric Key
    */
   public async retrieveAbePrivateMasterKey(
-    uniqueIdentifier: string
+    uniqueIdentifier: string,
   ): Promise<PrivateKey> {
     const key: PrivateKey = await this.getObject(uniqueIdentifier)
     if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
       throw new Error(
-        `Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`
+        `Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`,
       )
     }
     return key
@@ -346,12 +348,12 @@ export class KmipClient {
    * @returns {PublicKey} the KMIP symmetric Key
    */
   public async retrieveAbePublicMasterKey(
-    uniqueIdentifier: string
+    uniqueIdentifier: string,
   ): Promise<PublicKey> {
     const key: PublicKey = await this.getObject(uniqueIdentifier)
     if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptPublicKey) {
       throw new Error(
-        `Not an ABE Public Master Key for identifier: ${uniqueIdentifier}`
+        `Not an ABE Public Master Key for identifier: ${uniqueIdentifier}`,
       )
     }
     return key
@@ -368,7 +370,7 @@ export class KmipClient {
   public async importAbePrivateMasterKey(
     uniqueIdentifier: string,
     key: PrivateKey,
-    replaceExisting?: boolean
+    replaceExisting?: boolean,
   ): Promise<string> {
     const attributes = key.keyBlock.key_value.plaintext?.attributes
     if (typeof attributes === "undefined") {
@@ -378,7 +380,7 @@ export class KmipClient {
       uniqueIdentifier,
       attributes,
       key,
-      replaceExisting
+      replaceExisting,
     )
   }
 
@@ -393,7 +395,7 @@ export class KmipClient {
   public async importAbePublicMasterKey(
     uniqueIdentifier: string,
     key: PublicKey,
-    replaceExisting?: boolean
+    replaceExisting?: boolean,
   ): Promise<string> {
     const attributes = key.keyBlock.key_value.plaintext?.attributes
     if (typeof attributes === "undefined") {
@@ -403,7 +405,7 @@ export class KmipClient {
       uniqueIdentifier,
       attributes,
       key,
-      replaceExisting
+      replaceExisting,
     )
   }
 
@@ -415,7 +417,7 @@ export class KmipClient {
    */
   public async revokeAbePrivateMasterKey(
     uniqueIdentifier: string,
-    reason: string
+    reason: string,
   ): Promise<void> {
     return await this.revokeObject(uniqueIdentifier, reason)
   }
@@ -428,7 +430,7 @@ export class KmipClient {
    */
   public async revokeAbePublicMasterKey(
     uniqueIdentifier: string,
-    reason: string
+    reason: string,
   ): Promise<void> {
     return await this.revokeObject(uniqueIdentifier, reason)
   }
@@ -443,7 +445,7 @@ export class KmipClient {
    */
   public async createAbeUserDecryptionKey(
     accessPolicy: AccessPolicy | string,
-    privateMasterKeyIdentifier: string
+    privateMasterKeyIdentifier: string,
   ): Promise<string> {
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
@@ -455,7 +457,7 @@ export class KmipClient {
         [
           new Link(
             LinkType.ParentLink,
-            new LinkedObjectIdentifier(privateMasterKeyIdentifier)
+            new LinkedObjectIdentifier(privateMasterKeyIdentifier),
           ),
         ],
         [accessPolicy.toVendorAttribute()],
@@ -465,8 +467,8 @@ export class KmipClient {
         undefined,
         undefined,
         CryptographicUsageMask.Decrypt,
-        KeyFormatType.CoverCryptSecretKey
-      )
+        KeyFormatType.CoverCryptSecretKey,
+      ),
     )
     const response = await this.post(create, CreateResponse)
     return response.uniqueIdentifier
@@ -482,12 +484,12 @@ export class KmipClient {
    * @returns {PrivateKey} the KMIP symmetric Key
    */
   public async retrieveAbeUserDecryptionKey(
-    uniqueIdentifier: string
+    uniqueIdentifier: string,
   ): Promise<PrivateKey> {
     const key: PrivateKey = await this.getObject(uniqueIdentifier)
     if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
       throw new Error(
-        `Not an ABE User Decryption Key for identifier: ${uniqueIdentifier}`
+        `Not an ABE User Decryption Key for identifier: ${uniqueIdentifier}`,
       )
     }
     return key
@@ -504,7 +506,7 @@ export class KmipClient {
   public async importAbeUserDecryptionKey(
     uniqueIdentifier: string,
     key: PrivateKey,
-    replaceExisting?: boolean
+    replaceExisting?: boolean,
   ): Promise<string> {
     const attributes = key.keyBlock.key_value.plaintext?.attributes
     if (typeof attributes === "undefined") {
@@ -514,7 +516,7 @@ export class KmipClient {
       uniqueIdentifier,
       attributes,
       key,
-      replaceExisting
+      replaceExisting,
     )
   }
 
@@ -526,7 +528,7 @@ export class KmipClient {
    */
   public async revokeAbeUserDecryptionKey(
     uniqueIdentifier: string,
-    reason: string
+    reason: string,
   ): Promise<void> {
     return await this.revokeObject(uniqueIdentifier, reason)
   }
@@ -549,7 +551,7 @@ export class KmipClient {
    */
   public async rotateAbeAttributes(
     privateMasterKeyUniqueIdentifier: string,
-    attributes: string[]
+    attributes: string[],
   ): Promise<string[]> {
     const rekeyKeyPair = new ReKeyKeyPair(
       privateMasterKeyUniqueIdentifier,
@@ -560,14 +562,14 @@ export class KmipClient {
         [
           new Link(
             LinkType.ParentLink,
-            new LinkedObjectIdentifier(privateMasterKeyUniqueIdentifier)
+            new LinkedObjectIdentifier(privateMasterKeyUniqueIdentifier),
           ),
         ],
         [
           new VendorAttribute(
             VendorAttribute.VENDOR_ID_COSMIAN,
             VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ATTR,
-            new TextEncoder().encode(JSON.stringify(attributes))
+            new TextEncoder().encode(JSON.stringify(attributes)),
           ),
         ],
         undefined,
@@ -576,8 +578,8 @@ export class KmipClient {
         undefined,
         undefined,
         undefined,
-        KeyFormatType.CoverCryptSecretKey
-      )
+        KeyFormatType.CoverCryptSecretKey,
+      ),
     )
     const response = await this.post(rekeyKeyPair, ReKeyKeyPairResponse)
     return [

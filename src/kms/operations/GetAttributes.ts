@@ -4,6 +4,8 @@ import { TtlvType } from "../serialize/TtlvType"
 import { AttributeReference } from "../types/AttributeReference"
 
 export class GetAttributes implements KmipStruct {
+  tag = "GetAttributes"
+
   /// Determines the object whose attributes
   /// are being requested. If omitted, then
   /// the ID Placeholder value is used by the
@@ -24,7 +26,7 @@ export class GetAttributes implements KmipStruct {
 
   constructor(
     uniqueIdentifier?: string,
-    attributeReferences?: AttributeReference[]
+    attributeReferences?: AttributeReference[],
   ) {
     this.unique_identifier = uniqueIdentifier
     this.attribute_references = attributeReferences

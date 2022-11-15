@@ -1,7 +1,7 @@
 import { fromTTLV } from "../../src/kms/deserialize/deserializer"
 import {
   KmipClient,
-  SymmetricKeyAlgorithm
+  SymmetricKeyAlgorithm,
 } from "../../src/kms/client/KmipClient"
 import { Create } from "../../src/kms/operations/Create"
 import { toTTLV } from "../../src/kms/serialize/serializer"
@@ -35,8 +35,8 @@ test("ser-de Create", () => {
       undefined,
       undefined,
       undefined,
-      KeyFormatType.TransparentSymmetricKey
-    )
+      KeyFormatType.TransparentSymmetricKey,
+    ),
   )
   // console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
 
@@ -57,7 +57,7 @@ test("de-serialize", () => {
   expect(create.objectType).toEqual(ObjectType.SymmetricKey)
   expect(create.protectionStorageMasks).toBeUndefined()
   expect(create.attributes.cryptographicAlgorithm).toEqual(
-    CryptographicAlgorithm.AES
+    CryptographicAlgorithm.AES,
   )
   expect(create.attributes.link).toBeDefined()
   // linter guard
@@ -66,7 +66,7 @@ test("de-serialize", () => {
     const link: Link = create.attributes.link[0]
     expect(link.linkType).toEqual(LinkType.ParentLink)
     expect(link.linkedObjectIdentifier).toEqual(
-      new LinkedObjectIdentifier("SK")
+      new LinkedObjectIdentifier("SK"),
     )
   }
 })
@@ -124,7 +124,7 @@ const CreateSymmetricKey = `{
 
 test("KMS Symmetric Key", async () => {
   const client: KmipClient = new KmipClient(
-    new URL("http://localhost:9998/kmip/2_1")
+    new URL("http://localhost:9998/kmip/2_1"),
   )
   if (!(await client.up())) {
     console.log("No KMIP server. Skipping test")
@@ -134,22 +134,22 @@ test("KMS Symmetric Key", async () => {
   // create
   const uniqueIdentifier = await client.createSymmetricKey(
     SymmetricKeyAlgorithm.AES,
-    256
+    256,
   )
   expect(typeof uniqueIdentifier).toEqual("string")
 
   // recover
   const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
   expect(key.keyBlock.cryptographic_algorithm).toEqual(
-    CryptographicAlgorithm.AES
+    CryptographicAlgorithm.AES,
   )
   expect(key.keyBlock.cryptographic_length).toEqual(256)
   expect(key.keyBlock.key_format_type).toEqual(
-    KeyFormatType.TransparentSymmetricKey
+    KeyFormatType.TransparentSymmetricKey,
   )
   expect(
     key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-      TransparentSymmetricKey
+      TransparentSymmetricKey,
   ).toBeTruthy()
   const sk = key.keyBlock.key_value.plaintext
     ?.keyMaterial as TransparentSymmetricKey
@@ -159,7 +159,7 @@ test("KMS Symmetric Key", async () => {
   const uid = await client.importSymmetricKey(
     uniqueIdentifier + "-1",
     key.bytes(),
-    false
+    false,
   )
   expect(uid).toEqual(uniqueIdentifier + "-1")
 
@@ -182,11 +182,11 @@ test("Policy", async () => {
       new PolicyAxis(
         "Security Level",
         ["Protected", "Confidential", "Top Secret"],
-        true
+        true,
       ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
+      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
     ],
-    20
+    20,
   )
   // JSON encoding test
   const json = JSON.parse(new TextDecoder().decode(policy.toJsonEncoded()))
@@ -195,14 +195,14 @@ test("Policy", async () => {
   expect(json.attribute_to_int["Department::FIN"]).toEqual([4])
   expect(json.axes["Security Level"]).toEqual([
     ["Protected", "Confidential", "Top Secret"],
-    true
+    true,
   ])
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
   expect(children[0].value).toEqual(VendorAttribute.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(
-    VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY
+    VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
   )
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
   // Vendor Attributes test
@@ -217,11 +217,11 @@ test("Long & Big Ints", async () => {
   const ttlvLong = new TTLV(
     "Long",
     TtlvType.LongInteger,
-    BigInt("9223372036854775806")
+    BigInt("9223372036854775806"),
   )
   const ttlvLongJson = JSON.stringify(ttlvLong)
   expect(ttlvLongJson).toEqual(
-    '{"tag":"Long","type":"LongInteger","value":"0x7FFFFFFFFFFFFFFE"}'
+    '{"tag":"Long","type":"LongInteger","value":"0x7FFFFFFFFFFFFFFE"}',
   )
   const ttlvLong_ = TTLV.fromJSON(ttlvLongJson)
   expect(JSON.stringify(ttlvLong_)).toEqual(ttlvLongJson)
@@ -229,11 +229,11 @@ test("Long & Big Ints", async () => {
   const ttlvBig = new TTLV(
     "Big",
     TtlvType.BigInteger,
-    BigInt("99999999999999999999999998888888888888888")
+    BigInt("99999999999999999999999998888888888888888"),
   )
   const ttlvBigJson = JSON.stringify(ttlvBig)
   expect(ttlvBigJson).toEqual(
-    '{"tag":"Big","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}'
+    '{"tag":"Big","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}',
   )
   const ttlvBig_ = TTLV.fromJSON(ttlvBigJson)
   expect(JSON.stringify(ttlvBig_)).toEqual(ttlvBigJson)
@@ -241,11 +241,11 @@ test("Long & Big Ints", async () => {
 
 test("KMS CoverCrypt Access Policy", async () => {
   const apb = new AccessPolicy(
-    "(Department::MKG || Department::FIN) && Security Level::Confidential"
+    "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
   const apj = apb.toKmipJson()
   expect(apj).toEqual(
-    '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}'
+    '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
   )
   const apb_ = AccessPolicy.fromKmipJson(apj)
   expect(apb_).toEqual(apb)
@@ -261,7 +261,7 @@ test("KMS CoverCrypt keys", async () => {
     await CoverCrypt()
 
   const client: KmipClient = new KmipClient(
-    new URL("http://localhost:9998/kmip/2_1")
+    new URL("http://localhost:9998/kmip/2_1"),
   )
   if (!(await client.up())) {
     console.log("No KMIP server. Skipping test")
@@ -272,9 +272,9 @@ test("KMS CoverCrypt keys", async () => {
     new PolicyAxis(
       "Security Level",
       ["Protected", "Confidential", "Top Secret"],
-      true
+      true,
     ),
-    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)
+    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
   ])
 
   // create master keys
@@ -298,15 +298,13 @@ test("KMS CoverCrypt keys", async () => {
   expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
   // encryption
-  console.log("...encryption")
   const plaintext = new TextEncoder().encode("abcdefgh")
   const encrypter = new CoverCryptHybridEncryption(policy, mpk)
   const ciphertext = encrypter.encrypt(
     "Department::FIN && Security Level::Confidential",
-    plaintext
+    plaintext,
   )
   // decryption
-  console.log("...decryption")
   const decrypter = new CoverCryptHybridDecryption(udk)
   const plaintext_ = decrypter.decrypt(ciphertext)
   expect(plaintext_).toEqual(plaintext)
@@ -314,7 +312,7 @@ test("KMS CoverCrypt keys", async () => {
   // rotate
   const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, [
     "Department::FIN",
-    "Department::MKG"
+    "Department::MKG",
   ])
   expect(mskID_).toEqual(mskID)
   expect(mpkID_).toEqual(mpkID)
@@ -323,15 +321,13 @@ test("KMS CoverCrypt keys", async () => {
   const policy2 = Policy.fromKey(mpk2)
 
   // encryption
-  console.log("...encryption")
   const plaintext2 = new TextEncoder().encode("abcdefgh")
   const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
   const ciphertext2 = encrypter2.encrypt(
     "Department::FIN && Security Level::Confidential",
-    plaintext2
+    plaintext2,
   )
   // decryption
-  console.log("...decryption rotated old")
   try {
     const decrypter2 = new CoverCryptHybridDecryption(udk)
     decrypter2.decrypt(ciphertext2)
@@ -341,7 +337,6 @@ test("KMS CoverCrypt keys", async () => {
   }
   // retrieve refreshed udk
   const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
-  console.log("...decryption rotated 2")
   const decrypter2 = new CoverCryptHybridDecryption(udk2)
   const plaintext2_ = decrypter2.decrypt(ciphertext2)
   expect(plaintext2_).toEqual(plaintext)

@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [5.0.1] - 2022-11-15
+
+### Added
+
+### Changed
+
+- add KMS E2E tests
+- improve E2E tests for random failures
+
+### Fixed
+
+- fix KMS client using class names for KMIP tags which interfere with bundlers renaming classes with short names
+
+---
+
 ## [5.0.0] - 2022-11-08
 
 ### Added

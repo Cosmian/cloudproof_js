@@ -7,6 +7,8 @@ import { KeyFormatType } from "../types/KeyFormatType"
 import { KeyWrapType } from "../types/KeyWrapType"
 
 export class Get implements KmipStruct {
+  tag = "Get"
+
   /// Determines the object being requested. If omitted, then the ID
   /// Placeholder value is used by the server as the Unique Identifier.
   @metadata({
@@ -51,7 +53,7 @@ export class Get implements KmipStruct {
     keyFormatType?: KeyFormatType,
     keyWrapType?: KeyWrapType,
     keyCompressionType?: KeyCompressionType,
-    keyWrappingData?: KeyWrappingData
+    keyWrappingData?: KeyWrappingData,
   ) {
     this._uniqueIdentifier = uniqueIdentifier
     this._key_format_type = keyFormatType

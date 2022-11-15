@@ -38,7 +38,7 @@ export class AccessPolicy {
     return new VendorAttribute(
       VendorAttribute.VENDOR_ID_COSMIAN,
       VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY,
-      new TextEncoder().encode(this.toKmipJson())
+      new TextEncoder().encode(this.toKmipJson()),
     )
   }
 
@@ -61,7 +61,7 @@ export class AccessPolicy {
   public static fromAttributes(attributes: Attributes): AccessPolicy {
     const attrs = attributes.vendorAttributes
     if (typeof attrs === "undefined" || attrs.length === 0) {
-      throw new Error(`No access policy available in the vendor attributes`)
+      throw new Error("No access policy available in the vendor attributes")
     }
     for (const att of attrs) {
       if (
@@ -70,11 +70,11 @@ export class AccessPolicy {
         att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_ACCESS_POLICY
       ) {
         return AccessPolicy.fromKmipJson(
-          new TextDecoder().decode(att.attribute_value)
+          new TextDecoder().decode(att.attribute_value),
         )
       }
     }
-    throw new Error(`No access policy available in the vendor attributes`)
+    throw new Error("No access policy available in the vendor attributes")
   }
 
   /**
@@ -87,10 +87,10 @@ export class AccessPolicy {
   public static fromKey(key: PrivateKey): AccessPolicy {
     const pt = key.keyBlock.key_value.plaintext
     if (typeof pt === "undefined") {
-      throw new Error(`No access policy can be extracted from that key`)
+      throw new Error("No access policy can be extracted from that key")
     }
     if (typeof pt.attributes === "undefined") {
-      throw new Error(`No access policy can be extracted from that key`)
+      throw new Error("No access policy can be extracted from that key")
     }
     return this.fromAttributes(pt.attributes)
   }
@@ -121,13 +121,13 @@ function toBooleanExpression_(obj: Object, depth: number): string {
   if (op.toLowerCase() === "and") {
     return `${leftBracket}${toBooleanExpression_(
       next[0],
-      depth + 1
+      depth + 1,
     )} && ${toBooleanExpression_(next[1], depth + 1)}${rightBracket}`
   }
   if (op.toLowerCase() === "or") {
     return `${leftBracket}${toBooleanExpression_(
       next[0],
-      depth + 1
+      depth + 1,
     )} || ${toBooleanExpression_(next[1], depth + 1)}${rightBracket}`
   }
   return next

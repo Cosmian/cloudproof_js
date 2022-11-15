@@ -60,7 +60,7 @@ export default defineComponent({
       encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[],
 
       coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
-      masterKeysCoverCrypt: null as CoverCryptMasterKey | null,
+      masterKeys: null as CoverCryptMasterKey | null,
       aliceKey: null as Uint8Array | null,
       bobKey: null as Uint8Array | null,
       charlieKey: null as Uint8Array | null,
@@ -95,12 +95,9 @@ export default defineComponent({
       );
       const policyBytes = policy.toJsonEncoded()
 
-      const keygen = new CoverCryptKeyGeneration()
 
       let masterPublicKey;
       if (this.kmsServerUrl) {
-        console.log('Using KMS server');
-
         const client = new KmipClient(new URL(this.kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
         masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
@@ -125,22 +122,23 @@ export default defineComponent({
         )
         this.charlieKey = (await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes();
       } else {
-        let masterKeysCoverCrypt = keygen.generateMasterKeys(policy)
-        masterPublicKey = masterKeysCoverCrypt.publicKey;
+        const keygen = new CoverCryptKeyGeneration()
+        let masterKeys = keygen.generateMasterKeys(policy)
+        masterPublicKey = masterKeys.publicKey;
 
         this.aliceKey = keygen.generateUserSecretKey(
-          masterKeysCoverCrypt.secretKey,
+          masterKeys.secretKey,
           "country::France && department::Marketing",
           policy
         )
         this.bobKey = keygen.generateUserSecretKey(
-          masterKeysCoverCrypt.secretKey,
+          masterKeys.secretKey,
           // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
           "country::Spain && department::HR",
           policy
         )
         this.charlieKey = keygen.generateUserSecretKey(
-          masterKeysCoverCrypt.secretKey,
+          masterKeys.secretKey,
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           policy
@@ -442,12 +440,14 @@ export default defineComponent({
       <summary id="options">Options…</summary>
 
       <div class="mt-3">
-        <label for="kmsServer" class="form-label">KMS Server URL</label>
+        <label for="kmsServerUrl" class="form-label">KMS Server URL</label>
         <div class="input-group mb-3">
-          <input type="text" class="form-control" id="kmsServer" v-model="kmsServerUrl"
+          <input type="text" class="form-control" id="kmsServerUrl" v-model="kmsServerUrl"
             placeholder="http://localhost:9998/kmip/2_1">
           <button class="btn btn-outline-secondary" type="button"
-            @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Default</button>
+            @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Localhost</button>
+          <button class="btn btn-outline-secondary" type="button"
+            @click="kmsServerUrl = 'http://demo-cloudproof.cosmian.com:9998/kmip/2_1'">Démo</button>
         </div>
       </div>
 
