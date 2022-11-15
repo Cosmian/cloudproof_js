@@ -64,7 +64,7 @@ async function runTest(
     await page.goto(host)
   }
 
-  await page.waitForSelector("#table_cleartext_users", { timeout: 50000 })
+  await page.waitForSelector("#table_cleartext_users", { timeout: 20 * 1000 })
   await assertCountSelector(
     page,
     "#table_cleartext_users tbody tr:not(#new_user_row)",
@@ -79,7 +79,7 @@ async function runTest(
     }
 
     if (withKms) {
-      await page.type("#kmsServerUrl", `${kmsHost}/kmip/2_1`, { delay: 30 })
+      await page.type("#kmsServerUrl", `${kmsHost}/kmip/2_1`, { delay: 50 })
     }
   }
 
@@ -96,7 +96,7 @@ async function runTest(
   )
 
   await page.click("#encrypt_user")
-  await page.waitForSelector("#table_encrypted_users", { timeout: 500 })
+  await page.waitForSelector("#table_encrypted_users", { timeout: 2000 })
   await assertCountSelector(
     page,
     "#table_encrypted_users tbody tr",
@@ -104,7 +104,7 @@ async function runTest(
   )
 
   await page.click("#index")
-  await page.waitForSelector("#search", { timeout: 500 })
+  await page.waitForSelector("#search", { timeout: 2000 })
 
   const GREEN_CELLS = {
     aliceKey: 12,
@@ -240,7 +240,7 @@ async function runTest(
     )
 
     await page.type("#search input[type=text]", expectedResult.query, {
-      delay: 30,
+      delay: 50,
     })
     await assertCountSelector(
       page,
@@ -283,7 +283,7 @@ async function runTest(
     previousDoOr = expectedResult.doOr
 
     await page.type("#search input[type=text]", expectedResult.query, {
-      delay: 30,
+      delay: 50,
     })
     await assertCountSelector(
       page,
