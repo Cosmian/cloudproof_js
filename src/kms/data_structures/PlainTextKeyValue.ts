@@ -11,6 +11,7 @@ import { TransparentDHPublicKey } from "./TransparentDHPublicKey"
 import { TransparentECPrivateKey } from "./TransparentECPrivateKey"
 import { TransparentECPublicKey } from "./TransparentECPublicKey"
 import { TransparentSymmetricKey } from "./TransparentSymmetricKey"
+
 type KeyMaterial =
   | Uint8Array
   | TransparentDHPrivateKey
