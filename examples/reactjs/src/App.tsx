@@ -2,7 +2,7 @@ import { Policy, PolicyAxis, Findex, FindexKey, type UidsAndValues, CoverCryptHy
 import { FormEvent, useEffect, useState } from 'react';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Manager'] as Array<'Marketing' | 'HR' | 'Manager'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
 type User = { id: number } & NewUser;
@@ -39,7 +39,7 @@ const CLASSES = {
 
   'Marketing': 'text-bg-primary opacity-50',
   'HR': 'text-bg-primary opacity-75',
-  'Security': 'text-bg-primary',
+  'Manager': 'text-bg-primary',
 };
 
 const DEFAULT_USER: NewUser = {
@@ -75,7 +75,7 @@ function App() {
   const [encrypting, setEncrypting] = useState(false);
   const [showEncryptedData, setShowEncryptedData] = useState(true);
   const [coverCryptHybridEncryption, setCoverCryptHybridEncryption] = useState(null as null | CoverCryptHybridEncryption);
-  const [encryptedUsers, setEncryptedUsers] = useState([] as { id: number, marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[]);
+  const [encryptedUsers, setEncryptedUsers] = useState([] as { id: number, marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[]);
 
   const [aliceKey, setAliceKey] = useState(null as Uint8Array | null);
   const [bobKey, setBobKey] = useState(null as Uint8Array | null);
@@ -181,10 +181,10 @@ function App() {
       })),
     )
 
-    // Encrypt the user security level for the security
+    // Encrypt the user manager level for the manager
     // team of the corresponding country
-    const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
-      `department::Security && country::${user.country}`,
+    const encryptedForManager = coverCryptHybridEncryption.encrypt(
+      `department::Manager && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
         project: user.project,
       })),
@@ -194,7 +194,7 @@ function App() {
       id: user.id,
       marketing: encryptedForMarketing,
       hr: encryptedForHr,
-      security: encryptedForSecurity,
+      manager: encryptedForManager,
     }
 
     logRequest({
@@ -445,7 +445,7 @@ function App() {
       } catch (e) {
       }
       try {
-        decryptedUser = { ...decryptedUser, ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.security))) };
+        decryptedUser = { ...decryptedUser, ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
       } catch (e) {
       }
 
@@ -574,7 +574,7 @@ function App() {
                       </th>
                       <th className="ps-2">
                         <span className="me-1">
-                          {Key("Security")}
+                          {Key("Manager")}
                         </span>
                       </th>
                     </tr>
@@ -678,7 +678,7 @@ function App() {
                           <tr>
                             <th scope="col">{Key('Marketing')}</th>
                             <th scope="col">{Key('HR')}</th>
-                            <th scope="col">{Key('Security')}</th>
+                            <th scope="col">{Key('Manager')}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -687,7 +687,7 @@ function App() {
                               <tr key={`encrypted_${index}`}>
                                 <td>{decode(user.marketing).substring(0, 30)}…</td>
                                 <td>{decode(user.hr).substring(0, 30)}…</td>
-                                <td>{decode(user.security).substring(0, 30)}…</td>
+                                <td>{decode(user.manager).substring(0, 30)}…</td>
                               </tr>
                             ))
                           }

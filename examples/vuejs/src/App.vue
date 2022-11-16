@@ -4,7 +4,7 @@ import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Manager'] as Array<'Marketing' | 'HR' | 'Manager'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
 type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
@@ -62,7 +62,7 @@ export default defineComponent({
 
       encrypting: false,
       showEncryptedData: true,
-      encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[],
+      encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[],
 
       coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
       masterKeys: null as CoverCryptMasterKey | null,
@@ -174,10 +174,10 @@ export default defineComponent({
         })),
       )
 
-      // Encrypt the user security level for the security
+      // Encrypt the user manager level for the manager
       // team of the corresponding country
-      const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
-        `department::Security && country::${user.country}`,
+      const encryptedForManager = coverCryptHybridEncryption.encrypt(
+        `department::Manager && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
           project: user.project,
         })),
@@ -186,7 +186,7 @@ export default defineComponent({
       let data = {
         marketing: encryptedForMarketing,
         hr: encryptedForHr,
-        security: encryptedForSecurity,
+        manager: encryptedForManager,
       }
 
       this.logRequest({
@@ -369,7 +369,7 @@ export default defineComponent({
           decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.security))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
         } catch (e) { }
 
         results.push(decryptedUser);
@@ -540,7 +540,7 @@ export default defineComponent({
                     <Key name="HR" class="me-1" />
                   </th>
                   <th class="ps-2">
-                    <Key name="Security" class="me-1" />
+                    <Key name="Manager" class="me-1" />
                   </th>
                 </tr>
                 <tr>
@@ -667,14 +667,14 @@ export default defineComponent({
                   <tr>
                     <th scope="col">Marketing</th>
                     <th scope="col">HR</th>
-                    <th scope="col">Security</th>
+                    <th scope="col">Manager</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="user in encryptedUsers">
                     <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
                     <td>{{ decode(user.hr).substring(0, 30) }}…</td>
-                    <td>{{ decode(user.security).substring(0, 30) }}…</td>
+                    <td>{{ decode(user.manager).substring(0, 30) }}…</td>
                   </tr>
                 </tbody>
               </table>
