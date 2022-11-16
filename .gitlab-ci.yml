@@ -128,3 +128,5 @@ check_deploy:
       - error.png
     when: on_failure
     expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/
