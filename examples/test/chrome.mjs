@@ -90,7 +90,7 @@ async function runTest(
       last: "Doe",
       country: "France",
       email: "john@example.org",
-      securityNumber: "42",
+      project: "example",
     },
     10,
   )
@@ -117,84 +117,84 @@ async function runTest(
       {
         key: "aliceKey",
         doOr: false,
-        query: "Malika",
+        query: "Margaret",
         lines: 1,
         notDecryptedCount: 2,
       },
       {
         key: "bobKey",
         doOr: false,
-        query: "Malika",
+        query: "Margaret",
         lines: 1,
         notDecryptedCount: 5,
       },
       {
         key: "charlieKey",
         doOr: false,
-        query: "Malika",
+        query: "Margaret",
         lines: 1,
         notDecryptedCount: 1,
       },
       {
         key: "aliceKey",
         doOr: false,
-        query: "Thibaud",
+        query: "Simone",
         lines: 2,
         notDecryptedCount: 7,
       },
       {
         key: "bobKey",
         doOr: false,
-        query: "Thibaud",
+        query: "Simone",
         lines: 2,
         notDecryptedCount: 10,
       },
       {
         key: "charlieKey",
         doOr: false,
-        query: "Thibaud",
+        query: "Simone",
         lines: 2,
         notDecryptedCount: 6,
       },
       {
         key: "aliceKey",
         doOr: false,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 1,
         notDecryptedCount: 2,
       },
       {
         key: "bobKey",
         doOr: false,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 1,
         notDecryptedCount: 5,
       },
       {
         key: "charlieKey",
         doOr: false,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 1,
         notDecryptedCount: 1,
       },
       {
         key: "aliceKey",
         doOr: true,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 5,
         notDecryptedCount: 13,
       },
       {
         key: "bobKey",
         doOr: true,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 5,
         notDecryptedCount: 25,
       },
       {
         key: "charlieKey",
         doOr: true,
-        query: "Thibaud France",
+        query: "Simone France",
         lines: 5,
         notDecryptedCount: 9,
       },
@@ -212,7 +212,14 @@ async function runTest(
     expectedResults.push({
       key: "aliceKey",
       doOr: false,
-      query: "Mal",
+      query: "Mar",
+      lines: 2,
+      notDecryptedCount: 7,
+    })
+    expectedResults.push({
+      key: "aliceKey",
+      doOr: false,
+      query: "Margar",
       lines: 1,
       notDecryptedCount: 2,
     })
@@ -257,7 +264,7 @@ async function runTest(
       last: "Doe",
       country: "Germany",
       email: "jane@example.org",
-      securityNumber: "42",
+      project: "example",
     },
     11,
   )
@@ -347,8 +354,8 @@ async function addNewUser(page, newUser, newCount) {
   await page.select("#new_user_row select#new_user_country", newUser.country)
   await page.type("#new_user_row input#new_user_email", newUser.email)
   await page.type(
-    "#new_user_row input#new_user_security_number",
-    newUser.securityNumber,
+    "#new_user_row input#new_user_project",
+    newUser.project,
   )
   await page.click("#new_user_row button")
 

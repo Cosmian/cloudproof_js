@@ -2,21 +2,23 @@ import { Policy, PolicyAxis, Findex, FindexKey, type UidsAndValues, CoverCryptHy
 import { FormEvent, useEffect, useState } from 'react';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Manager'] as Array<'Marketing' | 'HR' | 'Manager'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
-type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
 type User = { id: number } & NewUser;
 
+type Request = { method: string, url: string, body?: object, response?: object };
+
 let names = [
-  { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-  { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
-  { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
-  { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
-  { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
-  { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
-  { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-  { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
-  { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
+  { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', project: "women" },
+  { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', project: "ecology" },
+  { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', project: "science" },
+  { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', project: "women" },
+  { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', project: "sport" },
+  { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', project: "civil rights" },
+  { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', project: "science" },
+  { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', project: "science" },
+  { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', project: "women" },
 ];
 let users: Array<User> = [];
 let id = 0;
@@ -37,7 +39,7 @@ const CLASSES = {
 
   'Marketing': 'text-bg-primary opacity-50',
   'HR': 'text-bg-primary opacity-75',
-  'Security': 'text-bg-primary',
+  'Manager': 'text-bg-primary',
 };
 
 const DEFAULT_USER: NewUser = {
@@ -45,7 +47,7 @@ const DEFAULT_USER: NewUser = {
   last: '',
   country: 'France',
   email: '',
-  securityNumber: 0,
+  project: '',
 }
 
 function Key(name: keyof typeof CLASSES) {
@@ -62,6 +64,8 @@ function Key(name: keyof typeof CLASSES) {
 }
 
 function App() {
+  const [requests, setRequests] = useState([] as Request[]);
+
   const [kmsServerUrl, setKmsServerUrl] = useState('');
   const [usingGraphs, setUsingGraphs] = useState(false);
 
@@ -69,8 +73,9 @@ function App() {
   const [newUser, setNewUser] = useState(DEFAULT_USER);
 
   const [encrypting, setEncrypting] = useState(false);
+  const [showEncryptedData, setShowEncryptedData] = useState(true);
   const [coverCryptHybridEncryption, setCoverCryptHybridEncryption] = useState(null as null | CoverCryptHybridEncryption);
-  const [encryptedUsers, setEncryptedUsers] = useState([] as { id: number, marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[]);
+  const [encryptedUsers, setEncryptedUsers] = useState([] as { id: number, marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[]);
 
   const [aliceKey, setAliceKey] = useState(null as Uint8Array | null);
   const [bobKey, setBobKey] = useState(null as Uint8Array | null);
@@ -87,7 +92,7 @@ function App() {
   const [doOr, setDoOr] = useState(false);
   const [query, setQuery] = useState('');
 
-  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>);
+  const [searchResults, setSearchResults] = useState([] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>);
 
   const generateCoverCryptHybridEncryption = async (): Promise<CoverCryptHybridEncryption> => {
     const { CoverCryptKeyGeneration, CoverCryptHybridEncryption } = await CoverCrypt();
@@ -176,21 +181,28 @@ function App() {
       })),
     )
 
-    // Encrypt the user security level for the security
+    // Encrypt the user manager level for the manager
     // team of the corresponding country
-    const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
-      `department::Security && country::${user.country}`,
+    const encryptedForManager = coverCryptHybridEncryption.encrypt(
+      `department::Manager && country::${user.country}`,
       new TextEncoder().encode(JSON.stringify({
-        securityNumber: user.securityNumber,
+        project: user.project,
       })),
     )
 
-    setEncryptedUsers((users) => [...users, {
+    let data = {
       id: user.id,
       marketing: encryptedForMarketing,
       hr: encryptedForHr,
-      security: encryptedForSecurity,
-    }])
+      manager: encryptedForManager,
+    }
+
+    logRequest({
+      method: 'POST',
+      url: '/users',
+      body: data,
+    })
+    setEncryptedUsers((users) => [...users, data])
   }
 
   const encrypt = async () => {
@@ -217,7 +229,7 @@ function App() {
             Keyword.fromUtf8String(user.last),
             Keyword.fromUtf8String(user.country),
             Keyword.fromUtf8String(user.email),
-            Keyword.fromUtf8String(user.securityNumber.toString()),
+            Keyword.fromUtf8String(user.project.toString()),
           ]),
         };
       }),
@@ -261,6 +273,13 @@ function App() {
         }
       }
     }
+
+    logRequest({
+      method: 'GET',
+      url: `/index_${table}`,
+      body: { uids },
+      response: results,
+    })
     return results
   };
 
@@ -276,6 +295,11 @@ function App() {
         }
       }
 
+      logRequest({
+        method: 'POST',
+        url: `/index_${table}`,
+        body: { uid: newUid, value: newValue },
+      })
       if (table === "entries") {
         setIndexesEntries((entries) => [...entries, { uid: newUid, value: newValue }])
       } else {
@@ -325,9 +349,9 @@ function App() {
     }
 
     let unavailableAttributes = {
-      'aliceKey': ['email', 'securityNumber'],
-      'bobKey': ['securityNumber'],
-      'charlieKey': ['securityNumber'],
+      'aliceKey': ['email', 'project'],
+      'bobKey': ['project'],
+      'charlieKey': ['project'],
     }[selectedKey];
 
     if (unavailableAttributes.includes(attribute)) {
@@ -401,7 +425,14 @@ function App() {
 
     let results = [];
     for (const indexedValue of indexedValues) {
-      let encryptedUser = encryptedUsers.find((encryptedUser) => encryptedUser.id === indexedValue.bytes[1]);
+      let userId = indexedValue.bytes[1];
+      let encryptedUser = encryptedUsers.find((encryptedUser) => encryptedUser.id === userId);
+      logRequest({
+        method: 'GET',
+        url: `/users/${userId}`,
+        response: encryptedUser,
+      })
+
       if (!encryptedUser) throw new Error("Cannot remove encrypted users so every indexed ids should be present in the encrypted database");
       let decryptedUser = {};
 
@@ -414,7 +445,7 @@ function App() {
       } catch (e) {
       }
       try {
-        decryptedUser = { ...decryptedUser, ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.security))) };
+        decryptedUser = { ...decryptedUser, ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
       } catch (e) {
       }
 
@@ -428,8 +459,22 @@ function App() {
     doSearch().catch(console.error);
   }, [selectedKey, doOr, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const logRequest = (request: Request) => {
+    setRequests((requests) => [...requests.slice(-19), request])
+  };
+
   const decode = (value: Uint8Array): string => {
     return new TextDecoder().decode(value);
+  };
+
+  const stringify = (value: object): string => {
+    return JSON.stringify(value, (key, value) => {
+      if (value instanceof Uint8Array) {
+        return decode(value).substring(0, 15)
+      } else {
+        return value
+      }
+    }, 2);
   };
 
   const uint8ArrayEquals = (a: Uint8Array, b: Uint8Array): boolean => {
@@ -452,7 +497,7 @@ function App() {
     if (value) {
       return (<td>{value}</td>);
     } else {
-      return (<td><span className="badge text-bg-danger">Impossible to decrypt</span></td>)
+      return (<td><span className="badge text-bg-dark">Impossible to decrypt</span></td>)
     }
   }
 
@@ -461,300 +506,388 @@ function App() {
       <nav className="navbar navbar-expand-lg bg-light">
         <div className="container-fluid">
           <a className="navbar-brand" href="/">
-            <img src="/logo.png" alt="" style={{ height: '30px' }} />
-            <span className="fw-bold ms-4">Clouproof Demo</span>
+            <img src="/logo.svg" alt="" style={{ height: '50px' }} />
+            <span className="fw-bold ms-4">Clouproof JS Demo</span>
           </a>
         </div>
       </nav>
-      <main className="container">
-        <details className="mt-3 mb-3">
-          <summary id="options">Options…</summary>
+      <main>
+        <div className="container">
+          <details className="mt-3 mb-3">
+            <summary id="options">Options…</summary>
 
-          <div className="mt-3">
-            <label htmlFor="kmsServerUrl" className="form-label">KMS Server URL</label>
-            <div className="input-group mb-3">
-              <input type="text" className="form-control" id="kmsServerUrl" value={kmsServerUrl} onChange={(e) => setKmsServerUrl(e.target.value)}
-                placeholder="http://localhost:9998/kmip/2_1" />
-              <button className="btn btn-outline-secondary" type="button"
-                onClick={() => setKmsServerUrl('http://localhost:9998/kmip/2_1')}>Localhost</button>
-              <button className="btn btn-outline-secondary" type="button"
-                onClick={() => setKmsServerUrl('http://demo-cloudproof.cosmian.com:9998/kmip/2_1')}>Démo</button>
+            <div className="mt-3">
+              <label htmlFor="kmsServerUrl" className="form-label">KMS Server URL</label>
+              <div className="input-group mb-3">
+                <input type="text" className="form-control" id="kmsServerUrl" value={kmsServerUrl} onChange={(e) => setKmsServerUrl(e.target.value)}
+                  placeholder="http://localhost:9998/kmip/2_1" />
+                <button className="btn btn-outline-secondary" type="button"
+                  onClick={() => setKmsServerUrl('http://localhost:9998/kmip/2_1')}>Localhost</button>
+                <button className="btn btn-outline-secondary" type="button"
+                  onClick={() => setKmsServerUrl('https://demo-cloudproof.cosmian.com/kms/kmip/2_1')}>Demo</button>
+              </div>
             </div>
+
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" onChange={(e) => setUsingGraphs(e.target.checked)} checked={usingGraphs} id="usingGraphs" />
+              <label className="form-check-label" htmlFor="usingGraphs">
+                Generate graphs during indexing
+              </label>
+            </div>
+
+            <hr />
+          </details>
+
+          <div className="fs-5 mb-4">
+            <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
+
+            <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
+
+            <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
+              under
+              NDA.</p>
+
+            <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
           </div>
-
-          <div className="form-check">
-            <input className="form-check-input" type="checkbox" onChange={(e) => setUsingGraphs(e.target.checked)} checked={usingGraphs} id="usingGraphs" />
-            <label className="form-check-label" htmlFor="usingGraphs">
-              Generate graphs during indexing
-            </label>
-          </div>
-
-          <hr />
-        </details>
-
-        <div className="fs-5 mb-5">
-          <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
-
-          <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
-
-          <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
-            under
-            NDA.</p>
-
-          <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
         </div>
 
-        <div className="card mb-5">
-          <img src="/database.png" className="card-img-top" alt="..." />
-          <div className="card-body">
-            <h5 className="card-title">Cleartext Database</h5>
-            <table className="table" id="table_cleartext_users">
-              <thead>
-                <tr>
-                  <th colSpan={4} className="text-center">
-                    <span className="me-1">
-                      {Key("Marketing")}
-                    </span>
-                  </th>
-                  <th colSpan={2} className="ps-2">
-                    <span className="me-1">
-                      {Key("HR")}
-                    </span>
-                  </th>
-                  <th className="ps-2">
-                    <span className="me-1">
-                      {Key("Security")}
-                    </span>
-                  </th>
-                </tr>
-                <tr>
-                  <th scope="col">Firstname</th>
-                  <th scope="col">Lastname</th>
-                  <th scope="col">Country</th>
-                  <th scope="col"></th>
-
-                  <th scope="col">Email</th>
-                  <th scope="col"></th>
-
-                  <th scope="col">Security Number</th>
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  users.map((user, index) => (
-                    <tr key={`cleartext_${index}`}>
-                      <td className={canAccessUserClassnames(user, 'first')}>{user.first}</td>
-                      <td className={canAccessUserClassnames(user, 'last')}>{user.last}</td>
-                      <td className={canAccessUserClassnames(user, 'country')}>{Key(user.country)}</td>
-                      <td className="border-start pe-3"></td>
-                      <td className={canAccessUserClassnames(user, 'email')}>{user.email}</td>
-                      <td className="border-start pe-3"></td>
-                      <td className={canAccessUserClassnames(user, 'securityNumber')}>{user.securityNumber}</td>
+        <div className="card mx-5 mb-4">
+          <div className="row g-0">
+            <div className="col-md-4 d-flex flex-column justify-content-center align-items-center">
+              <h5 className="card-title">Cleartext Database</h5>
+              <img src="/database.png" className="card-img-top" alt="..." />
+            </div>
+            <div className="col-md-8">
+              <div className="card-body">
+                <table className="table table-sm" id="table_cleartext_users">
+                  <thead>
+                    <tr>
+                      <th colSpan={4} className="text-center">
+                        <span className="me-1">
+                          {Key("Marketing")}
+                        </span>
+                      </th>
+                      <th colSpan={2} className="ps-2">
+                        <span className="me-1">
+                          {Key("HR")}
+                        </span>
+                      </th>
+                      <th className="ps-2">
+                        <span className="me-1">
+                          {Key("Manager")}
+                        </span>
+                      </th>
                     </tr>
-                  ))
-                }
-                <tr id="new_user_row">
-                  <td>
-                    <input form="newUser" id="new_user_first" type="text" placeholder="Firstname" className="form-control form-control-sm" value={newUser.first} onChange={(e) => setNewUser({ ...newUser, first: e.target.value })} required />
-                  </td>
-                  <td>
-                    <input form="newUser" id="new_user_last" type="text" placeholder="Lastname" className="form-control form-control-sm" value={newUser.last} onChange={(e) => setNewUser({ ...newUser, last: e.target.value })} required />
-                  </td>
-                  <td>
-                    <select form="newUser" id="new_user_country" className="form-select form-select-sm" value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value as any })} required>
-                      {
-                        COUNTRIES.map((country) => (
-                          <option key={country} value={country}>{country}</option>
-                        ))
-                      }
+                    <tr>
+                      <th scope="col">Firstname</th>
+                      <th scope="col">Lastname</th>
+                      <th scope="col">Country</th>
+                      <th scope="col"></th>
 
-                    </select>
-                  </td>
-                  <td className="border-start pe-3"></td>
-                  <td>
-                    <input form="newUser" id="new_user_email" type="email" placeholder="Email" className="form-control form-control-sm" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
-                  </td>
-                  <td className="border-start pe-3"></td>
-                  <td>
-                    <form onSubmit={(e) => addUser(e)} id="newUser" className="d-flex align-items-start">
-                      <input type="number" id="new_user_security_number" style={{ width: '75px' }} className="form-control form-control-sm" value={newUser.securityNumber} onChange={(e) => setNewUser({ ...newUser, securityNumber: parseInt(e.target.value) })} required />
-                      <button type="submit" className="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
-                        {addingUser && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" ></div>}
-                        {!addingUser && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                        </svg>}
-                      </button>
-                    </form>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      <th scope="col">Email</th>
+                      <th scope="col"></th>
+
+                      <th scope="col">Project</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      users.map((user, index) => (
+                        <tr key={`cleartext_${index}`}>
+                          <td className={canAccessUserClassnames(user, 'first')}>{user.first}</td>
+                          <td className={canAccessUserClassnames(user, 'last')}>{user.last}</td>
+                          <td className={canAccessUserClassnames(user, 'country')}>{Key(user.country)}</td>
+                          <td className="border-start pe-3"></td>
+                          <td className={canAccessUserClassnames(user, 'email')}>{user.email}</td>
+                          <td className="border-start pe-3"></td>
+                          <td className={canAccessUserClassnames(user, 'project')}>{user.project}</td>
+                        </tr>
+                      ))
+                    }
+                    <tr id="new_user_row">
+                      <td>
+                        <input form="newUser" id="new_user_first" type="text" placeholder="Firstname" className="form-control form-control-sm" value={newUser.first} onChange={(e) => setNewUser({ ...newUser, first: e.target.value })} required />
+                      </td>
+                      <td>
+                        <input form="newUser" id="new_user_last" type="text" placeholder="Lastname" className="form-control form-control-sm" value={newUser.last} onChange={(e) => setNewUser({ ...newUser, last: e.target.value })} required />
+                      </td>
+                      <td>
+                        <select form="newUser" id="new_user_country" className="form-select form-select-sm" value={newUser.country} onChange={(e) => setNewUser({ ...newUser, country: e.target.value as any })} required>
+                          {
+                            COUNTRIES.map((country) => (
+                              <option key={country} value={country}>{country}</option>
+                            ))
+                          }
+
+                        </select>
+                      </td>
+                      <td className="border-start pe-3"></td>
+                      <td>
+                        <input form="newUser" id="new_user_email" type="email" placeholder="Email" className="form-control form-control-sm" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
+                      </td>
+                      <td className="border-start pe-3"></td>
+                      <td>
+                        <form onSubmit={(e) => addUser(e)} id="newUser" className="d-flex align-items-start">
+                          <input type="text" id="new_user_project" style={{ width: '125px' }} className="form-control form-control-sm" value={newUser.project} onChange={(e) => setNewUser({ ...newUser, project: e.target.value })} required />
+                          <button type="submit" className="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
+                            {addingUser && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" ></div>}
+                            {!addingUser && <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                            </svg>}
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
         {
           encryptedUsers.length < users.length && <div className="d-flex justify-content-center align-items-center" >
-            <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center" disabled={encrypting} >
+            <button type="button" id="encrypt_user" onClick={async () => await encrypt()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center" disabled={encrypting} >
               {encrypting && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
-              <div>Encrypt users</div>
+              <div>Encrypt data</div>
             </button>
           </div>
         }
 
         {
-          encryptedUsers.length > 0 && <div className="card mb-5">
-            <img src="/database_encrypted.png" className="card-img-top" alt="..." />
-            <div className="card-body">
-              <h5 className="card-title">Encrypted Database</h5><table className="table" id="table_encrypted_users">
-                <thead>
-                  <tr>
-                    <th scope="col">{Key('Marketing')}</th>
-                    <th scope="col">{Key('HR')}</th>
-                    <th scope="col">{Key('Security')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {
-                    encryptedUsers.map((user, index) => (
-                      <tr key={`encrypted_${index}`}>
-                        <td>{decode(user.marketing).substring(0, 30)}…</td>
-                        <td>{decode(user.hr).substring(0, 30)}…</td>
-                        <td>{decode(user.security).substring(0, 30)}…</td>
-                      </tr>
-                    ))
-                  }
-                </tbody>
-              </table></div></div>
+          encryptedUsers.length > 0 &&
+          <div className="position-relative mx-5 mb-4">
+            <div className={`${showEncryptedData ? 'position-absolute' : ''} pt-2 ps-4`} style={{ 'zIndex': '999' }}>
+              <div className="form-check form-switch">
+                <input className="form-check-input" type="checkbox" role="switch" id="hide_encrypted" checked={showEncryptedData} onChange={(e) => setShowEncryptedData(e.target.checked)} />
+                <label className="form-check-label" htmlFor="hide_encrypted">Show encrypted data</label>
+              </div>
+            </div>
+            {
+              showEncryptedData &&
+              <div className="card">
+                <div className="row g-0">
+                  <div className="col-md-4 d-flex flex-column justify-content-center align-items-center">
+                    <h5 className="card-title">Encrypted Database</h5>
+                    <img src="/database_encrypted.png" className="card-img-top" alt="..." />
+                  </div>
+                  <div className="col-md-8">
+                    <div className="card-body">
+                      <table className="table table-sm" id="table_encrypted_users">
+                        <thead>
+                          <tr>
+                            <th scope="col">{Key('Marketing')}</th>
+                            <th scope="col">{Key('HR')}</th>
+                            <th scope="col">{Key('Manager')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {
+                            encryptedUsers.map((user, index) => (
+                              <tr key={`encrypted_${index}`}>
+                                <td>{decode(user.marketing).substring(0, 15)}…</td>
+                                <td>{decode(user.hr).substring(0, 15)}…</td>
+                                <td>{decode(user.manager).substring(0, 15)}…</td>
+                              </tr>
+                            ))
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
         }
 
         {
           (encryptedUsers.length === users.length && !indexingDone) && <div>
             <div className="d-flex justify-content-center align-items-center">
-              <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center"
+              <button type="button" id="index" onClick={async () => await index()} className="btn btn-primary btn-lg d-flex justify-content-center align-items-center"
                 disabled={indexing}>
                 {indexing && <div className="spinner-border text-light me-3 spinner-border-sm" role="status" > </div>}
-                <div>Index users</div>
+                <div>Index</div>
               </button>
             </div>
           </div >
         }
 
-        {
-          indexingDone &&
-          <div className="card mb-5">
-            <div className="card-body" id="search">
-              <h5 className="card-title">Search</h5>
-              <div className="mb-3" >
-                <div className="input-group mb-3">
-                  <div className="form-check me-5">
-                    <label className="form-check-label">
-                      <div className="d-flex align-items-center">
-                        <input className="form-check-input" type="radio" checked={selectedKey === "aliceKey"} onChange={() => setSelectedKey("aliceKey")} value="aliceKey" />
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                          stroke="currentColor" width="40px">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <div>
-                          <div className="fs-5 ms-1">Alice</div>
-                          <div className="d-flex">
-                            <span className="me-1">{Key('France')}</span>
-                            <span>{Key('Marketing')}</span>
+        <div className="container">
+          {
+            indexingDone &&
+            <div className="card mb-4">
+              <div className="card-body" id="search">
+                <h5 className="card-title">Search</h5>
+                <div className="mb-3" >
+                  <div className="input-group mb-3">
+                    <div className="form-check me-5">
+                      <label className="form-check-label">
+                        <div className="d-flex align-items-center">
+                          <input className="form-check-input" type="radio" checked={selectedKey === "aliceKey"} onChange={() => setSelectedKey("aliceKey")} value="aliceKey" />
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                            stroke="currentColor" width="40px">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                          <div>
+                            <div className="fs-5 ms-1">Alice</div>
+                            <div className="d-flex">
+                              <span className="me-1">{Key('France')}</span>
+                              <span>{Key('Marketing')}</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </label>
-                  </div>
-                  <div className="form-check me-5">
-                    <label className="form-check-label">
-                      <div className="d-flex align-items-center">
-                        <input className="form-check-input" type="radio" checked={selectedKey === "bobKey"} onChange={() => setSelectedKey("bobKey")} value="bobKey" />
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                          stroke="currentColor" width="40px">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <div>
-                          <div className="fs-5 ms-1">Bob</div>
-                          <div className="d-flex">
-                            <span className="me-1">{Key('Spain')}</span>
-                            <span className="me-1">{Key('Marketing')}</span>
-                            <span>{Key('HR')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                  <div className="form-check me-5">
-                    <label className="form-check-label">
-                      <div className="d-flex align-items-center">
-                        <input className="form-check-input" type="radio" checked={selectedKey === "charlieKey"} onChange={() => setSelectedKey("charlieKey")} value="charlieKey" />
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
-                          stroke="currentColor" width="40px">
-                          <path strokeLinecap="round" strokeLinejoin="round"
-                            d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                        <div>
-                          <div className="fs-5 ms-1">Charlie</div>
-                          <div className="d-flex">
-                            <span className="me-1">{Key('France')}</span>
-                            <span className="me-1">{Key('Spain')}</span>
-                            <span className="me-1">{Key('Marketing')}</span>
-                            <span>{Key('HR')}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                </div>
-                <div className="mb-3">
-                  <div className="input-group">
-                    <div className="input-group-text">
-                      <label className="form-check-label me-2" htmlFor="andOrOr">AND</label>
-                      <div className="form-check form-switch">
-                        <input className="form-check-input" type="checkbox" role="switch" id="andOrOr" checked={doOr} onChange={(e) => setDoOr(e.target.checked)} />
-                        <label className="form-check-label" htmlFor="andOrOr">OR</label>
-                      </div>
+                      </label>
                     </div>
-                    <input type="text" className="form-control" placeholder="Recherche" value={query} onChange={(e) => setQuery(e.target.value)} />
+                    <div className="form-check me-5">
+                      <label className="form-check-label">
+                        <div className="d-flex align-items-center">
+                          <input className="form-check-input" type="radio" checked={selectedKey === "bobKey"} onChange={() => setSelectedKey("bobKey")} value="bobKey" />
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                            stroke="currentColor" width="40px">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                          <div>
+                            <div className="fs-5 ms-1">Bob</div>
+                            <div className="d-flex">
+                              <span className="me-1">{Key('Spain')}</span>
+                              <span className="me-1">{Key('Marketing')}</span>
+                              <span>{Key('HR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                    <div className="form-check me-5">
+                      <label className="form-check-label">
+                        <div className="d-flex align-items-center">
+                          <input className="form-check-input" type="radio" checked={selectedKey === "charlieKey"} onChange={() => setSelectedKey("charlieKey")} value="charlieKey" />
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5"
+                            stroke="currentColor" width="40px">
+                            <path strokeLinecap="round" strokeLinejoin="round"
+                              d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                          </svg>
+                          <div>
+                            <div className="fs-5 ms-1">Charlie</div>
+                            <div className="d-flex">
+                              <span className="me-1">{Key('France')}</span>
+                              <span className="me-1">{Key('Spain')}</span>
+                              <span className="me-1">{Key('Marketing')}</span>
+                              <span>{Key('HR')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </label>
+                    </div>
                   </div>
+                  <div className="mb-3">
+                    <div className="input-group">
+                      <div className="input-group-text">
+                        <label className="form-check-label me-2" htmlFor="andOrOr">AND</label>
+                        <div className="form-check form-switch">
+                          <input className="form-check-input" type="checkbox" role="switch" id="andOrOr" checked={doOr} onChange={(e) => setDoOr(e.target.checked)} />
+                          <label className="form-check-label" htmlFor="andOrOr">OR</label>
+                        </div>
+                      </div>
+                      <input type="text" className="form-control" placeholder="Recherche" value={query} onChange={(e) => setQuery(e.target.value)} />
+                    </div>
 
+                  </div>
                 </div>
+
+                {
+                  (! query && ! selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please select a key and type a query.
+                  </div>
+                }
+                {
+                  (! query && selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please type a query.
+                  </div>
+                }
+                {
+                  (query && ! selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please select a key.
+                  </div>
+                }
+                {
+                  (query && selectedKey && ! searchResults.length) && 
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    No result for "<span>{query}</span>"
+                  </div>
+                }
+
+                {
+                  searchResults.length > 0 &&
+                  <table className="table table-sm" v-show="searchResults.length">
+                    <thead>
+                      <tr>
+                        <th scope="col">First</th>
+                        <th scope="col">Last</th>
+                        <th scope="col">Country</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Project</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {
+                        searchResults.map((user, index) => (
+                          <tr key={`results_${index}`}>
+                            {showTdOrDecryptFail(user.first)}
+                            {showTdOrDecryptFail(user.last)}
+                            {showTdOrDecryptFail(user.country)}
+                            {showTdOrDecryptFail(user.email)}
+                            {showTdOrDecryptFail(user.project)}
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </table>
+                }
               </div>
-              {
-                searchResults.length > 0 &&
-                <table className="table" v-show="searchResults.length">
-                  <thead>
-                    <tr>
-                      <th scope="col">First</th>
-                      <th scope="col">Last</th>
-                      <th scope="col">Country</th>
-                      <th scope="col">Email</th>
-                      <th scope="col">Security Number</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {
-                      searchResults.map((user, index) => (
-                        <tr key={`results_${index}`}>
-                          {showTdOrDecryptFail(user.first)}
-                          {showTdOrDecryptFail(user.last)}
-                          {showTdOrDecryptFail(user.country)}
-                          {showTdOrDecryptFail(user.email)}
-                          {showTdOrDecryptFail(user.securityNumber)}
-                        </tr>
-                      ))
-                    }
-                  </tbody>
-                </table>
-              }
             </div>
+          }
+        </div>
+
+        <div className="position-fixed bottom-0 end-0 m-4">
+          <button className="btn btn-primary d-flex justify-content-center align-items-center " type="button" data-bs-toggle="offcanvas" data-bs-target="#requests" aria-controls="requests">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" width="20px" height="20px" className="me-2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+            </svg>
+            <span>Show Cloud Requests</span>
+          </button>
+        </div>
+
+        <div className="offcanvas offcanvas-end" data-bs-scroll="true" tabIndex={-1} id="requests" aria-labelledby="requestsLabel">
+          <div className="offcanvas-header">
+            <h5 className="offcanvas-title" id="requestsLabel">Cloud Requests</h5>
+            <button type="button" className="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
-        }
-
-
-
-      </main >
+          <div className="offcanvas-body">
+            {
+              requests.slice().reverse().map((request, index) => (
+                <div className="mb-1">
+                  <div>
+                    <span className="badge text-bg-primary me-2">{request.method}</span>
+                    <code>{request.url}</code>
+                  </div>
+                  { request.body &&
+                    <pre><code>{stringify(request.body)}</code></pre>
+                  }
+                  { request.response &&
+                    <pre><code>{stringify(request.response)}</code></pre>
+                  }
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </main>
     </div >
   );
 }

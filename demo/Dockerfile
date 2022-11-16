@@ -1,13 +1,16 @@
-FROM node:alpine
+FROM node:alpine AS builder
 
 RUN mkdir -p /app
 COPY . /app
+
+WORKDIR /app
+RUN npm install
 
 WORKDIR /app/examples/reactjs
 
 RUN npm install
 RUN npm run build
 
-EXPOSE 8080
-
-CMD ["npm", "run", "serve"]
+FROM nginx:alpine
+COPY --from=builder /app/examples/reactjs/build/ /usr/share/nginx/html/
+COPY ./demo/nginx.conf /etc/nginx/conf.d/default.conf

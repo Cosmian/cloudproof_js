@@ -4,18 +4,20 @@ import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
 const COUNTRIES = ['France', 'Spain', 'Germany'] as Array<'France' | 'Spain' | 'Germany'>;
-const DEPARTMENTS = ['Marketing', 'HR', 'Security'] as Array<'Marketing' | 'HR' | 'Security'>;
+const DEPARTMENTS = ['Marketing', 'HR', 'Manager'] as Array<'Marketing' | 'HR' | 'Manager'>;
 const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]));
 
-type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, securityNumber: number };
+type NewUser = { first: string, last: string, country: typeof COUNTRIES[0], email: string, project: string };
 type User = { id: number } & NewUser;
+
+type Request = { method: string, url: string, body?: object, response?: object };
 
 const DEFAULT_USER: NewUser = {
   first: '',
   last: '',
   country: 'France',
   email: '',
-  securityNumber: 0,
+  project: '',
 }
 
 export default defineComponent({
@@ -25,15 +27,15 @@ export default defineComponent({
     let users: Array<User> = [];
 
     let names = [
-      { first: 'Thibaud', last: 'Dauce', email: 'thibaud.dauce@cosmian.com', securityNumber: 1 },
-      { first: 'Chloé', last: 'Hébant', email: 'chloe.hebant@cosmian.com', securityNumber: 2 },
-      { first: 'François', last: 'Colas', email: 'francois.colas@cosmian.com', securityNumber: 3 },
-      { first: 'Bruno', last: 'Grieder', email: 'bruno.grieder@cosmian.com', securityNumber: 4 },
-      { first: 'Laetitia', last: 'Langlois', email: 'laetitia.langlois@cosmian.com', securityNumber: 5 },
-      { first: 'Célia', last: 'Corsin', email: 'celia.corsin@cosmian.com', securityNumber: 6 },
-      { first: 'Emmanuel', last: 'Coste', email: 'emmanuel.coste@cosmian.com', securityNumber: 7 },
-      { first: 'Thibaud', last: 'Genty', email: 'thibaud.genty@cosmian.com', securityNumber: 8 },
-      { first: 'Malika', last: 'Izabachène', email: 'malika.izabachene@cosmian.com', securityNumber: 9 },
+      { first: 'Simone', last: 'De Beauvoir', email: 'simone.beauvoir@example.org', project: "women" },
+      { first: 'Wangari', last: 'Maathai', email: 'wangari.maathai@example.org', project: "ecology" },
+      { first: 'Marie', last: 'Curie', email: 'marie.curie@example.org', project: "science" },
+      { first: 'Malala', last: 'Yousafzai', email: 'malala.yousafzai@example.org', project: "women" },
+      { first: 'Kathrine', last: 'Switzer', email: 'kathrine.switzer@example.org', project: "sport" },
+      { first: 'Rosa', last: 'Parks', email: 'rosa.parks@example.org', project: "civil rights" },
+      { first: 'Valentina', last: 'Terechkova', email: 'valentina.terechkova@example.org', project: "science" },
+      { first: 'Margaret', last: 'Hamilton', email: 'margaret.hamilton@example.org', project: "science" },
+      { first: 'Simone', last: 'Veil', email: 'simone.veil@example.org', project: "women" },
     ];
 
 
@@ -49,6 +51,8 @@ export default defineComponent({
     }
 
     return {
+      requests: [] as Request[],
+
       kmsServerUrl: '',
       usingGraphs: false,
 
@@ -57,7 +61,8 @@ export default defineComponent({
       newUser: { ...DEFAULT_USER },
 
       encrypting: false,
-      encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, security: Uint8Array }[],
+      showEncryptedData: true,
+      encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[],
 
       coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
       masterKeys: null as CoverCryptMasterKey | null,
@@ -76,7 +81,7 @@ export default defineComponent({
       key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
       doOr: false,
       query: '',
-      searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, securityNumber?: number }>,
+      searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>,
 
       COUNTRIES,
     }
@@ -169,20 +174,27 @@ export default defineComponent({
         })),
       )
 
-      // Encrypt the user security level for the security
+      // Encrypt the user manager level for the manager
       // team of the corresponding country
-      const encryptedForSecurity = coverCryptHybridEncryption.encrypt(
-        `department::Security && country::${user.country}`,
+      const encryptedForManager = coverCryptHybridEncryption.encrypt(
+        `department::Manager && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
-          securityNumber: user.securityNumber,
+          project: user.project,
         })),
       )
 
-      this.encryptedUsers.push({
+      let data = {
         marketing: encryptedForMarketing,
         hr: encryptedForHr,
-        security: encryptedForSecurity,
-      })
+        manager: encryptedForManager,
+      }
+
+      this.logRequest({
+        method: 'POST',
+        url: '/users',
+        body: data,
+      });
+      this.encryptedUsers.push(data)
     },
 
     async encrypt() {
@@ -207,7 +219,7 @@ export default defineComponent({
               Keyword.fromUtf8String(user.last),
               Keyword.fromUtf8String(user.country),
               Keyword.fromUtf8String(user.email),
-              Keyword.fromUtf8String(user.securityNumber.toString()),
+              Keyword.fromUtf8String(user.project.toString()),
             ]),
           };
         }),
@@ -251,6 +263,13 @@ export default defineComponent({
           }
         }
       }
+
+      this.logRequest({
+        method: 'GET',
+        url: `/index_${table}`,
+        body: { uids },
+        response: results,
+      })
       return results
     },
 
@@ -267,6 +286,11 @@ export default defineComponent({
         }
 
         // The uid doesn't exist yet.
+        this.logRequest({
+          method: 'POST',
+          url: `/index_${table}`,
+          body: { uid: newUid, value: newValue },
+        })
         this.indexes[table].push({ uid: newUid, value: newValue })
       }
     },
@@ -328,7 +352,14 @@ export default defineComponent({
 
       let results = [];
       for (const indexedValue of indexedValues) {
-        let encryptedUser = this.encryptedUsers[indexedValue.bytes[1]];
+        const userId = indexedValue.bytes[1];
+        
+        let encryptedUser = this.encryptedUsers[userId];
+        this.logRequest({
+          method: 'GET',
+          url: `/users/${userId}`,
+          response: { encryptedUser },
+        })
         let decryptedUser = {};
 
         try {
@@ -338,7 +369,7 @@ export default defineComponent({
           decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.security))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
         } catch (e) { }
 
         results.push(decryptedUser);
@@ -382,9 +413,9 @@ export default defineComponent({
       }
 
       let unavailableAttributes = {
-        'aliceKey': ['email', 'securityNumber'],
-        'bobKey': ['securityNumber'],
-        'charlieKey': ['securityNumber'],
+        'aliceKey': ['email', 'project'],
+        'bobKey': ['project'],
+        'charlieKey': ['project'],
       }[this.key];
 
       if (unavailableAttributes.includes(attribute)) {
@@ -394,8 +425,23 @@ export default defineComponent({
       return true;
     },
 
+    logRequest(request: Request) {
+      this.requests.push(request);
+      this.requests = this.requests.slice(-20);
+    },
+
     decode(value: Uint8Array): string {
       return new TextDecoder().decode(value);
+    },
+
+    stringify(value: object): string {
+      return JSON.stringify(value, (key, value) => {
+        if (value instanceof Uint8Array) {
+          return this.decode(value).substring(0, 15)
+        } else {
+          return value
+        }
+      }, 2);
     },
 
     uint8ArrayEquals(a: Uint8Array, b: Uint8Array): boolean {
@@ -430,311 +476,373 @@ export default defineComponent({
   <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="/">
-        <img src="/logo.png" alt="" style="height: 30px">
-        <span class="fw-bold ms-4">Clouproof Demo</span>
+        <img src="/logo.svg" alt="" style="height: 50px">
+        <span class="fw-bold ms-4">Clouproof JS Demo</span>
       </a>
     </div>
   </nav>
-  <main class="container pb-5">
-    <details class="mt-3 mb-3">
-      <summary id="options">Options…</summary>
-
-      <div class="mt-3">
-        <label for="kmsServerUrl" class="form-label">KMS Server URL</label>
-        <div class="input-group mb-3">
-          <input type="text" class="form-control" id="kmsServerUrl" v-model="kmsServerUrl"
-            placeholder="http://localhost:9998/kmip/2_1">
-          <button class="btn btn-outline-secondary" type="button"
-            @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Localhost</button>
-          <button class="btn btn-outline-secondary" type="button"
-            @click="kmsServerUrl = 'http://demo-cloudproof.cosmian.com:9998/kmip/2_1'">Démo</button>
+  <main class="pb-5">
+    <div class="container">
+      <details class="mt-3 mb-3">
+        <summary id="options">Options…</summary>
+  
+        <div class="mt-3">
+          <label for="kmsServerUrl" class="form-label">KMS Server URL</label>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" id="kmsServerUrl" v-model="kmsServerUrl"
+              placeholder="http://localhost:9998/kmip/2_1">
+            <button class="btn btn-outline-secondary" type="button"
+              @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Localhost</button>
+            <button class="btn btn-outline-secondary" type="button"
+              @click="kmsServerUrl = 'https://demo-cloudproof.cosmian.com/kms/kmip/2_1'">Demo</button>
+          </div>
         </div>
+  
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" v-model="usingGraphs" id="usingGraphs" />
+          <label class="form-check-label" for="usingGraphs">
+            Generate graphs during indexing
+          </label>
+        </div>
+  
+  
+        <hr>
+      </details>
+  
+      <div class="fs-5 mb-4">
+        <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
+  
+        <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
+  
+        <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
+          under
+          NDA.</p>
+  
+        <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
       </div>
-
-      <div class="form-check">
-        <input class="form-check-input" type="checkbox" v-model="usingGraphs" id="usingGraphs" />
-        <label class="form-check-label" for="usingGraphs">
-          Generate graphs during indexing
-        </label>
-      </div>
-
-
-      <hr>
-    </details>
-
-    <div class="fs-5 mb-5">
-      <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
-
-      <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
-
-      <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
-        under
-        NDA.</p>
-
-      <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
     </div>
 
-    <div class="card mb-5">
-      <img src="/database.png" class="card-img-top" alt="...">
-      <div class="card-body">
-        <h5 class="card-title">Cleartext Database</h5>
-        <table class="table" id="table_cleartext_users">
-          <thead>
-            <tr>
-              <th colspan="4" class="text-center">
-                <Key name="Marketing" class="me-1" />
-              </th>
-              <th colspan="2" class="ps-2">
-                <Key name="HR" class="me-1" />
-              </th>
-              <th class="ps-2">
-                <Key name="Security" class="me-1" />
-              </th>
-            </tr>
-            <tr>
-              <th scope="col">
-                First
-              </th>
-              <th scope="col">
-                Last
-              </th>
-              <th scope="col">
-                Country
-              </th>
-              <th scope="col"></th>
-              <th scope="col">
-                Email
-              </th>
-              <th scope="col"></th>
-              <th scope="col">
-                Security Number
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in users">
-              <td :class="{
-                'table-warning opacity-25': key && !canAccessUser(user, 'first'),
-                'table-success': key && canAccessUser(user, 'first'),
-              }">{{ user.first }}</td>
-              <td :class="{
-                'table-warning opacity-25': key && !canAccessUser(user, 'last'),
-                'table-success': key && canAccessUser(user, 'last'),
-              }">{{ user.last }}</td>
-              <td :class="{
-                'table-warning opacity-25': key && !canAccessUser(user, 'country'),
-                'table-success': key && canAccessUser(user, 'country'),
-              }">
-                <Key :name="user.country" />
-              </td>
-              <td class="border-start pe-3"></td>
-              <td :class="{
-                'table-warning opacity-25': key && !canAccessUser(user, 'email'),
-                'table-success': key && canAccessUser(user, 'email'),
-              }">{{ user.email }}</td>
-              <td class="border-start pe-3"></td>
-              <td :class="{
-                'table-warning opacity-25': key && !canAccessUser(user, 'securityNumber'),
-                'table-success': key && canAccessUser(user, 'securityNumber'),
-              }"> {{ user.securityNumber }}</td>
-            </tr>
-            <tr id="new_user_row">
-              <td>
-                <input form="newUser" id="new_user_first" type="text" placeholder="Firstname"
-                  class="form-control form-control-sm" v-model="newUser.first" required />
-              </td>
-              <td>
-                <input form="newUser" id="new_user_last" type="text" placeholder="Lastname"
-                  class="form-control form-control-sm" v-model="newUser.last" required />
-              </td>
-              <td>
-                <select form="newUser" id="new_user_country" class="form-select form-select-sm"
-                  v-model="newUser.country" required>
-                  <option v-for="country in COUNTRIES" :key="country" :value="country">{{ country }}</option>
-                </select>
-              </td>
-              <td class="border-start pe-3"></td>
-              <td>
-                <input form="newUser" id="new_user_email" type="email" placeholder="Email"
-                  class="form-control form-control-sm" v-model="newUser.email" required />
-              </td>
-              <td class="border-start pe-3"></td>
-              <td>
-                <form @submit.prevent="addUser" id="newUser" class="d-flex align-items-start">
-                  <input type="number" id="new_user_security_number" style="width: 75px"
-                    class="form-control form-control-sm" v-model="newUser.securityNumber" required />
-                  <button type="submit"
-                    class="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
-                    <div v-if="addingUser" class="spinner-border text-light me-3 spinner-border-sm" role="status">
-                    </div>
-                    <svg v-if="!addingUser" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                      stroke-width="1.5" stroke="currentColor" width="20px" height="20px">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                    </svg>
-                  </button>
-                </form>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="card mx-5 mb-4">
+      <div class="row g-0">
+        <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+          <h5 class="card-title">Cleartext Database</h5>
+          <img src="/database.png" class="card-img-top" alt="...">
+        </div>
+        <div class="col-md-8">
+          <div class="card-body">
+            <table class="table table-sm" id="table_cleartext_users">
+              <thead>
+                <tr>
+                  <th colspan="4" class="text-center">
+                    <Key name="Marketing" class="me-1" />
+                  </th>
+                  <th colspan="2" class="ps-2">
+                    <Key name="HR" class="me-1" />
+                  </th>
+                  <th class="ps-2">
+                    <Key name="Manager" class="me-1" />
+                  </th>
+                </tr>
+                <tr>
+                  <th scope="col">
+                    First
+                  </th>
+                  <th scope="col">
+                    Last
+                  </th>
+                  <th scope="col">
+                    Country
+                  </th>
+                  <th scope="col"></th>
+                  <th scope="col">
+                    Email
+                  </th>
+                  <th scope="col"></th>
+                  <th scope="col">
+                    Project
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="user in users">
+                  <td :class="{
+                    'table-warning opacity-25': key && !canAccessUser(user, 'first'),
+                    'table-success': key && canAccessUser(user, 'first'),
+                  }">{{ user.first }}</td>
+                  <td :class="{
+                    'table-warning opacity-25': key && !canAccessUser(user, 'last'),
+                    'table-success': key && canAccessUser(user, 'last'),
+                  }">{{ user.last }}</td>
+                  <td :class="{
+                    'table-warning opacity-25': key && !canAccessUser(user, 'country'),
+                    'table-success': key && canAccessUser(user, 'country'),
+                  }">
+                    <Key :name="user.country" />
+                  </td>
+                  <td class="border-start pe-3"></td>
+                  <td :class="{
+                    'table-warning opacity-25': key && !canAccessUser(user, 'email'),
+                    'table-success': key && canAccessUser(user, 'email'),
+                  }">{{ user.email }}</td>
+                  <td class="border-start pe-3"></td>
+                  <td :class="{
+                    'table-warning opacity-25': key && !canAccessUser(user, 'project'),
+                    'table-success': key && canAccessUser(user, 'project'),
+                  }"> {{ user.project }}</td>
+                </tr>
+                <tr id="new_user_row">
+                  <td>
+                    <input form="newUser" id="new_user_first" type="text" placeholder="Firstname"
+                      class="form-control form-control-sm" v-model="newUser.first" required />
+                  </td>
+                  <td>
+                    <input form="newUser" id="new_user_last" type="text" placeholder="Lastname"
+                      class="form-control form-control-sm" v-model="newUser.last" required />
+                  </td>
+                  <td>
+                    <select form="newUser" id="new_user_country" class="form-select form-select-sm"
+                      v-model="newUser.country" required>
+                      <option v-for="country in COUNTRIES" :key="country" :value="country">{{ country }}</option>
+                    </select>
+                  </td>
+                  <td class="border-start pe-3"></td>
+                  <td>
+                    <input form="newUser" id="new_user_email" type="email" placeholder="Email"
+                      class="form-control form-control-sm" v-model="newUser.email" required />
+                  </td>
+                  <td class="border-start pe-3"></td>
+                  <td>
+                    <form @submit.prevent="addUser" id="newUser" class="d-flex align-items-start">
+                      <input type="text" id="new_user_project" style="width: 125px"
+                        class="form-control form-control-sm" v-model="newUser.project" required />
+                      <button type="submit"
+                        class="ms-5 btn btn-sm btn-primary d-inline-flex align-items-center justify-content-center">
+                        <div v-if="addingUser" class="spinner-border text-light me-3 spinner-border-sm" role="status">
+                        </div>
+                        <svg v-if="!addingUser" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                          stroke-width="1.5" stroke="currentColor" width="20px" height="20px">
+                          <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                      </button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 
     <div v-show="encryptedUsers.length < users.length">
       <div class="d-flex justify-content-center align-items-center">
         <button type="button" id="encrypt_user" @click="encrypt"
-          class="btn btn-primary btn-lg d-flex justify-content-center" :disabled="encrypting">
+          class="btn btn-primary btn-lg d-flex justify-content-center align-items-center" :disabled="encrypting">
           <div v-show="encrypting">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
-          <div>Encrypt users</div>
+          <div>Encrypt data</div>
         </button>
       </div>
     </div>
 
-    <div class="card mb-5" v-show="encryptedUsers.length">
-      <img src="/database_encrypted.png" class="card-img-top" alt="...">
-      <div class="card-body">
-        <h5 class="card-title">Encrypted Database</h5>
-        <table class="table" id="table_encrypted_users">
-          <thead>
-            <tr>
-              <th scope="col">Marketing</th>
-              <th scope="col">HR</th>
-              <th scope="col">Security</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in encryptedUsers">
-              <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
-              <td>{{ decode(user.hr).substring(0, 30) }}…</td>
-              <td>{{ decode(user.security).substring(0, 30) }}…</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="position-relative mx-5 mb-4" v-show="encryptedUsers.length">
+      <div class="pt-2 ps-4" style="z-index: 999" :class="{ 'position-absolute': showEncryptedData }">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="hide_encrypted" v-model="showEncryptedData">
+          <label class="form-check-label" for="hide_encrypted">Show encrypted data</label>
+        </div>
+      </div>
+      <div class="card" v-show="showEncryptedData">
+        <div class="row g-0">
+          <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+            <h5 class="card-title">Encrypted Database</h5>
+            <img src="/database_encrypted.png" class="card-img-top" alt="...">
+          </div>
+          <div class="col-md-8">
+            <div class="card-body">
+              <table class="table table-sm" id="table_encrypted_users">
+                <thead>
+                  <tr>
+                    <th scope="col">Marketing</th>
+                    <th scope="col">HR</th>
+                    <th scope="col">Manager</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in encryptedUsers">
+                    <td>{{ decode(user.marketing).substring(0, 15) }}…</td>
+                    <td>{{ decode(user.hr).substring(0, 15) }}…</td>
+                    <td>{{ decode(user.manager).substring(0, 15) }}…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <div v-show="encryptedUsers.length === users.length && !indexingDone">
       <div class="d-flex justify-content-center align-items-center">
-        <button type="button" id="index" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center"
+        <button type="button" id="index" @click="index" class="btn btn-primary btn-lg d-flex justify-content-center align-items-center"
           :disabled="indexing">
           <div v-show="indexing">
             <div class="spinner-border text-light me-3 spinner-border-sm" role="status"></div>
           </div>
-          <div>Index users</div>
+          <div>Index</div>
         </button>
       </div>
     </div>
 
-    <div class="card mb-5" v-show="indexingDone">
-      <div class="card-body" id="search">
-        <h5 class="card-title">Search</h5>
-        <div class="mb-3">
-          <div class="input-group mb-3">
-            <div class="form-check me-5">
-              <label class="form-check-label">
-                <div class="d-flex align-items-center">
-                  <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" width="40px">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                  <div>
-                    <div class="fs-5 ms-1">Alice</div>
-                    <div class="d-flex">
-                      <Key name="France" class="me-1" />
-                      <Key name="Marketing" />
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-            <div class="form-check me-5">
-              <label class="form-check-label">
-                <div class="d-flex align-items-center">
-                  <input class="form-check-input" type="radio" v-model="key" value="bobKey">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" width="40px">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                  <div>
-                    <div class="fs-5 ms-1">Bob</div>
-                    <div class="d-flex">
-                      <Key name="Spain" class="me-1" />
-                      <Key name="Marketing" class="me-1" />
-                      <Key name="HR" />
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-            <div class="form-check me-5">
-              <label class="form-check-label">
-                <div class="d-flex align-items-center">
-                  <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                    stroke="currentColor" width="40px">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                  </svg>
-                  <div>
-                    <div class="fs-5 ms-1">Charlie</div>
-                    <div class="d-flex">
-                      <Key name="France" class="me-1" />
-                      <Key name="Spain" class="me-1" />
-                      <Key name="Marketing" class="me-1" />
-                      <Key name="HR" />
-                    </div>
-                  </div>
-                </div>
-              </label>
-            </div>
-          </div>
+    <div class="container">
+      <div class="card mb-4" v-show="indexingDone">
+        <div class="card-body" id="search">
+          <h5 class="card-title">Search</h5>
           <div class="mb-3">
-            <div class="input-group">
-              <div class="input-group-text">
-                <label class="form-check-label me-2" for="andOrOr">AND</label>
-                <div class="form-check form-switch">
-                  <input class="form-check-input" type="checkbox" role="switch" id="andOrOr" v-model="doOr">
-                  <label class="form-check-label" for="andOrOr">OR</label>
-                </div>
+            <div class="input-group mb-3">
+              <div class="form-check me-5">
+                <label class="form-check-label">
+                  <div class="d-flex align-items-center">
+                    <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" width="40px">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <div>
+                      <div class="fs-5 ms-1">Alice</div>
+                      <div class="d-flex">
+                        <Key name="France" class="me-1" />
+                        <Key name="Marketing" />
+                      </div>
+                    </div>
+                  </div>
+                </label>
               </div>
-              <input type="text" class="form-control" placeholder="Recherche" v-model="query">
+              <div class="form-check me-5">
+                <label class="form-check-label">
+                  <div class="d-flex align-items-center">
+                    <input class="form-check-input" type="radio" v-model="key" value="bobKey">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" width="40px">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <div>
+                      <div class="fs-5 ms-1">Bob</div>
+                      <div class="d-flex">
+                        <Key name="Spain" class="me-1" />
+                        <Key name="Marketing" class="me-1" />
+                        <Key name="HR" />
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <div class="form-check me-5">
+                <label class="form-check-label">
+                  <div class="d-flex align-items-center">
+                    <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                      stroke="currentColor" width="40px">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    <div>
+                      <div class="fs-5 ms-1">Charlie</div>
+                      <div class="d-flex">
+                        <Key name="France" class="me-1" />
+                        <Key name="Spain" class="me-1" />
+                        <Key name="Marketing" class="me-1" />
+                        <Key name="HR" />
+                      </div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="input-group">
+                <div class="input-group-text">
+                  <label class="form-check-label me-2" for="andOrOr">AND</label>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="andOrOr" v-model="doOr">
+                    <label class="form-check-label" for="andOrOr">OR</label>
+                  </div>
+                </div>
+                <input type="text" class="form-control" placeholder="Recherche" v-model="query">
+              </div>
             </div>
           </div>
-        </div>
 
-        <table class="table" v-show="searchResults.length">
-          <thead>
-            <tr>
-              <th scope="col">First</th>
-              <th scope="col">Last</th>
-              <th scope="col">Country</th>
-              <th scope="col">Email</th>
-              <th scope="col">Security Number</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in searchResults">
-              <td v-if="user.first">{{ user.first }}</td>
-              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-              <td v-if="user.last">{{ user.last }}</td>
-              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-              <td v-if="user.country">{{ user.country }}</td>
-              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-              <td v-if="user.email">{{ user.email }}</td>
-              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-              <td v-if="user.securityNumber">{{ user.securityNumber }}</td>
-              <td v-else><span class="badge text-bg-danger">Impossible to decrypt</span></td>
-            </tr>
-          </tbody>
-        </table>
+          <div class="alert alert-light" role="alert" v-show="! query && ! key">
+            Please select a key and type a query.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="! query && key">
+            Please type a query.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="query && ! key">
+            Please select a key.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="query && key && ! searchResults.length">
+            No result for "{{ query }}"
+          </div>
+  
+          <table class="table table-sm" v-show="searchResults.length">
+            <thead>
+              <tr>
+                <th scope="col">First</th>
+                <th scope="col">Last</th>
+                <th scope="col">Country</th>
+                <th scope="col">Email</th>
+                <th scope="col">Project</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in searchResults">
+                <td v-if="user.first">{{ user.first }}</td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
+                <td v-if="user.last">{{ user.last }}</td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
+                <td v-if="user.country">{{ user.country }}</td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
+                <td v-if="user.email">{{ user.email }}</td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
+                <td v-if="user.project">{{ user.project }}</td>
+                <td v-else><span class="badge text-bg-dark">Impossible to decrypt</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
+    <div class="position-fixed bottom-0 end-0 m-4">
+      <button class="btn btn-primary d-flex justify-content-center align-items-center " type="button" data-bs-toggle="offcanvas" data-bs-target="#requests" aria-controls="requests">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="20px" height="20px" class="me-2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
+        </svg>
+        <span>Show Cloud Requests</span>
+      </button>
+    </div>
+
+    <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="requests" aria-labelledby="requestsLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="requestsLabel">Cloud Requests</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <div class="mb-1" v-for="request in requests.slice().reverse()">
+          <div>
+            <span class="badge text-bg-primary me-2" v-text="request.method"></span>
+            <code v-text="request.url"></code>
+          </div>
+          <pre v-if="request.body"><code v-text="stringify(request.body)"></code></pre>
+          <pre v-if="request.response"><code v-text="stringify(request.response)"></code></pre>
+        </div>
+      </div>
+    </div>
   </main>
 </template>
