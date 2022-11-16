@@ -524,7 +524,7 @@ function App() {
                 <button className="btn btn-outline-secondary" type="button"
                   onClick={() => setKmsServerUrl('http://localhost:9998/kmip/2_1')}>Localhost</button>
                 <button className="btn btn-outline-secondary" type="button"
-                  onClick={() => setKmsServerUrl('http://demo-cloudproof.cosmian.com:9998/kmip/2_1')}>Démo</button>
+                  onClick={() => setKmsServerUrl('https://demo-cloudproof.cosmian.com/kms/kmip/2_1')}>Démo</button>
               </div>
             </div>
 

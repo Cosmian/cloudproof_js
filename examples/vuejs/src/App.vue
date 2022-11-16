@@ -494,7 +494,7 @@ export default defineComponent({
             <button class="btn btn-outline-secondary" type="button"
               @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'">Localhost</button>
             <button class="btn btn-outline-secondary" type="button"
-              @click="kmsServerUrl = 'http://demo-cloudproof.cosmian.com:9998/kmip/2_1'">Démo</button>
+              @click="kmsServerUrl = 'https://demo-cloudproof.cosmian.com/kms/kmip/2_1'">Demo</button>
           </div>
         </div>
   
