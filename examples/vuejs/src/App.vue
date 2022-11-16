@@ -776,6 +776,19 @@ export default defineComponent({
               </div>
             </div>
           </div>
+
+          <div class="alert alert-light" role="alert" v-show="! query && ! key">
+            Please select a key and type a query.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="! query && key">
+            Please type a query.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="query && ! key">
+            Please select a key.
+          </div>
+          <div class="alert alert-light" role="alert" v-show="query && key && ! searchResults.length">
+            No result for "{{ query }}"
+          </div>
   
           <table class="table table-sm" v-show="searchResults.length">
             <thead>

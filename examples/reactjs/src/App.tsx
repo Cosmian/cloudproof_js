@@ -796,6 +796,32 @@ function App() {
 
                   </div>
                 </div>
+
+                {
+                  (! query && ! selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please select a key and type a query.
+                  </div>
+                }
+                {
+                  (! query && selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please type a query.
+                  </div>
+                }
+                {
+                  (query && ! selectedKey) &&
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    Please select a key.
+                  </div>
+                }
+                {
+                  (query && selectedKey && ! searchResults.length) && 
+                  <div className="alert alert-light" role="alert" v-show="! query && ! key">
+                    No result for "<span>{query}</span>"
+                  </div>
+                }
+
                 {
                   searchResults.length > 0 &&
                   <table className="table table-sm" v-show="searchResults.length">
