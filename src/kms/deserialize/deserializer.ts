@@ -2,6 +2,7 @@ import { hexDecode } from "../../utils/utils"
 import { PropertyMetadata, METADATA_KEY } from "../decorators/interface"
 import { TTLV } from "../serialize/Ttlv"
 import { TtlvType } from "../serialize/TtlvType"
+import { Deserialize } from "./Deserialize"
 
 /**
  * A general factory to construct a type
@@ -45,7 +46,7 @@ export function fromTTLV<T extends Object>(
  * @param {string} propertyName the name of the property of the parent structure (if any)
  * @returns {object} the updated instance
  */
-function structureParser<T extends Object>(
+function structureParser<T extends (Object | Deserialize)>(
   instance: T,
   ttlv: TTLV,
   propertyName: string,
@@ -62,11 +63,10 @@ function structureParser<T extends Object>(
   //   )
   // }
 
-  // try to sse if the type implement Deserializable.fromTTLV
+  // try to see if the type implements Deserializable.fromTTLV
   // in which case, use that
-  const fromTTLV = Reflect.get(instance, "fromTTLV")
-  if (typeof fromTTLV !== "undefined") {
-    return Reflect.apply(fromTTLV, instance, [ttlv, propertyName, instance])
+  if ("fromTTLV" in instance) {
+    return instance.fromTTLV(ttlv, propertyName) as T;
   }
 
   // use the default parser

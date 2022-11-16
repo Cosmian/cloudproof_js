@@ -119,7 +119,7 @@ function parseChildren(value: Object): TTLV[] {
     const propertyName = pn as keyof typeof value
 
     // skip processing a property which has an undefined value
-    let childValue = Reflect.get(value, propertyName)
+    let childValue: any = value[propertyName]
     if (typeof childValue === "undefined") {
       continue
     }
