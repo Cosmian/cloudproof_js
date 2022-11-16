@@ -37,13 +37,10 @@ build:
     - npm test
 
 example_vuejs:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
   extends: .services
   stage: test
   script:
-    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1
-      libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3
-      lsb-release xdg-utils wget
     - cd examples/vuejs
     - npm install
     - npm run build
@@ -57,13 +54,10 @@ example_vuejs:
     expire_in: 1 week
 
 example_reactjs:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
   extends: .services
   stage: test
   script:
-    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1
-      libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3
-      lsb-release xdg-utils wget
     - cd examples/reactjs
     - npm install
     - npm run build
@@ -123,15 +117,12 @@ deploy:
   when: manual
 
 check_deploy:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
   needs:
     - deploy
   extends: .services
   stage: publish
   script:
-    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1
-      libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3
-      lsb-release xdg-utils wget
     - node examples/test/chrome.mjs https://demo-cloudproof.cosmian.com/ https://demo-cloudproof.cosmian.com/kms
   artifacts:
     paths:
