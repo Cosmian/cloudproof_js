@@ -1,11 +1,20 @@
-import {
+import init, {
   webassembly_graph_upsert,
   webassembly_search,
   webassembly_upsert,
-} from "cosmian_findex"
+  InitInput,
+} from "../../../pkg/findex/cosmian_findex"
+
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
-import { initFindex } from "../../../utils/utils"
 import { Index } from "./interfaces"
+
+let initialized: Promise<void> | undefined;
+
+let wasmInit: (() => InitInput) | undefined;
+export const setFindexInit = (arg: () => InitInput): void => {
+  wasmInit = arg;
+};
+
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
@@ -194,7 +203,13 @@ export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
-  await initFindex()
+  if (initialized === undefined) {
+    // @ts-expect-error
+    const loadModule = wasmInit();
+    initialized = init(loadModule).then(() => undefined);
+  }
+
+  await initialized;
 
   return {
     /**

@@ -1,3 +1,10 @@
+
+import cover_crypt_wasm from "./pkg/cover_crypt/cosmian_cover_crypt_bg.wasm"
+import { setCoverCryptInit } from "./crypto/abe/core/cover_crypt"
+
+import findex_wasm from "./pkg/findex/cosmian_findex_bg.wasm"
+import { setFindexInit } from "./crypto/sse/findex/simple"
+
 export * from "./crypto/sse/findex/simple"
 export {
   CoverCryptMasterKey,
@@ -22,10 +29,7 @@ export {
   sanitizeString,
   toBase64,
   deserializeList,
-  serializeList,
-  serializeHashMap,
   toBeBytes,
-  deserializeHashMap,
 } from "./utils/utils"
 export * from "./kms/data_structures/TransparentDHPublicKey"
 export * from "./kms/data_structures/TransparentDHPrivateKey"
@@ -114,3 +118,9 @@ export * from "./kms/json/KmipEnumUtils"
 export * from "./kms/json/KmipChoiceAttributeReference"
 export * from "./kms/json/KmipStruct"
 export * from "./kms/client/KmipClient"
+
+// @ts-expect-error
+setCoverCryptInit(() => cover_crypt_wasm());
+
+// @ts-expect-error
+setFindexInit(() => findex_wasm());

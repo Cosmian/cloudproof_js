@@ -1,5 +1,4 @@
-import { Index } from "crypto/sse/findex/interfaces"
-import * as leb from "leb128"
+import { decode } from "./leb128"
 import { logger } from "./logger"
 
 /**
@@ -114,7 +113,7 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
-    const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10)
+    const itemLen = decode(Buffer.from(serializedItems))
     const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
 
     const item = serializedItems.slice(
@@ -125,84 +124,6 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
     items.push(item)
   }
   return items
-}
-
-/**
- * Deserialize Uint8Array as an array of objects with key and value
- *
- * @param {Uint8Array} serializedItems Uint8Array of serialized data
- * @returns {Index[]} an array of objects with key and value properties as Uint8Array
- */
-export function deserializeHashMap(serializedItems: Uint8Array): Index[] {
-  const items: Index[] = []
-  while (serializedItems.length > 1) {
-    const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10)
-    const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
-    const key = serializedItems.slice(
-      sizeNumberOfBytes,
-      sizeNumberOfBytes + keyLen,
-    )
-    serializedItems = serializedItems.slice(sizeNumberOfBytes + keyLen)
-
-    if (key.length > 1) {
-      const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10)
-      const lengthNbBytes = getSizeNumberOfBytes(serializedItems)
-      const value = serializedItems.slice(
-        lengthNbBytes,
-        lengthNbBytes + valueLen,
-      )
-      const item: Index = {
-        uid: new Uint8Array(),
-        value: new Uint8Array(),
-      }
-      if (value.length > 0) {
-        item.uid = key
-        item.value = value
-      }
-      items.push(item)
-      serializedItems = serializedItems.slice(lengthNbBytes + valueLen)
-    }
-  }
-  return items
-}
-
-/**
- * Serialize a list of Uint8Array as a Uint8Array
- *
- * @param {Uint8Array[]} list an array of deserialized item
- * @returns {Uint8Array} Uint8Array of serialized data
- */
-export function serializeList(list: Uint8Array[]): Uint8Array {
-  let serializedData = new Uint8Array()
-  for (const item of list) {
-    const itemLen = leb.unsigned.encode(item.length)
-    serializedData = Uint8Array.from([...serializedData, ...itemLen, ...item])
-  }
-  serializedData = Uint8Array.from([...serializedData, 0])
-  return serializedData
-}
-
-/**
- * Serialize an array of uids and values as a Uint8Array
- *
- * @param {Index[]} data  an array of objects containing uids and values
- * @returns {Uint8Array} Uint8Array of serialized data
- */
-export function serializeHashMap(data: Index[]): Uint8Array {
-  let serializedData = new Uint8Array()
-  for (const item of data) {
-    const keyLen = leb.unsigned.encode(item.uid.length)
-    const valueLen = leb.unsigned.encode(item.value.length)
-    serializedData = Uint8Array.from([
-      ...serializedData,
-      ...keyLen,
-      ...item.uid,
-      ...valueLen,
-      ...item.value,
-    ])
-  }
-  serializedData = Uint8Array.from([...serializedData, 0])
-  return serializedData
 }
 
 /**
@@ -219,28 +140,28 @@ export function sanitizeString(str: string): string {
     .replace(/[^\w-]+/g, "-")
 }
 
-/**
- * Init wasm for Findex
- */
-export async function initFindex(): Promise<void> {
-  if (
-    typeof process === "undefined" ||
-    process.env.JEST_WORKER_ID === undefined
-  ) {
-    const module = await import("cosmian_findex")
-    await module.default()
-  }
-}
+// /**
+//  * Init wasm for Findex
+//  */
+// export async function initFindex(): Promise<void> {
+//   if (
+//     typeof process === "undefined" ||
+//     process.env.JEST_WORKER_ID === undefined
+//   ) {
+//     const module = await import("cosmian_findex")
+//     await module.default()
+//   }
+// }
 
-/**
- * Init wasm for CoverCrypt
- */
-export async function initCoverCrypt(): Promise<void> {
-  if (
-    typeof process === "undefined" ||
-    process.env.JEST_WORKER_ID === undefined
-  ) {
-    const module = await import("cosmian_cover_crypt")
-    await module.default()
-  }
-}
+// /**
+//  * Init wasm for CoverCrypt
+//  */
+// export async function initCoverCrypt(): Promise<void> {
+//   if (
+//     typeof process === "undefined" ||
+//     process.env.JEST_WORKER_ID === undefined
+//   ) {
+//     const module = await import("cosmian_cover_crypt")
+//     await module.default()
+//   }
+// }

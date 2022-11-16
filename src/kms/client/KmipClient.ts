@@ -447,9 +447,13 @@ export class KmipClient {
     accessPolicy: AccessPolicy | string,
     privateMasterKeyIdentifier: string,
   ): Promise<string> {
+    console.log('A');
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
+    console.log('B');
+    accessPolicy.toVendorAttribute()
+    console.log('foo');
     const create = new Create(
       ObjectType.PrivateKey,
       new Attributes(
@@ -470,7 +474,9 @@ export class KmipClient {
         KeyFormatType.CoverCryptSecretKey,
       ),
     )
+    console.log('C');
     const response = await this.post(create, CreateResponse)
+    console.log('D');
     return response.uniqueIdentifier
   }
 
