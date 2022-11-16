@@ -657,7 +657,7 @@ function App() {
         {
           encryptedUsers.length > 0 &&
           <div className="position-relative mx-5 mb-4">
-            <div className="position-absolute pt-2 ps-4" style={{ 'zIndex': '999' }}>
+            <div className={`${showEncryptedData ? 'position-absolute' : ''} pt-2 ps-4`} style={{ 'zIndex': '999' }}>
               <div className="form-check form-switch">
                 <input className="form-check-input" type="checkbox" role="switch" id="hide_encrypted" checked={showEncryptedData} onChange={(e) => setShowEncryptedData(e.target.checked)} />
                 <label className="form-check-label" htmlFor="hide_encrypted">Show encrypted data</label>

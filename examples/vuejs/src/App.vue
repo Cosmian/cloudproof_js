@@ -648,7 +648,7 @@ export default defineComponent({
     </div>
 
     <div class="position-relative mx-5 mb-4" v-show="encryptedUsers.length">
-      <div class="position-absolute pt-2 ps-4" style="z-index: 999">
+      <div class="pt-2 ps-4" style="z-index: 999" :class="{ 'position-absolute': showEncryptedData }">
         <div class="form-check form-switch">
           <input class="form-check-input" type="checkbox" role="switch" id="hide_encrypted" v-model="showEncryptedData">
           <label class="form-check-label" for="hide_encrypted">Show encrypted data</label>
