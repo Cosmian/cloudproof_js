@@ -672,9 +672,9 @@ export default defineComponent({
                 </thead>
                 <tbody>
                   <tr v-for="user in encryptedUsers">
-                    <td>{{ decode(user.marketing).substring(0, 30) }}…</td>
-                    <td>{{ decode(user.hr).substring(0, 30) }}…</td>
-                    <td>{{ decode(user.manager).substring(0, 30) }}…</td>
+                    <td>{{ decode(user.marketing).substring(0, 15) }}…</td>
+                    <td>{{ decode(user.hr).substring(0, 15) }}…</td>
+                    <td>{{ decode(user.manager).substring(0, 15) }}…</td>
                   </tr>
                 </tbody>
               </table>

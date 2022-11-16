@@ -460,7 +460,7 @@ function App() {
   }, [selectedKey, doOr, query]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const logRequest = (request: Request) => {
-    setRequests((requests) => [...requests.slice(-9), request])
+    setRequests((requests) => [...requests.slice(-19), request])
   };
 
   const decode = (value: Uint8Array): string => {
@@ -524,7 +524,7 @@ function App() {
                 <button className="btn btn-outline-secondary" type="button"
                   onClick={() => setKmsServerUrl('http://localhost:9998/kmip/2_1')}>Localhost</button>
                 <button className="btn btn-outline-secondary" type="button"
-                  onClick={() => setKmsServerUrl('https://demo-cloudproof.cosmian.com/kms/kmip/2_1')}>Démo</button>
+                  onClick={() => setKmsServerUrl('https://demo-cloudproof.cosmian.com/kms/kmip/2_1')}>Demo</button>
               </div>
             </div>
 
@@ -685,9 +685,9 @@ function App() {
                           {
                             encryptedUsers.map((user, index) => (
                               <tr key={`encrypted_${index}`}>
-                                <td>{decode(user.marketing).substring(0, 30)}…</td>
-                                <td>{decode(user.hr).substring(0, 30)}…</td>
-                                <td>{decode(user.manager).substring(0, 30)}…</td>
+                                <td>{decode(user.marketing).substring(0, 15)}…</td>
+                                <td>{decode(user.hr).substring(0, 15)}…</td>
+                                <td>{decode(user.manager).substring(0, 15)}…</td>
                               </tr>
                             ))
                           }
