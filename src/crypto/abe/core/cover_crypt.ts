@@ -16,7 +16,7 @@ export const setCoverCryptInit = (arg: () => InitInput): void => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function CoverCrypt() {
   if (initialized === undefined) {
-    // @ts-expect-error
+    // @ts-expect-error @ts-ignore-error
     const loadModule = wasmInit();
     initialized = init(loadModule).then(() => undefined);
   }

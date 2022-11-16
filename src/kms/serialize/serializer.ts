@@ -110,6 +110,19 @@ function parseChildren(value: Object): TTLV[] {
   const childrenMetadata: { [propertyName: string]: PropertyMetadata } =
     Reflect.getMetadata(METADATA_KEY, value)
 
+  
+  if (typeof childrenMetadata === "undefined") {
+    console.error(
+      `Serializer: children Metadata is not defined in `,
+      value,
+    )
+    throw new Error(
+      `Serializer: children Metadata is not defined`,
+    )
+  } else {
+    console.log(childrenMetadata);
+  }
+
   const children: TTLV[] = []
   for (const pn of Object.getOwnPropertyNames(value)) {
     // Skip tag since it's a default property with the classname inside it we don't
@@ -123,6 +136,7 @@ function parseChildren(value: Object): TTLV[] {
     if (typeof childValue === "undefined") {
       continue
     }
+
 
     // recover the Metadata for that property
     const childMetadata: PropertyMetadata = childrenMetadata[propertyName]

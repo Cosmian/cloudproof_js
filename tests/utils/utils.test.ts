@@ -1,12 +1,12 @@
-import { logger } from "utils/logger"
 import {
   deserializeList,
   fromBeBytes,
   hexDecode,
   hexEncode,
-  serializeList,
   toBeBytes,
-} from "utils/utils"
+} from "../../src/utils/utils"
+import { expect, test } from 'vitest'
+
 
 test("hexEncode+hexDecode", () => {
   const s = "ça va être la fête"
@@ -56,12 +56,6 @@ test("leb128_real_case", () => {
 
   // Deserialize
   const deserialized = deserializeList(serialized)
-
-  logger.log(() => "serialized: " + serialized)
-  logger.log(() => "deserialized.len: " + deserialized.length)
-  logger.log(() => "deserialized[0]: " + deserialized[0])
-  logger.log(() => "deserialized[1]: " + deserialized[1])
-  logger.log(() => "deserialized: " + deserialized)
 
   // Check
   expect(deserialized.length).toBe(2)

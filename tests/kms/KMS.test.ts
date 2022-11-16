@@ -1,28 +1,32 @@
-import { fromTTLV } from "../../src/kms/deserialize/deserializer"
 import {
   KmipClient,
   SymmetricKeyAlgorithm,
-} from "../../src/kms/client/KmipClient"
-import { Create } from "../../src/kms/operations/Create"
+  CoverCrypt,
+  AccessPolicy,
+  VendorAttribute,
+  Policy, PolicyAxis, Create,
+  Attributes,
+  CryptographicAlgorithm,
+  KeyFormatType,
+  Link,
+  LinkedObjectIdentifier,
+  LinkType,
+  ObjectType,
+  SymmetricKey,
+  TransparentSymmetricKey,
+  hexEncode,
+  TTLV,
+} from "../.."
 import { toTTLV } from "../../src/kms/serialize/serializer"
-import { Attributes } from "../../src/kms/types/Attributes"
-import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
-import { Link } from "../../src/kms/types/Link"
-import { LinkedObjectIdentifier } from "../../src/kms/types/LinkedObjectIdentifier"
-import { LinkType } from "../../src/kms/types/LinkType"
-import { ObjectType } from "../../src/kms/types/ObjectType"
-import { SymmetricKey } from "../../src/kms/objects/SymmetricKey"
-import { TransparentSymmetricKey } from "../../src/kms/data_structures/TransparentSymmetricKey"
-import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
-import { hexEncode } from "../../src/utils/utils"
-import { TTLV } from "../../src/kms/serialize/Ttlv"
-import { VendorAttribute } from "../../src/kms/types/VendorAttribute"
+import { fromTTLV } from "../../src/kms/deserialize/deserializer"
 import { TtlvType } from "../../src/kms/serialize/TtlvType"
-import { AccessPolicy } from "../../src/crypto/abe/interfaces/access_policy"
-import { CoverCrypt } from "index"
 
-test("ser-de Create", () => {
+import { expect, test } from 'vitest'
+
+
+test("ser-de Create", async () => {
+  await CoverCrypt();
+
   const create = new Create(
     ObjectType.SymmetricKey,
     new Attributes(
@@ -123,6 +127,8 @@ const CreateSymmetricKey = `{
 }`
 
 test("KMS Symmetric Key", async () => {
+  await CoverCrypt();
+
   const client: KmipClient = new KmipClient(
     new URL("http://localhost:9998/kmip/2_1"),
   )
@@ -177,6 +183,8 @@ test("KMS Symmetric Key", async () => {
 })
 
 test("Policy", async () => {
+  await CoverCrypt();
+
   const policy = new Policy(
     [
       new PolicyAxis(
@@ -214,6 +222,8 @@ test("Policy", async () => {
 })
 
 test("Long & Big Ints", async () => {
+  await CoverCrypt();
+
   const ttlvLong = new TTLV(
     "Long",
     TtlvType.LongInteger,
@@ -240,6 +250,8 @@ test("Long & Big Ints", async () => {
 })
 
 test("KMS CoverCrypt Access Policy", async () => {
+  await CoverCrypt();
+
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
@@ -257,6 +269,8 @@ test("KMS CoverCrypt Access Policy", async () => {
 })
 
 test("KMS CoverCrypt keys", async () => {
+  await CoverCrypt();
+
   const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
     await CoverCrypt()
 

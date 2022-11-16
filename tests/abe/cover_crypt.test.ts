@@ -1,4 +1,6 @@
-import { CoverCrypt, hexDecode, Policy, PolicyAxis } from "index"
+import { CoverCrypt, hexDecode, Policy, PolicyAxis } from "../.."
+import { expect, test } from 'vitest'
+
 
 const TOP_SECRET_MKG_FIN_USK_ACCESS_POLICY =
   "Security Level::Top Secret && (Department::MKG || Department::FIN)"

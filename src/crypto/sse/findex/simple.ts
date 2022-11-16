@@ -7,6 +7,7 @@ import init, {
 
 import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
 import { Index } from "./interfaces"
+import { hasUncaughtExceptionCaptureCallback } from "process";
 
 let initialized: Promise<void> | undefined;
 
@@ -204,7 +205,10 @@ export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
   if (initialized === undefined) {
-    // @ts-expect-error
+    if (wasmInit === undefined) {
+      throw new Error("Please provide a WASM init function");
+    }
+
     const loadModule = wasmInit();
     initialized = init(loadModule).then(() => undefined);
   }

@@ -119,8 +119,8 @@ export * from "./kms/json/KmipChoiceAttributeReference"
 export * from "./kms/json/KmipStruct"
 export * from "./kms/client/KmipClient"
 
-// @ts-expect-error
+// @ts-expect-error @ts-ignore-error
 setCoverCryptInit(() => cover_crypt_wasm());
 
-// @ts-expect-error
+// @ts-expect-error @ts-ignore-error
 setFindexInit(() => findex_wasm());
