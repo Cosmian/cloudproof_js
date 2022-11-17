@@ -46,7 +46,7 @@ export function fromTTLV<T extends Object>(
  * @param {string} propertyName the name of the property of the parent structure (if any)
  * @returns {object} the updated instance
  */
-function structureParser<T extends (Object | Deserialize)>(
+function structureParser<T extends Object | Deserialize>(
   instance: T,
   ttlv: TTLV,
   propertyName: string,
@@ -66,7 +66,7 @@ function structureParser<T extends (Object | Deserialize)>(
   // try to see if the type implements Deserializable.fromTTLV
   // in which case, use that
   if ("fromTTLV" in instance) {
-    return instance.fromTTLV(ttlv, propertyName) as T;
+    return instance.fromTTLV(ttlv, propertyName) as T
   }
 
   // use the default parser

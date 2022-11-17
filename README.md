@@ -1,3 +1,16 @@
+
+
+<!-- toc -->
+
+- [Cloudproof Javascript Lib](#cloudproof-javascript-lib)
+  * [Getting started](#getting-started)
+  * [Using in Javascript projects](#using-in-javascript-projects)
+  * [Using in WebPack (not in Node)](#using-in-webpack-not-in-node)
+  * [Versions Correspondence](#versions-correspondence)
+  * [npm version](#npm-version)
+
+<!-- tocstop -->
+
 # Cloudproof Javascript Lib
 
 The library provides a Typescript-friendly API to the **Cloudproof Encryption** product of the [Cosmian Ubiquitous Encryption platform](https://cosmian.com).

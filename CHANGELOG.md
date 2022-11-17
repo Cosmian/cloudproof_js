@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [5.1.0] - 2022-11-17
+
+### Added
+
+- Cosmian cloudproof Javascript demonstration
+
+### Changed
+
+- update `cover_crypt` to 7.1.0
+
+### Fixed
+- fix TypeScript 4.9
+- fix E2E test and small HTML tweaks
+---
+
 ## [5.0.1] - 2022-11-15
 
 ### Added
