@@ -5,9 +5,8 @@ import init, {
   InitInput,
 } from "../../../pkg/findex/cosmian_findex"
 
-import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
+import { SymmetricKey } from "../../../kms/structs/objects"
 import { Index } from "./interfaces"
-import { hasUncaughtExceptionCaptureCallback } from "process";
 
 let initialized: Promise<void> | undefined;
 
