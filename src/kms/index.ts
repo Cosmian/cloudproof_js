@@ -1,45 +1,29 @@
-import { KmipStruct } from "../../kms/json/KmipStruct"
-import { AccessPolicy } from "../../crypto/abe/interfaces/access_policy"
-import { Policy } from "../../crypto/abe/interfaces/policy"
-import { KeyBlock } from "../../kms/data_structures/KeyBlock"
-import { KeyValue } from "../../kms/data_structures/KeyValue"
-import { PlainTextKeyValue } from "../../kms/data_structures/PlainTextKeyValue"
-import { TransparentSymmetricKey } from "../../kms/data_structures/TransparentSymmetricKey"
-import { getObjectType, KmipObject } from "../../kms/objects/KmipObject"
-import { PrivateKey } from "../../kms/objects/PrivateKey"
-import { PublicKey } from "../../kms/objects/PublicKey"
-import { SymmetricKey } from "../../kms/objects/SymmetricKey"
-import { CreateKeyPair } from "../../kms/operations/CreateKeyPair"
-import { CreateKeyPairResponse } from "../../kms/operations/CreateKeyPairResponse"
-import { Destroy } from "../../kms/operations/Destroy"
-import { DestroyResponse } from "../../kms/operations/DestroyResponse"
-import { Get } from "../../kms/operations/Get"
-import { GetResponse } from "../../kms/operations/GetResponse"
-import { Import } from "../../kms/operations/Import"
-import { ImportResponse } from "../../kms/operations/ImportResponse"
-import { ReKeyKeyPair } from "../../kms/operations/ReKeyKeyPair"
-import { ReKeyKeyPairResponse } from "../../kms/operations/ReKeyKeyPairResponse"
-import { Revoke } from "../../kms/operations/Revoke"
-import { RevokeResponse } from "../../kms/operations/RevokeResponse"
-import { TTLV } from "../../kms/serialize/Ttlv"
-import { CryptographicUsageMask } from "../../kms/types/CryptographicUsageMask"
-import { LinkedObjectIdentifier } from "../../kms/types/LinkedObjectIdentifier"
-import { LinkType } from "../../kms/types/LinkType"
-import { RevocationReason } from "../../kms/types/RevocationReason"
-import { VendorAttribute } from "../../kms/types/VendorAttribute"
-import { fromTTLV } from "../deserialize/deserializer"
-import { Create } from "../operations/Create"
-import { CreateResponse } from "../operations/CreateResponse"
-import { toTTLV } from "../serialize/serializer"
-import { Attributes } from "../types/Attributes"
-import { CryptographicAlgorithm } from "../types/CryptographicAlgorithm"
-import { KeyFormatType } from "../types/KeyFormatType"
-import { Link } from "../types/Link"
-import { ObjectType } from "../types/ObjectType"
+import { Serializable, serialize, deserialize } from "./kmip"
+import { Get } from "./requests/Get"
+import { Attributes, Link, LinkType, VendorAttribute } from "./structs/object_attributes"
+import { Object, PrivateKey, PublicKey, SymmetricKey } from "./structs/objects"
+import { Import } from "./requests/Import"
+import { Revoke } from "./requests/Revoke"
+import { Create } from "./requests/Create"
+import { CryptographicUsageMask, RevocationReasonEnumeration } from "./structs/types"
+import { Destroy } from "./requests/Destroy"
+import { CryptographicAlgorithm, KeyBlock, KeyFormatType, KeyValue, TransparentSymmetricKey } from "./structs/object_data_structures"
+import { Policy } from "../crypto/abe/interfaces/policy"
+import { CreateKeyPair } from "./requests/CreateKeyPair"
+import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
+import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 
-export class KmipClient {
+export interface KmsResponse {
+
+}
+
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+export interface KmsRequest<T extends KmsResponse> {
+  __response: T | undefined
+}
+
+export class KmsClient {
   private readonly url: URL
-
   private readonly headers: HeadersInit
 
   /**
@@ -48,15 +32,13 @@ export class KmipClient {
    * @param {URL} url of the KMS server
    * @param {string} apiKey optional, to authenticate to the KMS server
    */
-  constructor(url: URL, apiKey?: string) {
+  constructor(url: URL, apiKey: string | null = null) {
     this.url = url
     this.headers = {
       "Content-Type": "application/json; charset=utf-8",
     }
-    if (typeof apiKey !== "undefined") {
-      this.headers = Object.assign(this.headers, {
-        Authorization: `Bearer ${apiKey}`,
-      })
+    if (apiKey !== null) {
+      this.headers.Authorization = `Bearer ${apiKey}`
     }
   }
 
@@ -64,27 +46,24 @@ export class KmipClient {
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
    *
-   * @param {KmipStruct} payload a valid KMIP operation
-   * @param {Function} responseClass the class of the expected KMIP response
-   * @returns {T} an instance of the KMIP response
+   * @param {TRequest} request a valid KMIP operation
+   * @returns {TResponse} an instance of the KMIP response
    */
-  public async post<T extends Object>(
-    payload: KmipStruct,
-    responseClass: new (...args: any[]) => T,
-  ): Promise<T> {
-    const ttlvRequest = toTTLV(payload)
-    const options: RequestInit = {
+  private async post<TResponse extends KmsResponse>(
+    request: KmsRequest<TResponse> & Serializable,
+  ): Promise<TResponse> {
+    const response = await fetch(this.url, {
       method: "POST",
-      body: JSON.stringify(ttlvRequest),
+      body: serialize(request),
       headers: this.headers,
-    }
-    const response = await fetch(this.url as any, options)
+    })
+
     if (response.status >= 400) {
       throw new Error(`KMIP request failed: ${await response.text()}`)
     }
+
     const content = await response.text()
-    const ttlvResponse = TTLV.fromJSON(content)
-    return fromTTLV(responseClass, ttlvResponse)
+    return deserialize<TResponse>(content);
   }
 
   /**
@@ -93,12 +72,11 @@ export class KmipClient {
    * @returns {boolean} true if up
    */
   public async up(): Promise<boolean> {
-    const options: RequestInit = {
-      method: "GET",
-      headers: this.headers,
-    }
     try {
-      await fetch(this.url as any, options)
+      await fetch(this.url, {
+        method: "GET",
+        headers: this.headers,
+      })
       return true
     } catch (error) {
       return false
@@ -111,10 +89,9 @@ export class KmipClient {
    * @param {string} uniqueIdentifier the unique identifier of the object
    * @returns {object} an instance of the KMIP Object
    */
-  public async getObject<T>(uniqueIdentifier: string): Promise<T> {
-    const get = new Get(uniqueIdentifier)
-    const response = await this.post(get, GetResponse)
-    return response.object as unknown as T
+  public async getObject(uniqueIdentifier: string): Promise<Object> {
+    const response = await this.post(new Get(uniqueIdentifier))
+    return response.object
   }
 
   /**
@@ -122,32 +99,25 @@ export class KmipClient {
    *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
-   * @param {KmipObject} object the KMIP Object instance
-   * @param {boolean} replaceExisting replace an instance under the same identifier if true
+   * @param {Object} object the KMIP Object instance
+   * @param {boolean} replaceExisting replace the existing object
    * @returns {string} the unique identifier
    */
-  public async importObject<T>(
+  public async importObject(
     uniqueIdentifier: string,
     attributes: Attributes,
-    object: KmipObject,
-    // eslint-disable-next-line no-unused-vars
-    replaceExisting?: boolean,
-  ): Promise<T> {
-    if (attributes.objectType !== getObjectType(object)) {
-      throw new Error(
-        `Import: invalid object type ${
-          attributes.objectType
-        } for object of type ${getObjectType(object)}`,
-      )
-    }
-    const imp = new Import(
+    object: Object,
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    const response = await this.post(new Import(
       uniqueIdentifier,
       attributes.objectType,
-      attributes,
       object,
-    )
-    const response = await this.post(imp, ImportResponse)
-    return response.uniqueIdentifier as unknown as T
+      attributes,
+      replaceExisting,
+    ))
+
+    return response.uniqueIdentifier
   }
 
   /**
@@ -158,10 +128,9 @@ export class KmipClient {
    */
   public async revokeObject(
     uniqueIdentifier: string,
-    reason: string,
+    reason: string | RevocationReasonEnumeration,
   ): Promise<void> {
-    const get = new Revoke(uniqueIdentifier, new RevocationReason(reason))
-    await this.post(get, RevokeResponse)
+    await this.post(new Revoke(uniqueIdentifier, reason))
   }
 
   /**
@@ -170,8 +139,7 @@ export class KmipClient {
    * @param {string} uniqueIdentifier the unique identifier of the object
    */
   public async destroyObject(uniqueIdentifier: string): Promise<void> {
-    const get = new Destroy(uniqueIdentifier)
-    await this.post(get, DestroyResponse)
+    await this.post(new Destroy(uniqueIdentifier))
   }
 
   /**
@@ -183,30 +151,19 @@ export class KmipClient {
    * @returns {string} the unique identifier of the created key
    */
   public async createSymmetricKey(
-    algorithm?: SymmetricKeyAlgorithm,
-    bits?: number,
-    links?: Link[],
+    algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
+    bits: number | null = null,
+    links: Link[] = [],
   ): Promise<string> {
-    let algo = CryptographicAlgorithm.AES
-    if (algorithm === SymmetricKeyAlgorithm.ChaCha20) {
-      algo = CryptographicAlgorithm.ChaCha20
-    }
-    const create = new Create(
-      ObjectType.SymmetricKey,
-      new Attributes(
-        ObjectType.SymmetricKey,
-        links,
-        undefined,
-        undefined,
-        algo,
-        bits,
-        undefined,
-        undefined,
-        undefined,
-        KeyFormatType.TransparentSymmetricKey,
-      ),
-    )
-    const response = await this.post(create, CreateResponse)
+    const algo = algorithm === SymmetricKeyAlgorithm.ChaCha20 ? CryptographicAlgorithm.ChaCha20 : CryptographicAlgorithm.AES
+
+    const attributes = new Attributes('SymmetricKey')
+    attributes.link = links
+    attributes.cryptographicAlgorithm = algo
+    attributes.cryptographicLength = bits
+    attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+
+    const response = await this.post(new Create(attributes.objectType, attributes))
     return response.uniqueIdentifier
   }
 
@@ -223,43 +180,34 @@ export class KmipClient {
   public async importSymmetricKey(
     uniqueIdentifier: string,
     keyBytes: Uint8Array,
-    replaceExisting?: boolean,
-    algorithm?: SymmetricKeyAlgorithm,
-    links?: Link[],
+    replaceExisting: boolean = false,
+    algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
+    links: Link[] = [],
   ): Promise<string> {
-    let algo = CryptographicAlgorithm.AES
-    if (algorithm === SymmetricKeyAlgorithm.ChaCha20) {
-      algo = CryptographicAlgorithm.ChaCha20
-    }
-    const attributes = new Attributes(
-      ObjectType.SymmetricKey,
-      links,
-      undefined,
-      undefined,
-      algo,
-      keyBytes.length * 8,
-      undefined,
-      undefined,
-      CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt,
-      KeyFormatType.TransparentSymmetricKey,
-    )
+    const algo = algorithm === SymmetricKeyAlgorithm.ChaCha20 ? CryptographicAlgorithm.ChaCha20 : CryptographicAlgorithm.AES
+
+    const attributes = new Attributes('SymmetricKey')
+    attributes.link = links
+    attributes.cryptographicAlgorithm = algo
+    attributes.cryptographicLength = keyBytes.length * 8
+    attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+    attributes.cryptographicUsageMask = CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+
     const symmetricKey = new SymmetricKey(
       new KeyBlock(
         KeyFormatType.TransparentSymmetricKey,
         new KeyValue(
-          undefined,
-          new PlainTextKeyValue(
-            KeyFormatType.TransparentSymmetricKey,
-            new TransparentSymmetricKey(keyBytes),
-            attributes,
-          ),
+          new TransparentSymmetricKey(keyBytes),
+          attributes,
         ),
+        algo,
+        keyBytes.length * 8,
       ),
     )
     return await this.importObject(
       uniqueIdentifier,
       attributes,
-      symmetricKey,
+      { type: 'SymmetricKey', value: symmetricKey },
       replaceExisting,
     )
   }
@@ -275,7 +223,12 @@ export class KmipClient {
   public async retrieveSymmetricKey(
     uniqueIdentifier: string,
   ): Promise<SymmetricKey> {
-    return await this.getObject(uniqueIdentifier)
+    const object = await this.getObject(uniqueIdentifier);
+    if (object.type !== 'SymmetricKey') {
+      throw new Error(`The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`)
+    }
+
+    return object.value
   }
 
   /**
@@ -302,15 +255,12 @@ export class KmipClient {
   }
 
   public async createAbeMasterKeyPair(policy: Policy): Promise<string[]> {
-    const commonAttributes = new Attributes(ObjectType.PrivateKey)
-    commonAttributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
-    commonAttributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
-    commonAttributes.vendorAttributes = [policy.toVendorAttribute()]
+    const attributes = new Attributes('PrivateKey')
+    attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
+    attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+    attributes.vendorAttributes = [policy.toVendorAttribute()]
 
-    const response = await this.post(
-      new CreateKeyPair(commonAttributes),
-      CreateKeyPairResponse,
-    )
+    const response = await this.post(new CreateKeyPair(attributes))
     return [
       response.privateKeyUniqueIdentifier,
       response.publicKeyUniqueIdentifier,
@@ -329,13 +279,17 @@ export class KmipClient {
   public async retrieveAbePrivateMasterKey(
     uniqueIdentifier: string,
   ): Promise<PrivateKey> {
-    const key: PrivateKey = await this.getObject(uniqueIdentifier)
-    if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
-      throw new Error(
-        `Not an ABE Private Master Key for identifier: ${uniqueIdentifier}`,
-      )
+    const object = await this.getObject(uniqueIdentifier)
+
+    if (object.type !== "PrivateKey") {
+      throw new Error(`The KMS server returned a ${object.type} instead of a PrivateKey for the identifier ${uniqueIdentifier}`)
     }
-    return key
+
+    if (object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptSecretKey) {
+      throw new Error(`The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptSecretKey`)
+    }
+
+    return object.value
   }
 
   /**
@@ -350,13 +304,17 @@ export class KmipClient {
   public async retrieveAbePublicMasterKey(
     uniqueIdentifier: string,
   ): Promise<PublicKey> {
-    const key: PublicKey = await this.getObject(uniqueIdentifier)
-    if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptPublicKey) {
-      throw new Error(
-        `Not an ABE Public Master Key for identifier: ${uniqueIdentifier}`,
-      )
+    const object = await this.getObject(uniqueIdentifier)
+
+    if (object.type !== "PublicKey") {
+      throw new Error(`The KMS server returned a ${object.type} instead of a PublicKey for the identifier ${uniqueIdentifier}`)
     }
-    return key
+
+    if (object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptPublicKey) {
+      throw new Error(`The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptPublicKey`)
+    }
+
+    return object.value
   }
 
   /**
@@ -370,16 +328,16 @@ export class KmipClient {
   public async importAbePrivateMasterKey(
     uniqueIdentifier: string,
     key: PrivateKey,
-    replaceExisting?: boolean,
+    replaceExisting: boolean = false,
   ): Promise<string> {
-    const attributes = key.keyBlock.key_value.plaintext?.attributes
-    if (typeof attributes === "undefined") {
-      throw new Error("The Private Master Key must contain the attributes")
-    }
+    if (key.keyBlock === null) throw new Error(`The Private Master Key keyBlock shouldn't be null`);
+    if (!(key.keyBlock.keyValue instanceof KeyValue)) throw new Error(`The Private Master Key keyBlock.keyValue should be a KeyValue`);
+    if (key.keyBlock.keyValue.attributes === null) throw new Error(`The Private Master Key keyBlock.keyValue.attributes shouldn't be null`);
+
     return await this.importObject(
       uniqueIdentifier,
-      attributes,
-      key,
+      key.keyBlock.keyValue.attributes,
+      { type: 'PrivateKey', value: key },
       replaceExisting,
     )
   }
@@ -397,14 +355,14 @@ export class KmipClient {
     key: PublicKey,
     replaceExisting?: boolean,
   ): Promise<string> {
-    const attributes = key.keyBlock.key_value.plaintext?.attributes
-    if (typeof attributes === "undefined") {
-      throw new Error("The Public Master Key must contain the attributes")
-    }
+    if (key.keyBlock === null) throw new Error(`The Public Master Key keyBlock shouldn't be null`);
+    if (!(key.keyBlock.keyValue instanceof KeyValue)) throw new Error(`The Public Master Key keyBlock.keyValue should be a KeyValue`);
+    if (key.keyBlock.keyValue.attributes === null) throw new Error(`The Public Master Key keyBlock.keyValue.attributes shouldn't be null`);
+
     return await this.importObject(
       uniqueIdentifier,
-      attributes,
-      key,
+      key.keyBlock.keyValue.attributes,
+      { type: 'PrivateKey', value: key },
       replaceExisting,
     )
   }
@@ -447,36 +405,20 @@ export class KmipClient {
     accessPolicy: AccessPolicy | string,
     privateMasterKeyIdentifier: string,
   ): Promise<string> {
-    console.log('A');
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
-    console.log('B');
-    accessPolicy.toVendorAttribute()
-    console.log('foo');
-    const create = new Create(
-      ObjectType.PrivateKey,
-      new Attributes(
-        ObjectType.PrivateKey,
-        [
-          new Link(
-            LinkType.ParentLink,
-            new LinkedObjectIdentifier(privateMasterKeyIdentifier),
-          ),
-        ],
-        [accessPolicy.toVendorAttribute()],
-        undefined,
-        CryptographicAlgorithm.CoverCrypt,
-        undefined,
-        undefined,
-        undefined,
-        CryptographicUsageMask.Decrypt,
-        KeyFormatType.CoverCryptSecretKey,
-      ),
-    )
-    console.log('C');
-    const response = await this.post(create, CreateResponse)
-    console.log('D');
+
+    const attributes = new Attributes('PrivateKey');
+    attributes.link = [
+      new Link(LinkType.ParentLink, privateMasterKeyIdentifier),
+    ];
+    attributes.vendorAttributes = [accessPolicy.toVendorAttribute()]
+    attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
+    attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
+    attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+
+    const response = await this.post(new Create(attributes.objectType, attributes))
     return response.uniqueIdentifier
   }
 
@@ -492,13 +434,7 @@ export class KmipClient {
   public async retrieveAbeUserDecryptionKey(
     uniqueIdentifier: string,
   ): Promise<PrivateKey> {
-    const key: PrivateKey = await this.getObject(uniqueIdentifier)
-    if (key.keyBlock.key_format_type !== KeyFormatType.CoverCryptSecretKey) {
-      throw new Error(
-        `Not an ABE User Decryption Key for identifier: ${uniqueIdentifier}`,
-      )
-    }
-    return key
+    return await this.retrieveAbePrivateMasterKey(uniqueIdentifier)
   }
 
   /**
@@ -514,16 +450,7 @@ export class KmipClient {
     key: PrivateKey,
     replaceExisting?: boolean,
   ): Promise<string> {
-    const attributes = key.keyBlock.key_value.plaintext?.attributes
-    if (typeof attributes === "undefined") {
-      throw new Error("The ABE User Decryption Key must contain the attributes")
-    }
-    return await this.importObject(
-      uniqueIdentifier,
-      attributes,
-      key,
-      replaceExisting,
-    )
+    return await this.importAbePrivateMasterKey(uniqueIdentifier, key, replaceExisting)
   }
 
   /**
@@ -559,35 +486,24 @@ export class KmipClient {
     privateMasterKeyUniqueIdentifier: string,
     attributes: string[],
   ): Promise<string[]> {
-    const rekeyKeyPair = new ReKeyKeyPair(
-      privateMasterKeyUniqueIdentifier,
-      undefined,
-      undefined,
-      new Attributes(
-        ObjectType.PrivateKey,
-        [
-          new Link(
-            LinkType.ParentLink,
-            new LinkedObjectIdentifier(privateMasterKeyUniqueIdentifier),
-          ),
-        ],
-        [
-          new VendorAttribute(
-            VendorAttribute.VENDOR_ID_COSMIAN,
-            VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ATTR,
-            new TextEncoder().encode(JSON.stringify(attributes)),
-          ),
-        ],
-        undefined,
-        CryptographicAlgorithm.CoverCrypt,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        KeyFormatType.CoverCryptSecretKey,
+    const privateKeyAttributes = new Attributes('PrivateKey')
+    privateKeyAttributes.link = [
+      new Link(LinkType.ParentLink, privateMasterKeyUniqueIdentifier),
+    ]
+    privateKeyAttributes.vendorAttributes = [
+      new VendorAttribute(
+        VendorAttribute.VENDOR_ID_COSMIAN,
+        VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ATTR,
+        new TextEncoder().encode(JSON.stringify(attributes)),
       ),
-    )
-    const response = await this.post(rekeyKeyPair, ReKeyKeyPairResponse)
+    ]
+    privateKeyAttributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
+    privateKeyAttributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+
+    const request = new ReKeyKeyPair(privateMasterKeyUniqueIdentifier)
+    request.privateKeyAttributes = privateKeyAttributes
+    
+    const response = await this.post(request)
     return [
       response.privateKeyUniqueIdentifier,
       response.publicKeyUniqueIdentifier,

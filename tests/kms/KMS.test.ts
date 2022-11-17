@@ -1,139 +1,140 @@
 import {
-  KmipClient,
+  KmsClient,
   SymmetricKeyAlgorithm,
   CoverCrypt,
   AccessPolicy,
   VendorAttribute,
-  Policy, PolicyAxis, Create,
+  Policy, PolicyAxis,
   Attributes,
   CryptographicAlgorithm,
   KeyFormatType,
-  Link,
-  LinkedObjectIdentifier,
-  LinkType,
   ObjectType,
   SymmetricKey,
   TransparentSymmetricKey,
   hexEncode,
   TTLV,
+  KeyValue,
+  toTTLV,
+  TtlvType,
+  TransparentECPublicKey,
+  RecommendedCurve,
+  deserialize,
 } from "../.."
-import { toTTLV } from "../../src/kms/serialize/serializer"
-import { fromTTLV } from "../../src/kms/deserialize/deserializer"
-import { TtlvType } from "../../src/kms/serialize/TtlvType"
 
 import { expect, test } from 'vitest'
 
 
-test("ser-de Create", async () => {
-  await CoverCrypt();
+// test("ser-de Create", async () => {
+//   await CoverCrypt();
 
-  const create = new Create(
-    ObjectType.SymmetricKey,
-    new Attributes(
-      ObjectType.SymmetricKey,
-      [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-      undefined,
-      undefined,
-      CryptographicAlgorithm.AES,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      KeyFormatType.TransparentSymmetricKey,
-    ),
-  )
-  // console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
+//   const create = new Create(
+//     ObjectType.SymmetricKey,
+//     new Attributes(
+//       ObjectType.SymmetricKey,
+//       [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
+//       undefined,
+//       undefined,
+//       CryptographicAlgorithm.AES,
+//       undefined,
+//       undefined,
+//       undefined,
+//       undefined,
+//       KeyFormatType.TransparentSymmetricKey,
+//     ),
+//   )
+//   // console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
 
-  const ttlv = toTTLV(create)
-  // console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
+//   const ttlv = toTTLV(create)
+//   // console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
 
-  const create_: Create = fromTTLV(Create, ttlv)
-  // console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
+//   const create_: Create = fromTTLV(Create, ttlv)
+//   // console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
 
-  const ttlv_ = toTTLV(create_)
-  // console.log("RECREATED TTLV", JSON.stringify(ttlv_, null, 2))
+//   const ttlv_ = toTTLV(create_)
+//   // console.log("RECREATED TTLV", JSON.stringify(ttlv_, null, 2))
 
-  expect(ttlv_).toEqual(ttlv)
-})
+//   expect(ttlv_).toEqual(ttlv)
+// })
 
-test("de-serialize", () => {
-  const create: Create = fromTTLV(Create, JSON.parse(CreateSymmetricKey))
-  expect(create.objectType).toEqual(ObjectType.SymmetricKey)
-  expect(create.protectionStorageMasks).toBeUndefined()
-  expect(create.attributes.cryptographicAlgorithm).toEqual(
-    CryptographicAlgorithm.AES,
-  )
-  expect(create.attributes.link).toBeDefined()
-  // linter guard
-  if (typeof create.attributes.link !== "undefined") {
-    expect(create.attributes.link.length).toEqual(1)
-    const link: Link = create.attributes.link[0]
-    expect(link.linkType).toEqual(LinkType.ParentLink)
-    expect(link.linkedObjectIdentifier).toEqual(
-      new LinkedObjectIdentifier("SK"),
-    )
-  }
-})
+// test("de-serialize", () => {
+//   const create: Create = fromTTLV(Create, JSON.parse(CreateSymmetricKey))
+//   expect(create.objectType).toEqual(ObjectType.SymmetricKey)
+//   expect(create.protectionStorageMasks).toBeUndefined()
+//   expect(create.attributes.cryptographicAlgorithm).toEqual(
+//     CryptographicAlgorithm.AES,
+//   )
+//   expect(create.attributes.link).toBeDefined()
+//   // linter guard
+//   if (typeof create.attributes.link !== "undefined") {
+//     expect(create.attributes.link.length).toEqual(1)
+//     const link: Link = create.attributes.link[0]
+//     expect(link.linkType).toEqual(LinkType.ParentLink)
+//     expect(link.linkedObjectIdentifier).toEqual(
+//       new LinkedObjectIdentifier("SK"),
+//     )
+//   }
+// })
 
-// generated from Rust
-const CreateSymmetricKey = `{
-  "tag": "Create",
-  "type": "Structure",
-  "value": [
-    {
-      "tag": "ObjectType",
-      "type": "Enumeration",
-      "value": "SymmetricKey"
-    },
-    {
-      "tag": "Attributes",
-      "type": "Structure",
-      "value": [
-        {
-          "tag": "CryptographicAlgorithm",
-          "type": "Enumeration",
-          "value": "AES"
-        },
-        {
-          "tag": "Link",
-          "type": "Structure",
-          "value": [
-            {
-              "tag": "Link",
-              "type": "Structure",
-              "value": [
-                {
-                  "tag": "LinkType",
-                  "type": "Enumeration",
-                  "value": "ParentLink"
-                },
-                {
-                  "tag": "LinkedObjectIdentifier",
-                  "type": "TextString",
-                  "value": "SK"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "tag": "ObjectType",
-          "type": "Enumeration",
-          "value": "SymmetricKey"
-        }
-      ]
-    }
-  ]
-}`
+// // generated from Rust
+// const CreateSymmetricKey = `{
+//   "tag": "Create",
+//   "type": "Structure",
+//   "value": [
+//     {
+//       "tag": "ObjectType",
+//       "type": "Enumeration",
+//       "value": "SymmetricKey"
+//     },
+//     {
+//       "tag": "Attributes",
+//       "type": "Structure",
+//       "value": [
+//         {
+//           "tag": "CryptographicAlgorithm",
+//           "type": "Enumeration",
+//           "value": "AES"
+//         },
+//         {
+//           "tag": "Link",
+//           "type": "Structure",
+//           "value": [
+//             {
+//               "tag": "Link",
+//               "type": "Structure",
+//               "value": [
+//                 {
+//                   "tag": "LinkType",
+//                   "type": "Enumeration",
+//                   "value": "ParentLink"
+//                 },
+//                 {
+//                   "tag": "LinkedObjectIdentifier",
+//                   "type": "TextString",
+//                   "value": "SK"
+//                 }
+//               ]
+//             }
+//           ]
+//         },
+//         {
+//           "tag": "ObjectType",
+//           "type": "Enumeration",
+//           "value": "SymmetricKey"
+//         }
+//       ]
+//     }
+//   ]
+// }`
 
 test("KMS Symmetric Key", async () => {
   await CoverCrypt();
 
-  const client: KmipClient = new KmipClient(
+  const client = new KmsClient(
     new URL("http://localhost:9998/kmip/2_1"),
   )
+
   if (!(await client.up())) {
-    console.log("No KMIP server. Skipping test")
+    console.error("No KMIP server. Skipping test")
     return
   }
 
@@ -142,23 +143,18 @@ test("KMS Symmetric Key", async () => {
     SymmetricKeyAlgorithm.AES,
     256,
   )
-  expect(typeof uniqueIdentifier).toEqual("string")
+  expect(uniqueIdentifier).toBeTypeOf("string")
 
   // recover
   const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
-  expect(key.keyBlock.cryptographic_algorithm).toEqual(
-    CryptographicAlgorithm.AES,
-  )
-  expect(key.keyBlock.cryptographic_length).toEqual(256)
-  expect(key.keyBlock.key_format_type).toEqual(
-    KeyFormatType.TransparentSymmetricKey,
-  )
-  expect(
-    key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-      TransparentSymmetricKey,
-  ).toBeTruthy()
-  const sk = key.keyBlock.key_value.plaintext
-    ?.keyMaterial as TransparentSymmetricKey
+  expect(key.keyBlock.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(key.keyBlock.cryptographicLength).toEqual(256)
+  expect(key.keyBlock.keyFormatType).toEqual(KeyFormatType.TransparentSymmetricKey)
+  expect(key.keyBlock.keyValue).not.toBeNull()
+  expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
+  expect(key.keyBlock.keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
+
+  const sk: TransparentSymmetricKey = key.keyBlock.keyValue.keyMaterial
   expect(sk.key.length).toEqual(32)
 
   // import
@@ -215,46 +211,29 @@ test("Policy", async () => {
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
   // Vendor Attributes test
   const va = policy.toVendorAttribute()
-  const att = new Attributes(ObjectType.PrivateKey)
+  const att = new Attributes('PrivateKey')
   att.vendorAttributes = [va]
   const policy_ = Policy.fromAttributes(att)
   expect(policy_).toEqual(policy)
 })
 
-test("Long & Big Ints", async () => {
-  await CoverCrypt();
+test("Big Ints", async () => {
 
-  const ttlvLong = new TTLV(
-    "Long",
-    TtlvType.LongInteger,
-    BigInt("9223372036854775806"),
+  const publicKey = new TransparentECPublicKey(RecommendedCurve.ANSIX9C2PNB163V1, 99999999999999999999999998888888888888888n);
+  
+  const json = JSON.stringify(toTTLV(publicKey));
+  expect(json).toEqual(
+    '{"tag":"TransparentECPublicKey","type":"Structure","value":[{"tag":"RecommendedCurve","type":"Enumeration","value":"ANSIX9C2PNB163V1"},{"tag":"Q","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}]}',
   )
-  const ttlvLongJson = JSON.stringify(ttlvLong)
-  expect(ttlvLongJson).toEqual(
-    '{"tag":"Long","type":"LongInteger","value":"0x7FFFFFFFFFFFFFFE"}',
-  )
-  const ttlvLong_ = TTLV.fromJSON(ttlvLongJson)
-  expect(JSON.stringify(ttlvLong_)).toEqual(ttlvLongJson)
 
-  const ttlvBig = new TTLV(
-    "Big",
-    TtlvType.BigInteger,
-    BigInt("99999999999999999999999998888888888888888"),
-  )
-  const ttlvBigJson = JSON.stringify(ttlvBig)
-  expect(ttlvBigJson).toEqual(
-    '{"tag":"Big","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}',
-  )
-  const ttlvBig_ = TTLV.fromJSON(ttlvBigJson)
-  expect(JSON.stringify(ttlvBig_)).toEqual(ttlvBigJson)
+  const publicKey2 = deserialize<TransparentECPublicKey>(json)
+  expect(publicKey2.q).toBe(99999999999999999999999998888888888888888n)
 })
 
 test("KMS CoverCrypt Access Policy", async () => {
   await CoverCrypt();
 
-  const apb = new AccessPolicy(
-    "(Department::MKG || Department::FIN) && Security Level::Confidential",
-  )
+  const apb = new AccessPolicy("(Department::MKG || Department::FIN) && Security Level::Confidential")
   const apj = apb.toKmipJson()
   expect(apj).toEqual(
     '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
@@ -263,7 +242,7 @@ test("KMS CoverCrypt Access Policy", async () => {
   expect(apb_).toEqual(apb)
   // vendor attributes
   const va = apb.toVendorAttribute()
-  const attributes = new Attributes(ObjectType.PrivateKey)
+  const attributes = new Attributes('PrivateKey')
   attributes.vendorAttributes = [va]
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
 })
@@ -274,7 +253,7 @@ test("KMS CoverCrypt keys", async () => {
   const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
     await CoverCrypt()
 
-  const client: KmipClient = new KmipClient(
+  const client = new KmsClient(
     new URL("http://localhost:9998/kmip/2_1"),
   )
   if (!(await client.up())) {

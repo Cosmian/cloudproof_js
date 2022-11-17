@@ -1,7 +1,6 @@
 import { webassembly_parse_boolean_access_policy } from "../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { PrivateKey } from "../../../kms/objects/PrivateKey"
-import { Attributes } from "../../../kms/types/Attributes"
-import { VendorAttribute } from "../../../kms/types/VendorAttribute"
+import { Attributes, VendorAttribute } from "../../../kms/structs/object_attributes"
+import { PrivateKey } from "../../../kms/structs/objects"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string
@@ -65,12 +64,12 @@ export class AccessPolicy {
     }
     for (const att of attrs) {
       if (
-        att.attribute_name ===
+        att.attributeName ===
           VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
-        att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_ACCESS_POLICY
+        att.attributeName === VendorAttribute.VENDOR_ATTR_ABE_ACCESS_POLICY
       ) {
         return AccessPolicy.fromKmipJson(
-          new TextDecoder().decode(att.attribute_value),
+          new TextDecoder().decode(att.attributeValue),
         )
       }
     }
@@ -85,14 +84,12 @@ export class AccessPolicy {
    * @returns {AccessPolicy} the recovered Access Policy
    */
   public static fromKey(key: PrivateKey): AccessPolicy {
-    const pt = key.keyBlock.key_value.plaintext
-    if (typeof pt === "undefined") {
-      throw new Error("No access policy can be extracted from that key")
+    const keyValue = key.keyBlock.keyValue
+    if (keyValue === null || keyValue instanceof Uint8Array || keyValue.attributes === null) {
+      throw new Error("No policy can be extracted from that key")
     }
-    if (typeof pt.attributes === "undefined") {
-      throw new Error("No access policy can be extracted from that key")
-    }
-    return this.fromAttributes(pt.attributes)
+
+    return this.fromAttributes(keyValue.attributes)
   }
 }
 /**

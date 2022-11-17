@@ -4,7 +4,7 @@ import {
   webassembly_hybrid_encrypt,
 } from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
 import { Policy } from "../../../../../crypto/abe/interfaces/policy"
-import { PublicKey } from "../../../../../kms/objects/PublicKey"
+import { PublicKey } from "../../../../../kms/structs/objects"
 import { logger } from "../../../../../utils/logger"
 import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"

@@ -4,7 +4,7 @@ import {
   webassembly_decrypt_symmetric_block,
   webassembly_hybrid_decrypt,
 } from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
+import { PrivateKey } from "../../../../../kms/structs/objects"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
 
 /**
