@@ -44,7 +44,6 @@ test("Non regression tests from Java", async () => {
   const cleartext = hybridDecryption.decrypt(encryptedBytes)
 
   const cleartextDecoder = new TextDecoder().decode(cleartext)
-  console.log(cleartextDecoder)
   const expectedPlaintext =
     '{"Sn":"@09]_G\\\\t]\\\\","givenName":"Martin","departmentNumber":"377","title":"B4IUzy_G2h","caYellowPagesCategory":"NW:V8zGg<G","uid":"=wRswjYRc?","employeeNumber":"9o9sI^<L9u","Mail":"=qwts6V0Hz","TelephoneNumber":"z6MSr8UI2:","Mobile":"lMe2p26u7Q","facsimileTelephoneNumber":"3We]<ykK\\\\h","caPersonLocalisation":"^3^CXV>CV`","Cn":";j:NI[tupH","caUnitdn":"cn;8YpMwGS","department":"RsUP\\\\uKM>1","co":"France"}'
   expect(cleartextDecoder).toEqual(expectedPlaintext)
