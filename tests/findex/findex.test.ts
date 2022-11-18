@@ -288,12 +288,12 @@ test("Redis", async () => {
       prefix: string,
       uidsAndValues: UidsAndValues,
     ): Promise<void> => {
-      await client.mSet(
-        uidsAndValues.map(({ uid, value }) => [
-          `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
-          Buffer.from(value).toString("base64"),
-        ]),
-      )
+      const toSet = uidsAndValues.map(({ uid, value }) => [
+        `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+        Buffer.from(value).toString("base64"),
+      ])
+
+      await client.mSet(toSet as any)
     }
 
     await run(

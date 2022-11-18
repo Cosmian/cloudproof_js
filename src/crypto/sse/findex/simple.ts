@@ -2,7 +2,6 @@ import init, {
   webassembly_graph_upsert,
   webassembly_search,
   webassembly_upsert,
-  InitInput,
 } from "../../../pkg/findex/cosmian_findex"
 
 import { SymmetricKey } from "../../../kms/structs/objects"
@@ -10,8 +9,8 @@ import { Index } from "./interfaces"
 
 let initialized: Promise<void> | undefined
 
-let wasmInit: (() => InitInput) | undefined
-export const setFindexInit = (arg: () => InitInput): void => {
+let wasmInit: (() => any) | undefined
+export const setFindexInit = (arg: () => any): void => {
   wasmInit = arg
 }
 
