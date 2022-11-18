@@ -168,7 +168,7 @@ test("KMS Symmetric Key", async () => {
   // destroy
   await client.destroySymmetricKey(uid)
   await client.destroySymmetricKey(uniqueIdentifier)
-})
+}, 10 * 1000)
 
 test("Policy", async () => {
   await CoverCrypt()
