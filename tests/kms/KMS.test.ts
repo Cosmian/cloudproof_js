@@ -4,7 +4,8 @@ import {
   CoverCrypt,
   AccessPolicy,
   VendorAttribute,
-  Policy, PolicyAxis,
+  Policy,
+  PolicyAxis,
   Attributes,
   CryptographicAlgorithm,
   KeyFormatType,
@@ -19,8 +20,7 @@ import {
   deserialize,
 } from "../.."
 
-import { expect, test } from 'vitest'
-
+import { expect, test } from "vitest"
 
 // test("ser-de Create", async () => {
 //   await CoverCrypt();
@@ -125,11 +125,9 @@ import { expect, test } from 'vitest'
 // }`
 
 test("KMS Symmetric Key", async () => {
-  await CoverCrypt();
+  await CoverCrypt()
 
-  const client = new KmsClient(
-    new URL("http://localhost:9998/kmip/2_1"),
-  )
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
   if (!(await client.up())) {
     console.error("No KMIP server. Skipping test")
@@ -145,12 +143,18 @@ test("KMS Symmetric Key", async () => {
 
   // recover
   const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
-  expect(key.keyBlock.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(key.keyBlock.cryptographicAlgorithm).toEqual(
+    CryptographicAlgorithm.AES,
+  )
   expect(key.keyBlock.cryptographicLength).toEqual(256)
-  expect(key.keyBlock.keyFormatType).toEqual(KeyFormatType.TransparentSymmetricKey)
+  expect(key.keyBlock.keyFormatType).toEqual(
+    KeyFormatType.TransparentSymmetricKey,
+  )
   expect(key.keyBlock.keyValue).not.toBeNull()
   expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
-  expect(key.keyBlock.keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
+  expect(key.keyBlock.keyValue.keyMaterial).toBeInstanceOf(
+    TransparentSymmetricKey,
+  )
 
   const sk: TransparentSymmetricKey = key.keyBlock.keyValue.keyMaterial
   expect(sk.key.length).toEqual(32)
@@ -177,7 +181,7 @@ test("KMS Symmetric Key", async () => {
 })
 
 test("Policy", async () => {
-  await CoverCrypt();
+  await CoverCrypt()
 
   const policy = new Policy(
     [
@@ -209,17 +213,19 @@ test("Policy", async () => {
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
   // Vendor Attributes test
   const va = policy.toVendorAttribute()
-  const att = new Attributes('PrivateKey')
+  const att = new Attributes("PrivateKey")
   att.vendorAttributes = [va]
   const policy_ = Policy.fromAttributes(att)
   expect(policy_).toEqual(policy)
 })
 
 test("Big Ints", async () => {
+  const publicKey = new TransparentECPublicKey(
+    RecommendedCurve.ANSIX9C2PNB163V1,
+    99999999999999999999999998888888888888888n,
+  )
 
-  const publicKey = new TransparentECPublicKey(RecommendedCurve.ANSIX9C2PNB163V1, 99999999999999999999999998888888888888888n);
-  
-  const json = JSON.stringify(toTTLV(publicKey));
+  const json = JSON.stringify(toTTLV(publicKey))
   expect(json).toEqual(
     '{"tag":"TransparentECPublicKey","type":"Structure","value":[{"tag":"RecommendedCurve","type":"Enumeration","value":"ANSIX9C2PNB163V1"},{"tag":"Q","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}]}',
   )
@@ -229,9 +235,11 @@ test("Big Ints", async () => {
 })
 
 test("KMS CoverCrypt Access Policy", async () => {
-  await CoverCrypt();
+  await CoverCrypt()
 
-  const apb = new AccessPolicy("(Department::MKG || Department::FIN) && Security Level::Confidential")
+  const apb = new AccessPolicy(
+    "(Department::MKG || Department::FIN) && Security Level::Confidential",
+  )
   const apj = apb.toKmipJson()
   expect(apj).toEqual(
     '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
@@ -240,20 +248,18 @@ test("KMS CoverCrypt Access Policy", async () => {
   expect(apb_).toEqual(apb)
   // vendor attributes
   const va = apb.toVendorAttribute()
-  const attributes = new Attributes('PrivateKey')
+  const attributes = new Attributes("PrivateKey")
   attributes.vendorAttributes = [va]
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
 })
 
 test("KMS CoverCrypt keys", async () => {
-  await CoverCrypt();
+  await CoverCrypt()
 
   const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
     await CoverCrypt()
 
-  const client = new KmsClient(
-    new URL("http://localhost:9998/kmip/2_1"),
-  )
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
   if (!(await client.up())) {
     console.log("No KMIP server. Skipping test")
     return

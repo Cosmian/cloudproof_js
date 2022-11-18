@@ -1,11 +1,11 @@
-import { KmsObject } from '../structs/objects'
+import { KmsObject } from "../structs/objects"
 
 export class GetResponse {
-    uniqueIdentifier: string
-    object: KmsObject
+  uniqueIdentifier: string
+  object: KmsObject
 
-    constructor(uniqueIdentifier: string, object: KmsObject) {
-        this.uniqueIdentifier = uniqueIdentifier
-        this.object = object
-    }
+  constructor(uniqueIdentifier: string, object: KmsObject) {
+    this.uniqueIdentifier = uniqueIdentifier
+    this.object = object
+  }
 }

@@ -1,13 +1,32 @@
 import { Serializable, serialize, deserialize } from "./kmip"
 import { Get } from "./requests/Get"
-import { Attributes, Link, LinkType, VendorAttribute } from "./structs/object_attributes"
-import { KmsObject, PrivateKey, PublicKey, SymmetricKey } from "./structs/objects"
+import {
+  Attributes,
+  Link,
+  LinkType,
+  VendorAttribute,
+} from "./structs/object_attributes"
+import {
+  KmsObject,
+  PrivateKey,
+  PublicKey,
+  SymmetricKey,
+} from "./structs/objects"
 import { Import } from "./requests/Import"
 import { Revoke } from "./requests/Revoke"
 import { Create } from "./requests/Create"
-import { CryptographicUsageMask, RevocationReasonEnumeration } from "./structs/types"
+import {
+  CryptographicUsageMask,
+  RevocationReasonEnumeration,
+} from "./structs/types"
 import { Destroy } from "./requests/Destroy"
-import { CryptographicAlgorithm, KeyBlock, KeyFormatType, KeyValue, TransparentSymmetricKey } from "./structs/object_data_structures"
+import {
+  CryptographicAlgorithm,
+  KeyBlock,
+  KeyFormatType,
+  KeyValue,
+  TransparentSymmetricKey,
+} from "./structs/object_data_structures"
 import { Policy } from "../crypto/abe/interfaces/policy"
 import { CreateKeyPair } from "./requests/CreateKeyPair"
 import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
@@ -19,7 +38,7 @@ export interface KmsRequest<TResponse> {
   // TypeScript cannot found it. We need to have it present in the body of the class.
   // The only solution I found to fix this problem is to have a dummy property of the correct
   // type inside the body. This property is never assigned, nor read.
-  __response: TResponse | undefined 
+  __response: TResponse | undefined
 }
 
 export class KmsClient {
@@ -63,7 +82,7 @@ export class KmsClient {
     }
 
     const content = await response.text()
-    return deserialize<TResponse>(content);
+    return deserialize<TResponse>(content)
   }
 
   /**
@@ -109,13 +128,15 @@ export class KmsClient {
     object: KmsObject,
     replaceExisting: boolean = false,
   ): Promise<string> {
-    const response = await this.post(new Import(
-      uniqueIdentifier,
-      attributes.objectType,
-      object,
-      attributes,
-      replaceExisting,
-    ))
+    const response = await this.post(
+      new Import(
+        uniqueIdentifier,
+        attributes.objectType,
+        object,
+        attributes,
+        replaceExisting,
+      ),
+    )
 
     return response.uniqueIdentifier
   }
@@ -155,15 +176,20 @@ export class KmsClient {
     bits: number | null = null,
     links: Link[] = [],
   ): Promise<string> {
-    const algo = algorithm === SymmetricKeyAlgorithm.ChaCha20 ? CryptographicAlgorithm.ChaCha20 : CryptographicAlgorithm.AES
+    const algo =
+      algorithm === SymmetricKeyAlgorithm.ChaCha20
+        ? CryptographicAlgorithm.ChaCha20
+        : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes('SymmetricKey')
+    const attributes = new Attributes("SymmetricKey")
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
 
-    const response = await this.post(new Create(attributes.objectType, attributes))
+    const response = await this.post(
+      new Create(attributes.objectType, attributes),
+    )
     return response.uniqueIdentifier
   }
 
@@ -184,22 +210,23 @@ export class KmsClient {
     algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
     links: Link[] = [],
   ): Promise<string> {
-    const algo = algorithm === SymmetricKeyAlgorithm.ChaCha20 ? CryptographicAlgorithm.ChaCha20 : CryptographicAlgorithm.AES
+    const algo =
+      algorithm === SymmetricKeyAlgorithm.ChaCha20
+        ? CryptographicAlgorithm.ChaCha20
+        : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes('SymmetricKey')
+    const attributes = new Attributes("SymmetricKey")
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = keyBytes.length * 8
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-    attributes.cryptographicUsageMask = CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+    attributes.cryptographicUsageMask =
+      CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
 
     const symmetricKey = new SymmetricKey(
       new KeyBlock(
         KeyFormatType.TransparentSymmetricKey,
-        new KeyValue(
-          new TransparentSymmetricKey(keyBytes),
-          attributes,
-        ),
+        new KeyValue(new TransparentSymmetricKey(keyBytes), attributes),
         algo,
         keyBytes.length * 8,
       ),
@@ -207,7 +234,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       attributes,
-      { type: 'SymmetricKey', value: symmetricKey },
+      { type: "SymmetricKey", value: symmetricKey },
       replaceExisting,
     )
   }
@@ -223,9 +250,11 @@ export class KmsClient {
   public async retrieveSymmetricKey(
     uniqueIdentifier: string,
   ): Promise<SymmetricKey> {
-    const object = await this.getObject(uniqueIdentifier);
-    if (object.type !== 'SymmetricKey') {
-      throw new Error(`The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`)
+    const object = await this.getObject(uniqueIdentifier)
+    if (object.type !== "SymmetricKey") {
+      throw new Error(
+        `The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`,
+      )
     }
 
     return object.value
@@ -255,7 +284,7 @@ export class KmsClient {
   }
 
   public async createAbeMasterKeyPair(policy: Policy): Promise<string[]> {
-    const attributes = new Attributes('PrivateKey')
+    const attributes = new Attributes("PrivateKey")
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
     attributes.vendorAttributes = [policy.toVendorAttribute()]
@@ -282,11 +311,17 @@ export class KmsClient {
     const object = await this.getObject(uniqueIdentifier)
 
     if (object.type !== "PrivateKey") {
-      throw new Error(`The KMS server returned a ${object.type} instead of a PrivateKey for the identifier ${uniqueIdentifier}`)
+      throw new Error(
+        `The KMS server returned a ${object.type} instead of a PrivateKey for the identifier ${uniqueIdentifier}`,
+      )
     }
 
-    if (object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptSecretKey) {
-      throw new Error(`The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptSecretKey`)
+    if (
+      object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptSecretKey
+    ) {
+      throw new Error(
+        `The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptSecretKey`,
+      )
     }
 
     return object.value
@@ -307,11 +342,17 @@ export class KmsClient {
     const object = await this.getObject(uniqueIdentifier)
 
     if (object.type !== "PublicKey") {
-      throw new Error(`The KMS server returned a ${object.type} instead of a PublicKey for the identifier ${uniqueIdentifier}`)
+      throw new Error(
+        `The KMS server returned a ${object.type} instead of a PublicKey for the identifier ${uniqueIdentifier}`,
+      )
     }
 
-    if (object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptPublicKey) {
-      throw new Error(`The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptPublicKey`)
+    if (
+      object.value.keyBlock.keyFormatType !== KeyFormatType.CoverCryptPublicKey
+    ) {
+      throw new Error(
+        `The KMS server returned a private key of format ${object.value.keyBlock.keyFormatType} for the identifier ${uniqueIdentifier} instead of a CoverCryptPublicKey`,
+      )
     }
 
     return object.value
@@ -330,14 +371,21 @@ export class KmsClient {
     key: PrivateKey,
     replaceExisting: boolean = false,
   ): Promise<string> {
-    if (key.keyBlock === null) throw new Error(`The Private Master Key keyBlock shouldn't be null`);
-    if (!(key.keyBlock.keyValue instanceof KeyValue)) throw new Error(`The Private Master Key keyBlock.keyValue should be a KeyValue`);
-    if (key.keyBlock.keyValue.attributes === null) throw new Error(`The Private Master Key keyBlock.keyValue.attributes shouldn't be null`);
+    if (key.keyBlock === null)
+      throw new Error(`The Private Master Key keyBlock shouldn't be null`)
+    if (!(key.keyBlock.keyValue instanceof KeyValue))
+      throw new Error(
+        `The Private Master Key keyBlock.keyValue should be a KeyValue`,
+      )
+    if (key.keyBlock.keyValue.attributes === null)
+      throw new Error(
+        `The Private Master Key keyBlock.keyValue.attributes shouldn't be null`,
+      )
 
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
-      { type: 'PrivateKey', value: key },
+      { type: "PrivateKey", value: key },
       replaceExisting,
     )
   }
@@ -355,14 +403,21 @@ export class KmsClient {
     key: PublicKey,
     replaceExisting?: boolean,
   ): Promise<string> {
-    if (key.keyBlock === null) throw new Error(`The Public Master Key keyBlock shouldn't be null`);
-    if (!(key.keyBlock.keyValue instanceof KeyValue)) throw new Error(`The Public Master Key keyBlock.keyValue should be a KeyValue`);
-    if (key.keyBlock.keyValue.attributes === null) throw new Error(`The Public Master Key keyBlock.keyValue.attributes shouldn't be null`);
+    if (key.keyBlock === null)
+      throw new Error(`The Public Master Key keyBlock shouldn't be null`)
+    if (!(key.keyBlock.keyValue instanceof KeyValue))
+      throw new Error(
+        `The Public Master Key keyBlock.keyValue should be a KeyValue`,
+      )
+    if (key.keyBlock.keyValue.attributes === null)
+      throw new Error(
+        `The Public Master Key keyBlock.keyValue.attributes shouldn't be null`,
+      )
 
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
-      { type: 'PrivateKey', value: key },
+      { type: "PrivateKey", value: key },
       replaceExisting,
     )
   }
@@ -409,16 +464,18 @@ export class KmsClient {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
 
-    const attributes = new Attributes('PrivateKey');
+    const attributes = new Attributes("PrivateKey")
     attributes.link = [
       new Link(LinkType.ParentLink, privateMasterKeyIdentifier),
-    ];
+    ]
     attributes.vendorAttributes = [accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
 
-    const response = await this.post(new Create(attributes.objectType, attributes))
+    const response = await this.post(
+      new Create(attributes.objectType, attributes),
+    )
     return response.uniqueIdentifier
   }
 
@@ -450,7 +507,11 @@ export class KmsClient {
     key: PrivateKey,
     replaceExisting?: boolean,
   ): Promise<string> {
-    return await this.importAbePrivateMasterKey(uniqueIdentifier, key, replaceExisting)
+    return await this.importAbePrivateMasterKey(
+      uniqueIdentifier,
+      key,
+      replaceExisting,
+    )
   }
 
   /**
@@ -486,7 +547,7 @@ export class KmsClient {
     privateMasterKeyUniqueIdentifier: string,
     attributes: string[],
   ): Promise<string[]> {
-    const privateKeyAttributes = new Attributes('PrivateKey')
+    const privateKeyAttributes = new Attributes("PrivateKey")
     privateKeyAttributes.link = [
       new Link(LinkType.ParentLink, privateMasterKeyUniqueIdentifier),
     ]
@@ -497,12 +558,13 @@ export class KmsClient {
         new TextEncoder().encode(JSON.stringify(attributes)),
       ),
     ]
-    privateKeyAttributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
+    privateKeyAttributes.cryptographicAlgorithm =
+      CryptographicAlgorithm.CoverCrypt
     privateKeyAttributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
 
     const request = new ReKeyKeyPair(privateMasterKeyUniqueIdentifier)
     request.privateKeyAttributes = privateKeyAttributes
-    
+
     const response = await this.post(request)
     return [
       response.privateKeyUniqueIdentifier,

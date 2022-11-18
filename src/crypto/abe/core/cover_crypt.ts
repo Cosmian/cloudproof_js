@@ -1,14 +1,14 @@
-import init, { InitInput }  from "../../../pkg/cover_crypt/cosmian_cover_crypt"
+import init, { InitInput } from "../../../pkg/cover_crypt/cosmian_cover_crypt"
 import { CoverCryptHybridDecryption } from "./hybrid_crypto/cover_crypt/decryption"
 import { CoverCryptHybridEncryption } from "./hybrid_crypto/cover_crypt/encryption"
 import { CoverCryptKeyGeneration } from "./keygen/cover_crypt"
 
-let initialized: Promise<void> | undefined;
+let initialized: Promise<void> | undefined
 
-let wasmInit: (() => InitInput) | undefined;
+let wasmInit: (() => InitInput) | undefined
 export const setCoverCryptInit = (arg: () => InitInput): void => {
-  wasmInit = arg;
-};
+  wasmInit = arg
+}
 
 /**
  *
@@ -17,11 +17,11 @@ export const setCoverCryptInit = (arg: () => InitInput): void => {
 export async function CoverCrypt() {
   if (initialized === undefined) {
     // @ts-expect-error @ts-ignore-error
-    const loadModule = wasmInit();
-    initialized = init(loadModule).then(() => undefined);
+    const loadModule = wasmInit()
+    initialized = init(loadModule).then(() => undefined)
   }
 
-  await initialized;
+  await initialized
 
   return {
     CoverCryptKeyGeneration,

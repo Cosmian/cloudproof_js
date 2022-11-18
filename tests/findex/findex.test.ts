@@ -15,11 +15,11 @@ import {
   KeywordIndexEntry,
 } from "../.."
 import { USERS } from "../data/users"
-import { expect, test } from 'vitest'
+import { expect, test } from "vitest"
 import { createClient } from "redis"
 import { hexEncode } from "../../src/utils/utils"
 import { randomBytes } from "crypto"
-import sqlite3 from 'sqlite3';
+import sqlite3 from "sqlite3"
 
 test("upsert and search memory", async () => {
   const findex = await Findex()

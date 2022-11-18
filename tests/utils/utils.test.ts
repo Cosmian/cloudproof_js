@@ -5,8 +5,7 @@ import {
   hexEncode,
   toBeBytes,
 } from "../../src/utils/utils"
-import { expect, test } from 'vitest'
-
+import { expect, test } from "vitest"
 
 test("hexEncode+hexDecode", () => {
   const s = "ça va être la fête"

@@ -1,4 +1,3 @@
-
 import cover_crypt_wasm from "./pkg/cover_crypt/cosmian_cover_crypt_bg.wasm"
 import { setCoverCryptInit } from "./crypto/abe/core/cover_crypt"
 
@@ -50,7 +49,7 @@ export * from "./kms/structs/object_data_structures"
 export * from "./kms/structs/objects"
 
 // @ts-expect-error @ts-ignore-error
-setCoverCryptInit(() => cover_crypt_wasm());
+setCoverCryptInit(() => cover_crypt_wasm())
 
 // @ts-expect-error @ts-ignore-error
-setFindexInit(() => findex_wasm());
+setFindexInit(() => findex_wasm())

@@ -1,5 +1,8 @@
 import { webassembly_parse_boolean_access_policy } from "../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { Attributes, VendorAttribute } from "../../../kms/structs/object_attributes"
+import {
+  Attributes,
+  VendorAttribute,
+} from "../../../kms/structs/object_attributes"
 import { PrivateKey } from "../../../kms/structs/objects"
 
 export class AccessPolicy {
@@ -85,7 +88,11 @@ export class AccessPolicy {
    */
   public static fromKey(key: PrivateKey): AccessPolicy {
     const keyValue = key.keyBlock.keyValue
-    if (keyValue === null || keyValue instanceof Uint8Array || keyValue.attributes === null) {
+    if (
+      keyValue === null ||
+      keyValue instanceof Uint8Array ||
+      keyValue.attributes === null
+    ) {
       throw new Error("No policy can be extracted from that key")
     }
 

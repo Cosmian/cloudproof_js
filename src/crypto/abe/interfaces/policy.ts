@@ -1,4 +1,7 @@
-import { Attributes, VendorAttribute } from "../../../kms/structs/object_attributes"
+import {
+  Attributes,
+  VendorAttribute,
+} from "../../../kms/structs/object_attributes"
 import { PublicKey, PrivateKey } from "../../../kms/structs/objects"
 import { logger } from "../../../utils/logger"
 
@@ -183,7 +186,11 @@ export class Policy {
    */
   public static fromKey(key: PrivateKey | PublicKey): Policy {
     const keyValue = key.keyBlock.keyValue
-    if (keyValue === null || keyValue instanceof Uint8Array || keyValue.attributes === null) {
+    if (
+      keyValue === null ||
+      keyValue instanceof Uint8Array ||
+      keyValue.attributes === null
+    ) {
       throw new Error("No policy can be extracted from that key")
     }
 

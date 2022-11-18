@@ -8,13 +8,12 @@ import init, {
 import { SymmetricKey } from "../../../kms/structs/objects"
 import { Index } from "./interfaces"
 
-let initialized: Promise<void> | undefined;
+let initialized: Promise<void> | undefined
 
-let wasmInit: (() => InitInput) | undefined;
+let wasmInit: (() => InitInput) | undefined
 export const setFindexInit = (arg: () => InitInput): void => {
-  wasmInit = arg;
-};
-
+  wasmInit = arg
+}
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
@@ -205,14 +204,14 @@ export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
 export async function Findex() {
   if (initialized === undefined) {
     if (wasmInit === undefined) {
-      throw new Error("Please provide a WASM init function");
+      throw new Error("Please provide a WASM init function")
     }
 
-    const loadModule = wasmInit();
-    initialized = init(loadModule).then(() => undefined);
+    const loadModule = wasmInit()
+    initialized = init(loadModule).then(() => undefined)
   }
 
-  await initialized;
+  await initialized
 
   return {
     /**
