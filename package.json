@@ -28,7 +28,7 @@
         "dist"
     ],
     "scripts": {
-        "build": "rollup -c && tsc",
+        "build": "tsc --version && rollup --version && rollup -c && tsc",
         "watch": "rollup --watch -c",
         "prepare": "npm run build",
         "test": "vitest",
