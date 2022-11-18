@@ -177,13 +177,37 @@ export function fromTTLV<T>(
 ): T {
   if (tag !== null) ttlv.tag = tag
 
+  // String is a JS value, nothing to do.
+  if (ttlv.type === TtlvType.TextString) {
+    return ttlv.value as T
+  }
+
+  // Number is a JS value, nothing to do.
+  if (ttlv.type === TtlvType.Integer && typeof ttlv.value === "number") {
+    return ttlv.value as T
+  }
+
+  // BigInt should be converted from string to `BigInt` class
+  if (ttlv.type === TtlvType.BigInteger && typeof ttlv.value === "string") {
+    return BigInt(ttlv.value) as T
+  }
+
+  // ByteString should be converted from hex string to Uint8Array
+  if (ttlv.type === TtlvType.ByteString && typeof ttlv.value === "string") {
+    return hexDecode(ttlv.value) as T
+  }
+
   if (ttlv.type === TtlvType.Enumeration) {
+    // ObjectType is not an enum in JS but only a string union.
     if (ttlv.tag === "ObjectType") return ttlv.value as T
 
+    // If it's an enum flag, the value should be directly a number (not a string)
+    // we can use it as it is in JS.
     if (ttlv.tag in ENUMS_FLAGS && typeof ttlv.value === "number") {
       return ttlv.value as T
     }
 
+    // If we're here, we need to be in the ENUMS list…
     if (!(ttlv.tag in ENUMS)) {
       throw new Error(
         `Cannot understand type Enumeration for tag ${
@@ -192,38 +216,23 @@ export function fromTTLV<T>(
       )
     }
 
+    // … and the value should be encoded as a string
     if (typeof ttlv.value !== "string") {
       throw new Error(
         `${ttlv.value.toString()} of type Enumeration should be encoded in string`,
       )
     }
 
+    // We can now convert the string to the enum value thanks to the `ENUMS` constant.
     return ENUMS[ttlv.tag as keyof typeof ENUMS][ttlv.value as any] as T
   }
 
-  if (ttlv.type === TtlvType.TextString) {
-    return ttlv.value as T
-  }
-
-  if (ttlv.type === TtlvType.ByteString && typeof ttlv.value === "string") {
-    return hexDecode(ttlv.value) as T
-  }
-
-  if (ttlv.type === TtlvType.Integer && typeof ttlv.value === "number") {
-    return ttlv.value as T
-  }
-
-  if (ttlv.type === TtlvType.BigInteger && typeof ttlv.value === "string") {
-    return BigInt(ttlv.value) as T
-  }
-
+  // Object is a little special since we need to check a sibling ObjectType to know which struct to construct.
   if (
     ttlv.tag === "Object" &&
     Array.isArray(ttlv.value) &&
     ttlv.type === TtlvType.Structure
   ) {
-    // Object is a little special since we need to check a sibling ObjectType to know which struct to construct.
-
     if (siblings.length === 0) {
       throw new Error(
         "To parse an Object, we need to have access to the list of siblings.",
@@ -244,13 +253,12 @@ export function fromTTLV<T>(
     return result as T
   }
 
+  // KeyMaterial is a little special since we need to check a sibling Attributes.KeyFormatType to know which struct to construct.
   if (
     ttlv.tag === "KeyMaterial" &&
     Array.isArray(ttlv.value) &&
     ttlv.type === TtlvType.Structure
   ) {
-    // KeyMaterial is a little special since we need to check a sibling ObjectType to know which struct to construct.
-
     if (siblings.length === 0) {
       throw new Error(
         "To parse a KeyMaterial, we need to have access to the list of siblings.",
@@ -288,6 +296,9 @@ export function fromTTLV<T>(
         "TransparentECPublicKey",
       ].includes(keyFormatType.value as string)
     ) {
+      // Now we have the KeyFormatType, we can call `fromTTLV` with the same `ttlv` but overriding the tag 
+      // with the KeyFormatType value. We'll not go inside the `ttlv.tag === "KeyMaterial"` condition anymore but 
+      // in the struct parsing below.
       return fromTTLV(ttlv, keyFormatType.value as string)
     }
 
@@ -298,17 +309,32 @@ export function fromTTLV<T>(
     )
   }
 
+  // KMIP Structures are mandatory to be JS objects (the value is an array of properties)
+  // All JS objects are present in the STRUCTS constant, the tag is associated to a constructor function.
+  // Arrays are also `TtlvType.Structure` but cannot arrive in this function. See below :ArrayDetection
   if (
     ttlv.tag in STRUCTS &&
     Array.isArray(ttlv.value) &&
     ttlv.type === TtlvType.Structure
   ) {
-    // @ts-expect-error
+    // @ts-expect-error We use the STRUCTS constant to build the object.
+    // Some structs have mandatory field in the constructor, they will be `undefined` since we 
+    // call the constructor with no parameter, bypassing TypeScript. 
     const instance = new STRUCTS[ttlv.tag as keyof typeof STRUCTS]()
 
+    // We check all the children of the TTLV structure to set all the properties on the instance.
+    // Mandatory properties should be present in the children array.
+    // Missing properties should have a default value (not undefined but null or empty arrays) in the JS object.
+    // We could do a second pass on all the object properties to see if we miss something (by checking
+    // for undefined values)
     for (const child of ttlv.value) {
+      // If the tag is "CertificateType", the property name should be `certificateType`.
       const propertyName = uncapitalize(child.tag) as keyof typeof instance
+
+      // If the property is an array (JS properties that expect arrays are defaulting with an empty array)
       if (Array.isArray(instance[propertyName])) {
+        // If we require an array the child.value should have an array inside containing all the sub structure
+        // We should never call `fromTTLV(child)` in this case. That's why we said "Arrays cannot arrive in this function" above :ArrayDetection
         if (!Array.isArray(child.value)) {
           throw new Error(
             `Property ${
@@ -319,9 +345,12 @@ export function fromTTLV<T>(
           )
         }
 
-        // @ts-expect-error
+        // @ts-expect-error We'll call fromTTLV for each child.value element and hope they're all of the same type
+        // we could do a second pass to check that.
         instance[propertyName] = child.value.map((element) => fromTTLV(element))
       } else {
+        // Here the property is not an array, it could be anything.
+        // We parse it recursively sending the siblings to help detecting some edge-cases.
         instance[propertyName] = fromTTLV(child, null, ttlv.value)
       }
     }
@@ -334,17 +363,8 @@ export function fromTTLV<T>(
   )
 }
 
-export type Serializable =
-  | {
-      tag: string
-    }
-  | string
-  | number
-  | BigInt
-  | Serializable[]
-
 /**
- * Seriazile JS KMIP struct to a JSON string
+ * Serialize JS KMIP struct to a JSON string
  *
  * @param {Serializable} kmip JS KMIP struct
  * @returns {string} JSON string
@@ -354,27 +374,35 @@ export function serialize(kmip: Serializable): string {
 }
 
 /**
- * Seriazile JS KMIP struct to a TTLV object
+ * Serialize JS KMIP struct to a TTLV object
+ * The tag is required for almost all serialization, except for root Serialization 
+ * which are objects containing a `tag` property (see `Create` for example).
  *
  * @param {Serializable} kmip JS KMIP struct
  * @param {string} tag tag to use
  * @returns {TTLV} TTLV object
  */
 export function toTTLV(
-  kmip: Serializable | string,
+  kmip: Serializable,
   tag: string | null = null,
 ): TTLV {
+  // String are serilize to TextString or Enumeration
+  // (enumeration should be only for ObjectType because other enums are represented by numbers in JS, we do not
+  // check that right now, and if it's an enum represented by a string we serialize the string).
   if (typeof kmip === "string") {
-    if (tag === null)
+    if (tag === null) {
       throw new Error(`Trying to TTLV '${kmip}' but no tag provided.`)
+    }
 
     const type =
       tag in ENUMS || tag === "ObjectType"
         ? TtlvType.Enumeration
         : TtlvType.TextString
+
     return { tag, type, value: kmip }
   }
 
+  // Booleans are booleans in KMIP.
   if (typeof kmip === "boolean") {
     if (tag === null)
       throw new Error(
@@ -383,6 +411,7 @@ export function toTTLV(
     return { tag, type: TtlvType.Boolean, value: kmip }
   }
 
+  // Numbers can be regular numbers or enumeration.
   if (typeof kmip === "number") {
     if (tag === null)
       throw new Error(`Trying to TTLV '${kmip}' but no tag provided.`)
@@ -398,12 +427,22 @@ export function toTTLV(
       return { tag, type, value: kmip }
     }
 
+    // We convert the enums values to the corresponding string.
     const value = tag in ENUMS ? ENUMS[tag as keyof typeof ENUMS][kmip] : kmip
-    if (value === undefined)
+
+    // This should never happen, except if we set a random value not present in the JS enum.
+    if (value === undefined) {
       throw new Error(`Value is undefined for enum ${kmip} (enum type ${tag})`)
+    }
+
     return { tag, type, value }
   }
 
+  // BigInt are represented in base 16 with a 0x prefix.
+  // It seems that `typeof kmip === "bigint"` is enough for JS to work
+  // but TypeScript seems to require `kmip instanceof BigInt` to narrow
+  // the type of `kmip` (exclude BigInt). `kmip instanceof BigInt` is not `true`
+  // in JS, even with BigInt value.
   if (typeof kmip === "bigint" || kmip instanceof BigInt) {
     if (tag === null)
       throw new Error(
@@ -416,6 +455,7 @@ export function toTTLV(
     }
   }
 
+  // Uint8Array are represented hex encoded.
   if (kmip instanceof Uint8Array) {
     if (tag === null)
       throw new Error(
@@ -424,6 +464,7 @@ export function toTTLV(
     return { tag, type: TtlvType.ByteString, value: hexEncode(kmip) }
   }
 
+  // Arrays are Structure in KMIP. We recursivly transform each element.
   if (Array.isArray(kmip)) {
     if (tag === null)
       throw new Error(`Trying to TTLV an array but no tag provided.`)
@@ -434,14 +475,32 @@ export function toTTLV(
     }
   }
 
+  // Object (KmsObject is JS) is a little bit special because it contains a `type` and a `value`.
+  // We need to transform the value (eg: a `OpaqueObject`) but the resulting KMIP will be of tag "OpaqueObject".
+  // KMIP spec expect to still be "Object" (and that's why in the deserialization we need to find the correct tag in the siblings)
   if (tag === "Object") {
     const ttlv = toTTLV((kmip as unknown as KmsObject).value)
     ttlv.tag = "Object"
     return ttlv
   }
 
-  const ttlv = {
-    tag: tag !== null ? tag : kmip.tag,
+  // Here we are an object. If we are at the root of the callstack,
+  // no `tag` will be define (so we use the tag present inside the object, often it will be
+  // a request object, but in tests we sometimes serialize random objects)
+  if (tag === null) {
+    tag = kmip.tag;
+    if (tag === undefined) {
+      throw new Error(`Try to serialize a root JS object ${typeof kmip} but this object doesn't have a tag property.`)
+    }
+  }
+
+  // We check all the object properties, removing:
+  // - the special `tag` property 
+  // - any `null` property 
+  // - empty arrays
+  // Then we serialize the property value and add it to the children array.
+  return {
+    tag,
     type: TtlvType.Structure,
     value: Object.entries(kmip)
       .filter(([propertyName]) => !["tag"].includes(propertyName))
@@ -454,48 +513,26 @@ export function toTTLV(
         return toTTLV(propertyValue, capitalize(propertyName))
       }),
   }
-
-  // console.log(JSON.stringify(ttlv, null, 4))
-
-  return ttlv
 }
 
 export enum TtlvType {
   Structure = "Structure",
-
-  /**
-   * An array of Structures
-   * Does not exist as original TTLV
-   * Added to support array deserialization
-   */
-  StructuresArray = "StructuresArray",
-
   Integer = "Integer",
-  LongInteger = "LongInteger",
+  LongInteger = "LongInteger", // We do not support this right now because we don't have test
   BigInteger = "BigInteger",
   Enumeration = "Enumeration",
   Boolean = "Boolean",
   TextString = "TextString",
   ByteString = "ByteString",
-  DateTime = "DateTime",
-  Interval = "Interval",
-  DateTimeExtended = "DateTimeExtended",
-
-  // a type added to support polymorphism
-  // where a TTLV value can take a list of multiple types
-  Choice = "Choice",
-
-  // The property should be ignored on serialization/deserialization
-  Ignore = "Ignore",
+  DateTime = "DateTime", // We do not support this right now because we don't have test
+  Interval = "Interval", // We do not support this right now because we don't have test
+  DateTimeExtended = "DateTimeExtended", // We do not support this right now because we don't have test
 }
-
-export type LongInt = BigInt
 
 export type TtlvValue =
   | TTLV[]
   | Date
   | Uint8Array
-  | LongInt
   //   | Interval
   //   | DateTimeExtended
   | number
@@ -508,3 +545,12 @@ export interface TTLV {
   type: TtlvType
   value: TtlvValue
 }
+
+export type Serializable =
+  | {
+      tag: string
+    }
+  | string
+  | number
+  | BigInt
+  | Serializable[]
