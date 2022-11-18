@@ -71,7 +71,7 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   }
   return new TTLV(
     // there should always be meta data descriptions for arrays
-    Reflect.get(metadata, "name") as string,
+    Reflect.get(metadata, "name"),
     TtlvType.Structure,
     children,
   )
@@ -93,7 +93,7 @@ function processDictionary(value: Object, metadata: PropertyMetadata): TTLV {
   // handle the special case of Choices: there is only
   // one child which name is identical to that of the parent
   // We need to flatten that to the type of the child
-  // Exemple: LinkedObjectIdentifier
+  // Example: LinkedObjectIdentifier
   if (type === TtlvType.Choice) {
     return children[0]
   }
@@ -119,7 +119,7 @@ function parseChildren(value: Object): TTLV[] {
     const propertyName = pn as keyof typeof value
 
     // skip processing a property which has an undefined value
-    let childValue = Reflect.get(value, propertyName)
+    let childValue: any = value[propertyName]
     if (typeof childValue === "undefined") {
       continue
     }

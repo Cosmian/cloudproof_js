@@ -62,7 +62,7 @@ export class CryptographicParameters {
   public key_role_type?: KeyRoleType = undefined
 
   @metadata({
-    name: "FixedFieldLenght",
+    name: "FixedFieldLength",
     type: TtlvType.Integer,
   })
   public fixed_field_length?: number = undefined

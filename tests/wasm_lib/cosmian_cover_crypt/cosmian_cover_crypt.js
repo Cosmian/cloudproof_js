@@ -228,15 +228,15 @@ module.exports.webassembly_parse_boolean_access_policy = function(boolean_expres
 * @param {string} access_policy
 * @param {Uint8Array} public_key_bytes
 * @param {Uint8Array} additional_data
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_hybrid_header = function(policy_bytes, access_policy, public_key_bytes, additional_data, authenticated_data) {
+module.exports.webassembly_encrypt_hybrid_header = function(policy_bytes, access_policy, public_key_bytes, additional_data, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(access_policy, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
         const len0 = WASM_VECTOR_LEN;
-        wasm.webassembly_encrypt_hybrid_header(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(public_key_bytes), addHeapObject(additional_data), addHeapObject(authenticated_data));
+        wasm.webassembly_encrypt_hybrid_header(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(public_key_bytes), addHeapObject(additional_data), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -254,13 +254,13 @@ module.exports.webassembly_encrypt_hybrid_header = function(policy_bytes, access
 * of a resource encrypted using an hybrid crypto scheme.
 * @param {Uint8Array} usk_bytes
 * @param {Uint8Array} encrypted_header_bytes
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted_header_bytes, authenticated_data) {
+module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted_header_bytes, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_header_bytes), addHeapObject(authenticated_data));
+        wasm.webassembly_decrypt_hybrid_header(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_header_bytes), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -277,13 +277,13 @@ module.exports.webassembly_decrypt_hybrid_header = function(usk_bytes, encrypted
 * Symmetrically Encrypt plaintext data in a block.
 * @param {Uint8Array} symmetric_key_bytes
 * @param {Uint8Array} plaintext_bytes
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, authenticated_data) {
+module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_bytes, plaintext_bytes, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(authenticated_data));
+        wasm.webassembly_encrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(plaintext_bytes), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -300,13 +300,13 @@ module.exports.webassembly_encrypt_symmetric_block = function(symmetric_key_byte
 * Symmetrically Decrypt encrypted data in a block.
 * @param {Uint8Array} symmetric_key_bytes
 * @param {Uint8Array} encrypted_bytes
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_decrypt_symmetric_block = function(symmetric_key_bytes, encrypted_bytes, authenticated_data) {
+module.exports.webassembly_decrypt_symmetric_block = function(symmetric_key_bytes, encrypted_bytes, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_decrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(encrypted_bytes), addHeapObject(authenticated_data));
+        wasm.webassembly_decrypt_symmetric_block(retptr, addHeapObject(symmetric_key_bytes), addHeapObject(encrypted_bytes), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -329,21 +329,21 @@ module.exports.webassembly_decrypt_symmetric_block = function(symmetric_key_byte
 * - `pk`                  : CoverCrypt public key
 * - `plaintext`           : message to encrypt with the DEM
 * - `additional_data`     : additional data to symmetrically encrypt in the header
-* - `autenticated_data`   : data authenticated with the symmetric encryption
+* - `authentication_data` : optional data used for authentication
 * @param {Uint8Array} policy_bytes
 * @param {string} access_policy
 * @param {Uint8Array} pk
 * @param {Uint8Array} plaintext
 * @param {Uint8Array} additional_data
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_hybrid_encrypt = function(policy_bytes, access_policy, pk, plaintext, additional_data, authenticated_data) {
+module.exports.webassembly_hybrid_encrypt = function(policy_bytes, access_policy, pk, plaintext, additional_data, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passStringToWasm0(access_policy, wasm.__wbindgen_export_0, wasm.__wbindgen_export_1);
         const len0 = WASM_VECTOR_LEN;
-        wasm.webassembly_hybrid_encrypt(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(pk), addHeapObject(plaintext), addHeapObject(additional_data), addHeapObject(authenticated_data));
+        wasm.webassembly_hybrid_encrypt(retptr, addHeapObject(policy_bytes), ptr0, len0, addHeapObject(pk), addHeapObject(plaintext), addHeapObject(additional_data), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -362,16 +362,16 @@ module.exports.webassembly_hybrid_encrypt = function(policy_bytes, access_policy
 *
 * - `usk_bytes`           : serialized user secret key
 * - `encrypted_bytes`     : concatenation of the encrypted header and the DEM ciphertext
-* - `autenticated_data`   : data authenticated with the symmetric encryption
+* - `authentication_data` : optional data used for authentication
 * @param {Uint8Array} usk_bytes
 * @param {Uint8Array} encrypted_bytes
-* @param {Uint8Array} authenticated_data
+* @param {Uint8Array} authentication_data
 * @returns {Uint8Array}
 */
-module.exports.webassembly_hybrid_decrypt = function(usk_bytes, encrypted_bytes, authenticated_data) {
+module.exports.webassembly_hybrid_decrypt = function(usk_bytes, encrypted_bytes, authentication_data) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.webassembly_hybrid_decrypt(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_bytes), addHeapObject(authenticated_data));
+        wasm.webassembly_hybrid_decrypt(retptr, addHeapObject(usk_bytes), addHeapObject(encrypted_bytes), addHeapObject(authentication_data));
         var r0 = getInt32Memory0()[retptr / 4 + 0];
         var r1 = getInt32Memory0()[retptr / 4 + 1];
         var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -559,3 +559,4 @@ const wasmModule = new WebAssembly.Module(bytes);
 const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
 wasm = wasmInstance.exports;
 module.exports.__wasm = wasm;
+

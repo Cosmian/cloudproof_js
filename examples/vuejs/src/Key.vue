@@ -8,7 +8,7 @@ const CLASSES = {
 
     'Marketing': 'text-bg-primary opacity-50',
     'HR': 'text-bg-primary opacity-75',
-    'Security': 'text-bg-primary',
+    'Manager': 'text-bg-primary',
 };
 
 export default defineComponent({

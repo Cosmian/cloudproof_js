@@ -278,7 +278,6 @@ test("KMS CoverCrypt keys", async () => {
   ])
 
   // create master keys
-  console.log("...master key")
   const [mskID, mpkID] = await client.createAbeMasterKeyPair(policy)
 
   // recover keys and policies
@@ -290,7 +289,6 @@ test("KMS CoverCrypt keys", async () => {
   expect(policyMpk.equals(policy)).toBeTruthy()
 
   // create user decryption Key
-  console.log("...user decryption key")
   const apb =
     "(Department::MKG || Department::FIN) && Security Level::Confidential"
   const udkID = await client.createAbeUserDecryptionKey(apb, mskID)

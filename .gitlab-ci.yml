@@ -37,13 +37,10 @@ build:
     - npm test
 
 example_vuejs:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
   extends: .services
   stage: test
   script:
-    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1
-      libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3
-      lsb-release xdg-utils wget
     - cd examples/vuejs
     - npm install
     - npm run build
@@ -57,13 +54,10 @@ example_vuejs:
     expire_in: 1 week
 
 example_reactjs:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
   extends: .services
   stage: test
   script:
-    - apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1
-      libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1
-      libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3
-      lsb-release xdg-utils wget
     - cd examples/reactjs
     - npm install
     - npm run build
@@ -109,15 +103,30 @@ publish:
     - npm publish
   rules:
     - if: $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/
-# deploy:
-#   image: docker:19.03.15
-#   stage: publish
-#   script:
-#     - ssh cosmian@demo-cloudproof.cosmian.com 'mv ~/demo_cloudproof/demo.tar ~/demo_cloudproof/demo.tar.old'
-#     - docker build -f demo/Dockerfile -t demo .
-#     - docker save demo > demo/demo.tar
-#     - scp demo/* cosmian@demo-cloudproof.cosmian.com:~/demo_cloudproof/
-#     - ssh cosmian@demo-cloudproof.cosmian.com 'bash ~/demo_cloudproof/run.sh'
-#   rules:
-#     - if: $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/
-#   when: manual
+
+deploy:
+  image: docker
+  stage: publish
+  script:
+    - docker build -f demo/Dockerfile -t demo .
+    - docker save demo > demo/demo.tar
+    - scp demo/docker-compose.yml demo/demo.tar demo/run.sh cosmian@demo-cloudproof.cosmian.com:~/demo_cloudproof/
+    - ssh cosmian@demo-cloudproof.cosmian.com 'bash ~/demo_cloudproof/run.sh'
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/
+
+check_deploy:
+  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
+  needs:
+    - deploy
+  extends: .services
+  stage: publish
+  script:
+    - node examples/test/chrome.mjs https://demo-cloudproof.cosmian.com/ https://demo-cloudproof.cosmian.com/kms
+  artifacts:
+    paths:
+      - error.png
+    when: on_failure
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^v\d+.\d+.\d+$/
