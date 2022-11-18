@@ -146,7 +146,7 @@ const ENUMS = {
 }
 
 // Some enums are enums flags. Their implementation differ because a value doesn't have a mandatory corresponding string.
-// For exemple 12 correspond to CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt (4 + 8).
+// For example 12 correspond to CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt (4 + 8).
 // These enums are not converted to string during serialization but send as numbers.
 const ENUMS_FLAGS = {
   CryptographicUsageMask,
