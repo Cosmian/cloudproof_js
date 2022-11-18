@@ -29,11 +29,11 @@ import {
 import { expect, test } from "vitest"
 
 test("serialize/deserialize Create", async () => {
-  await CoverCrypt();
+  await CoverCrypt()
 
-  const attributes = new Attributes('SymmetricKey');
+  const attributes = new Attributes("SymmetricKey")
   attributes.link = [new Link(LinkType.ParentLink, "SK")]
-  attributes.cryptographicAlgorithm =  CryptographicAlgorithm.AES
+  attributes.cryptographicAlgorithm = CryptographicAlgorithm.AES
   attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
 
   const create = new Create(attributes.objectType, attributes)
@@ -48,9 +48,11 @@ test("serialize/deserialize Create", async () => {
 
 test("deserialize", () => {
   const create: Create = deserialize<Create>(CREATE_SYMMETRIC_KEY)
-  expect(create.objectType).toEqual('SymmetricKey')
+  expect(create.objectType).toEqual("SymmetricKey")
   expect(create.protectionStorageMasks).toBeNull()
-  expect(create.attributes.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(create.attributes.cryptographicAlgorithm).toEqual(
+    CryptographicAlgorithm.AES,
+  )
   expect(create.attributes.link).toBeDefined()
   // linter guard
   if (typeof create.attributes.link !== "undefined") {
@@ -141,10 +143,8 @@ test("KMS Symmetric Key", async () => {
   expect(key.keyBlock.keyValue).not.toBeNull()
   expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
 
-  const keyValue = key?.keyBlock?.keyValue as KeyValue;
-  expect(keyValue.keyMaterial).toBeInstanceOf(
-    TransparentSymmetricKey,
-  )
+  const keyValue = key?.keyBlock?.keyValue as KeyValue
+  expect(keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
 
   const sk = keyValue.keyMaterial as TransparentSymmetricKey
   expect(sk.key.length).toEqual(32)
@@ -227,13 +227,16 @@ test("Big Ints", async () => {
 test("Enums", async () => {
   const attributes = new Attributes("SymmetricKey")
   attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-  attributes.cryptographicUsageMask = CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+  attributes.cryptographicUsageMask =
+    CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
 
   const json = serialize(attributes)
   const attributes2 = deserialize<Attributes>(json)
 
   expect(attributes2.keyFormatType).toEqual(attributes.keyFormatType)
-  expect(attributes2.cryptographicUsageMask).toEqual(attributes.cryptographicUsageMask)
+  expect(attributes2.cryptographicUsageMask).toEqual(
+    attributes.cryptographicUsageMask,
+  )
 })
 
 test("KMS CoverCrypt Access Policy", async () => {

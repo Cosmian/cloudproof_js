@@ -1,5 +1,4 @@
 import { Attributes } from "../structs/object_attributes"
-import { Serializable } from "../kmip"
 import { KmsRequest } from ".."
 import { GenericKeyPairResponse } from "../responses/GenericKeyPairResponse"
 

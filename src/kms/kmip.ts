@@ -59,7 +59,6 @@ import { GetResponse } from "./responses/GetResponse"
 import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
 import { Create } from "./requests/Create"
 
-
 // To serialize/deserialize we need to know at runtime all the KMIP types.
 // We save them inside some constants below:
 
@@ -75,7 +74,7 @@ const STRUCTS = {
 
   // I'm not sure about that. The documentation specify `VendorAttribute` singular but the receive tag
   // is "VendorAttributes". I put an alias here but we may check our Rust implementation of this.
-  VendorAttributes: VendorAttribute, 
+  VendorAttributes: VendorAttribute,
 
   CryptographicDomainParameters,
   CryptographicParameters,
@@ -186,7 +185,11 @@ export function fromTTLV<T>(
     }
 
     if (!(ttlv.tag in ENUMS)) {
-      throw new Error(`Cannot understand type Enumeration for tag ${ttlv.tag} (value is ${ttlv.value.toString()})`)
+      throw new Error(
+        `Cannot understand type Enumeration for tag ${
+          ttlv.tag
+        } (value is ${ttlv.value.toString()})`,
+      )
     }
 
     if (typeof ttlv.value !== "string") {
@@ -350,7 +353,6 @@ export function serialize(kmip: Serializable): string {
   return JSON.stringify(toTTLV(kmip))
 }
 
-
 /**
  * Seriazile JS KMIP struct to a TTLV object
  *
@@ -506,4 +508,3 @@ export interface TTLV {
   type: TtlvType
   value: TtlvValue
 }
-

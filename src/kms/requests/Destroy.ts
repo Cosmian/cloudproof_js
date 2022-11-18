@@ -1,6 +1,5 @@
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
 import { KmsRequest } from ".."
-import { Serializable } from "../kmip"
 
 export class Destroy implements KmsRequest<GenericUniqueIdentifierResponse> {
   __response: GenericUniqueIdentifierResponse | undefined
