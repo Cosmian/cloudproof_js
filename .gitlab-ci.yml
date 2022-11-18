@@ -22,6 +22,8 @@ stages:
   before_script:
     - node --version
     - npm --version
+    - apt install -y curl unzip
+    - ./download_wasm.sh
     - npm install
 
 eslint:
