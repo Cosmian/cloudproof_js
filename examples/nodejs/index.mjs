@@ -1,6 +1,6 @@
 
 
-import { CoverCrypt, KmipClient, Policy, PolicyAxis } from "cloudproof_js"
+import { CoverCrypt, KmsClient, Policy, PolicyAxis } from "cloudproof_js"
 
 const assert = (x, y) => {
   if (new TextDecoder().decode(x) !== new TextDecoder().decode(y))
@@ -20,7 +20,7 @@ const policy = new Policy([
 ])
 
 ;(async () => {
-  const client = new KmipClient(new URL("http://localhost:9998/kmip/2_1"))
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
   //
   // Generating the master keys
@@ -75,12 +75,10 @@ const policy = new Policy([
   // the medium secret marketing user
   const mediumSecretMkgAccess =
     "Department::MKG && Security Level::Medium Secret"
-  console.log('here');
   const mediumSecretMkgUserKeyUid = await client.createAbeUserDecryptionKey(
     mediumSecretMkgAccess,
     privateMasterKeyUID,
     )
-    console.log('there');
   const mediumSecretMkgUserKey = await client.retrieveAbeUserDecryptionKey(
     mediumSecretMkgUserKeyUid,
   )

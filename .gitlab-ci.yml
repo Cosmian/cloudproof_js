@@ -80,6 +80,14 @@ example_webpack:
     - npm install
     - npx webpack
 
+example_nodejs:
+  extends: .services
+  stage: test
+  script:
+    - cd examples/nodejs
+    - npm install
+    - node index.mjs
+
 pack:
   stage: pack
   before_script:
