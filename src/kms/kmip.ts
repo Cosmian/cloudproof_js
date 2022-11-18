@@ -56,7 +56,8 @@ import {
 import { GenericKeyPairResponse } from "./responses/GenericKeyPairResponse"
 import { GenericUniqueIdentifierResponse } from "./responses/GenericUniqueIdentifierResponse"
 import { GetResponse } from "./responses/GetResponse"
-import { hexDecode, hexEncode } from "../utils/utils"
+import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
+import { Create } from "./requests/Create"
 
 /**
  * Deserialize a JSON KMIP struct to JS class
@@ -292,6 +293,8 @@ const STRUCTS = {
   // 'LocateResponse': GenericUniqueIdentifierResponse,
   ReKeyKeyPairResponse: GenericKeyPairResponse,
   RevokeResponse: GenericUniqueIdentifierResponse,
+
+  Create,
 }
 
 const ENUMS = {
@@ -481,22 +484,3 @@ export interface TTLV {
   value: TtlvValue
 }
 
-/**
- * Lowercase the first letter of a string
- *
- * @param value the string
- * @returns the string with the first letter lowercased
- */
-function uncapitalize(value: string): string {
-  return value.charAt(0).toLowerCase() + value.slice(1)
-}
-
-/**
- * Uppercase the first letter of a string
- *
- * @param value the string
- * @returns the string with the first letter uppercased
- */
-function capitalize(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}

@@ -24,7 +24,7 @@ export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {
     replaceExisting: boolean = false,
     keyWrapType: KeyWrapType | null = null,
   ) {
-    if (attributes.objectType !== object.type) {
+    if (attributes !== undefined && attributes.objectType !== object.type) {
       throw new Error(
         `Import: invalid object type ${attributes.objectType} for object of type ${object.type}`,
       )

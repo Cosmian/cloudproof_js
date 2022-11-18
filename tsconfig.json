@@ -22,12 +22,11 @@
   },
   "include": [
     "src",
-    "tests"
+    "tests",
   ],
   "exclude": [
     "node_modules",
     "**/__tests__/*",
-    "tests/wasm_lib",
-    "examples"
+    "examples",
   ]
 }

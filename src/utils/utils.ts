@@ -140,28 +140,22 @@ export function sanitizeString(str: string): string {
     .replace(/[^\w-]+/g, "-")
 }
 
-// /**
-//  * Init wasm for Findex
-//  */
-// export async function initFindex(): Promise<void> {
-//   if (
-//     typeof process === "undefined" ||
-//     process.env.JEST_WORKER_ID === undefined
-//   ) {
-//     const module = await import("cosmian_findex")
-//     await module.default()
-//   }
-// }
+/**
+ * Lowercase the first letter of a string
+ *
+ * @param value the string
+ * @returns the string with the first letter lowercased
+ */
+export function uncapitalize(value: string): string {
+  return value.charAt(0).toLowerCase() + value.slice(1)
+}
 
-// /**
-//  * Init wasm for CoverCrypt
-//  */
-// export async function initCoverCrypt(): Promise<void> {
-//   if (
-//     typeof process === "undefined" ||
-//     process.env.JEST_WORKER_ID === undefined
-//   ) {
-//     const module = await import("cosmian_cover_crypt")
-//     await module.default()
-//   }
-// }
+/**
+ * Uppercase the first letter of a string
+ *
+ * @param value the string
+ * @returns the string with the first letter uppercased
+ */
+export function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}

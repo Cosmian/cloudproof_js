@@ -18,111 +18,97 @@ import {
   TransparentECPublicKey,
   RecommendedCurve,
   deserialize,
+  Create,
+  Link,
+  LinkType,
+  fromTTLV,
 } from "../.."
 
 import { expect, test } from "vitest"
 
-// test("ser-de Create", async () => {
-//   await CoverCrypt();
+test("serialize/deserialize Create", async () => {
+  await CoverCrypt();
 
-//   const create = new Create(
-//     ObjectType.SymmetricKey,
-//     new Attributes(
-//       ObjectType.SymmetricKey,
-//       [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-//       undefined,
-//       undefined,
-//       CryptographicAlgorithm.AES,
-//       undefined,
-//       undefined,
-//       undefined,
-//       undefined,
-//       KeyFormatType.TransparentSymmetricKey,
-//     ),
-//   )
-//   // console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
+  const attributes = new Attributes('SymmetricKey');
+  attributes.link = [new Link(LinkType.ParentLink, "SK")]
+  attributes.cryptographicAlgorithm =  CryptographicAlgorithm.AES
+  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
 
-//   const ttlv = toTTLV(create)
-//   // console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
+  const create = new Create(attributes.objectType, attributes)
 
-//   const create_: Create = fromTTLV(Create, ttlv)
-//   // console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
+  const ttlv = toTTLV(create)
+  const create2 = fromTTLV<Create>(ttlv)
 
-//   const ttlv_ = toTTLV(create_)
-//   // console.log("RECREATED TTLV", JSON.stringify(ttlv_, null, 2))
+  const ttlv2 = toTTLV(create2)
 
-//   expect(ttlv_).toEqual(ttlv)
-// })
+  expect(ttlv2).toEqual(ttlv)
+})
 
-// test("de-serialize", () => {
-//   const create: Create = fromTTLV(Create, JSON.parse(CreateSymmetricKey))
-//   expect(create.objectType).toEqual(ObjectType.SymmetricKey)
-//   expect(create.protectionStorageMasks).toBeUndefined()
-//   expect(create.attributes.cryptographicAlgorithm).toEqual(
-//     CryptographicAlgorithm.AES,
-//   )
-//   expect(create.attributes.link).toBeDefined()
-//   // linter guard
-//   if (typeof create.attributes.link !== "undefined") {
-//     expect(create.attributes.link.length).toEqual(1)
-//     const link: Link = create.attributes.link[0]
-//     expect(link.linkType).toEqual(LinkType.ParentLink)
-//     expect(link.linkedObjectIdentifier).toEqual(
-//       new LinkedObjectIdentifier("SK"),
-//     )
-//   }
-// })
+test("deserialize", () => {
+  const create: Create = deserialize<Create>(CREATE_SYMMETRIC_KEY)
+  expect(create.objectType).toEqual('SymmetricKey')
+  expect(create.protectionStorageMasks).toBeNull()
+  expect(create.attributes.cryptographicAlgorithm).toEqual(CryptographicAlgorithm.AES)
+  expect(create.attributes.link).toBeDefined()
+  // linter guard
+  if (typeof create.attributes.link !== "undefined") {
+    expect(create.attributes.link.length).toEqual(1)
+    const link: Link = create.attributes.link[0]
+    expect(link.linkType).toEqual(LinkType.ParentLink)
+    expect(link.linkedObjectIdentifier).toEqual("SK")
+  }
+})
 
-// // generated from Rust
-// const CreateSymmetricKey = `{
-//   "tag": "Create",
-//   "type": "Structure",
-//   "value": [
-//     {
-//       "tag": "ObjectType",
-//       "type": "Enumeration",
-//       "value": "SymmetricKey"
-//     },
-//     {
-//       "tag": "Attributes",
-//       "type": "Structure",
-//       "value": [
-//         {
-//           "tag": "CryptographicAlgorithm",
-//           "type": "Enumeration",
-//           "value": "AES"
-//         },
-//         {
-//           "tag": "Link",
-//           "type": "Structure",
-//           "value": [
-//             {
-//               "tag": "Link",
-//               "type": "Structure",
-//               "value": [
-//                 {
-//                   "tag": "LinkType",
-//                   "type": "Enumeration",
-//                   "value": "ParentLink"
-//                 },
-//                 {
-//                   "tag": "LinkedObjectIdentifier",
-//                   "type": "TextString",
-//                   "value": "SK"
-//                 }
-//               ]
-//             }
-//           ]
-//         },
-//         {
-//           "tag": "ObjectType",
-//           "type": "Enumeration",
-//           "value": "SymmetricKey"
-//         }
-//       ]
-//     }
-//   ]
-// }`
+// generated from Rust
+const CREATE_SYMMETRIC_KEY = `{
+  "tag": "Create",
+  "type": "Structure",
+  "value": [
+    {
+      "tag": "ObjectType",
+      "type": "Enumeration",
+      "value": "SymmetricKey"
+    },
+    {
+      "tag": "Attributes",
+      "type": "Structure",
+      "value": [
+        {
+          "tag": "CryptographicAlgorithm",
+          "type": "Enumeration",
+          "value": "AES"
+        },
+        {
+          "tag": "Link",
+          "type": "Structure",
+          "value": [
+            {
+              "tag": "Link",
+              "type": "Structure",
+              "value": [
+                {
+                  "tag": "LinkType",
+                  "type": "Enumeration",
+                  "value": "ParentLink"
+                },
+                {
+                  "tag": "LinkedObjectIdentifier",
+                  "type": "TextString",
+                  "value": "SK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "tag": "ObjectType",
+          "type": "Enumeration",
+          "value": "SymmetricKey"
+        }
+      ]
+    }
+  ]
+}`
 
 test("KMS Symmetric Key", async () => {
   await CoverCrypt()
@@ -152,11 +138,13 @@ test("KMS Symmetric Key", async () => {
   )
   expect(key.keyBlock.keyValue).not.toBeNull()
   expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
-  expect(key.keyBlock.keyValue.keyMaterial).toBeInstanceOf(
+
+  const keyValue = key?.keyBlock?.keyValue as KeyValue;
+  expect(keyValue.keyMaterial).toBeInstanceOf(
     TransparentSymmetricKey,
   )
 
-  const sk: TransparentSymmetricKey = key.keyBlock.keyValue.keyMaterial
+  const sk = keyValue.keyMaterial as TransparentSymmetricKey
   expect(sk.key.length).toEqual(32)
 
   // import

@@ -18,7 +18,7 @@ export class Create implements KmsRequest<GenericUniqueIdentifierResponse> {
     attributes: Attributes,
     protectionStorageMasks: number | null = null,
   ) {
-    if (attributes.objectType !== objectType) {
+    if (attributes !== undefined && attributes.objectType !== objectType) {
       throw new Error(
         `Import: invalid object type ${attributes.objectType} for object of type ${objectType}`,
       )
