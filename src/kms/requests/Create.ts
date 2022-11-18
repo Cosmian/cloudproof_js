@@ -1,6 +1,5 @@
 import { ObjectType } from "../structs/objects"
 import { Attributes } from "../structs/object_attributes"
-import { Serializable } from "../kmip"
 import { KmsRequest } from ".."
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
 

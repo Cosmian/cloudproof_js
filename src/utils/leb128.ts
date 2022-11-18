@@ -24,8 +24,8 @@ class FakeStream {
 }
 
 /**
- *
- * @param stream
+ * @param stream stream of bytes
+ * @returns the number read
  */
 function read(stream: FakeStream): number {
   let num = 0
@@ -46,8 +46,8 @@ function read(stream: FakeStream): number {
 /**
  * decodes a LEB128 encoded interger
  *
- * @param {Buffer} buffer
- * @returns {number}
+ * @param {Buffer} buffer the buffer of bytes to read
+ * @returns the decoded number
  */
 export function decode(buffer: Buffer): number {
   const stream = new FakeStream(buffer)

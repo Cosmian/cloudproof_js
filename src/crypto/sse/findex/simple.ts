@@ -224,7 +224,7 @@ export async function Findex() {
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
      * @param {UpsertChains} upsertChains callback to upsert inside chains table
-     * @param {object} options
+     * @param {object} options some optional options to customize the upsert
      * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
      */
     upsert: async (
