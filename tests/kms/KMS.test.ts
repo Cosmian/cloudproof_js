@@ -22,6 +22,8 @@ import {
   Link,
   LinkType,
   fromTTLV,
+  CryptographicUsageMask,
+  serialize,
 } from "../.."
 
 import { expect, test } from "vitest"
@@ -220,6 +222,18 @@ test("Big Ints", async () => {
 
   const publicKey2 = deserialize<TransparentECPublicKey>(json)
   expect(publicKey2.q).toBe(99999999999999999999999998888888888888888n)
+})
+
+test("Enums", async () => {
+  const attributes = new Attributes("SymmetricKey")
+  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+  attributes.cryptographicUsageMask = CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+
+  const json = serialize(attributes)
+  const attributes2 = deserialize<Attributes>(json)
+
+  expect(attributes2.keyFormatType).toEqual(attributes.keyFormatType)
+  expect(attributes2.cryptographicUsageMask).toEqual(attributes.cryptographicUsageMask)
 })
 
 test("KMS CoverCrypt Access Policy", async () => {

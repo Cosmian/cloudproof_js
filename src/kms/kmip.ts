@@ -59,6 +59,100 @@ import { GetResponse } from "./responses/GetResponse"
 import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
 import { Create } from "./requests/Create"
 
+
+// To serialize/deserialize we need to know at runtime all the KMIP types.
+// We save them inside some constants below:
+
+// All the structs we can parse from KMIP.
+// During deserialization, we read the KMIP tag and find the matching
+// constructor in the list below. Most of the structs have the same name
+// than the KMIP tag. Some responses are generic, so they are used for different
+// tag.
+const STRUCTS = {
+  Attributes,
+  Link,
+  VendorAttribute,
+
+  // I'm not sure about that. The documentation specify `VendorAttribute` singular but the receive tag
+  // is "VendorAttributes". I put an alias here but we may check our Rust implementation of this.
+  VendorAttributes: VendorAttribute, 
+
+  CryptographicDomainParameters,
+  CryptographicParameters,
+
+  KeyBlock,
+  KeyValue,
+  KeyWrappingData,
+  EncryptionKeyInformation,
+  MacOrSignatureKeyInformation,
+  TransparentSymmetricKey,
+  TransparentDHPrivateKey,
+  TransparentDHPublicKey,
+  TransparentECPrivateKey,
+  TransparentECPublicKey,
+
+  Certificate,
+  CertificateRequest,
+  OpaqueObject,
+  PGPKey,
+  PrivateKey,
+  PublicKey,
+  SecretData,
+  SplitKey,
+  SymmetricKey,
+
+  CreateKeyPairResponse: GenericKeyPairResponse,
+  CreateResponse: GenericUniqueIdentifierResponse,
+  // 'DecryptResponse': GenericUniqueIdentifierResponse,
+  DestroyResponse: GenericUniqueIdentifierResponse,
+  // 'EncryptResponse': GenericUniqueIdentifierResponse,
+  // 'GetAttributesResponse': GenericUniqueIdentifierResponse,
+  GetResponse,
+  ImportResponse: GenericUniqueIdentifierResponse,
+  // 'LocateResponse': GenericUniqueIdentifierResponse,
+  ReKeyKeyPairResponse: GenericKeyPairResponse,
+  RevokeResponse: GenericUniqueIdentifierResponse,
+
+  Create, // Only useful for testing, we never parse a `Create` request since it's a request
+}
+
+// Here are all the enums.
+// This list is used to convert an enum value (eg: "3") to the corresponding enum string (eg: "AES") when serializing
+// When deserializing, this list is used to convert an enum string (eg: "AES") to the corresponding JS value (eg: "3").
+const ENUMS = {
+  LinkType,
+  LinkedUniqueIdentifier,
+  BlockCipherMode,
+  PaddingMethod,
+  HashingAlgorithm,
+  KeyRoleType,
+  DigitalSignatureAlgorithm,
+  MaskGenerator,
+
+  KeyFormatType,
+  KeyCompressionType,
+  CryptographicAlgorithm,
+  WrappingMethod,
+  EncodingOption,
+  RecommendedCurve,
+
+  CertificateType,
+  CertificateRequestType,
+  OpaqueDataType,
+  SecretDataType,
+  SplitKeyMethod,
+
+  KeyWrapType,
+  RevocationReasonEnumeration,
+}
+
+// Some enums are enums flags. Their implementation differ because a value doesn't have a mandatory corresponding string.
+// For exemple 12 correspond to CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt (4 + 8).
+// These enums are not converted to string during serialization but send as numbers.
+const ENUMS_FLAGS = {
+  CryptographicUsageMask,
+}
+
 /**
  * Deserialize a JSON KMIP struct to JS class
  *
@@ -66,10 +160,9 @@ import { Create } from "./requests/Create"
  * @returns a JS object corresponding to the KMIP struct inside the JSON
  */
 export function deserialize<T>(json: string): T {
-  const result = fromTTLV<T>(JSON.parse(json))
-  // console.log(JSON.stringify(JSON.parse(json), null, 4));
-  return result
+  return fromTTLV<T>(JSON.parse(json))
 }
+
 /**
  * Deserialize a JSON KMIP struct to JS class
  *
@@ -88,8 +181,12 @@ export function fromTTLV<T>(
   if (ttlv.type === TtlvType.Enumeration) {
     if (ttlv.tag === "ObjectType") return ttlv.value as T
 
+    if (ttlv.tag in ENUMS_FLAGS && typeof ttlv.value === "number") {
+      return ttlv.value as T
+    }
+
     if (!(ttlv.tag in ENUMS)) {
-      throw new Error(`Cannot understand type Enumeration for tag ${ttlv.tag}`)
+      throw new Error(`Cannot understand type Enumeration for tag ${ttlv.tag} (value is ${ttlv.value.toString()})`)
     }
 
     if (typeof ttlv.value !== "string") {
@@ -253,80 +350,6 @@ export function serialize(kmip: Serializable): string {
   return JSON.stringify(toTTLV(kmip))
 }
 
-const STRUCTS = {
-  Attributes,
-  Link,
-  VendorAttribute,
-  VendorAttributes: VendorAttribute,
-  CryptographicDomainParameters,
-  CryptographicParameters,
-
-  KeyBlock,
-  KeyValue,
-  KeyWrappingData,
-  EncryptionKeyInformation,
-  MacOrSignatureKeyInformation,
-  TransparentSymmetricKey,
-  TransparentDHPrivateKey,
-  TransparentDHPublicKey,
-  TransparentECPrivateKey,
-  TransparentECPublicKey,
-
-  Certificate,
-  CertificateRequest,
-  OpaqueObject,
-  PGPKey,
-  PrivateKey,
-  PublicKey,
-  SecretData,
-  SplitKey,
-  SymmetricKey,
-
-  CreateKeyPairResponse: GenericKeyPairResponse,
-  CreateResponse: GenericUniqueIdentifierResponse,
-  // 'DecryptResponse': GenericUniqueIdentifierResponse,
-  DestroyResponse: GenericUniqueIdentifierResponse,
-  // 'EncryptResponse': GenericUniqueIdentifierResponse,
-  // 'GetAttributesResponse': GenericUniqueIdentifierResponse,
-  GetResponse,
-  ImportResponse: GenericUniqueIdentifierResponse,
-  // 'LocateResponse': GenericUniqueIdentifierResponse,
-  ReKeyKeyPairResponse: GenericKeyPairResponse,
-  RevokeResponse: GenericUniqueIdentifierResponse,
-
-  Create,
-}
-
-const ENUMS = {
-  LinkType,
-  LinkedUniqueIdentifier,
-  BlockCipherMode,
-  PaddingMethod,
-  HashingAlgorithm,
-  KeyRoleType,
-  DigitalSignatureAlgorithm,
-  MaskGenerator,
-
-  KeyFormatType,
-  KeyCompressionType,
-  CryptographicAlgorithm,
-  WrappingMethod,
-  EncodingOption,
-  RecommendedCurve,
-
-  CertificateType,
-  CertificateRequestType,
-  OpaqueDataType,
-  SecretDataType,
-  SplitKeyMethod,
-
-  KeyWrapType,
-  RevocationReasonEnumeration,
-}
-
-const ENUMS_FLAGS = {
-  CryptographicUsageMask,
-}
 
 /**
  * Seriazile JS KMIP struct to a TTLV object
