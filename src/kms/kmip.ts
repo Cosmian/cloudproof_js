@@ -386,7 +386,7 @@ export function toTTLV(
   kmip: Serializable,
   tag: string | null = null,
 ): TTLV {
-  // String are serilize to TextString or Enumeration
+  // String are serialize to TextString or Enumeration
   // (enumeration should be only for ObjectType because other enums are represented by numbers in JS, we do not
   // check that right now, and if it's an enum represented by a string we serialize the string).
   if (typeof kmip === "string") {
@@ -464,7 +464,7 @@ export function toTTLV(
     return { tag, type: TtlvType.ByteString, value: hexEncode(kmip) }
   }
 
-  // Arrays are Structure in KMIP. We recursivly transform each element.
+  // Arrays are Structure in KMIP. We recursively transform each element.
   if (Array.isArray(kmip)) {
     if (tag === null)
       throw new Error(`Trying to TTLV an array but no tag provided.`)
