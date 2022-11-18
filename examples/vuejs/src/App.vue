@@ -44,7 +44,7 @@ export default defineComponent({
     for (const country of COUNTRIES) {
       for (let index = 0; index < NUMBER_OF_USER_BY_COUNTRY; index++) {
         const name = names.pop();
-        if (!name) throw new Error("Not enought names")
+        if (!name) throw new Error("Not enough names")
         users.push({ id, ...name, country });
         id++;
       }
@@ -353,7 +353,7 @@ export default defineComponent({
       let results = [];
       for (const indexedValue of indexedValues) {
         const userId = indexedValue.bytes[1];
-        
+
         let encryptedUser = this.encryptedUsers[userId];
         this.logRequest({
           method: 'GET',
@@ -485,7 +485,7 @@ export default defineComponent({
     <div class="container">
       <details class="mt-3 mb-3">
         <summary id="options">Options…</summary>
-  
+
         <div class="mt-3">
           <label for="kmsServerUrl" class="form-label">KMS Server URL</label>
           <div class="input-group mb-3">
@@ -497,27 +497,27 @@ export default defineComponent({
               @click="kmsServerUrl = 'https://demo-cloudproof.cosmian.com/kms/kmip/2_1'">Demo</button>
           </div>
         </div>
-  
+
         <div class="form-check">
           <input class="form-check-input" type="checkbox" v-model="usingGraphs" id="usingGraphs" />
           <label class="form-check-label" for="usingGraphs">
             Generate graphs during indexing
           </label>
         </div>
-  
-  
+
+
         <hr>
       </details>
-  
+
       <div class="fs-5 mb-4">
         <p>Cosmian has developed a new fast Symmetric Searchable Scheme (SSE) codenamed <strong>Findex</strong>.</p>
-  
+
         <p>The scheme is not publicly available while being patented but can be disclosed under NDA.</p>
-  
+
         <p>Likewise, and for the same reason, the Rust implementation is not yet publicly available but can be obtained
           under
           NDA.</p>
-  
+
         <p>In this demo, it is combined with an attribute-based encryption scheme : <strong>CoverCrypt</strong>.</p>
       </div>
     </div>
@@ -789,7 +789,7 @@ export default defineComponent({
           <div class="alert alert-light" role="alert" v-show="query && key && ! searchResults.length">
             No result for "{{ query }}"
           </div>
-  
+
           <table class="table table-sm" v-show="searchResults.length">
             <thead>
               <tr>
