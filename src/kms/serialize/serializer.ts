@@ -71,7 +71,7 @@ function processArray(value: Object, metadata: PropertyMetadata): TTLV {
   }
   return new TTLV(
     // there should always be meta data descriptions for arrays
-    Reflect.get(metadata, "name") as string,
+    Reflect.get(metadata, "name"),
     TtlvType.Structure,
     children,
   )
