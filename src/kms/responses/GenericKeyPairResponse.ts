@@ -1,6 +1,4 @@
-import { KmsResponse } from ".."
-
-export class GenericKeyPairResponse implements KmsResponse {
+export class GenericKeyPairResponse {
     privateKeyUniqueIdentifier: string
     publicKeyUniqueIdentifier: string
 

@@ -34,7 +34,7 @@ import {
     MaskGenerator,
 } from "./structs/object_attributes"
 import {
-    Object,
+    KmsObject,
 
     Certificate,
     CertificateRequest,
@@ -66,6 +66,7 @@ import { hexDecode, hexEncode } from "../utils/utils";
  * Deserialize a JSON KMIP struct to JS class
  * 
  * @param {string} json JSON string of a KMIP struct
+ * @returns a JS object corresponding to the KMIP struct inside the JSON
  */
 export function deserialize<T>(json: string): T {
     const result = fromTTLV<T>(JSON.parse(json));
@@ -76,6 +77,9 @@ export function deserialize<T>(json: string): T {
  * Deserialize a JSON KMIP struct to JS class
  * 
  * @param {TTLV} ttlv ttlv string of a KMIP struct
+ * @param tag override the TTLV tag with this one if defined. (used for some objects that require parent knowledge to know their types)
+ * @param siblings list of TTLV at the same level of the current one (used for some objects that require a sibling to know their types)
+ * @returns a JS object corresponding to the KMIP struct inside the TTLV
  */
 export function fromTTLV<T>(ttlv: TTLV, tag: string | null = null, siblings: TTLV[] = []): T {
     if (tag !== null) ttlv.tag = tag
@@ -233,7 +237,7 @@ const STRUCTS = {
     'DestroyResponse': GenericUniqueIdentifierResponse,
     // 'EncryptResponse': GenericUniqueIdentifierResponse,
     // 'GetAttributesResponse': GenericUniqueIdentifierResponse,
-    'GetResponse': GetResponse,
+    GetResponse,
     'ImportResponse': GenericUniqueIdentifierResponse,
     // 'LocateResponse': GenericUniqueIdentifierResponse,
     'ReKeyKeyPairResponse': GenericKeyPairResponse,
@@ -327,7 +331,7 @@ export function toTTLV(kmip: Serializable | string, tag: string | null = null): 
     }
 
     if (tag === "Object") {
-        const ttlv = toTTLV((kmip as unknown as Object).value);
+        const ttlv = toTTLV((kmip as unknown as KmsObject).value);
         ttlv.tag = "Object"
         return ttlv
     }
@@ -400,10 +404,22 @@ export interface TTLV {
 }
   
 
+/**
+ * Lowercase the first letter of a string
+ * 
+ * @param value the string
+ * @returns the string with the first letter lowercased
+ */
 function uncapitalize(value: string): string {
     return value.charAt(0).toLowerCase() + value.slice(1);
 }
 
+/**
+ * Uppercase the first letter of a string
+ * 
+ * @param value the string
+ * @returns the string with the first letter uppercased
+ */
 function capitalize(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }

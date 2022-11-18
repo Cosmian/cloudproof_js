@@ -1,7 +1,7 @@
 import { Serializable, serialize, deserialize } from "./kmip"
 import { Get } from "./requests/Get"
 import { Attributes, Link, LinkType, VendorAttribute } from "./structs/object_attributes"
-import { Object, PrivateKey, PublicKey, SymmetricKey } from "./structs/objects"
+import { KmsObject, PrivateKey, PublicKey, SymmetricKey } from "./structs/objects"
 import { Import } from "./requests/Import"
 import { Revoke } from "./requests/Revoke"
 import { Create } from "./requests/Create"
@@ -13,13 +13,13 @@ import { CreateKeyPair } from "./requests/CreateKeyPair"
 import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 
-export interface KmsResponse {
-
-}
-
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-export interface KmsRequest<T extends KmsResponse> {
-  __response: T | undefined
+export interface KmsRequest<TResponse> {
+  // If the `TResponse` type is only present in the `implements KmsRequest<…>`
+  // TypeScript cannot found it. We need to have it present in the body of the class.
+  // The only solution I found to fix this problem is to have a dummy property of the correct
+  // type inside the body. This property is never assigned, nor read.
+  __response: TResponse | undefined 
 }
 
 export class KmsClient {
@@ -46,10 +46,10 @@ export class KmsClient {
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
    *
-   * @param {TRequest} request a valid KMIP operation
-   * @returns {TResponse} an instance of the KMIP response
+   * @param request a valid KMIP operation
+   * @returns an instance of the KMIP response
    */
-  private async post<TResponse extends KmsResponse>(
+  private async post<TResponse>(
     request: KmsRequest<TResponse> & Serializable,
   ): Promise<TResponse> {
     const response = await fetch(this.url, {
@@ -86,10 +86,10 @@ export class KmsClient {
   /**
    * Retrieve a KMIP Object from the KMS
    *
-   * @param {string} uniqueIdentifier the unique identifier of the object
-   * @returns {object} an instance of the KMIP Object
+   * @param uniqueIdentifier the unique identifier of the object
+   * @returns an instance of the KMIP Object
    */
-  public async getObject(uniqueIdentifier: string): Promise<Object> {
+  public async getObject(uniqueIdentifier: string): Promise<KmsObject> {
     const response = await this.post(new Get(uniqueIdentifier))
     return response.object
   }
@@ -99,14 +99,14 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
-   * @param {Object} object the KMIP Object instance
+   * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string} the unique identifier
    */
   public async importObject(
     uniqueIdentifier: string,
     attributes: Attributes,
-    object: Object,
+    object: KmsObject,
     replaceExisting: boolean = false,
   ): Promise<string> {
     const response = await this.post(new Import(

@@ -1,7 +1,6 @@
-import { Object, ObjectType } from "../structs/objects"
+import { KmsObject, ObjectType } from "../structs/objects"
 import { Attributes } from "../structs/object_attributes"
 import { KeyWrapType } from "../structs/types"
-import { Serializable } from "../kmip"
 import { KmsRequest } from ".."
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
 
@@ -12,7 +11,7 @@ export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {
   
     uniqueIdentifier: string
     objectType: ObjectType
-    object: Object
+    object: KmsObject
     attributes: Attributes
     replaceExisting: boolean = false
     keyWrapType: KeyWrapType | null = null
@@ -20,7 +19,7 @@ export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {
     constructor(
         uniqueIdentifier: string,
         objectType: ObjectType,
-        object: Object,
+        object: KmsObject,
         attributes: Attributes,
         replaceExisting: boolean = false,
         keyWrapType: KeyWrapType | null = null,

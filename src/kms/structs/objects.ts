@@ -11,7 +11,7 @@ export type ObjectType =
     | 'PGPKey'
     | 'CertificateRequest'
 
-export type Object =
+export type KmsObject =
     { type: "Certificate", value: Certificate }
     | { type: "CertificateRequest", value: CertificateRequest }
     | { type: "OpaqueObject", value: OpaqueObject }
