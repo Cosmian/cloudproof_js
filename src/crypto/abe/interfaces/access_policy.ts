@@ -4,6 +4,7 @@ import {
   VendorAttributes,
 } from "../../../kms/structs/object_attributes"
 import { PrivateKey } from "../../../kms/structs/objects"
+import { CoverCrypt } from "../core/cover_crypt"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string

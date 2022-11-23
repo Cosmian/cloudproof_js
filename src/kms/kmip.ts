@@ -56,6 +56,7 @@ import {
 import { GenericKeyPairResponse } from "./responses/GenericKeyPairResponse"
 import { GenericUniqueIdentifierResponse } from "./responses/GenericUniqueIdentifierResponse"
 import { GetResponse } from "./responses/GetResponse"
+import { EncryptResponse } from "./responses/EncryptResponse"
 import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
 import { Create } from "./requests/Create"
 
@@ -72,7 +73,7 @@ const STRUCTS = {
   Link,
 
   // I'm not sure about that. The documentation specify `VendorAttribute` singular but the receive tag
-  // is "VendorAttributes". We should check our Rust implementation of this.
+  // is "VendorAttributes". We should check our Rust implementation of this. :RustImplementation
   VendorAttributes,
 
   CryptographicDomainParameters,
@@ -103,7 +104,7 @@ const STRUCTS = {
   CreateResponse: GenericUniqueIdentifierResponse,
   // 'DecryptResponse': GenericUniqueIdentifierResponse,
   DestroyResponse: GenericUniqueIdentifierResponse,
-  // 'EncryptResponse': GenericUniqueIdentifierResponse,
+  EncryptResponse,
   // 'GetAttributesResponse': GenericUniqueIdentifierResponse,
   GetResponse,
   ImportResponse: GenericUniqueIdentifierResponse,
