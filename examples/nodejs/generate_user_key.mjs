@@ -18,8 +18,6 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     let userKeyUID = null;
     let userKeyBytes;
 
-    await CoverCrypt();
-
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 

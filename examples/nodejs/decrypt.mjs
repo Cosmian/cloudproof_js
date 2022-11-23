@@ -17,8 +17,6 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     const encryptedDataHexEncodedIndex = process.argv.indexOf('--encryptedDataHexEncoded') + 1;
     const encryptedData = hexDecode(process.argv[encryptedDataHexEncodedIndex])
 
-    await CoverCrypt();
-
     let decryptedData
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))

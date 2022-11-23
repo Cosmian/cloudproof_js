@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - NodeJS support
+- encrypt/decrypt with the KMS
 
 ### Changed
 
@@ -17,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - Refactor the KMS structures (snake case to camel case for properties, change some types…)
 
 ### Fixed
+
+- `AccessPolicy.toKmipJson` and `AccessPolicy.toVendorAttribute` are now async (because they call the WASM)
 
 ---
 

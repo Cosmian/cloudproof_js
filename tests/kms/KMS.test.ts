@@ -266,14 +266,14 @@ test("KMS CoverCrypt Access Policy", async () => {
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
-  const apj = apb.toKmipJson()
+  const apj = await apb.toKmipJson()
   expect(apj).toEqual(
     '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
   )
   const apb_ = AccessPolicy.fromKmipJson(apj)
   expect(apb_).toEqual(apb)
   // vendor attributes
-  const va = apb.toVendorAttribute()
+  const va = await apb.toVendorAttribute()
   const attributes = new Attributes("PrivateKey")
   attributes.vendorAttributes = [va]
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)

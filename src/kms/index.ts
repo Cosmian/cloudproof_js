@@ -416,7 +416,7 @@ export class KmsClient {
         "PublicKey": KeyFormatType.CoverCryptPublicKey,
         "PrivateKey": KeyFormatType.CoverCryptSecretKey,
       }[type]
-      attributes.vendorAttributes = [key.policy.toVendorAttribute()]
+      attributes.vendorAttributes = [await key.policy.toVendorAttribute()]
 
       const keyValue = new KeyValue(key.bytes, attributes);
       const keyBlock = new KeyBlock(attributes.keyFormatType, keyValue, attributes.cryptographicAlgorithm, key.bytes.length)
@@ -496,7 +496,7 @@ export class KmsClient {
     attributes.link = [
       new Link(LinkType.ParentLink, privateMasterKeyIdentifier),
     ]
-    attributes.vendorAttributes = [accessPolicy.toVendorAttribute()]
+    attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
@@ -571,7 +571,7 @@ export class KmsClient {
     // but the string representing the access policy (to be more expressive)
 
     const accessPolicyObject = new AccessPolicy(accessPolicy)
-    const kmipJson = JSON.parse(accessPolicyObject.toKmipJson())
+    const kmipJson = JSON.parse(await accessPolicyObject.toKmipJson())
 
     if (typeof kmipJson.And === "undefined") {
       throw new Error("Encrypting with the KMS only support AND access policies")

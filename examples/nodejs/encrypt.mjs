@@ -18,8 +18,6 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     const accessPolicyIndex = process.argv.indexOf('--accessPolicy') + 1;
     const accessPolicy = process.argv[accessPolicyIndex]
 
-    await CoverCrypt();
-
     let encryptedData
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
