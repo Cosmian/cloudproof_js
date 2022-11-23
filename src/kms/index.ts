@@ -33,6 +33,7 @@ import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
 import { hexEncode } from "../utils/utils"
+import { Decrypt } from "./requests/Decrypt"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -373,7 +374,7 @@ export class KmsClient {
     key: PrivateKey | { bytes: Uint8Array, policy: Policy },
     replaceExisting: boolean = false,
   ): Promise<string> {
-    return await this.importAbeMasterKey(uniqueIdentifier, "PrivateKey", key, replaceExisting);
+    return await this.importCoverCryptKey(uniqueIdentifier, "PrivateKey", key, replaceExisting);
   }
 
   /**
@@ -389,29 +390,32 @@ export class KmsClient {
     key: PublicKey | { bytes: Uint8Array, policy: Policy },
     replaceExisting?: boolean,
   ): Promise<string> {
-    return await this.importAbeMasterKey(uniqueIdentifier, "PublicKey", key, replaceExisting);
+    return await this.importCoverCryptKey(uniqueIdentifier, "PublicKey", key, replaceExisting);
   }
 
   /**
    * Import a Public or Private Master Key key into the KMS
    *
-   * @param {string} uniqueIdentifier  the unique identifier of the key
-   * @param {string} type  Public or Private
-   * @param {PublicKey} key the Public Master Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
-   * @returns {string} the unique identifier of the key
+   * @param uniqueIdentifier  the unique identifier of the key
+   * @param type  PublicKey or PrivateKey. PrivateKey could be a master key or a user key
+   * @param key the object key or bytes with a policy (Policy for master keys, AccessPolicy for user keys)
+   * @param replaceExisting set to true to replace an existing key with the same identifier
+   * @returns the unique identifier of the key
    */
-  public async importAbeMasterKey(
+  public async importCoverCryptKey(
     uniqueIdentifier: string,
     type: "PublicKey" | "PrivateKey",
-    key: PublicKey | PrivateKey | { bytes: Uint8Array, policy: Policy },
+    key: PublicKey | PrivateKey | { bytes: Uint8Array, policy: Policy | AccessPolicy },
     replaceExisting?: boolean,
   ): Promise<string> {
     // If we didn't pass a real Key object, build one from bytes and policy
     if (!(key instanceof PublicKey) && !(key instanceof PrivateKey)) {
       const attributes = new Attributes(type)
       attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
-      attributes.keyFormatType = type === "PublicKey" ? KeyFormatType.CoverCryptPublicKey : KeyFormatType.CoverCryptSecretKey
+      attributes.keyFormatType = {
+        "PublicKey": KeyFormatType.CoverCryptPublicKey,
+        "PrivateKey": KeyFormatType.CoverCryptSecretKey,
+      }[type]
       attributes.vendorAttributes = [key.policy.toVendorAttribute()]
 
       const keyValue = new KeyValue(key.bytes, attributes);
@@ -528,14 +532,14 @@ export class KmsClient {
    */
   public async importAbeUserDecryptionKey(
     uniqueIdentifier: string,
-    key: PrivateKey,
+    key: PrivateKey | { bytes: Uint8Array, policy: AccessPolicy | string },
     replaceExisting?: boolean,
   ): Promise<string> {
-    return await this.importAbePrivateMasterKey(
-      uniqueIdentifier,
-      key,
-      replaceExisting,
-    )
+    if (!(key instanceof PrivateKey) && typeof key.policy === "string") {
+      key.policy = new AccessPolicy(key.policy);
+    }
+
+    return await this.importCoverCryptKey(uniqueIdentifier, "PrivateKey", key as any, replaceExisting);
   }
 
   /**
@@ -582,6 +586,20 @@ export class KmsClient {
     const dataToEncrypt = (new TextEncoder).encode(JSON.stringify({ Data: hexEncode(data), PolicyAttributes: policyAttributes }))
     const response = await this.post(new Encrypt(uniqueIdentifier, dataToEncrypt));
 
+    return response.data
+  }
+
+  /**
+   * Decrypt some data
+   *
+   * @param uniqueIdentifier the unique identifier of the private key
+   * @param data to decrypt
+   */
+  public async decrypt(
+    uniqueIdentifier: string,
+    data: Uint8Array,
+  ): Promise<Uint8Array> {
+    const response = await this.post(new Decrypt(uniqueIdentifier, data));
     return response.data
   }
 

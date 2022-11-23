@@ -57,6 +57,7 @@ import { GenericKeyPairResponse } from "./responses/GenericKeyPairResponse"
 import { GenericUniqueIdentifierResponse } from "./responses/GenericUniqueIdentifierResponse"
 import { GetResponse } from "./responses/GetResponse"
 import { EncryptResponse } from "./responses/EncryptResponse"
+import { DecryptResponse } from "./responses/DecryptResponse"
 import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
 import { Create } from "./requests/Create"
 
@@ -102,7 +103,7 @@ const STRUCTS = {
 
   CreateKeyPairResponse: GenericKeyPairResponse,
   CreateResponse: GenericUniqueIdentifierResponse,
-  // 'DecryptResponse': GenericUniqueIdentifierResponse,
+  DecryptResponse,
   DestroyResponse: GenericUniqueIdentifierResponse,
   EncryptResponse,
   // 'GetAttributesResponse': GenericUniqueIdentifierResponse,

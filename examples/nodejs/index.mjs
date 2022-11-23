@@ -33,6 +33,7 @@ import { fileURLToPath } from 'url';
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
+                '--userKeyAccessPolicy', "Department::HR && Security Level::Medium Secret",
             ])
         
             const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
@@ -54,6 +55,7 @@ import { fileURLToPath } from 'url';
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
+                '--userKeyAccessPolicy', "Department::HR && Security Level::High Secret",
             ])
         
             const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
@@ -75,6 +77,7 @@ import { fileURLToPath } from 'url';
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
+                '--userKeyAccessPolicy', "Department::HR && Security Level::Low Secret",
             ], true)
         
             const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
