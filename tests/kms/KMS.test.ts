@@ -3,7 +3,7 @@ import {
   SymmetricKeyAlgorithm,
   CoverCrypt,
   AccessPolicy,
-  VendorAttribute,
+  VendorAttributes,
   Policy,
   PolicyAxis,
   Attributes,
@@ -114,6 +114,27 @@ const CREATE_SYMMETRIC_KEY = `{
   ]
 }`
 
+test("KMS Import Master Keys", async () => {
+  await CoverCrypt()
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+  if (!(await client.up())) {
+    console.error("No KMIP server. Skipping test")
+    return
+  }
+
+  const policy = new Policy([new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)])
+  const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] = await client.createAbeMasterKeyPair(policy);
+
+  const publicKey = await client.retrieveAbePublicMasterKey(publicKeyUniqueIdentifier)
+  const privateKey = await client.retrieveAbePrivateMasterKey(privateKeyUniqueIdentifier)
+
+  const importedPublicKeyUniqueIdentifier = await client.importAbePublicMasterKey(`${publicKeyUniqueIdentifier}-imported`, publicKey);
+  const importedPrivateKeyUniqueIdentifier = await client.importAbePrivateMasterKey(`${privateKeyUniqueIdentifier}-imported`, privateKey);
+
+  const importedPublicKey = await client.retrieveAbePublicMasterKey(importedPublicKeyUniqueIdentifier)
+  const importedPrivateKey = await client.retrieveAbePrivateMasterKey(importedPrivateKeyUniqueIdentifier)
+})
+
 test("KMS Symmetric Key", async () => {
   await CoverCrypt()
 
@@ -196,9 +217,9 @@ test("Policy", async () => {
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
-  expect(children[0].value).toEqual(VendorAttribute.VENDOR_ID_COSMIAN)
+  expect(children[0].value).toEqual(VendorAttributes.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(
-    VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
+    VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
   )
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
   // Vendor Attributes test

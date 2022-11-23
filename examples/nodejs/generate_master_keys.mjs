@@ -1,6 +1,8 @@
 import { CoverCrypt, KmsClient, hexEncode } from "cloudproof_js"
 import { policy } from './utils.mjs'
 
+process.removeAllListeners('warning'); // To remove experimental fetch warnings
+
 (async () => {
     const useKms = process.argv.includes('--kms');
     
@@ -18,7 +20,7 @@ import { policy } from './utils.mjs'
         publicKeyUID = keys[1];
 
         publicKeyBytes = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes()
-        privateKeyBytes = (await client.retrieveAbePublicMasterKey(privateKeyUID)).bytes()
+        privateKeyBytes = (await client.retrieveAbePrivateMasterKey(privateKeyUID)).bytes()
     } else {
         const { CoverCryptKeyGeneration } = await CoverCrypt();
 

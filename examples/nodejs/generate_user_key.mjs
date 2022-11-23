@@ -1,6 +1,8 @@
 import { CoverCrypt, KmsClient, hexDecode, hexEncode } from "cloudproof_js"
 import { policy } from './utils.mjs'
 
+process.removeAllListeners('warning'); // To remove experimental fetch warnings
+
 (async () => {
     const useKms = process.argv.includes('--kms');
     
@@ -11,17 +13,19 @@ import { policy } from './utils.mjs'
     const privateMasterKeyBytes = hexDecode(process.argv[privateMasterKeyBytesIndex])
 
     const privateMasterKeyUIDIndex = process.argv.indexOf('--privateMasterKeyUID') + 1;
-    const privateMasterKeyUID = process.argv[privateMasterKeyUIDIndex]
+    let privateMasterKeyUID = process.argv[privateMasterKeyUIDIndex]
 
     let userKeyUID = null;
     let userKeyBytes;
+
+    await CoverCrypt();
 
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
         if (! privateMasterKeyUID) {
-            throw new Error("The API is really bad here: put unique identifier as optional, accept bytes instead of PrivateKey")
-            // privateMasterKeyUID = await client.importAbePrivateMasterKey();
+            const uniqueIdentifier = Math.random().toString(36).slice(2, 7);
+            privateMasterKeyUID = await client.importAbePrivateMasterKey(uniqueIdentifier, { bytes: privateMasterKeyBytes, policy });
         }
 
         userKeyUID = await client.createAbeUserDecryptionKey(accessPolicy, privateMasterKeyUID)

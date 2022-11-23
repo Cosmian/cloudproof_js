@@ -1,5 +1,7 @@
 import { CoverCrypt, hexEncode, hexDecode } from "cloudproof_js"
 
+process.removeAllListeners('warning'); // To remove experimental fetch warnings
+
 (async () => {
     // Right now, `cloudproof_js` doesn't support decrypting with a KMS
     // const useKms = process.argv.includes('--kms');

@@ -19,7 +19,7 @@ import {
 import {
   Attributes,
   Link,
-  VendorAttribute,
+  VendorAttributes,
   CryptographicDomainParameters,
   CryptographicParameters,
   LinkType,
@@ -70,11 +70,10 @@ import { Create } from "./requests/Create"
 const STRUCTS = {
   Attributes,
   Link,
-  VendorAttribute,
 
   // I'm not sure about that. The documentation specify `VendorAttribute` singular but the receive tag
-  // is "VendorAttributes". I put an alias here but we may check our Rust implementation of this.
-  VendorAttributes: VendorAttribute,
+  // is "VendorAttributes". We should check our Rust implementation of this.
+  VendorAttributes,
 
   CryptographicDomainParameters,
   CryptographicParameters,

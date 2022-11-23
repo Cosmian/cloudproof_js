@@ -4,76 +4,83 @@ import { hexDecode } from 'cloudproof_js';
 import { spawn } from 'node:child_process'
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url';
+
 (async () => {
-    const masterKeys = JSON.parse(await run('generate_master_keys.mjs'))
+    const TEST_COUNT = process.argv[2];
 
-    const encryptedDataHexEncoded = await run('encrypt.mjs', [
-        '--publicMasterKeyBytesHexEncoded', masterKeys.publicKeyBytesHexEncoded,
-        '--publicMasterKeyUID', masterKeys.publicKeyUID,
-        '--dataToEncrypt', "Hello World",
-        '--accessPolicy', "Department::HR && Security Level::Medium Secret",
-    ])
+    for (let index = 1; index <= TEST_COUNT; index++) {
+        console.log(`Test ${index}/${TEST_COUNT}`);
 
-    {
-        // Medium Secret User Key should be able to decrypt
-
-        const userKey = JSON.parse(await run('generate_user_key.mjs', [
-            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
-            '--privateMasterKeyUID', masterKeys.privateKeyUID,
+        const masterKeys = JSON.parse(await run('generate_master_keys.mjs'))
+    
+        const encryptedDataHexEncoded = await run('encrypt.mjs', [
+            '--publicMasterKeyBytesHexEncoded', masterKeys.publicKeyBytesHexEncoded,
+            '--publicMasterKeyUID', masterKeys.publicKeyUID || '',
+            '--dataToEncrypt', "Hello World",
             '--accessPolicy', "Department::HR && Security Level::Medium Secret",
-        ]))
-    
-        const decryptedDataHexEncoded = await run('decrypt.mjs', [
-            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
-            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
-            '--userKeyUID', userKey.uid,
         ])
     
-        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
-        if (decryptedData !== "Hello World") {
-            throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+        {
+            // Medium Secret User Key should be able to decrypt
+    
+            const userKey = JSON.parse(await run('generate_user_key.mjs', [
+                '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+                '--privateMasterKeyUID', masterKeys.privateKeyUID || '',
+                '--accessPolicy', "Department::HR && Security Level::Medium Secret",
+            ]))
+        
+            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+                '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+                '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+                '--userKeyUID', userKey.uid || '',
+            ])
+        
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+            if (decryptedData !== "Hello World") {
+                throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+            }
         }
-    }
-
-    {
-        // High Secret User Key should be able to decrypt
-
-        const userKey = JSON.parse(await run('generate_user_key.mjs', [
-            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
-            '--privateMasterKeyUID', masterKeys.privateKeyUID,
-            '--accessPolicy', "Department::HR && Security Level::High Secret",
-        ]))
     
-        const decryptedDataHexEncoded = await run('decrypt.mjs', [
-            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
-            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
-            '--userKeyUID', userKey.uid,
-        ])
+        {
+            // High Secret User Key should be able to decrypt
     
-        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
-        if (decryptedData !== "Hello World") {
-            throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+            const userKey = JSON.parse(await run('generate_user_key.mjs', [
+                '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+                '--privateMasterKeyUID', masterKeys.privateKeyUID || '',
+                '--accessPolicy', "Department::HR && Security Level::High Secret",
+            ]))
+        
+            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+                '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+                '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+                '--userKeyUID', userKey.uid || '',
+            ])
+        
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+            if (decryptedData !== "Hello World") {
+                throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+            }
         }
-    }
-
-    {
-        // Low Secret User Key shouldn't be able to decrypt
-
-        const userKey = JSON.parse(await run('generate_user_key.mjs', [
-            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
-            '--privateMasterKeyUID', masterKeys.privateKeyUID,
-            '--accessPolicy', "Department::HR && Security Level::Low Secret",
-        ]))
     
-        const decryptedDataHexEncoded = await run('decrypt.mjs', [
-            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
-            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
-            '--userKeyUID', userKey.uid,
-        ], true)
+        {
+            // Low Secret User Key shouldn't be able to decrypt
     
-        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
-        if (decryptedData !== "") {
-            throw new Error(`Shouldn't be able to decrypt. "${decryptedData}" received`);
+            const userKey = JSON.parse(await run('generate_user_key.mjs', [
+                '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+                '--privateMasterKeyUID', masterKeys.privateKeyUID || '',
+                '--accessPolicy', "Department::HR && Security Level::Low Secret",
+            ]))
+        
+            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+                '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+                '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+                '--userKeyUID', userKey.uid || '',
+            ], true)
+        
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+            if (decryptedData !== "") {
+                throw new Error(`Shouldn't be able to decrypt. "${decryptedData}" received`);
+            }
         }
     }
 })()
@@ -86,7 +93,13 @@ import { fileURLToPath } from 'url';
  * @param shouldCrash return empty string if the program crash and shouldCrash is true
  */
 async function run(filename, args = [], shouldCrash = false) {
-    const process = spawn('node', [path.join(dirname(fileURLToPath(import.meta.url)), filename), ...args]);
+    args = [path.join(dirname(fileURLToPath(import.meta.url)), filename), ...args];
+
+    if (Math.random() < 0.5) {
+        args.push('--kms')
+    }
+
+    const process = spawn('node', args);
     
     let result = null
 

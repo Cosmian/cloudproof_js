@@ -10,7 +10,7 @@ export class Attributes {
 
   objectType: ObjectType
   link: Link[] = []
-  vendorAttributes: VendorAttribute[] = []
+  vendorAttributes: VendorAttributes[] = []
   activationDate: number | null = null // epoch milliseconds
   cryptographicAlgorithm: CryptographicAlgorithm | null = null
   cryptographicLength: number | null = null
@@ -22,7 +22,7 @@ export class Attributes {
   constructor(
     objectType: ObjectType,
     link: Link[] = [],
-    vendorAttributes: VendorAttribute[] = [],
+    vendorAttributes: VendorAttributes[] = [],
     activationDate: number | null = null,
     cryptographicAlgorithm: CryptographicAlgorithm | null = null,
     cryptographicLength: number | null = null,
@@ -123,8 +123,8 @@ export class Link {
   }
 }
 
-export class VendorAttribute {
-  tag = "VendorAttribute"
+export class VendorAttributes {
+  tag = "VendorAttributes"
 
   public static VENDOR_ID_COSMIAN = "cosmian"
 

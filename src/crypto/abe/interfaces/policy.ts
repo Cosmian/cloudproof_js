@@ -1,6 +1,6 @@
 import {
   Attributes,
-  VendorAttribute,
+  VendorAttributes,
 } from "../../../kms/structs/object_attributes"
 import { PublicKey, PrivateKey } from "../../../kms/structs/objects"
 import { logger } from "../../../utils/logger"
@@ -143,12 +143,12 @@ export class Policy {
   /**
    * Packages the policy into a vendor attribute to include in a key
    *
-   * @returns {VendorAttribute} the Policy as a VendorAttribute
+   * @returns {VendorAttributes} the Policy as a VendorAttributes
    */
-  public toVendorAttribute(): VendorAttribute {
-    return new VendorAttribute(
-      VendorAttribute.VENDOR_ID_COSMIAN,
-      VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
+  public toVendorAttribute(): VendorAttributes {
+    return new VendorAttributes(
+      VendorAttributes.VENDOR_ID_COSMIAN,
+      VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
       this.toJsonEncoded(),
     )
   }
@@ -166,8 +166,8 @@ export class Policy {
     }
     for (const att of attrs) {
       if (
-        att.attributeName === VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY ||
-        att.attributeName === VendorAttribute.VENDOR_ATTR_ABE_POLICY
+        att.attributeName === VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY ||
+        att.attributeName === VendorAttributes.VENDOR_ATTR_ABE_POLICY
       ) {
         return Policy.fromJsonEncoded(
           new TextDecoder().decode(att.attributeValue),

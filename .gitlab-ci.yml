@@ -86,7 +86,7 @@ example_nodejs:
   script:
     - cd examples/nodejs
     - npm install
-    - node index.mjs
+    - node index.mjs 10
 
 pack:
   stage: pack

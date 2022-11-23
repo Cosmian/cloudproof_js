@@ -1,10 +1,10 @@
-import { Serializable, serialize, deserialize } from "./kmip"
+import { serialize, deserialize } from "./kmip"
 import { Get } from "./requests/Get"
 import {
   Attributes,
   Link,
   LinkType,
-  VendorAttribute,
+  VendorAttributes,
 } from "./structs/object_attributes"
 import {
   KmsObject,
@@ -69,7 +69,7 @@ export class KmsClient {
    * @returns an instance of the KMIP response
    */
   private async post<TResponse>(
-    request: KmsRequest<TResponse> & Serializable,
+    request: KmsRequest<TResponse> & { tag: string },
   ): Promise<TResponse> {
     const response = await fetch(this.url, {
       method: "POST",
@@ -78,7 +78,7 @@ export class KmsClient {
     })
 
     if (response.status >= 400) {
-      throw new Error(`KMIP request failed: ${await response.text()}`)
+      throw new Error(`KMIP request failed (${request.tag}): ${await response.text()}`)
     }
 
     const content = await response.text()
@@ -368,26 +368,10 @@ export class KmsClient {
    */
   public async importAbePrivateMasterKey(
     uniqueIdentifier: string,
-    key: PrivateKey,
+    key: PrivateKey | { bytes: Uint8Array, policy: Policy },
     replaceExisting: boolean = false,
   ): Promise<string> {
-    if (key.keyBlock === null)
-      throw new Error(`The Private Master Key keyBlock shouldn't be null`)
-    if (!(key.keyBlock.keyValue instanceof KeyValue))
-      throw new Error(
-        `The Private Master Key keyBlock.keyValue should be a KeyValue`,
-      )
-    if (key.keyBlock.keyValue.attributes === null)
-      throw new Error(
-        `The Private Master Key keyBlock.keyValue.attributes shouldn't be null`,
-      )
-
-    return await this.importObject(
-      uniqueIdentifier,
-      key.keyBlock.keyValue.attributes,
-      { type: "PrivateKey", value: key },
-      replaceExisting,
-    )
+    return await this.importAbeMasterKey(uniqueIdentifier, "PrivateKey", key, replaceExisting);
   }
 
   /**
@@ -400,24 +384,62 @@ export class KmsClient {
    */
   public async importAbePublicMasterKey(
     uniqueIdentifier: string,
-    key: PublicKey,
+    key: PublicKey | { bytes: Uint8Array, policy: Policy },
     replaceExisting?: boolean,
   ): Promise<string> {
-    if (key.keyBlock === null)
-      throw new Error(`The Public Master Key keyBlock shouldn't be null`)
-    if (!(key.keyBlock.keyValue instanceof KeyValue))
+    return await this.importAbeMasterKey(uniqueIdentifier, "PublicKey", key, replaceExisting);
+  }
+
+  /**
+   * Import a Public or Private Master Key key into the KMS
+   *
+   * @param {string} uniqueIdentifier  the unique identifier of the key
+   * @param {string} type  Public or Private
+   * @param {PublicKey} key the Public Master Key
+   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @returns {string} the unique identifier of the key
+   */
+  public async importAbeMasterKey(
+    uniqueIdentifier: string,
+    type: "PublicKey" | "PrivateKey",
+    key: PublicKey | PrivateKey | { bytes: Uint8Array, policy: Policy },
+    replaceExisting?: boolean,
+  ): Promise<string> {
+    // If we didn't pass a real Key object, build one from bytes and policy
+    if (!(key instanceof PublicKey) && !(key instanceof PrivateKey)) {
+      const attributes = new Attributes(type)
+      attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
+      attributes.keyFormatType = type === "PublicKey" ? KeyFormatType.CoverCryptPublicKey : KeyFormatType.CoverCryptSecretKey
+      attributes.vendorAttributes = [key.policy.toVendorAttribute()]
+
+      const keyValue = new KeyValue(key.bytes, attributes);
+      const keyBlock = new KeyBlock(attributes.keyFormatType, keyValue, attributes.cryptographicAlgorithm, key.bytes.length)
+
+      if (type === "PublicKey") {
+        key = new PublicKey(keyBlock)
+      } else {
+        key = new PrivateKey(keyBlock)
+      }
+    }
+
+    if (key.keyBlock === null) {
+      throw new Error(`The Master ${type} keyBlock shouldn't be null`)
+    }
+    if (!(key.keyBlock.keyValue instanceof KeyValue)) {
       throw new Error(
-        `The Public Master Key keyBlock.keyValue should be a KeyValue`,
+        `The Master ${type} keyBlock.keyValue should be a KeyValue`,
       )
-    if (key.keyBlock.keyValue.attributes === null)
+    }
+    if (key.keyBlock.keyValue.attributes === null) {
       throw new Error(
-        `The Public Master Key keyBlock.keyValue.attributes shouldn't be null`,
+        `The Master ${type} keyBlock.keyValue.attributes shouldn't be null`,
       )
+    }
 
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
-      { type: "PrivateKey", value: key },
+      { type, value: key },
       replaceExisting,
     )
   }
@@ -552,9 +574,9 @@ export class KmsClient {
       new Link(LinkType.ParentLink, privateMasterKeyUniqueIdentifier),
     ]
     privateKeyAttributes.vendorAttributes = [
-      new VendorAttribute(
-        VendorAttribute.VENDOR_ID_COSMIAN,
-        VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ATTR,
+      new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ATTR,
         new TextEncoder().encode(JSON.stringify(attributes)),
       ),
     ]
