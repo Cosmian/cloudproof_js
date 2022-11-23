@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- NodeJS support
+- encrypt/decrypt with the KMS
+
+### Changed
+
+- WASM files are now base64 inline in the lib
+- `KmipClient` is now `KmsClient`
+- Removed `client.post()` function, please use the specific functions on the `KmsClient` object.
+- Switch from Jest to Vitest
+- Refactor the KMS structures (snake case to camel case for properties, change some types…)
+
+### Fixed
+
+- `AccessPolicy.toKmipJson` and `AccessPolicy.toVendorAttribute` are now async (because they call the WASM)
+
 ---
 
 ## [5.1.0] - 2022-11-17
@@ -15,8 +34,10 @@ All notable changes to this project will be documented in this file.
 - update `cover_crypt` to 7.1.0
 
 ### Fixed
+
 - fix TypeScript 4.9
 - fix E2E test and small HTML tweaks
+
 ---
 
 ## [5.0.1] - 2022-11-15

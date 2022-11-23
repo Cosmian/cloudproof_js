@@ -1,7 +1,10 @@
-import { webassembly_parse_boolean_access_policy } from "cosmian_cover_crypt"
-import { PrivateKey } from "../../../kms/objects/PrivateKey"
-import { Attributes } from "../../../kms/types/Attributes"
-import { VendorAttribute } from "../../../kms/types/VendorAttribute"
+import { webassembly_parse_boolean_access_policy } from "../../../pkg/cover_crypt/cosmian_cover_crypt"
+import {
+  Attributes,
+  VendorAttributes,
+} from "../../../kms/structs/object_attributes"
+import { PrivateKey } from "../../../kms/structs/objects"
+import { CoverCrypt } from "../core/cover_crypt"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string
@@ -25,20 +28,21 @@ export class AccessPolicy {
    *
    * @returns {string} the KMIP JSON Format
    */
-  public toKmipJson(): string {
+  public async toKmipJson(): Promise<string> {
+    await CoverCrypt()
     return webassembly_parse_boolean_access_policy(this._booleanAccessPolicy)
   }
 
   /**
    * Packages the access policy into a vendor attribute to include in a user decryption key
    *
-   * @returns {VendorAttribute} the Access Policy as a VendorAttribute
+   * @returns {VendorAttributes} the Access Policy as a VendorAttributes
    */
-  public toVendorAttribute(): VendorAttribute {
-    return new VendorAttribute(
-      VendorAttribute.VENDOR_ID_COSMIAN,
-      VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY,
-      new TextEncoder().encode(this.toKmipJson()),
+  public async toVendorAttribute(): Promise<VendorAttributes> {
+    return new VendorAttributes(
+      VendorAttributes.VENDOR_ID_COSMIAN,
+      VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY,
+      new TextEncoder().encode(await this.toKmipJson()),
     )
   }
 
@@ -65,12 +69,12 @@ export class AccessPolicy {
     }
     for (const att of attrs) {
       if (
-        att.attribute_name ===
-          VendorAttribute.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
-        att.attribute_name === VendorAttribute.VENDOR_ATTR_ABE_ACCESS_POLICY
+        att.attributeName ===
+          VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
+        att.attributeName === VendorAttributes.VENDOR_ATTR_ABE_ACCESS_POLICY
       ) {
         return AccessPolicy.fromKmipJson(
-          new TextDecoder().decode(att.attribute_value),
+          new TextDecoder().decode(att.attributeValue),
         )
       }
     }
@@ -85,14 +89,16 @@ export class AccessPolicy {
    * @returns {AccessPolicy} the recovered Access Policy
    */
   public static fromKey(key: PrivateKey): AccessPolicy {
-    const pt = key.keyBlock.key_value.plaintext
-    if (typeof pt === "undefined") {
-      throw new Error("No access policy can be extracted from that key")
+    const keyValue = key.keyBlock.keyValue
+    if (
+      keyValue === null ||
+      keyValue instanceof Uint8Array ||
+      keyValue.attributes === null
+    ) {
+      throw new Error("No policy can be extracted from that key")
     }
-    if (typeof pt.attributes === "undefined") {
-      throw new Error("No access policy can be extracted from that key")
-    }
-    return this.fromAttributes(pt.attributes)
+
+    return this.fromAttributes(keyValue.attributes)
   }
 }
 /**

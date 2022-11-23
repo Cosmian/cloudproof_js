@@ -22,6 +22,8 @@ stages:
   before_script:
     - node --version
     - npm --version
+    - apt install -y curl unzip
+    - ./download_wasm.sh
     - npm install
 
 eslint:
@@ -77,6 +79,14 @@ example_webpack:
     - cd examples/webpack
     - npm install
     - npx webpack
+
+example_nodejs:
+  extends: .services
+  stage: test
+  script:
+    - cd examples/nodejs
+    - npm install
+    - node index.mjs 10
 
 pack:
   stage: pack

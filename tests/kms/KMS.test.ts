@@ -1,61 +1,55 @@
-import { fromTTLV } from "../../src/kms/deserialize/deserializer"
 import {
-  KmipClient,
+  KmsClient,
   SymmetricKeyAlgorithm,
-} from "../../src/kms/client/KmipClient"
-import { Create } from "../../src/kms/operations/Create"
-import { toTTLV } from "../../src/kms/serialize/serializer"
-import { Attributes } from "../../src/kms/types/Attributes"
-import { CryptographicAlgorithm } from "../../src/kms/types/CryptographicAlgorithm"
-import { KeyFormatType } from "../../src/kms/types/KeyFormatType"
-import { Link } from "../../src/kms/types/Link"
-import { LinkedObjectIdentifier } from "../../src/kms/types/LinkedObjectIdentifier"
-import { LinkType } from "../../src/kms/types/LinkType"
-import { ObjectType } from "../../src/kms/types/ObjectType"
-import { SymmetricKey } from "../../src/kms/objects/SymmetricKey"
-import { TransparentSymmetricKey } from "../../src/kms/data_structures/TransparentSymmetricKey"
-import { Policy, PolicyAxis } from "../../src/crypto/abe/interfaces/policy"
-import { hexEncode } from "../../src/utils/utils"
-import { TTLV } from "../../src/kms/serialize/Ttlv"
-import { VendorAttribute } from "../../src/kms/types/VendorAttribute"
-import { TtlvType } from "../../src/kms/serialize/TtlvType"
-import { AccessPolicy } from "../../src/crypto/abe/interfaces/access_policy"
-import { CoverCrypt } from "index"
+  CoverCrypt,
+  AccessPolicy,
+  VendorAttributes,
+  Policy,
+  PolicyAxis,
+  Attributes,
+  CryptographicAlgorithm,
+  KeyFormatType,
+  SymmetricKey,
+  TransparentSymmetricKey,
+  hexEncode,
+  TTLV,
+  KeyValue,
+  toTTLV,
+  TransparentECPublicKey,
+  RecommendedCurve,
+  deserialize,
+  Create,
+  Link,
+  LinkType,
+  fromTTLV,
+  CryptographicUsageMask,
+  serialize,
+} from "../.."
 
-test("ser-de Create", () => {
-  const create = new Create(
-    ObjectType.SymmetricKey,
-    new Attributes(
-      ObjectType.SymmetricKey,
-      [new Link(LinkType.ParentLink, new LinkedObjectIdentifier("SK"))],
-      undefined,
-      undefined,
-      CryptographicAlgorithm.AES,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      KeyFormatType.TransparentSymmetricKey,
-    ),
-  )
-  // console.log("ORIGINAL OBJECT", JSON.stringify(create, null, 2))
+import { expect, test } from "vitest"
+
+test("serialize/deserialize Create", async () => {
+  await CoverCrypt()
+
+  const attributes = new Attributes("SymmetricKey")
+  attributes.link = [new Link(LinkType.ParentLink, "SK")]
+  attributes.cryptographicAlgorithm = CryptographicAlgorithm.AES
+  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+
+  const create = new Create(attributes.objectType, attributes)
 
   const ttlv = toTTLV(create)
-  // console.log("ORIGINAL TTLV", JSON.stringify(ttlv, null, 2))
+  const create2 = fromTTLV<Create>(ttlv)
 
-  const create_: Create = fromTTLV(Create, ttlv)
-  // console.log("RECREATED OBJECT", JSON.stringify(create_, null, 2))
+  const ttlv2 = toTTLV(create2)
 
-  const ttlv_ = toTTLV(create_)
-  // console.log("RECREATED TTLV", JSON.stringify(ttlv_, null, 2))
-
-  expect(ttlv_).toEqual(ttlv)
+  expect(ttlv2).toEqual(ttlv)
 })
 
-test("de-serialize", () => {
-  const create: Create = fromTTLV(Create, JSON.parse(CreateSymmetricKey))
-  expect(create.objectType).toEqual(ObjectType.SymmetricKey)
-  expect(create.protectionStorageMasks).toBeUndefined()
+test("deserialize", () => {
+  const create: Create = deserialize<Create>(CREATE_SYMMETRIC_KEY)
+  expect(create.objectType).toEqual("SymmetricKey")
+  expect(create.protectionStorageMasks).toBeNull()
   expect(create.attributes.cryptographicAlgorithm).toEqual(
     CryptographicAlgorithm.AES,
   )
@@ -65,14 +59,12 @@ test("de-serialize", () => {
     expect(create.attributes.link.length).toEqual(1)
     const link: Link = create.attributes.link[0]
     expect(link.linkType).toEqual(LinkType.ParentLink)
-    expect(link.linkedObjectIdentifier).toEqual(
-      new LinkedObjectIdentifier("SK"),
-    )
+    expect(link.linkedObjectIdentifier).toEqual("SK")
   }
 })
 
 // generated from Rust
-const CreateSymmetricKey = `{
+const CREATE_SYMMETRIC_KEY = `{
   "tag": "Create",
   "type": "Structure",
   "value": [
@@ -122,61 +114,111 @@ const CreateSymmetricKey = `{
   ]
 }`
 
-test("KMS Symmetric Key", async () => {
-  const client: KmipClient = new KmipClient(
-    new URL("http://localhost:9998/kmip/2_1"),
-  )
+test("KMS Import Master Keys", async () => {
+  await CoverCrypt()
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
   if (!(await client.up())) {
-    console.log("No KMIP server. Skipping test")
+    console.error("No KMIP server. Skipping test")
     return
   }
 
-  // create
-  const uniqueIdentifier = await client.createSymmetricKey(
-    SymmetricKeyAlgorithm.AES,
-    256,
+  const policy = new Policy([
+    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+  ])
+  const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
+    await client.createAbeMasterKeyPair(policy)
+
+  const publicKey = await client.retrieveAbePublicMasterKey(
+    publicKeyUniqueIdentifier,
   )
-  expect(typeof uniqueIdentifier).toEqual("string")
-
-  // recover
-  const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
-  expect(key.keyBlock.cryptographic_algorithm).toEqual(
-    CryptographicAlgorithm.AES,
+  const privateKey = await client.retrieveAbePrivateMasterKey(
+    privateKeyUniqueIdentifier,
   )
-  expect(key.keyBlock.cryptographic_length).toEqual(256)
-  expect(key.keyBlock.key_format_type).toEqual(
-    KeyFormatType.TransparentSymmetricKey,
+
+  const importedPublicKeyUniqueIdentifier =
+    await client.importAbePublicMasterKey(
+      `${publicKeyUniqueIdentifier}-imported`,
+      publicKey,
+    )
+  const importedPrivateKeyUniqueIdentifier =
+    await client.importAbePrivateMasterKey(
+      `${privateKeyUniqueIdentifier}-imported`,
+      privateKey,
+    )
+
+  const importedPublicKey = await client.retrieveAbePublicMasterKey(
+    importedPublicKeyUniqueIdentifier,
   )
-  expect(
-    key.keyBlock.key_value.plaintext?.keyMaterial instanceof
-      TransparentSymmetricKey,
-  ).toBeTruthy()
-  const sk = key.keyBlock.key_value.plaintext
-    ?.keyMaterial as TransparentSymmetricKey
-  expect(sk.key.length).toEqual(32)
-
-  // import
-  const uid = await client.importSymmetricKey(
-    uniqueIdentifier + "-1",
-    key.bytes(),
-    false,
+  const importedPrivateKey = await client.retrieveAbePrivateMasterKey(
+    importedPrivateKeyUniqueIdentifier,
   )
-  expect(uid).toEqual(uniqueIdentifier + "-1")
-
-  // get
-  const key_ = await client.retrieveSymmetricKey(uid)
-  expect(key_.bytes()).toEqual(key.bytes())
-
-  // revoke
-  await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
-  await client.revokeSymmetricKey(uid, "revoked")
-
-  // destroy
-  await client.destroySymmetricKey(uid)
-  await client.destroySymmetricKey(uniqueIdentifier)
 })
 
+test(
+  "KMS Symmetric Key",
+  async () => {
+    await CoverCrypt()
+
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+
+    // create
+    const uniqueIdentifier = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+    )
+    expect(uniqueIdentifier).toBeTypeOf("string")
+
+    // recover
+    const key: SymmetricKey = await client.retrieveSymmetricKey(
+      uniqueIdentifier,
+    )
+    expect(key.keyBlock.cryptographicAlgorithm).toEqual(
+      CryptographicAlgorithm.AES,
+    )
+    expect(key.keyBlock.cryptographicLength).toEqual(256)
+    expect(key.keyBlock.keyFormatType).toEqual(
+      KeyFormatType.TransparentSymmetricKey,
+    )
+    expect(key.keyBlock.keyValue).not.toBeNull()
+    expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
+
+    const keyValue = key?.keyBlock?.keyValue as KeyValue
+    expect(keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
+
+    const sk = keyValue.keyMaterial as TransparentSymmetricKey
+    expect(sk.key.length).toEqual(32)
+
+    // import
+    const uid = await client.importSymmetricKey(
+      uniqueIdentifier + "-1",
+      key.bytes(),
+      false,
+    )
+    expect(uid).toEqual(uniqueIdentifier + "-1")
+
+    // get
+    const key_ = await client.retrieveSymmetricKey(uid)
+    expect(key_.bytes()).toEqual(key.bytes())
+
+    // revoke
+    await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
+    await client.revokeSymmetricKey(uid, "revoked")
+
+    // destroy
+    await client.destroySymmetricKey(uid)
+    await client.destroySymmetricKey(uniqueIdentifier)
+  },
+  10 * 1000,
+)
+
 test("Policy", async () => {
+  await CoverCrypt()
+
   const policy = new Policy(
     [
       new PolicyAxis(
@@ -200,69 +242,75 @@ test("Policy", async () => {
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
-  expect(children[0].value).toEqual(VendorAttribute.VENDOR_ID_COSMIAN)
+  expect(children[0].value).toEqual(VendorAttributes.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(
-    VendorAttribute.VENDOR_ATTR_COVER_CRYPT_POLICY,
+    VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
   )
   expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
   // Vendor Attributes test
   const va = policy.toVendorAttribute()
-  const att = new Attributes(ObjectType.PrivateKey)
+  const att = new Attributes("PrivateKey")
   att.vendorAttributes = [va]
   const policy_ = Policy.fromAttributes(att)
   expect(policy_).toEqual(policy)
 })
 
-test("Long & Big Ints", async () => {
-  const ttlvLong = new TTLV(
-    "Long",
-    TtlvType.LongInteger,
-    BigInt("9223372036854775806"),
+test("Big Ints", async () => {
+  const publicKey = new TransparentECPublicKey(
+    RecommendedCurve.ANSIX9C2PNB163V1,
+    99999999999999999999999998888888888888888n,
   )
-  const ttlvLongJson = JSON.stringify(ttlvLong)
-  expect(ttlvLongJson).toEqual(
-    '{"tag":"Long","type":"LongInteger","value":"0x7FFFFFFFFFFFFFFE"}',
-  )
-  const ttlvLong_ = TTLV.fromJSON(ttlvLongJson)
-  expect(JSON.stringify(ttlvLong_)).toEqual(ttlvLongJson)
 
-  const ttlvBig = new TTLV(
-    "Big",
-    TtlvType.BigInteger,
-    BigInt("99999999999999999999999998888888888888888"),
+  const json = JSON.stringify(toTTLV(publicKey))
+  expect(json).toEqual(
+    '{"tag":"TransparentECPublicKey","type":"Structure","value":[{"tag":"RecommendedCurve","type":"Enumeration","value":"ANSIX9C2PNB163V1"},{"tag":"Q","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}]}',
   )
-  const ttlvBigJson = JSON.stringify(ttlvBig)
-  expect(ttlvBigJson).toEqual(
-    '{"tag":"Big","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}',
+
+  const publicKey2 = deserialize<TransparentECPublicKey>(json)
+  expect(publicKey2.q).toBe(99999999999999999999999998888888888888888n)
+})
+
+test("Enums", async () => {
+  const attributes = new Attributes("SymmetricKey")
+  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+  attributes.cryptographicUsageMask =
+    CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+
+  const json = serialize(attributes)
+  const attributes2 = deserialize<Attributes>(json)
+
+  expect(attributes2.keyFormatType).toEqual(attributes.keyFormatType)
+  expect(attributes2.cryptographicUsageMask).toEqual(
+    attributes.cryptographicUsageMask,
   )
-  const ttlvBig_ = TTLV.fromJSON(ttlvBigJson)
-  expect(JSON.stringify(ttlvBig_)).toEqual(ttlvBigJson)
 })
 
 test("KMS CoverCrypt Access Policy", async () => {
+  await CoverCrypt()
+
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
-  const apj = apb.toKmipJson()
+  const apj = await apb.toKmipJson()
   expect(apj).toEqual(
     '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
   )
   const apb_ = AccessPolicy.fromKmipJson(apj)
   expect(apb_).toEqual(apb)
   // vendor attributes
-  const va = apb.toVendorAttribute()
-  const attributes = new Attributes(ObjectType.PrivateKey)
+  const va = await apb.toVendorAttribute()
+  const attributes = new Attributes("PrivateKey")
   attributes.vendorAttributes = [va]
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
 })
 
 test("KMS CoverCrypt keys", async () => {
+  await CoverCrypt()
+
   const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
     await CoverCrypt()
 
-  const client: KmipClient = new KmipClient(
-    new URL("http://localhost:9998/kmip/2_1"),
-  )
+  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
   if (!(await client.up())) {
     console.log("No KMIP server. Skipping test")
     return

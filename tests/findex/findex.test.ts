@@ -13,13 +13,13 @@ import {
   UpsertEntries,
   LocationIndexEntry,
   KeywordIndexEntry,
-} from "../../src/crypto/sse/findex/simple"
+} from "../.."
 import { USERS } from "../data/users"
-import { expect, test } from "@jest/globals"
+import { expect, test } from "vitest"
 import { createClient } from "redis"
 import { hexEncode } from "../../src/utils/utils"
 import { randomBytes } from "crypto"
-import sqlite3 = require("sqlite3")
+import sqlite3 from "sqlite3"
 
 test("upsert and search memory", async () => {
   const findex = await Findex()
@@ -274,7 +274,7 @@ test("Redis", async () => {
       uids.forEach((uid, index) => {
         if (redisResults[index] !== null) {
           results.push({
-            uid: uids[index],
+            uid,
             value: Uint8Array.from(
               Buffer.from(redisResults[index] as string, "base64"),
             ),
@@ -288,12 +288,12 @@ test("Redis", async () => {
       prefix: string,
       uidsAndValues: UidsAndValues,
     ): Promise<void> => {
-      await client.mSet(
-        uidsAndValues.map(({ uid, value }) => [
-          `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
-          Buffer.from(value).toString("base64"),
-        ]),
-      )
+      const toSet = uidsAndValues.map(({ uid, value }) => [
+        `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+        Buffer.from(value).toString("base64"),
+      ])
+
+      await client.mSet(toSet as any)
     }
 
     await run(

@@ -5,7 +5,6 @@
 # pre-commit install --install-hooks -t commit-msg
 # pre-commit autoupdate
 
-exclude: tests/wasm_lib
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
@@ -27,14 +26,32 @@ repos:
     rev: v3.0.0-alpha.4
     hooks:
       - id: prettier
-        types_or: [bash, bib, c, css, dart, dockerfile, html, java, javascript, jsx, json, python3, sql, ts, tsx, sh]
+        types_or:
+          [
+            bash,
+            bib,
+            c,
+            css,
+            dart,
+            dockerfile,
+            html,
+            java,
+            javascript,
+            jsx,
+            json,
+            python3,
+            sql,
+            ts,
+            tsx,
+            sh,
+          ]
         args: [--semi=false]
 
   - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
     rev: 0.2.2
     hooks:
       - id: yamlfmt
-        args: [--mapping, '2', --sequence, '4', --offset, '2']
+        args: [--mapping, "2", --sequence, "4", --offset, "2"]
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.27.0

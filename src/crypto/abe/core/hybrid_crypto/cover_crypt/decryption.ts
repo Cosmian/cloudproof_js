@@ -3,8 +3,8 @@ import {
   webassembly_decrypt_hybrid_header,
   webassembly_decrypt_symmetric_block,
   webassembly_hybrid_decrypt,
-} from "cosmian_cover_crypt"
-import { PrivateKey } from "../../../../../kms/objects/PrivateKey"
+} from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
+import { PrivateKey } from "../../../../../kms/structs/objects"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
 
 /**

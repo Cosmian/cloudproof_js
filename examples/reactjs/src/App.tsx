@@ -10,7 +10,7 @@ import {
   Location,
   Keyword,
   CoverCrypt,
-  KmipClient,
+  KmsClient,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -211,7 +211,7 @@ function App() {
 
       let masterPublicKey
       if (kmsServerUrl) {
-        const client = new KmipClient(new URL(kmsServerUrl))
+        const client = new KmsClient(new URL(kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] =
           await client.createAbeMasterKeyPair(policy)
         masterPublicKey = (

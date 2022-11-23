@@ -1,11 +1,18 @@
-import {
+import init, {
   webassembly_graph_upsert,
   webassembly_search,
   webassembly_upsert,
-} from "cosmian_findex"
-import { SymmetricKey } from "../../../kms/objects/SymmetricKey"
-import { initFindex } from "../../../utils/utils"
+} from "../../../pkg/findex/cosmian_findex"
+
+import { SymmetricKey } from "../../../kms/structs/objects"
 import { Index } from "./interfaces"
+
+let initialized: Promise<void> | undefined
+
+let wasmInit: (() => any) | undefined
+export const setFindexInit = (arg: () => any): void => {
+  wasmInit = arg
+}
 
 /* tslint:disable:max-classes-per-file */
 export class IndexedValue {
@@ -194,7 +201,16 @@ export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
-  await initFindex()
+  if (initialized === undefined) {
+    if (wasmInit === undefined) {
+      throw new Error("Please provide a WASM init function")
+    }
+
+    const loadModule = wasmInit()
+    initialized = init(loadModule).then(() => undefined)
+  }
+
+  await initialized
 
   return {
     /**
@@ -207,7 +223,7 @@ export async function Findex() {
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
      * @param {UpsertChains} upsertChains callback to upsert inside chains table
-     * @param {object} options
+     * @param {object} options some optional options to customize the upsert
      * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
      */
     upsert: async (

@@ -28,9 +28,11 @@
         "args": "all",
         "ignoreRestSiblings": false
       }
-    ]
+    ],
+    "jsdoc/require-param-type": 0,
+    "jsdoc/require-returns-type": 0
   },
   "ignorePatterns": [
-    "tests/wasm_lib"
+    "src/pkg"
   ]
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmipClient, type CoverCryptHybridEncryption } from 'cloudproof_js';
+import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption } from 'cloudproof_js';
 import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
@@ -103,7 +103,7 @@ export default defineComponent({
 
       let masterPublicKey;
       if (this.kmsServerUrl) {
-        const client = new KmipClient(new URL(this.kmsServerUrl))
+        const client = new KmsClient(new URL(this.kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
         masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
 

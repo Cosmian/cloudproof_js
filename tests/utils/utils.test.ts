@@ -1,12 +1,11 @@
-import { logger } from "utils/logger"
 import {
   deserializeList,
   fromBeBytes,
   hexDecode,
   hexEncode,
-  serializeList,
   toBeBytes,
-} from "utils/utils"
+} from "../../src/utils/utils"
+import { expect, test } from "vitest"
 
 test("hexEncode+hexDecode", () => {
   const s = "ça va être la fête"
@@ -20,41 +19,6 @@ test("number to bytes-number", () => {
   const bytes = toBeBytes(42)
   const myNumber = fromBeBytes(bytes)
   expect(myNumber).toBe(42)
-})
-
-test("leb128", () => {
-  const array1 = new Array<number>(32)
-  for (let i = 0; i < array1.length; i++) {
-    array1[i] = 0
-  }
-  const array2 = new Array<number>(257)
-  for (let i = 0; i < array2.length; i++) {
-    array2[i] = 0
-  }
-  const array3 = new Array<number>(32)
-  for (let i = 0; i < array3.length; i++) {
-    array3[i] = 0
-  }
-
-  const a = Uint8Array.from(array1)
-  const b = Uint8Array.from(array2)
-  const c = Uint8Array.from(array3)
-
-  // Serialize
-  const serialized = serializeList([a, b, c])
-
-  // Deserialize
-  const deserialized = deserializeList(serialized)
-
-  logger.log(() => "serialized: " + serialized)
-  logger.log(() => "deserialized.len: " + deserialized.length)
-  logger.log(() => "deserialized[0]: " + deserialized[0])
-  logger.log(() => "deserialized[1]: " + deserialized[1])
-  logger.log(() => "deserialized: " + deserialized)
-
-  // Check
-  expect(deserialized.length).toBe(3)
-  expect(deserialized).toStrictEqual([a, b, c])
 })
 
 test("leb128_real_case", () => {
@@ -92,18 +56,8 @@ test("leb128_real_case", () => {
   // Deserialize
   const deserialized = deserializeList(serialized)
 
-  logger.log(() => "serialized: " + serialized)
-  logger.log(() => "deserialized.len: " + deserialized.length)
-  logger.log(() => "deserialized[0]: " + deserialized[0])
-  logger.log(() => "deserialized[1]: " + deserialized[1])
-  logger.log(() => "deserialized: " + deserialized)
-
   // Check
   expect(deserialized.length).toBe(2)
   expect(deserialized[0]).toStrictEqual(symmetricKey)
   expect(deserialized[1]).toStrictEqual(header)
-
-  const reserialized = serializeList([symmetricKey, header])
-  logger.log(() => "reserialized: " + reserialized)
-  // expect(reserialized).toStrictEqual(serialized)
 })
