@@ -122,74 +122,99 @@ test("KMS Import Master Keys", async () => {
     return
   }
 
-  const policy = new Policy([new PolicyAxis("Department", ["FIN", "MKG", "HR"], false)])
-  const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] = await client.createAbeMasterKeyPair(policy);
+  const policy = new Policy([
+    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+  ])
+  const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
+    await client.createAbeMasterKeyPair(policy)
 
-  const publicKey = await client.retrieveAbePublicMasterKey(publicKeyUniqueIdentifier)
-  const privateKey = await client.retrieveAbePrivateMasterKey(privateKeyUniqueIdentifier)
+  const publicKey = await client.retrieveAbePublicMasterKey(
+    publicKeyUniqueIdentifier,
+  )
+  const privateKey = await client.retrieveAbePrivateMasterKey(
+    privateKeyUniqueIdentifier,
+  )
 
-  const importedPublicKeyUniqueIdentifier = await client.importAbePublicMasterKey(`${publicKeyUniqueIdentifier}-imported`, publicKey);
-  const importedPrivateKeyUniqueIdentifier = await client.importAbePrivateMasterKey(`${privateKeyUniqueIdentifier}-imported`, privateKey);
+  const importedPublicKeyUniqueIdentifier =
+    await client.importAbePublicMasterKey(
+      `${publicKeyUniqueIdentifier}-imported`,
+      publicKey,
+    )
+  const importedPrivateKeyUniqueIdentifier =
+    await client.importAbePrivateMasterKey(
+      `${privateKeyUniqueIdentifier}-imported`,
+      privateKey,
+    )
 
-  const importedPublicKey = await client.retrieveAbePublicMasterKey(importedPublicKeyUniqueIdentifier)
-  const importedPrivateKey = await client.retrieveAbePrivateMasterKey(importedPrivateKeyUniqueIdentifier)
+  const importedPublicKey = await client.retrieveAbePublicMasterKey(
+    importedPublicKeyUniqueIdentifier,
+  )
+  const importedPrivateKey = await client.retrieveAbePrivateMasterKey(
+    importedPrivateKeyUniqueIdentifier,
+  )
 })
 
-test("KMS Symmetric Key", async () => {
-  await CoverCrypt()
+test(
+  "KMS Symmetric Key",
+  async () => {
+    await CoverCrypt()
 
-  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
-  if (!(await client.up())) {
-    console.error("No KMIP server. Skipping test")
-    return
-  }
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
 
-  // create
-  const uniqueIdentifier = await client.createSymmetricKey(
-    SymmetricKeyAlgorithm.AES,
-    256,
-  )
-  expect(uniqueIdentifier).toBeTypeOf("string")
+    // create
+    const uniqueIdentifier = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+    )
+    expect(uniqueIdentifier).toBeTypeOf("string")
 
-  // recover
-  const key: SymmetricKey = await client.retrieveSymmetricKey(uniqueIdentifier)
-  expect(key.keyBlock.cryptographicAlgorithm).toEqual(
-    CryptographicAlgorithm.AES,
-  )
-  expect(key.keyBlock.cryptographicLength).toEqual(256)
-  expect(key.keyBlock.keyFormatType).toEqual(
-    KeyFormatType.TransparentSymmetricKey,
-  )
-  expect(key.keyBlock.keyValue).not.toBeNull()
-  expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
+    // recover
+    const key: SymmetricKey = await client.retrieveSymmetricKey(
+      uniqueIdentifier,
+    )
+    expect(key.keyBlock.cryptographicAlgorithm).toEqual(
+      CryptographicAlgorithm.AES,
+    )
+    expect(key.keyBlock.cryptographicLength).toEqual(256)
+    expect(key.keyBlock.keyFormatType).toEqual(
+      KeyFormatType.TransparentSymmetricKey,
+    )
+    expect(key.keyBlock.keyValue).not.toBeNull()
+    expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
 
-  const keyValue = key?.keyBlock?.keyValue as KeyValue
-  expect(keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
+    const keyValue = key?.keyBlock?.keyValue as KeyValue
+    expect(keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
 
-  const sk = keyValue.keyMaterial as TransparentSymmetricKey
-  expect(sk.key.length).toEqual(32)
+    const sk = keyValue.keyMaterial as TransparentSymmetricKey
+    expect(sk.key.length).toEqual(32)
 
-  // import
-  const uid = await client.importSymmetricKey(
-    uniqueIdentifier + "-1",
-    key.bytes(),
-    false,
-  )
-  expect(uid).toEqual(uniqueIdentifier + "-1")
+    // import
+    const uid = await client.importSymmetricKey(
+      uniqueIdentifier + "-1",
+      key.bytes(),
+      false,
+    )
+    expect(uid).toEqual(uniqueIdentifier + "-1")
 
-  // get
-  const key_ = await client.retrieveSymmetricKey(uid)
-  expect(key_.bytes()).toEqual(key.bytes())
+    // get
+    const key_ = await client.retrieveSymmetricKey(uid)
+    expect(key_.bytes()).toEqual(key.bytes())
 
-  // revoke
-  await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
-  await client.revokeSymmetricKey(uid, "revoked")
+    // revoke
+    await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
+    await client.revokeSymmetricKey(uid, "revoked")
 
-  // destroy
-  await client.destroySymmetricKey(uid)
-  await client.destroySymmetricKey(uniqueIdentifier)
-}, 10 * 1000)
+    // destroy
+    await client.destroySymmetricKey(uid)
+    await client.destroySymmetricKey(uniqueIdentifier)
+  },
+  10 * 1000,
+)
 
 test("Policy", async () => {
   await CoverCrypt()

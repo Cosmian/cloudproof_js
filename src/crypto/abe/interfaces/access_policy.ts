@@ -29,7 +29,7 @@ export class AccessPolicy {
    * @returns {string} the KMIP JSON Format
    */
   public async toKmipJson(): Promise<string> {
-    await CoverCrypt();
+    await CoverCrypt()
     return webassembly_parse_boolean_access_policy(this._booleanAccessPolicy)
   }
 
@@ -70,7 +70,7 @@ export class AccessPolicy {
     for (const att of attrs) {
       if (
         att.attributeName ===
-        VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
+          VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
         att.attributeName === VendorAttributes.VENDOR_ATTR_ABE_ACCESS_POLICY
       ) {
         return AccessPolicy.fromKmipJson(

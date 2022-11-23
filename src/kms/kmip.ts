@@ -297,8 +297,8 @@ export function fromTTLV<T>(
         "TransparentECPublicKey",
       ].includes(keyFormatType.value as string)
     ) {
-      // Now we have the KeyFormatType, we can call `fromTTLV` with the same `ttlv` but overriding the tag 
-      // with the KeyFormatType value. We'll not go inside the `ttlv.tag === "KeyMaterial"` condition anymore but 
+      // Now we have the KeyFormatType, we can call `fromTTLV` with the same `ttlv` but overriding the tag
+      // with the KeyFormatType value. We'll not go inside the `ttlv.tag === "KeyMaterial"` condition anymore but
       // in the struct parsing below.
       return fromTTLV(ttlv, keyFormatType.value as string)
     }
@@ -319,8 +319,8 @@ export function fromTTLV<T>(
     ttlv.type === TtlvType.Structure
   ) {
     // @ts-expect-error We use the STRUCTS constant to build the object.
-    // Some structs have mandatory field in the constructor, they will be `undefined` since we 
-    // call the constructor with no parameter, bypassing TypeScript. 
+    // Some structs have mandatory field in the constructor, they will be `undefined` since we
+    // call the constructor with no parameter, bypassing TypeScript.
     const instance = new STRUCTS[ttlv.tag as keyof typeof STRUCTS]()
 
     // We check all the children of the TTLV structure to set all the properties on the instance.
@@ -376,17 +376,14 @@ export function serialize(kmip: Serializable): string {
 
 /**
  * Serialize JS KMIP struct to a TTLV object
- * The tag is required for almost all serialization, except for root Serialization 
+ * The tag is required for almost all serialization, except for root Serialization
  * which are objects containing a `tag` property (see `Create` for example).
  *
  * @param {Serializable} kmip JS KMIP struct
  * @param {string} tag tag to use
  * @returns {TTLV} TTLV object
  */
-export function toTTLV(
-  kmip: Serializable,
-  tag: string | null = null,
-): TTLV {
+export function toTTLV(kmip: Serializable, tag: string | null = null): TTLV {
   // String are serialize to TextString or Enumeration
   // (enumeration should be only for ObjectType because other enums are represented by numbers in JS, we do not
   // check that right now, and if it's an enum represented by a string we serialize the string).
@@ -489,15 +486,17 @@ export function toTTLV(
   // no `tag` will be define (so we use the tag present inside the object, often it will be
   // a request object, but in tests we sometimes serialize random objects)
   if (tag === null) {
-    tag = kmip.tag;
+    tag = kmip.tag
     if (tag === undefined) {
-      throw new Error(`Try to serialize a root JS object ${typeof kmip} but this object doesn't have a tag property.`)
+      throw new Error(
+        `Try to serialize a root JS object ${typeof kmip} but this object doesn't have a tag property.`,
+      )
     }
   }
 
   // We check all the object properties, removing:
-  // - the special `tag` property 
-  // - any `null` property 
+  // - the special `tag` property
+  // - any `null` property
   // - empty arrays
   // Then we serialize the property value and add it to the children array.
   return {

@@ -81,7 +81,9 @@ export class KmsClient {
     })
 
     if (response.status >= 400) {
-      throw new Error(`KMIP request failed (${request.tag}): ${await response.text()}`)
+      throw new Error(
+        `KMIP request failed (${request.tag}): ${await response.text()}`,
+      )
     }
 
     const content = await response.text()
@@ -371,10 +373,15 @@ export class KmsClient {
    */
   public async importAbePrivateMasterKey(
     uniqueIdentifier: string,
-    key: PrivateKey | { bytes: Uint8Array, policy: Policy },
+    key: PrivateKey | { bytes: Uint8Array; policy: Policy },
     replaceExisting: boolean = false,
   ): Promise<string> {
-    return await this.importCoverCryptKey(uniqueIdentifier, "PrivateKey", key, replaceExisting);
+    return await this.importCoverCryptKey(
+      uniqueIdentifier,
+      "PrivateKey",
+      key,
+      replaceExisting,
+    )
   }
 
   /**
@@ -387,10 +394,15 @@ export class KmsClient {
    */
   public async importAbePublicMasterKey(
     uniqueIdentifier: string,
-    key: PublicKey | { bytes: Uint8Array, policy: Policy },
+    key: PublicKey | { bytes: Uint8Array; policy: Policy },
     replaceExisting?: boolean,
   ): Promise<string> {
-    return await this.importCoverCryptKey(uniqueIdentifier, "PublicKey", key, replaceExisting);
+    return await this.importCoverCryptKey(
+      uniqueIdentifier,
+      "PublicKey",
+      key,
+      replaceExisting,
+    )
   }
 
   /**
@@ -405,7 +417,10 @@ export class KmsClient {
   public async importCoverCryptKey(
     uniqueIdentifier: string,
     type: "PublicKey" | "PrivateKey",
-    key: PublicKey | PrivateKey | { bytes: Uint8Array, policy: Policy | AccessPolicy },
+    key:
+      | PublicKey
+      | PrivateKey
+      | { bytes: Uint8Array; policy: Policy | AccessPolicy },
     replaceExisting?: boolean,
   ): Promise<string> {
     // If we didn't pass a real Key object, build one from bytes and policy
@@ -413,13 +428,18 @@ export class KmsClient {
       const attributes = new Attributes(type)
       attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
       attributes.keyFormatType = {
-        "PublicKey": KeyFormatType.CoverCryptPublicKey,
-        "PrivateKey": KeyFormatType.CoverCryptSecretKey,
+        PublicKey: KeyFormatType.CoverCryptPublicKey,
+        PrivateKey: KeyFormatType.CoverCryptSecretKey,
       }[type]
       attributes.vendorAttributes = [await key.policy.toVendorAttribute()]
 
-      const keyValue = new KeyValue(key.bytes, attributes);
-      const keyBlock = new KeyBlock(attributes.keyFormatType, keyValue, attributes.cryptographicAlgorithm, key.bytes.length)
+      const keyValue = new KeyValue(key.bytes, attributes)
+      const keyBlock = new KeyBlock(
+        attributes.keyFormatType,
+        keyValue,
+        attributes.cryptographicAlgorithm,
+        key.bytes.length,
+      )
 
       if (type === "PublicKey") {
         key = new PublicKey(keyBlock)
@@ -532,14 +552,19 @@ export class KmsClient {
    */
   public async importAbeUserDecryptionKey(
     uniqueIdentifier: string,
-    key: PrivateKey | { bytes: Uint8Array, policy: AccessPolicy | string },
+    key: PrivateKey | { bytes: Uint8Array; policy: AccessPolicy | string },
     replaceExisting?: boolean,
   ): Promise<string> {
     if (!(key instanceof PrivateKey) && typeof key.policy === "string") {
-      key.policy = new AccessPolicy(key.policy);
+      key.policy = new AccessPolicy(key.policy)
     }
 
-    return await this.importCoverCryptKey(uniqueIdentifier, "PrivateKey", key as any, replaceExisting);
+    return await this.importCoverCryptKey(
+      uniqueIdentifier,
+      "PrivateKey",
+      key as any,
+      replaceExisting,
+    )
   }
 
   /**
@@ -574,17 +599,30 @@ export class KmsClient {
     const kmipJson = JSON.parse(await accessPolicyObject.toKmipJson())
 
     if (typeof kmipJson.And === "undefined") {
-      throw new Error("Encrypting with the KMS only support AND access policies")
-    }
-    
-    if (! Array.isArray(kmipJson.And)) {
-      throw new Error("Encrypting with the KMS only support simple AND access policies")
+      throw new Error(
+        "Encrypting with the KMS only support AND access policies",
+      )
     }
 
-    const policyAttributes = kmipJson.And.map((policy: { Attr: string }) => policy.Attr)
+    if (!Array.isArray(kmipJson.And)) {
+      throw new Error(
+        "Encrypting with the KMS only support simple AND access policies",
+      )
+    }
 
-    const dataToEncrypt = (new TextEncoder).encode(JSON.stringify({ Data: hexEncode(data), PolicyAttributes: policyAttributes }))
-    const response = await this.post(new Encrypt(uniqueIdentifier, dataToEncrypt));
+    const policyAttributes = kmipJson.And.map(
+      (policy: { Attr: string }) => policy.Attr,
+    )
+
+    const dataToEncrypt = new TextEncoder().encode(
+      JSON.stringify({
+        Data: hexEncode(data),
+        PolicyAttributes: policyAttributes,
+      }),
+    )
+    const response = await this.post(
+      new Encrypt(uniqueIdentifier, dataToEncrypt),
+    )
 
     return response.data
   }
@@ -599,7 +637,7 @@ export class KmsClient {
     uniqueIdentifier: string,
     data: Uint8Array,
   ): Promise<Uint8Array> {
-    const response = await this.post(new Decrypt(uniqueIdentifier, data));
+    const response = await this.post(new Decrypt(uniqueIdentifier, data))
     return response.data
   }
 
