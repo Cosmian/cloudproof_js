@@ -1,221 +1,332 @@
 
 
-import { CoverCrypt, KmsClient, Policy, PolicyAxis } from "cloudproof_js"
+import { hexDecode } from 'cloudproof_js';
+import { spawn } from 'node:child_process'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url';
+(async () => {
+    const masterKeys = JSON.parse(await run('generate_master_keys.mjs'))
 
-const assert = (x, y) => {
-  if (new TextDecoder().decode(x) !== new TextDecoder().decode(y))
-    throw new Error("Items MUST be equal (left: " + x + " right: " + y + ")")
+    const encryptedDataHexEncoded = await run('encrypt.mjs', [
+        '--publicMasterKeyBytesHexEncoded', masterKeys.publicKeyBytesHexEncoded,
+        '--publicMasterKeyUID', masterKeys.publicKeyUID,
+        '--dataToEncrypt', "Hello World",
+        '--accessPolicy', "Department::HR && Security Level::Medium Secret",
+    ])
+
+    {
+        // Medium Secret User Key should be able to decrypt
+
+        const userKey = JSON.parse(await run('generate_user_key.mjs', [
+            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+            '--privateMasterKeyUID', masterKeys.privateKeyUID,
+            '--accessPolicy', "Department::HR && Security Level::Medium Secret",
+        ]))
+    
+        const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+            '--userKeyUID', userKey.uid,
+        ])
+    
+        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+        if (decryptedData !== "Hello World") {
+            throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+        }
+    }
+
+    {
+        // High Secret User Key should be able to decrypt
+
+        const userKey = JSON.parse(await run('generate_user_key.mjs', [
+            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+            '--privateMasterKeyUID', masterKeys.privateKeyUID,
+            '--accessPolicy', "Department::HR && Security Level::High Secret",
+        ]))
+    
+        const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+            '--userKeyUID', userKey.uid,
+        ])
+    
+        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+        if (decryptedData !== "Hello World") {
+            throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+        }
+    }
+
+    {
+        // Low Secret User Key shouldn't be able to decrypt
+
+        const userKey = JSON.parse(await run('generate_user_key.mjs', [
+            '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+            '--privateMasterKeyUID', masterKeys.privateKeyUID,
+            '--accessPolicy', "Department::HR && Security Level::Low Secret",
+        ]))
+    
+        const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+            '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+            '--userKeyUID', userKey.uid,
+        ], true)
+    
+        const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+        if (decryptedData !== "") {
+            throw new Error(`Shouldn't be able to decrypt. "${decryptedData}" received`);
+        }
+    }
+})()
+
+/**
+ * Run a sub-script to do one task
+ * 
+ * @param filename name of the file to run
+ * @param args additional arguments
+ * @param shouldCrash return empty string if the program crash and shouldCrash is true
+ */
+async function run(filename, args = [], shouldCrash = false) {
+    const process = spawn('node', [path.join(dirname(fileURLToPath(import.meta.url)), filename), ...args]);
+    
+    let result = null
+
+    process.stdout.on('data', (data) => {
+        if (shouldCrash) {
+            throw Error(`${filename} should crash but ${data} received.`)
+        } else {
+            result = (new TextDecoder).decode(data)
+        }
+    });
+    process.stderr.on('data', (data) => {
+        if (shouldCrash) {
+            result = ''
+        } else {
+            throw new Error(`Error while running ${filename}: ${data}`);
+        }
+    });
+
+    while(true) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        if (result !== null) return result
+    }
 }
 
-//
-// Creating a policy
-//
-const policy = new Policy([
-  new PolicyAxis("Department", ["R&D", "HR", "FIN", "MKG"], false),
-  new PolicyAxis(
-    "Security Level",
-    ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"],
-    true,
-  ),
-])
+// import { CoverCrypt, KmsClient, Policy, PolicyAxis } from "cloudproof_js"
 
-;(async () => {
-  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+// const assert = (x, y) => {
+//   if (new TextDecoder().decode(x) !== new TextDecoder().decode(y))
+//     throw new Error("Items MUST be equal (left: " + x + " right: " + y + ")")
+// }
 
-  //
-  // Generating the master keys
-  //
-  // create master keys
-  const [privateMasterKeyUID, publicKeyUID] =
-    await client.createAbeMasterKeyPair(policy)
+// //
+// // Creating a policy
+// //
+// const policy = new Policy([
+//   new PolicyAxis("Department", ["R&D", "HR", "FIN", "MKG"], false),
+//   new PolicyAxis(
+//     "Security Level",
+//     ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"],
+//     true,
+//   ),
+// ])
 
-  // fetch the keys from the KMS
-  const privateMasterKey = await client.retrieveAbePrivateMasterKey(
-    privateMasterKeyUID,
-  )
-  // eslint-disable-next-line no-unused-vars
-  const privateMasterKeyBytes = privateMasterKey.bytes()
-  const publicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
-  const publicKeyBytes = publicKey.bytes()
+// ;(async () => {
+//   const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
-  //
-  // Encrypting Data
-  //
-  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
-    await CoverCrypt()
+//   //
+//   // Generating the master keys
+//   //
+//   // create master keys
+//   const [privateMasterKeyUID, publicKeyUID] =
+//     await client.createAbeMasterKeyPair(policy)
 
-  // a low secret marketing message
-  const lowSecretMkgData = new TextEncoder().encode("low_secret_mkg_message")
-  // The constructor also accepts the public key object returned by the KMS
-  let encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const lowSecretMkgCiphertext = encrypter.encrypt(
-    "Department::MKG && Security Level::Low Secret",
-    lowSecretMkgData,
-  )
+//   // fetch the keys from the KMS
+//   const privateMasterKey = await client.retrieveAbePrivateMasterKey(
+//     privateMasterKeyUID,
+//   )
+//   // eslint-disable-next-line no-unused-vars
+//   const privateMasterKeyBytes = privateMasterKey.bytes()
+//   const publicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
+//   const publicKeyBytes = publicKey.bytes()
 
-  // a top secret marketing message
-  const topSecretMkgData = new TextEncoder().encode("top_secret_mkg_message")
-  encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const topSecretMkgCiphertext = encrypter.encrypt(
-    "Department::MKG && Security Level::Top Secret",
-    topSecretMkgData,
-  )
+//   //
+//   // Encrypting Data
+//   //
+//   const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
+//     await CoverCrypt()
 
-  // a low secret finance message
-  const lowSecretFinData = new TextEncoder().encode("low_secret_fin_message")
-  encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const lowSecretFinCiphertext = encrypter.encrypt(
-    "Department::FIN && Security Level::Low Secret",
-    lowSecretFinData,
-  )
+//   // a low secret marketing message
+//   const lowSecretMkgData = new TextEncoder().encode("low_secret_mkg_message")
+//   // The constructor also accepts the public key object returned by the KMS
+//   let encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+//   const lowSecretMkgCiphertext = encrypter.encrypt(
+//     "Department::MKG && Security Level::Low Secret",
+//     lowSecretMkgData,
+//   )
 
-  //
-  // Generating User Decryption Keys
-  //
-  // the medium secret marketing user
-  const mediumSecretMkgAccess =
-    "Department::MKG && Security Level::Medium Secret"
-  const mediumSecretMkgUserKeyUid = await client.createAbeUserDecryptionKey(
-    mediumSecretMkgAccess,
-    privateMasterKeyUID,
-    )
-  const mediumSecretMkgUserKey = await client.retrieveAbeUserDecryptionKey(
-    mediumSecretMkgUserKeyUid,
-  )
-  const mediumSecretMkgUserKeyBytes = mediumSecretMkgUserKey.bytes()
+//   // a top secret marketing message
+//   const topSecretMkgData = new TextEncoder().encode("top_secret_mkg_message")
+//   encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+//   const topSecretMkgCiphertext = encrypter.encrypt(
+//     "Department::MKG && Security Level::Top Secret",
+//     topSecretMkgData,
+//   )
 
-  // the top secret marketing financial user
-  const topSecretMkgFinAccess =
-    "(Department::MKG || Department::FIN) && Security Level::Top Secret"
-  const topSecretMkgFinUserKeyUid = await client.createAbeUserDecryptionKey(
-    topSecretMkgFinAccess,
-    privateMasterKeyUID,
-  )
-  const topSecretMkgFinUserKey = await client.retrieveAbeUserDecryptionKey(
-    topSecretMkgFinUserKeyUid,
-  )
-  const topSecretMkgFinUserKeyBytes = topSecretMkgFinUserKey.bytes()
+//   // a low secret finance message
+//   const lowSecretFinData = new TextEncoder().encode("low_secret_fin_message")
+//   encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+//   const lowSecretFinCiphertext = encrypter.encrypt(
+//     "Department::FIN && Security Level::Low Secret",
+//     lowSecretFinData,
+//   )
 
-  // the top secret financial user
-  const topSecretFinAccess = "(Department::FIN) && Security Level::Top Secret"
-  const topSecretFinUserKeyUid = await client.createAbeUserDecryptionKey(
-    topSecretFinAccess,
-    privateMasterKeyUID,
-  )
-  const topSecretFinUserKey = await client.retrieveAbeUserDecryptionKey(
-    topSecretFinUserKeyUid,
-  )
-  // eslint-disable-next-line no-unused-vars
-  const topSecretFinUserKeyBytes = topSecretFinUserKey.bytes()
+//   //
+//   // Generating User Decryption Keys
+//   //
+//   // the medium secret marketing user
+//   const mediumSecretMkgAccess =
+//     "Department::MKG && Security Level::Medium Secret"
+//   const mediumSecretMkgUserKeyUid = await client.createAbeUserDecryptionKey(
+//     mediumSecretMkgAccess,
+//     privateMasterKeyUID,
+//     )
+//   const mediumSecretMkgUserKey = await client.retrieveAbeUserDecryptionKey(
+//     mediumSecretMkgUserKeyUid,
+//   )
+//   const mediumSecretMkgUserKeyBytes = mediumSecretMkgUserKey.bytes()
 
-  //
-  // Decrypting Ciphertexts
-  //
-  //  note: the constructor also accepts the private key object returned by the KMS
-  const lowSecretMkgCleartext = new CoverCryptHybridDecryption(
-    mediumSecretMkgUserKeyBytes,
-  ).decrypt(lowSecretMkgCiphertext)
-  assert(lowSecretMkgCleartext, lowSecretMkgData)
+//   // the top secret marketing financial user
+//   const topSecretMkgFinAccess =
+//     "(Department::MKG || Department::FIN) && Security Level::Top Secret"
+//   const topSecretMkgFinUserKeyUid = await client.createAbeUserDecryptionKey(
+//     topSecretMkgFinAccess,
+//     privateMasterKeyUID,
+//   )
+//   const topSecretMkgFinUserKey = await client.retrieveAbeUserDecryptionKey(
+//     topSecretMkgFinUserKeyUid,
+//   )
+//   const topSecretMkgFinUserKeyBytes = topSecretMkgFinUserKey.bytes()
 
-  // .. however it can neither decrypt a marketing message with higher security:
-  try {
-    // will throw
-    new CoverCryptHybridDecryption(mediumSecretMkgUserKey).decrypt(
-      topSecretMkgCiphertext,
-    )
-  } catch (error) {
-    // ==> the user is not be able to decrypt
-  }
+//   // the top secret financial user
+//   const topSecretFinAccess = "(Department::FIN) && Security Level::Top Secret"
+//   const topSecretFinUserKeyUid = await client.createAbeUserDecryptionKey(
+//     topSecretFinAccess,
+//     privateMasterKeyUID,
+//   )
+//   const topSecretFinUserKey = await client.retrieveAbeUserDecryptionKey(
+//     topSecretFinUserKeyUid,
+//   )
+//   // eslint-disable-next-line no-unused-vars
+//   const topSecretFinUserKeyBytes = topSecretFinUserKey.bytes()
 
-  // ... nor decrypt a message from another department even with a lower security:
-  try {
-    // will throw
-    new CoverCryptHybridDecryption(topSecretFinUserKey).decrypt(
-      lowSecretMkgCiphertext,
-    )
-  } catch (error) {
-    // ==> the user is not be able to decrypt
-  }
+//   //
+//   // Decrypting Ciphertexts
+//   //
+//   //  note: the constructor also accepts the private key object returned by the KMS
+//   const lowSecretMkgCleartext = new CoverCryptHybridDecryption(
+//     mediumSecretMkgUserKeyBytes,
+//   ).decrypt(lowSecretMkgCiphertext)
+//   assert(lowSecretMkgCleartext, lowSecretMkgData)
 
-  // lowSecretMkgCiphertext
-  const lowSecretMkgCleartext2 = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes,
-  ).decrypt(lowSecretMkgCiphertext)
-  assert(lowSecretMkgData, lowSecretMkgCleartext2)
+//   // .. however it can neither decrypt a marketing message with higher security:
+//   try {
+//     // will throw
+//     new CoverCryptHybridDecryption(mediumSecretMkgUserKey).decrypt(
+//       topSecretMkgCiphertext,
+//     )
+//   } catch (error) {
+//     // ==> the user is not be able to decrypt
+//   }
 
-  // lowSecretFinCiphertext
-  const topSecretMkgCleartext = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes,
-  ).decrypt(topSecretMkgCiphertext)
-  assert(topSecretMkgData, topSecretMkgCleartext)
+//   // ... nor decrypt a message from another department even with a lower security:
+//   try {
+//     // will throw
+//     new CoverCryptHybridDecryption(topSecretFinUserKey).decrypt(
+//       lowSecretMkgCiphertext,
+//     )
+//   } catch (error) {
+//     // ==> the user is not be able to decrypt
+//   }
 
-  // lowSecretFinCiphertext
-  const lowSecretFinCleartext = new CoverCryptHybridDecryption(
-    topSecretMkgFinUserKeyBytes,
-  ).decrypt(lowSecretFinCiphertext)
-  assert(lowSecretFinData, lowSecretFinCleartext)
+//   // lowSecretMkgCiphertext
+//   const lowSecretMkgCleartext2 = new CoverCryptHybridDecryption(
+//     topSecretMkgFinUserKeyBytes,
+//   ).decrypt(lowSecretMkgCiphertext)
+//   assert(lowSecretMkgData, lowSecretMkgCleartext2)
 
-  //
-  // Rotating Attributes
-  //
-  // retrieve the key
-  const originalMediumSecretMkgUserKey =
-    await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
+//   // lowSecretFinCiphertext
+//   const topSecretMkgCleartext = new CoverCryptHybridDecryption(
+//     topSecretMkgFinUserKeyBytes,
+//   ).decrypt(topSecretMkgCiphertext)
+//   assert(topSecretMkgData, topSecretMkgCleartext)
 
-  // Now revoke the MKG attribute - all active keys will be rekeyed
-  client.rotateAbeAttributes(privateMasterKeyUID, ["Department::MKG"])
+//   // lowSecretFinCiphertext
+//   const lowSecretFinCleartext = new CoverCryptHybridDecryption(
+//     topSecretMkgFinUserKeyBytes,
+//   ).decrypt(lowSecretFinCiphertext)
+//   assert(lowSecretFinData, lowSecretFinCleartext)
 
-  // retrieve the rekeyed public key
-  const rekeyedPublicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
-  // retrieve the rekeyed user decryption key
-  const rekeyedMediumSecretMkgUserKey =
-    await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
+//   //
+//   // Rotating Attributes
+//   //
+//   // retrieve the key
+//   const originalMediumSecretMkgUserKey =
+//     await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
 
-  //
-  // creating a new medium secret marketing message
-  //
-  const mediumSecretMkgData = new TextEncoder().encode(
-    "medium_secret_mkg_message",
-  )
-  encrypter = new CoverCryptHybridEncryption(policy, rekeyedPublicKey)
-  const newMediumSecretMkgCiphertext = encrypter.encrypt(
-    "Department::MKG && Security Level::Medium Secret",
-    mediumSecretMkgData,
-  )
+//   // Now revoke the MKG attribute - all active keys will be rekeyed
+//   client.rotateAbeAttributes(privateMasterKeyUID, ["Department::MKG"])
 
-  //
-  // decrypting the messages with the rekeyed key
-  //
-  // lowSecretMkgCiphertext
-  const oldMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
-    rekeyedMediumSecretMkgUserKey,
-  ).decrypt(lowSecretMkgCiphertext)
-  assert(lowSecretMkgData, oldMediumSecretMkgCleartext)
+//   // retrieve the rekeyed public key
+//   const rekeyedPublicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
+//   // retrieve the rekeyed user decryption key
+//   const rekeyedMediumSecretMkgUserKey =
+//     await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
 
-  // newMediumSecretMkgCiphertext
-  const newMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
-    rekeyedMediumSecretMkgUserKey,
-  ).decrypt(newMediumSecretMkgCiphertext)
-  assert(mediumSecretMkgData, newMediumSecretMkgCleartext)
+//   //
+//   // creating a new medium secret marketing message
+//   //
+//   const mediumSecretMkgData = new TextEncoder().encode(
+//     "medium_secret_mkg_message",
+//   )
+//   encrypter = new CoverCryptHybridEncryption(policy, rekeyedPublicKey)
+//   const newMediumSecretMkgCiphertext = encrypter.encrypt(
+//     "Department::MKG && Security Level::Medium Secret",
+//     mediumSecretMkgData,
+//   )
 
-  //
-  // decrypting the messages with the NON rekeyed key
-  //
-  // lowSecretMkgCiphertext
-  const plaintext_ = new CoverCryptHybridDecryption(
-    originalMediumSecretMkgUserKey,
-  ).decrypt(lowSecretMkgCiphertext)
-  assert(lowSecretMkgData, plaintext_)
+//   //
+//   // decrypting the messages with the rekeyed key
+//   //
+//   // lowSecretMkgCiphertext
+//   const oldMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
+//     rekeyedMediumSecretMkgUserKey,
+//   ).decrypt(lowSecretMkgCiphertext)
+//   assert(lowSecretMkgData, oldMediumSecretMkgCleartext)
 
-  // newMediumSecretMkgCiphertext
-  try {
-    // will throw
-    new CoverCryptHybridDecryption(originalMediumSecretMkgUserKey).decrypt(
-      newMediumSecretMkgCiphertext,
-    )
-  } catch (error) {
-    // ==> the non rekeyed key cannot decrypt new message after rotation
-  }
+//   // newMediumSecretMkgCiphertext
+//   const newMediumSecretMkgCleartext = new CoverCryptHybridDecryption(
+//     rekeyedMediumSecretMkgUserKey,
+//   ).decrypt(newMediumSecretMkgCiphertext)
+//   assert(mediumSecretMkgData, newMediumSecretMkgCleartext)
 
-  console.log("Succeeded!")
-})()
+//   //
+//   // decrypting the messages with the NON rekeyed key
+//   //
+//   // lowSecretMkgCiphertext
+//   const plaintext_ = new CoverCryptHybridDecryption(
+//     originalMediumSecretMkgUserKey,
+//   ).decrypt(lowSecretMkgCiphertext)
+//   assert(lowSecretMkgData, plaintext_)
+
+//   // newMediumSecretMkgCiphertext
+//   try {
+//     // will throw
+//     new CoverCryptHybridDecryption(originalMediumSecretMkgUserKey).decrypt(
+//       newMediumSecretMkgCiphertext,
+//     )
+//   } catch (error) {
+//     // ==> the non rekeyed key cannot decrypt new message after rotation
+//   }
+
+//   console.log("Succeeded!")
+// })()
