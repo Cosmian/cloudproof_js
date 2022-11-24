@@ -152,6 +152,8 @@ test("KMS Import Master Keys", async () => {
   const importedPrivateKey = await client.retrieveAbePrivateMasterKey(
     importedPrivateKeyUniqueIdentifier,
   )
+}, {
+  timeout: 10 * 1000,
 })
 
 test(
@@ -213,7 +215,9 @@ test(
     await client.destroySymmetricKey(uid)
     await client.destroySymmetricKey(uniqueIdentifier)
   },
-  10 * 1000,
+  {
+    timeout: 10 * 1000,
+  }
 )
 
 test("Policy", async () => {
@@ -388,4 +392,6 @@ test("KMS CoverCrypt keys", async () => {
   expect(plaintext2_).toEqual(plaintext)
 
   return await Promise.resolve("SUCCESS")
+}, {
+  timeout: 10 * 1000,
 })
