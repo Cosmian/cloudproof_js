@@ -72,18 +72,6 @@ example_reactjs:
     when: on_failure
     expire_in: 1 week
 
-check_beta_demo:
-  image: gitlab.cosmian.com:5000/core/ci-puppeteer:latest
-  extends: .services
-  stage: test
-  script:
-    - node examples/test/chrome.mjs https://demo-cloudproof.cosmian.com/beta https://demo-cloudproof.cosmian.com/kms
-  artifacts:
-    paths:
-      - error.png
-    when: on_failure
-    expire_in: 1 week
-
 example_webpack:
   extends: .services
   stage: test
