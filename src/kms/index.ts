@@ -32,8 +32,8 @@ import { CreateKeyPair } from "./requests/CreateKeyPair"
 import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
-import { hexEncode } from "../utils/utils"
 import { Decrypt } from "./requests/Decrypt"
+import { encode } from "utils/leb128"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -592,34 +592,10 @@ export class KmsClient {
     accessPolicy: string,
     data: Uint8Array,
   ): Promise<Uint8Array> {
-    // This is temporary hack because we should not pass a JSON with a vec of attributes to the KMS
-    // but the string representing the access policy (to be more expressive)
+    const accessPolicyBytes = (new TextEncoder).encode(accessPolicy);
+    const size = encode(accessPolicyBytes.length)
+    const dataToEncrypt = Uint8Array.from([ ...size, ...accessPolicyBytes, ...data ]);
 
-    const accessPolicyObject = new AccessPolicy(accessPolicy)
-    const kmipJson = JSON.parse(await accessPolicyObject.toKmipJson())
-
-    if (typeof kmipJson.And === "undefined") {
-      throw new Error(
-        "Encrypting with the KMS only support AND access policies",
-      )
-    }
-
-    if (!Array.isArray(kmipJson.And)) {
-      throw new Error(
-        "Encrypting with the KMS only support simple AND access policies",
-      )
-    }
-
-    const policyAttributes = kmipJson.And.map(
-      (policy: { Attr: string }) => policy.Attr,
-    )
-
-    const dataToEncrypt = new TextEncoder().encode(
-      JSON.stringify({
-        Data: hexEncode(data),
-        PolicyAttributes: policyAttributes,
-      }),
-    )
     const response = await this.post(
       new Encrypt(uniqueIdentifier, dataToEncrypt),
     )
