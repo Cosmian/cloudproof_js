@@ -3,4 +3,3 @@ site/*.js
 dist/
 pgdata/
 package-lock.json
-demo/demo.tar
