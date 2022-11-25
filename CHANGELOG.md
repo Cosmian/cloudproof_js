@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `decrypt` function for CoverCrypt now return an object containing the decrypted metadata from the header and the plaintext decrypted value
 - WASM files are now base64 inline in the lib
 - `KmipClient` is now `KmsClient`
 - Removed `client.post()` function, please use the specific functions on the `KmsClient` object.

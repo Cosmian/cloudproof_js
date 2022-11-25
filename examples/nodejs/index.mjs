@@ -17,6 +17,7 @@ import { fileURLToPath } from 'url';
             '--publicMasterKeyBytesHexEncoded', masterKeys.publicKeyBytesHexEncoded,
             '--publicMasterKeyUID', masterKeys.publicKeyUID || '',
             '--dataToEncrypt', "Hello World",
+            '--metadata', "Some metadata",
             '--accessPolicy', "Department::HR && Security Level::Medium Secret",
         ])
     
@@ -29,16 +30,22 @@ import { fileURLToPath } from 'url';
                 '--accessPolicy', "Department::HR && Security Level::Medium Secret",
             ]))
         
-            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            const decryptedDataHexEncoded = JSON.parse(await run('decrypt.mjs', [
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
                 '--userKeyAccessPolicy', "Department::HR && Security Level::Medium Secret",
-            ])
+            ]))
+
         
-            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.cleartext));
             if (decryptedData !== "Hello World") {
                 throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+            }
+        
+            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.metadata));
+            if (decryptedMetadata !== "Some metadata") {
+                throw new Error(`Decrypted data should be "Some metadata". "${decryptedMetadata}" found.`);
             }
         }
     
@@ -51,16 +58,21 @@ import { fileURLToPath } from 'url';
                 '--accessPolicy', "Department::HR && Security Level::High Secret",
             ]))
         
-            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            const decryptedDataHexEncoded = JSON.parse(await run('decrypt.mjs', [
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
                 '--userKeyAccessPolicy', "Department::HR && Security Level::High Secret",
-            ])
+            ]))
         
-            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.cleartext));
             if (decryptedData !== "Hello World") {
                 throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
+            }
+
+            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.metadata));
+            if (decryptedMetadata !== "Some metadata") {
+                throw new Error(`Decrypted data should be "Some metadata". "${decryptedMetadata}" found.`);
             }
         }
     
@@ -73,17 +85,13 @@ import { fileURLToPath } from 'url';
                 '--accessPolicy', "Department::HR && Security Level::Low Secret",
             ]))
         
-            const decryptedDataHexEncoded = await run('decrypt.mjs', [
+            // Should fail
+            await run('decrypt.mjs', [
                 '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
                 '--encryptedDataHexEncoded', encryptedDataHexEncoded,
                 '--userKeyUID', userKey.uid || '',
                 '--userKeyAccessPolicy', "Department::HR && Security Level::Low Secret",
             ], true)
-        
-            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded));
-            if (decryptedData !== "") {
-                throw new Error(`Shouldn't be able to decrypt. "${decryptedData}" received`);
-            }
         }
     }
 })()
@@ -98,9 +106,12 @@ import { fileURLToPath } from 'url';
 async function run(filename, args = [], shouldCrash = false) {
     args = [path.join(dirname(fileURLToPath(import.meta.url)), filename), ...args];
 
-    if (Math.random() < 0.5) {
+    const useKms = Math.random() < 0.5
+    if (useKms) {
         args.push('--kms')
     }
+
+    console.log(`\t Running ${filename} ${useKms ? '(using KMS)' : ''}`)
 
     const process = spawn('node', args);
     

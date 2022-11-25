@@ -356,8 +356,8 @@ test("KMS CoverCrypt keys", async () => {
   )
   // decryption
   const decrypter = new CoverCryptHybridDecryption(udk)
-  const plaintext_ = decrypter.decrypt(ciphertext)
-  expect(plaintext_).toEqual(plaintext)
+  const { cleartext } = decrypter.decrypt(ciphertext)
+  expect(cleartext).toEqual(plaintext)
 
   // rotate
   const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, [
@@ -388,8 +388,10 @@ test("KMS CoverCrypt keys", async () => {
   // retrieve refreshed udk
   const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
   const decrypter2 = new CoverCryptHybridDecryption(udk2)
-  const plaintext2_ = decrypter2.decrypt(ciphertext2)
-  expect(plaintext2_).toEqual(plaintext)
+  {
+    const { cleartext } = decrypter2.decrypt(ciphertext2)
+    expect(cleartext).toEqual(plaintext)
+  }
 
   return await Promise.resolve("SUCCESS")
 }, {

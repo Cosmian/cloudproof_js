@@ -71,8 +71,9 @@ test("leb128_real_case", () => {
 test("LEB128", () => {
   for (const value of [0, 1, 42, 1000]) {
     const leb = encode(value);
-    const newValue = decode(leb);
+    const { result, tail } = decode(leb);
 
-    expect(newValue).toEqual(value);
+    expect(result).toEqual(value);
+    expect(tail).toEqual(Uint8Array.from([]));
   }
 })

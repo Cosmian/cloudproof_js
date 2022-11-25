@@ -6,6 +6,7 @@ import {
 } from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
 import { PrivateKey } from "../../../../../kms/structs/objects"
 import { ClearTextHeader } from "../../../interfaces/cleartext_header"
+import { decode } from "../../../../../utils/leb128"
 
 /**
  * This class exposes the ABE primitives.
@@ -95,16 +96,22 @@ export class CoverCryptHybridDecryption {
     options: {
       authenticatedData?: Uint8Array
     } = {},
-  ): Uint8Array {
+  ): { metadata: Uint8Array, cleartext: Uint8Array } {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
         ? new Uint8Array()
         : options.authenticatedData
 
-    return webassembly_hybrid_decrypt(
+    const result = webassembly_hybrid_decrypt(
       this.asymmetricDecryptionKey,
       ciphertext,
       authenticatedData,
     )
+
+    const { result: additionalDataLength, tail } = decode(result)
+    const metadata = tail.slice(0, additionalDataLength)
+    const cleartext = tail.slice(additionalDataLength);
+
+    return { metadata, cleartext }
   }
 }

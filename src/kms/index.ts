@@ -33,7 +33,7 @@ import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
 import { Decrypt } from "./requests/Decrypt"
-import { encode } from "utils/leb128"
+import { decode, encode } from "utils/leb128"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -586,21 +586,37 @@ export class KmsClient {
    * @param uniqueIdentifier the unique identifier of the public key
    * @param accessPolicy the access policy to use for encryption
    * @param data to encrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    */
   public async encrypt(
     uniqueIdentifier: string,
     accessPolicy: string,
     data: Uint8Array,
+    options: {
+      additionalData?: Uint8Array
+      authenticationData?: Uint8Array
+    } = {},
   ): Promise<Uint8Array> {
     const accessPolicyBytes = (new TextEncoder).encode(accessPolicy);
-    const size = encode(accessPolicyBytes.length)
-    const dataToEncrypt = Uint8Array.from([ ...size, ...accessPolicyBytes, ...data ]);
+    const accessPolicySize = encode(accessPolicyBytes.length)
 
-    const response = await this.post(
-      new Encrypt(uniqueIdentifier, dataToEncrypt),
-    )
+    let additionalDataSize = encode(0)
+    let additionalData = Uint8Array.from([])
+    if (typeof options.additionalData !== "undefined") {
+      additionalDataSize = encode(options.additionalData.length)
+      additionalData = options.additionalData
+    }
 
-    return response.data
+    const dataToEncrypt = Uint8Array.from([ ...accessPolicySize, ...accessPolicyBytes, ...additionalDataSize, ...additionalData, ...data ]);
+
+    const encrypt = new Encrypt(uniqueIdentifier, dataToEncrypt);
+    if (typeof options.authenticationData !== "undefined") {
+      encrypt.authenticatedEncryptionAdditionalData = options.authenticationData
+    }
+
+    return (await this.post(encrypt)).data
   }
 
   /**
@@ -612,9 +628,14 @@ export class KmsClient {
   public async decrypt(
     uniqueIdentifier: string,
     data: Uint8Array,
-  ): Promise<Uint8Array> {
+  ): Promise<{ metadata: Uint8Array, cleartext: Uint8Array }> {
     const response = await this.post(new Decrypt(uniqueIdentifier, data))
-    return response.data
+
+    const { result: sizeOfMetadata, tail } = decode(response.data);
+    const metadata = tail.slice(0, sizeOfMetadata);
+    const cleartext = tail.slice(sizeOfMetadata);
+
+    return { metadata, cleartext }
   }
 
   /**

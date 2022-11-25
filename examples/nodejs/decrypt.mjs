@@ -17,7 +17,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     const encryptedDataHexEncodedIndex = process.argv.indexOf('--encryptedDataHexEncoded') + 1;
     const encryptedData = hexDecode(process.argv[encryptedDataHexEncodedIndex])
 
-    let decryptedData
+    let result
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
 
@@ -26,14 +26,17 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
             userKeyUID = await client.importAbeUserDecryptionKey(uniqueIdentifier, { bytes: userKeyBytes, policy: userKeyAccessPolicy });
         }
 
-        decryptedData = await client.decrypt(userKeyUID, encryptedData)
+        result = await client.decrypt(userKeyUID, encryptedData)
     } else {
         const { CoverCryptHybridDecryption } = await CoverCrypt();
 
         const encryption = new CoverCryptHybridDecryption(userKeyBytes);
 
-        decryptedData = encryption.decrypt(encryptedData);
+        result = encryption.decrypt(encryptedData);
     }
 
-    process.stdout.write(hexEncode(decryptedData))
+    process.stdout.write(JSON.stringify({
+        metadata: hexEncode(result.metadata),
+        cleartext: hexEncode(result.cleartext),
+    }))
 })()

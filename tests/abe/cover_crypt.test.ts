@@ -26,7 +26,7 @@ test("Non regression tests", async () => {
   const hybridDecryption = new CoverCryptHybridDecryption(
     TOP_SECRET_MKG_FIN_USK,
   )
-  const cleartext = hybridDecryption.decrypt(ENCRYPTED_DATA)
+  const { cleartext}  = hybridDecryption.decrypt(ENCRYPTED_DATA)
 
   expect(cleartext).toEqual(PLAINTEXT)
 })
@@ -41,7 +41,7 @@ test("Non regression tests from Java", async () => {
     "f617aca1e6678beb2e7106d6fb9e5b0a3037f3c7072f8f30a4bb6980abee5a3ba839f39d772886c1bf2cd6f35760513919ba237de30c5e8277f906fc5bdff9620169aab7e12e0dfe3856d1dfec3ff774dfc4757a584f8009c1f6fc30b5446f041eb99e1052c381aa32f5704c7ff0fc6660fd1c64945d185435d9099b4c379c240100198875d3cf9ae3b4cdba7969c70b346c3438a792de4d4096d4850e06139f5463fe4a9c0ff900c8bbb08b912dd644926c66cb8fc6a113e13bc0444b254afa1b9db08d7cfaad63029d02c66e3ee9efea5a7e37a35bdbef2655f42c232326899f7f40a12d5d43904485a909e31e2aaf65bc87dc1770c0dc0d8ba31267cddea9a662c020252552acaf733b8c29cae00788e559a99ab5b422f805a27b1cab20cfb2bfa88ad0bcb49e27e154a9b41f4540afdc0d3718e7278978c7a66526d13a30844fc4edc17b3d04bf6c8b7d416b425097afd274aaaad08b9804c0bc7b582753e6ed0ef0635d78e0414856fcc3648a3f0ab42137278f491ca7db635db8a9b8e6bfd5c3b074955d82c8b08aed8d7077685d95ccbc8f18d05aa6ca51af724bad6db4dc8fa37cc3bb8a11cebb8102ed016f655187771fa16260e61be2ba2e1ba82655a17dc683d5be1adfb9a7ccdeda7b12ba071517c730aa8f2094a95bdfc3b0dd16224b09848c01731da2626a85235ef5e5e542272a6997f1bdeb436bd2489da510063fcfcd8d4e0b897301aa20f0ed46f0129e6c71813c4b0c5c742ed35d9d95d57d0894fd0ee6bcd637df7f51f898aa33bea3b693",
   )
   const hybridDecryption = new CoverCryptHybridDecryption(userDecryptionKey)
-  const cleartext = hybridDecryption.decrypt(encryptedBytes)
+  const { cleartext } = hybridDecryption.decrypt(encryptedBytes)
 
   const cleartextDecoder = new TextDecoder().decode(cleartext)
   const expectedPlaintext =
@@ -130,7 +130,7 @@ async function runTests(policy: Policy): Promise<void> {
   const hybridDecryptionMediumSecret = new CoverCryptHybridDecryption(
     mediumSecretMkgUsk,
   )
-  let cleartext = hybridDecryptionMediumSecret.decrypt(lowSecretMkgData)
+  const { cleartext } = hybridDecryptionMediumSecret.decrypt(lowSecretMkgData)
   expect(cleartext).toEqual(PLAINTEXT)
 
   // .. however it can neither decrypt a marketing message with higher security:
@@ -144,12 +144,19 @@ async function runTests(policy: Policy): Promise<void> {
   const hybridDecryptionTopSecret = new CoverCryptHybridDecryption(
     topSecretMkgFinUsk,
   )
-  cleartext = hybridDecryptionTopSecret.decrypt(lowSecretMkgData)
-  expect(cleartext).toEqual(PLAINTEXT)
 
-  cleartext = hybridDecryptionTopSecret.decrypt(topSecretMkgData)
-  expect(cleartext).toEqual(PLAINTEXT)
+  {
+    const { cleartext } = hybridDecryptionTopSecret.decrypt(lowSecretMkgData)
+    expect(cleartext).toEqual(PLAINTEXT)
+  }
 
-  cleartext = hybridDecryptionTopSecret.decrypt(lowSecretFinData)
-  expect(cleartext).toEqual(PLAINTEXT)
+  {
+    const { cleartext } = hybridDecryptionTopSecret.decrypt(topSecretMkgData)
+    expect(cleartext).toEqual(PLAINTEXT)
+  }
+
+  {
+    const { cleartext } = hybridDecryptionTopSecret.decrypt(lowSecretFinData)
+    expect(cleartext).toEqual(PLAINTEXT)
+  }
 }

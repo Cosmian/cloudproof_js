@@ -18,6 +18,12 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     const accessPolicyIndex = process.argv.indexOf('--accessPolicy') + 1;
     const accessPolicy = process.argv[accessPolicyIndex]
 
+    let metadata
+    if (process.argv.includes('--metadata')) {
+        const metadataIndex = process.argv.indexOf('--metadata') + 1;
+        metadata = (new TextEncoder).encode(process.argv[metadataIndex])
+    }
+
     let encryptedData
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
@@ -27,13 +33,17 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
             publicMasterKeyUID = await client.importAbePublicMasterKey(uniqueIdentifier, { bytes: publicMasterKeyBytes, policy });
         }
 
-        encryptedData = await client.encrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt)
+        encryptedData = await client.encrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
+            additionalData: metadata,
+        })
     } else {
         const { CoverCryptHybridEncryption } = await CoverCrypt();
 
         const encryption = new CoverCryptHybridEncryption(policy, publicMasterKeyBytes);
 
-        encryptedData = encryption.encrypt(accessPolicy, dataToEncrypt);
+        encryptedData = encryption.encrypt(accessPolicy, dataToEncrypt, {
+            additionalData: metadata,
+        });
     }
 
     process.stdout.write(hexEncode(encryptedData));
