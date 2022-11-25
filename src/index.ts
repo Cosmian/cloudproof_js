@@ -14,7 +14,7 @@ export { type CoverCryptHybridEncryption } from "./crypto/abe/core/hybrid_crypto
 export * from "./crypto/abe/core/cover_crypt"
 export * from "./crypto/abe/interfaces/encryption_parameters"
 export * from "./crypto/abe/interfaces/access_policy"
-export * from "./crypto/abe/interfaces/cleartext_header"
+export * from "./crypto/abe/interfaces/plaintext_header"
 export * from "./crypto/abe/interfaces/encrypted_header"
 export * from "./crypto/abe/interfaces/policy"
 export * from "./crypto/sse/findex/simple"

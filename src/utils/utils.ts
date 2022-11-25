@@ -89,7 +89,7 @@ export function toBeBytes(myNumber: number): Uint8Array {
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
-    const { result: itemLen, tail} = decode(Buffer.from(serializedItems))
+    const { result: itemLen, tail } = decode(Buffer.from(serializedItems))
 
     const item = tail.slice(0, itemLen)
     serializedItems = tail.slice(itemLen)

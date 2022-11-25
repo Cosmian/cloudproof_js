@@ -36,7 +36,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     }
 
     process.stdout.write(JSON.stringify({
-        metadata: hexEncode(result.metadata),
-        cleartext: hexEncode(result.cleartext),
+        headerMetadata: hexEncode(result.headerMetadata),
+        plaintext: hexEncode(result.plaintext),
     }))
 })()

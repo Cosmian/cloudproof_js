@@ -2,7 +2,7 @@ import { logger } from "../../../utils/logger"
 import { deserializeList, fromBeBytes } from "../../../utils/utils"
 import { Metadata, SYMMETRIC_KEY_SIZE } from "./encryption_parameters"
 
-export class ClearTextHeader {
+export class PlaintextHeader {
   private _symmetricKey: Uint8Array
   private _metadata: Metadata | undefined
 
@@ -31,24 +31,24 @@ export class ClearTextHeader {
   /**
    * Deserialize a clear text header.
    *
-   * @param cleartextHeader a raw header
+   * @param plaintextHeader a raw header
    * @returns the object deserialized
    */
-  public static parse(cleartextHeader: Uint8Array): ClearTextHeader {
-    logger.log(() => `parse: cleartextHeader: ${cleartextHeader.toString()}`)
-    logger.log(() => `parse: cleartextHeader length: ${cleartextHeader.length}`)
-    const symmetricKey = cleartextHeader.slice(0, SYMMETRIC_KEY_SIZE)
-    if (cleartextHeader.length === SYMMETRIC_KEY_SIZE + 1) {
-      return new ClearTextHeader(symmetricKey)
+  public static parse(plaintextHeader: Uint8Array): PlaintextHeader {
+    logger.log(() => `parse: plaintextHeader: ${plaintextHeader.toString()}`)
+    logger.log(() => `parse: plaintextHeader length: ${plaintextHeader.length}`)
+    const symmetricKey = plaintextHeader.slice(0, SYMMETRIC_KEY_SIZE)
+    if (plaintextHeader.length === SYMMETRIC_KEY_SIZE + 1) {
+      return new PlaintextHeader(symmetricKey)
     }
 
-    const leftover = cleartextHeader.slice(SYMMETRIC_KEY_SIZE)
-    const cleartextHeaderVec = deserializeList(leftover)
-    if (cleartextHeaderVec.length !== 1) {
-      throw new Error("Incorrect deserialized cleartext header")
+    const leftover = plaintextHeader.slice(SYMMETRIC_KEY_SIZE)
+    const plaintextHeaderVec = deserializeList(leftover)
+    if (plaintextHeaderVec.length !== 1) {
+      throw new Error("Incorrect deserialized plaintext header")
     }
 
-    const serializedMetadata = cleartextHeaderVec[0]
+    const serializedMetadata = plaintextHeaderVec[0]
     if (serializedMetadata.length < 4) {
       throw new Error(
         "Deserialize metadata failed. Length must be at least 4 bytes",
@@ -63,6 +63,6 @@ export class ClearTextHeader {
     const uid = serializedMetadata.slice(4, 4 + metadataSize)
     const additionalData = serializedMetadata.slice(4 + metadataSize)
 
-    return new ClearTextHeader(symmetricKey, new Metadata(uid, additionalData))
+    return new PlaintextHeader(symmetricKey, new Metadata(uid, additionalData))
   }
 }

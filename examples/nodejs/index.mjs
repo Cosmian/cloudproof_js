@@ -37,13 +37,12 @@ import { fileURLToPath } from 'url';
                 '--userKeyAccessPolicy', "Department::HR && Security Level::Medium Secret",
             ]))
 
-        
-            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.cleartext));
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.plaintext));
             if (decryptedData !== "Hello World") {
                 throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
             }
         
-            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.metadata));
+            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.headerMetadata));
             if (decryptedMetadata !== "Some metadata") {
                 throw new Error(`Decrypted data should be "Some metadata". "${decryptedMetadata}" found.`);
             }
@@ -65,12 +64,12 @@ import { fileURLToPath } from 'url';
                 '--userKeyAccessPolicy', "Department::HR && Security Level::High Secret",
             ]))
         
-            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.cleartext));
+            const decryptedData = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.plaintext));
             if (decryptedData !== "Hello World") {
                 throw new Error(`Decrypted data should be "Hello World". "${decryptedData}" found.`);
             }
 
-            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.metadata));
+            const decryptedMetadata = (new TextDecoder).decode(hexDecode(decryptedDataHexEncoded.headerMetadata));
             if (decryptedMetadata !== "Some metadata") {
                 throw new Error(`Decrypted data should be "Some metadata". "${decryptedMetadata}" found.`);
             }

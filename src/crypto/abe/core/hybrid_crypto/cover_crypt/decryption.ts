@@ -5,7 +5,7 @@ import {
   webassembly_hybrid_decrypt,
 } from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
 import { PrivateKey } from "../../../../../kms/structs/objects"
-import { ClearTextHeader } from "../../../interfaces/cleartext_header"
+import { PlaintextHeader } from "../../../interfaces/plaintext_header"
 import { decode } from "../../../../../utils/leb128"
 
 /**
@@ -33,26 +33,26 @@ export class CoverCryptHybridDecryption {
    * @param {Uint8Array} encryptedHeader ABE encrypted header
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns {Uint8Array} cleartext decrypted ABE header
+   * @returns {Uint8Array} plaintext decrypted ABE header
    */
   public decryptHybridHeader(
     encryptedHeader: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
     } = {},
-  ): ClearTextHeader {
+  ): PlaintextHeader {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
         ? new Uint8Array()
         : options.authenticatedData
 
-    const cleartextHeader = webassembly_decrypt_hybrid_header(
+    const plaintextHeader = webassembly_decrypt_hybrid_header(
       this.asymmetricDecryptionKey,
       encryptedHeader,
       authenticatedData,
     )
 
-    return ClearTextHeader.parse(cleartextHeader)
+    return PlaintextHeader.parse(plaintextHeader)
   }
 
   /**
@@ -62,7 +62,7 @@ export class CoverCryptHybridDecryption {
    * @param {Uint8Array} encryptedBytes Encrypted block
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns {Uint8Array} cleartext decrypted block
+   * @returns {Uint8Array} plaintext decrypted block
    */
   public decryptBlock(
     symmetricKey: Uint8Array,
@@ -89,14 +89,14 @@ export class CoverCryptHybridDecryption {
    * @param  {Uint8Array} ciphertext the encrypted data
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns {Uint8Array} the cleartext value
+   * @returns {Uint8Array} the plaintext value
    */
   public decrypt(
     ciphertext: Uint8Array,
     options: {
       authenticatedData?: Uint8Array
     } = {},
-  ): { metadata: Uint8Array, cleartext: Uint8Array } {
+  ): { headerMetadata: Uint8Array; plaintext: Uint8Array } {
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
         ? new Uint8Array()
@@ -108,10 +108,10 @@ export class CoverCryptHybridDecryption {
       authenticatedData,
     )
 
-    const { result: additionalDataLength, tail } = decode(result)
-    const metadata = tail.slice(0, additionalDataLength)
-    const cleartext = tail.slice(additionalDataLength);
+    const { result: headerMetadataLength, tail } = decode(result)
+    const headerMetadata = tail.slice(0, headerMetadataLength)
+    const plaintext = tail.slice(headerMetadataLength)
 
-    return { metadata, cleartext }
+    return { headerMetadata, plaintext }
   }
 }

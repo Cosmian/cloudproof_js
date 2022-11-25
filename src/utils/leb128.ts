@@ -6,12 +6,15 @@
  * @param buffer the buffer of bytes to read
  * @returns the decoded number
  */
-export function decode(buffer: Uint8Array): { result: number, tail: Uint8Array } {
+export function decode(buffer: Uint8Array): {
+  result: number
+  tail: Uint8Array
+} {
   let result = 0
   let shift = 0
   let bytesRead = 0
   for (const byte of buffer) {
-    bytesRead++;
+    bytesRead++
     result |= (byte & 0x7f) << shift
     if ((0x80 & byte) === 0) break
     shift += 7
@@ -30,21 +33,21 @@ export function decode(buffer: Uint8Array): { result: number, tail: Uint8Array }
  * @returns the LEB128 bytes
  */
 export function encode(value: number): Uint8Array {
-  const result = [];
+  const result = []
 
   while (true) {
-    let byte_ = value & 0x7f;
-    value >>= 7;
+    let byte_ = value & 0x7f
+    value >>= 7
     if (value !== 0) {
-      byte_ = byte_ | 0x80;
-    } 
+      byte_ = byte_ | 0x80
+    }
 
-    result.push(byte_);
+    result.push(byte_)
 
     if (value === 0) {
-      break;
+      break
     }
   }
 
   return Uint8Array.from(result)
-};
+}

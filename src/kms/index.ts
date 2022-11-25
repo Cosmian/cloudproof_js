@@ -599,7 +599,7 @@ export class KmsClient {
       authenticationData?: Uint8Array
     } = {},
   ): Promise<Uint8Array> {
-    const accessPolicyBytes = (new TextEncoder).encode(accessPolicy);
+    const accessPolicyBytes = new TextEncoder().encode(accessPolicy)
     const accessPolicySize = encode(accessPolicyBytes.length)
 
     let additionalDataSize = encode(0)
@@ -609,9 +609,15 @@ export class KmsClient {
       additionalData = options.additionalData
     }
 
-    const dataToEncrypt = Uint8Array.from([ ...accessPolicySize, ...accessPolicyBytes, ...additionalDataSize, ...additionalData, ...data ]);
+    const dataToEncrypt = Uint8Array.from([
+      ...accessPolicySize,
+      ...accessPolicyBytes,
+      ...additionalDataSize,
+      ...additionalData,
+      ...data,
+    ])
 
-    const encrypt = new Encrypt(uniqueIdentifier, dataToEncrypt);
+    const encrypt = new Encrypt(uniqueIdentifier, dataToEncrypt)
     if (typeof options.authenticationData !== "undefined") {
       encrypt.authenticatedEncryptionAdditionalData = options.authenticationData
     }
@@ -628,14 +634,14 @@ export class KmsClient {
   public async decrypt(
     uniqueIdentifier: string,
     data: Uint8Array,
-  ): Promise<{ metadata: Uint8Array, cleartext: Uint8Array }> {
+  ): Promise<{ headerMetadata: Uint8Array; plaintext: Uint8Array }> {
     const response = await this.post(new Decrypt(uniqueIdentifier, data))
 
-    const { result: sizeOfMetadata, tail } = decode(response.data);
-    const metadata = tail.slice(0, sizeOfMetadata);
-    const cleartext = tail.slice(sizeOfMetadata);
+    const { result: headerMetadataLength, tail } = decode(response.data)
+    const headerMetadata = tail.slice(0, headerMetadataLength)
+    const plaintext = tail.slice(headerMetadataLength)
 
-    return { metadata, cleartext }
+    return { headerMetadata, plaintext }
   }
 
   /**
