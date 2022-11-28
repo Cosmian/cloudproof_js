@@ -4,7 +4,6 @@ import {
   Findex,
   FindexKey,
   type UidsAndValues,
-  CoverCryptHybridEncryption,
   Label,
   IndexedValue,
   Location,
@@ -31,6 +30,10 @@ type NewUser = {
 type User = { id: number } & NewUser
 
 type Request = { method: string; url: string; body?: object; response?: object }
+type EncrypterAndDecrypter = {
+  encrypt: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>,
+  decrypt: (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array) => Promise<Uint8Array>,
+}
 
 let names = [
   {
@@ -154,9 +157,6 @@ function App() {
 
   const [encrypting, setEncrypting] = useState(false)
   const [showEncryptedData, setShowEncryptedData] = useState(true)
-  const [coverCryptHybridEncryption, setCoverCryptHybridEncryption] = useState(
-    null as null | CoverCryptHybridEncryption,
-  )
   const [encryptedUsers, setEncryptedUsers] = useState(
     [] as {
       id: number
@@ -165,10 +165,6 @@ function App() {
       manager: Uint8Array
     }[],
   )
-
-  const [aliceKey, setAliceKey] = useState(null as Uint8Array | null)
-  const [bobKey, setBobKey] = useState(null as Uint8Array | null)
-  const [charlieKey, setCharlieKey] = useState(null as Uint8Array | null)
 
   const [findexKeys, setFindexKeys] = useState(
     null as { searchKey: FindexKey; updateKey: FindexKey } | null,
@@ -185,6 +181,8 @@ function App() {
   const [doOr, setDoOr] = useState(false)
   const [query, setQuery] = useState("")
 
+  const [encrypterAndDecrypter, setEncrypterAndDecrypter] = useState(null as null | EncrypterAndDecrypter)
+
   const [searchResults, setSearchResults] = useState(
     [] as Array<{
       first?: string
@@ -195,10 +193,11 @@ function App() {
     }>,
   )
 
-  const generateCoverCryptHybridEncryption =
-    async (): Promise<CoverCryptHybridEncryption> => {
-      const { CoverCryptKeyGeneration, CoverCryptHybridEncryption } =
-        await CoverCrypt()
+  const getEncrypterAndDecrypter =
+    async (): Promise<EncrypterAndDecrypter> => {
+      if (encrypterAndDecrypter) {
+        return encrypterAndDecrypter
+      }
 
       const policy = new Policy(
         [
@@ -207,23 +206,15 @@ function App() {
         ],
         100,
       )
-      const policyBytes = policy.toJsonEncoded()
 
-      let masterPublicKey
       if (kmsServerUrl) {
         const client = new KmsClient(new URL(kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] =
           await client.createCoverCryptMasterKeyPair(policy)
-        masterPublicKey = (
-          await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)
-        ).bytes()
 
         let aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",
           privateMasterKeyUID,
-        )
-        setAliceKey(
-          (await client.retrieveCoverCryptUserDecryptionKey(aliceUid)).bytes(),
         )
 
         let bobUid = await client.createCoverCryptUserDecryptionKey(
@@ -231,61 +222,93 @@ function App() {
           "country::Spain && department::HR",
           privateMasterKeyUID,
         )
-        setBobKey((await client.retrieveCoverCryptUserDecryptionKey(bobUid)).bytes())
 
         let charlieUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           privateMasterKeyUID,
         )
-        setCharlieKey(
-          (await client.retrieveCoverCryptUserDecryptionKey(charlieUid)).bytes(),
-        )
+
+        const encrypterAndDecrypter = {
+          encrypt: async (accessPolicy: string, data: Uint8Array): Promise<Uint8Array> => {
+            return await client.coverCryptEncrypt(publicKeyUID, accessPolicy, data)
+          },
+          decrypt: async (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array): Promise<Uint8Array> => {
+            let keyUid
+            if (selectedKey === "aliceKey") {
+              keyUid = aliceUid
+            } else if (selectedKey === "bobKey") {
+              keyUid = bobUid
+            } else if (selectedKey === "charlieKey") {
+              keyUid = charlieUid
+            } else {
+              throw new Error("No key selected to decrypt.")
+            }
+
+            return (await client.coverCryptDecrypt(keyUid, data)).plaintext
+          },
+        }
+        setEncrypterAndDecrypter(encrypterAndDecrypter);
+        return encrypterAndDecrypter
       } else {
+        const { CoverCryptKeyGeneration, CoverCryptHybridEncryption, CoverCryptHybridDecryption } = await CoverCrypt()
+
         const keygen = new CoverCryptKeyGeneration()
         let masterKeys = keygen.generateMasterKeys(policy)
-        masterPublicKey = masterKeys.publicKey
 
-        setAliceKey(
-          keygen.generateUserSecretKey(
-            masterKeys.secretKey,
-            "country::France && department::Marketing",
-            policy,
-          ),
+        const coverCryptHybridEncryption = new CoverCryptHybridEncryption(policy, masterKeys.publicKey)
+
+        const aliceKey = keygen.generateUserSecretKey(
+          masterKeys.secretKey,
+          "country::France && department::Marketing",
+          policy,
+        );
+
+        const bobKey = keygen.generateUserSecretKey(
+          masterKeys.secretKey,
+          // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
+          "country::Spain && department::HR",
+          policy,
         )
-        setBobKey(
-          keygen.generateUserSecretKey(
-            masterKeys.secretKey,
-            // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
-            "country::Spain && department::HR",
-            policy,
-          ),
+
+        const charlieKey = keygen.generateUserSecretKey(
+          masterKeys.secretKey,
+          // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
+          "(country::France || country::Spain) && department::HR",
+          policy,
         )
-        setCharlieKey(
-          keygen.generateUserSecretKey(
-            masterKeys.secretKey,
-            // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
-            "(country::France || country::Spain) && department::HR",
-            policy,
-          ),
-        )
+
+        const encrypterAndDecrypter = {
+          encrypt: async (accessPolicy: string, data: Uint8Array): Promise<Uint8Array> => {
+            return coverCryptHybridEncryption.encrypt(accessPolicy, data)
+          },
+          decrypt: async (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array): Promise<Uint8Array> => {
+            let key
+            if (selectedKey === "aliceKey") {
+              key = aliceKey
+            } else if (selectedKey === "bobKey") {
+              key = bobKey
+            } else if (selectedKey === "charlieKey") {
+              key = charlieKey
+            } else {
+              throw new Error("No key selected to decrypt.")
+            }
+
+            return (new CoverCryptHybridDecryption(key)).decrypt(data).plaintext
+          },
+        }
+        setEncrypterAndDecrypter(encrypterAndDecrypter);
+        return encrypterAndDecrypter
       }
-
-      const newCoverCryptHybridEncryption = new CoverCryptHybridEncryption(
-        policyBytes,
-        masterPublicKey,
-      )
-      setCoverCryptHybridEncryption(newCoverCryptHybridEncryption)
-      return newCoverCryptHybridEncryption
     }
 
-  const encryptAndSaveUser = (
-    coverCryptHybridEncryption: CoverCryptHybridEncryption,
+  const encryptAndSaveUser = async (
+    encrypter: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>,
     user: User,
   ) => {
     // Encrypt user personal data for the marketing team
     // of the corresponding country
-    const encryptedForMarketing = coverCryptHybridEncryption.encrypt(
+    const encryptedForMarketing = await encrypter(
       `department::Marketing && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -298,7 +321,7 @@ function App() {
 
     // Encrypt user contact information for the HR team of
     // the corresponding country
-    const encryptedForHr = coverCryptHybridEncryption.encrypt(
+    const encryptedForHr = await encrypter(
       `department::HR && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -309,7 +332,7 @@ function App() {
 
     // Encrypt the user manager level for the manager
     // team of the corresponding country
-    const encryptedForManager = coverCryptHybridEncryption.encrypt(
+    const encryptedForManager = await encrypter(
       `department::Manager && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -336,12 +359,10 @@ function App() {
   const encrypt = async () => {
     setEncrypting(true)
 
-    const localCoverCryptHybridEncryption =
-      coverCryptHybridEncryption || (await generateCoverCryptHybridEncryption())
+    const encrypter = (await getEncrypterAndDecrypter()).encrypt;
 
-    for (const user of users) {
-      encryptAndSaveUser(localCoverCryptHybridEncryption, user)
-    }
+    const jobs = users.map((user) =>  encryptAndSaveUser(encrypter, user))
+    await Promise.all(jobs)
 
     setEncrypting(false)
   }
@@ -461,11 +482,8 @@ function App() {
 
     // Only if we didn't encrypt/index yet, encrypt and index this new user otherwise wait for the global encrypt/index
     if (encryptedUsers.length > 0) {
-      if (!coverCryptHybridEncryption)
-        throw new Error(
-          "CoverCryptHybridEncryption should be present when first encrypting is done",
-        )
-      encryptAndSaveUser(coverCryptHybridEncryption, user)
+      const encrypter = (await getEncrypterAndDecrypter()).encrypt
+      await encryptAndSaveUser(encrypter, user)
     }
 
     if (indexingDone) {
@@ -522,17 +540,8 @@ function App() {
     if (!findexKeys) throw new Error("No Findex key")
 
     const { search } = await Findex()
-    const { CoverCryptHybridDecryption } = await CoverCrypt()
 
-    let key
-    if (selectedKey === "aliceKey") {
-      key = aliceKey
-    } else if (selectedKey === "bobKey") {
-      key = bobKey
-    } else {
-      key = charlieKey
-    }
-    if (!key) throw new Error("No decryption key")
+    const decrypter = (await getEncrypterAndDecrypter()).decrypt
 
     let keywords = query
       .split(" ")
@@ -587,8 +596,6 @@ function App() {
     if (indexedValues === null)
       throw Error("Indexed values cannot be null when a query is provided")
 
-    let coverCryptDecryption = new CoverCryptHybridDecryption(key)
-
     let results = []
     for (const indexedValue of indexedValues) {
       let userId = indexedValue.bytes[1]
@@ -611,21 +618,23 @@ function App() {
         decryptedUser = {
           ...decryptedUser,
           ...JSON.parse(
-            decode(coverCryptDecryption.decrypt(encryptedUser.marketing).plaintext),
+            decode(await decrypter(selectedKey, encryptedUser.marketing)),
           ),
         }
       } catch (e) {}
       try {
         decryptedUser = {
           ...decryptedUser,
-          ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.hr).plaintext)),
+          ...JSON.parse(
+            decode(await decrypter(selectedKey, encryptedUser.hr)),
+          ),
         }
       } catch (e) {}
       try {
         decryptedUser = {
           ...decryptedUser,
           ...JSON.parse(
-            decode(coverCryptDecryption.decrypt(encryptedUser.manager).plaintext),
+            decode(await decrypter(selectedKey, encryptedUser.hr)),
           ),
         }
       } catch (e) {}
@@ -1339,7 +1348,7 @@ function App() {
               .slice()
               .reverse()
               .map((request, index) => (
-                <div className="mb-1">
+                <div className="mb-1" key={index}>
                   <div>
                     <span className="badge text-bg-primary me-2">
                       {request.method}
