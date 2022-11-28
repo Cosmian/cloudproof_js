@@ -248,7 +248,7 @@ export default defineComponent({
       let { upsert } = await Findex();
 
       await upsert(
-        users.map((user, index) => {
+        this.users.map((user, index) => {
           return {
             indexedValue: IndexedValue.fromLocation(new Location(Uint8Array.from([index]))),
             keywords: new Set([
