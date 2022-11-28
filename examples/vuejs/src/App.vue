@@ -363,13 +363,13 @@ export default defineComponent({
         let decryptedUser = {};
 
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.marketing))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.marketing).plaintext)) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr).plaintext)) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.manager).plaintext)) };
         } catch (e) { }
 
         results.push(decryptedUser);

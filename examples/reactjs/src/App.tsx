@@ -611,21 +611,21 @@ function App() {
         decryptedUser = {
           ...decryptedUser,
           ...JSON.parse(
-            decode(coverCryptDecryption.decrypt(encryptedUser.marketing)),
+            decode(coverCryptDecryption.decrypt(encryptedUser.marketing).plaintext),
           ),
         }
       } catch (e) {}
       try {
         decryptedUser = {
           ...decryptedUser,
-          ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.hr))),
+          ...JSON.parse(decode(coverCryptDecryption.decrypt(encryptedUser.hr).plaintext)),
         }
       } catch (e) {}
       try {
         decryptedUser = {
           ...decryptedUser,
           ...JSON.parse(
-            decode(coverCryptDecryption.decrypt(encryptedUser.manager)),
+            decode(coverCryptDecryption.decrypt(encryptedUser.manager).plaintext),
           ),
         }
       } catch (e) {}
