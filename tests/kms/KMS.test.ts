@@ -315,11 +315,6 @@ test("KMS CoverCrypt Access Policy", async () => {
 test(
   "KMS CoverCrypt keys",
   async () => {
-    await CoverCrypt()
-
-    const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
-      await CoverCrypt()
-
     const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
@@ -355,52 +350,63 @@ test(
 
     // encryption
     const plaintext = new TextEncoder().encode("abcdefgh")
-    const encrypter = new CoverCryptHybridEncryption(policy, mpk)
-    const ciphertext = encrypter.encrypt(
+    const ciphertext = await client.coverCryptEncrypt(
+      mpkID,
       "Department::FIN && Security Level::Confidential",
       plaintext,
     )
 
-    // decryption
-    const decrypter = new CoverCryptHybridDecryption(udk)
-
     {
-      const { plaintext } = decrypter.decrypt(ciphertext)
+      const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext)
       expect(plaintext).toEqual(plaintext)
     }
 
     // rotate
-    const [mskID_, mpkID_] = await client.rotateCoverCryptAttributes(mskID, [
+    const [rotatedMskID, rotatedMpkID] = await client.rotateCoverCryptAttributes(mskID, [
       "Department::FIN",
       "Department::MKG",
     ])
-    expect(mskID_).toEqual(mskID)
-    expect(mpkID_).toEqual(mpkID)
+    expect(rotatedMskID).toEqual(mskID)
+    expect(rotatedMpkID).toEqual(mpkID)
 
-    const mpk2 = await client.retrieveCoverCryptPublicMasterKey(mpkID)
-    const policy2 = Policy.fromKey(mpk2)
+    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(rotatedMpkID)
+    expect(rotatedMpk).not.toEqual(mpk)
+    const rotatedPolicy = Policy.fromKey(rotatedMpk)
+    expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")
-    const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
-    const ciphertext2 = encrypter2.encrypt(
+    const ciphertext2 = await client.coverCryptEncrypt(
+      mpkID,
       "Department::FIN && Security Level::Confidential",
       plaintext2,
     )
+
     // decryption
-    try {
-      const decrypter2 = new CoverCryptHybridDecryption(udk)
-      decrypter2.decrypt(ciphertext2)
-      return await Promise.reject(new Error("This should have failed"))
-    } catch (error) {
-      // everything is fine - it should not decrypt
-    }
-    // retrieve refreshed udk
-    const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
-    const decrypter2 = new CoverCryptHybridDecryption(udk2)
+    const { CoverCryptHybridDecryption } = await CoverCrypt();
     {
+      const decrypter2 = new CoverCryptHybridDecryption(udk)
+      try {
+        // Previous local key should not work anymore.
+        decrypter2.decrypt(ciphertext2)
+        return await Promise.reject(new Error("This should have failed"))
+      } catch (error) {
+        // everything is fine - it should not decrypt
+      }
+    }
+
+    // decrypt with new fetches KMS key
+    {
+      const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
+      const decrypter2 = new CoverCryptHybridDecryption(udk2)
       const { plaintext } = decrypter2.decrypt(ciphertext2)
       expect(plaintext).toEqual(plaintext)
+    }
+
+    // decrypt in KMS should still work
+    {
+        const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
+        expect(plaintext).toEqual(plaintext)
     }
 
     return await Promise.resolve("SUCCESS")
