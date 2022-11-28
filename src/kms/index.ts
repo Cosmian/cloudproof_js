@@ -368,19 +368,24 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the Private Master Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
   public async importCoverCryptSecretMasterKey(
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: Policy },
-    replaceExisting: boolean = false,
+    options: {
+      replaceExisting?: boolean,
+      link?: Link[],
+    } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
       uniqueIdentifier,
       "PrivateKey",
       key,
-      replaceExisting,
+      options,
     )
   }
 
@@ -389,19 +394,24 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PublicKey} key the Public Master Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
   public async importCoverCryptPublicMasterKey(
     uniqueIdentifier: string,
     key: PublicKey | { bytes: Uint8Array; policy: Policy },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean,
+      link?: Link[],
+    } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
       uniqueIdentifier,
       "PublicKey",
       key,
-      replaceExisting,
+      options,
     )
   }
 
@@ -411,7 +421,9 @@ export class KmsClient {
    * @param uniqueIdentifier  the unique identifier of the key
    * @param type  PublicKey or PrivateKey. PrivateKey could be a master key or a user key
    * @param key the object key or bytes with a policy (Policy for master keys, AccessPolicy for user keys)
-   * @param replaceExisting set to true to replace an existing key with the same identifier
+   * @param options additional optional options
+   * @param options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns the unique identifier of the key
    */
   private async importCoverCryptKey(
@@ -421,7 +433,10 @@ export class KmsClient {
       | PublicKey
       | PrivateKey
       | { bytes: Uint8Array; policy: Policy | AccessPolicy },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean,
+      link?: Link[],
+    } = {},
   ): Promise<string> {
     // If we didn't pass a real Key object, build one from bytes and policy
     if (!(key instanceof PublicKey) && !(key instanceof PrivateKey)) {
@@ -432,6 +447,9 @@ export class KmsClient {
         PrivateKey: KeyFormatType.CoverCryptSecretKey,
       }[type]
       attributes.vendorAttributes = [await key.policy.toVendorAttribute()]
+      if (typeof options.link !== "undefined") {
+        attributes.link = options.link;
+      }
 
       const keyValue = new KeyValue(key.bytes, attributes)
       const keyBlock = new KeyBlock(
@@ -466,7 +484,7 @@ export class KmsClient {
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
       { type, value: key },
-      replaceExisting,
+      options.replaceExisting,
     )
   }
 
@@ -547,13 +565,18 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the CoverCrypt User Decryption Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
   public async importCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: AccessPolicy | string },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean,
+      link?: Link[],
+    } = {},
   ): Promise<string> {
     if (!(key instanceof PrivateKey) && typeof key.policy === "string") {
       key.policy = new AccessPolicy(key.policy)
@@ -563,7 +586,7 @@ export class KmsClient {
       uniqueIdentifier,
       "PrivateKey",
       key as any,
-      replaceExisting,
+      options,
     )
   }
 

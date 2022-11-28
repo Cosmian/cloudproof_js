@@ -385,14 +385,9 @@ test(
     // decryption
     const { CoverCryptHybridDecryption } = await CoverCrypt();
     {
+      // Previous local key should not work anymore.
       const decrypter2 = new CoverCryptHybridDecryption(udk)
-      try {
-        // Previous local key should not work anymore.
-        decrypter2.decrypt(ciphertext2)
-        return await Promise.reject(new Error("This should have failed"))
-      } catch (error) {
-        // everything is fine - it should not decrypt
-      }
+      expect(() => decrypter2.decrypt(ciphertext2)).toThrow()
     }
 
     // decrypt with new fetches KMS key
@@ -408,8 +403,71 @@ test(
         const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
         expect(plaintext).toEqual(plaintext)
     }
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)
 
-    return await Promise.resolve("SUCCESS")
+test(
+  "Key rotation security when importing with tempered access policy",
+  async () => {
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    if (!(await client.up())) {
+      console.log("No KMIP server. Skipping test")
+      return
+    }
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security",
+        ["Simple", "TopSecret"],
+        true,
+      ),
+    ])
+
+    // create master keys
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const cyphertext = await client.coverCryptEncrypt(mpkID, "Security::TopSecret", Uint8Array.from([1, 2, 3]))
+
+    const userKeyID = await client.createCoverCryptUserDecryptionKey("Security::Simple", mskID)
+    const userKey = await client.retrieveCoverCryptUserDecryptionKey(userKeyID)
+
+    const temperedUserKeyID = await client.importCoverCryptUserDecryptionKey(`${userKeyID}-HACK`, { bytes: userKey.bytes(), policy: "Security::TopSecret" }, {
+      link: [
+        new Link(LinkType.ParentLink, mskID),
+      ],
+    })
+    expect(temperedUserKeyID).toEqual(`${userKeyID}-HACK`)
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, cyphertext);
+    }).rejects.toThrow()
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext);
+    }).rejects.toThrow()
+
+    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"]);
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, cyphertext);
+    }).rejects.toThrow()
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext);
+    }).rejects.toThrow()
+
+    const newCyphertext = await client.coverCryptEncrypt(mpkID, "Security::TopSecret", Uint8Array.from([4, 5, 6]))
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, newCyphertext);
+    }).rejects.toThrow()
+
+    // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)
+    // await expect(async () => {
+    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCyphertext);
+    // }).rejects.toThrow()
   },
   {
     timeout: 10 * 1000,
