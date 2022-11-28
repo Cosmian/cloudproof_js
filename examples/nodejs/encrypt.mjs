@@ -34,7 +34,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
         }
 
         encryptedData = await client.encrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
-            additionalData: metadata,
+            headerMetadata: metadata,
         })
     } else {
         const { CoverCryptHybridEncryption } = await CoverCrypt();
@@ -42,7 +42,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
         const encryption = new CoverCryptHybridEncryption(policy, publicMasterKeyBytes);
 
         encryptedData = encryption.encrypt(accessPolicy, dataToEncrypt, {
-            additionalData: metadata,
+            headerMetadata: metadata,
         });
     }
 

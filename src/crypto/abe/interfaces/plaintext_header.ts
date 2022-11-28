@@ -61,8 +61,8 @@ export class PlaintextHeader {
       )
     }
     const uid = serializedMetadata.slice(4, 4 + metadataSize)
-    const additionalData = serializedMetadata.slice(4 + metadataSize)
+    const headerMetadata = serializedMetadata.slice(4 + metadataSize)
 
-    return new PlaintextHeader(symmetricKey, new Metadata(uid, additionalData))
+    return new PlaintextHeader(symmetricKey, new Metadata(uid, headerMetadata))
   }
 }

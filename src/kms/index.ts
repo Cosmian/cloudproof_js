@@ -587,7 +587,7 @@ export class KmsClient {
    * @param accessPolicy the access policy to use for encryption
    * @param data to encrypt
    * @param {object} options Additional optional options to the encryption
-   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.headerMetadata Data encrypted in the header
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    */
   public async encrypt(
@@ -595,25 +595,25 @@ export class KmsClient {
     accessPolicy: string,
     data: Uint8Array,
     options: {
-      additionalData?: Uint8Array
+      headerMetadata?: Uint8Array
       authenticationData?: Uint8Array
     } = {},
   ): Promise<Uint8Array> {
     const accessPolicyBytes = new TextEncoder().encode(accessPolicy)
     const accessPolicySize = encode(accessPolicyBytes.length)
 
-    let additionalDataSize = encode(0)
-    let additionalData = Uint8Array.from([])
-    if (typeof options.additionalData !== "undefined") {
-      additionalDataSize = encode(options.additionalData.length)
-      additionalData = options.additionalData
+    let headerMetadataSize = encode(0)
+    let headerMetadata = Uint8Array.from([])
+    if (typeof options.headerMetadata !== "undefined") {
+      headerMetadataSize = encode(options.headerMetadata.length)
+      headerMetadata = options.headerMetadata
     }
 
     const dataToEncrypt = Uint8Array.from([
       ...accessPolicySize,
       ...accessPolicyBytes,
-      ...additionalDataSize,
-      ...additionalData,
+      ...headerMetadataSize,
+      ...headerMetadata,
       ...data,
     ])
 

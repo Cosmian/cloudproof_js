@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Switch from Jest to Vitest
 - Refactor the KMS structures (snake case to camel case for properties, change some types…)
 - Rename `ClearTextHeader` to `PlaintextHeader`
+- Rename `additionalData` to `headerMetadata`
 
 ### Fixed
 
