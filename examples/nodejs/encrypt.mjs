@@ -30,10 +30,10 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
 
         if (! publicMasterKeyUID) {
             const uniqueIdentifier = Math.random().toString(36).slice(2, 7);
-            publicMasterKeyUID = await client.importAbePublicMasterKey(uniqueIdentifier, { bytes: publicMasterKeyBytes, policy });
+            publicMasterKeyUID = await client.importCoverCryptPublicMasterKey(uniqueIdentifier, { bytes: publicMasterKeyBytes, policy });
         }
 
-        encryptedData = await client.encrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
+        encryptedData = await client.coverCryptEncrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
             headerMetadata: metadata,
         })
     } else {

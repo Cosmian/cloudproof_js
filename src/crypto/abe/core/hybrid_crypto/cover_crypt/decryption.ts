@@ -9,7 +9,7 @@ import { PlaintextHeader } from "../../../interfaces/plaintext_header"
 import { decode } from "../../../../../utils/leb128"
 
 /**
- * This class exposes the ABE primitives.
+ * This class exposes the CoverCrypt primitives.
  *
  */
 export class CoverCryptHybridDecryption {
@@ -28,12 +28,12 @@ export class CoverCryptHybridDecryption {
   }
 
   /**
-   * Decrypts an ABE ciphertext header using the given user decryption key
+   * Decrypts a CoverCrypt ciphertext header using the given user decryption key
    *
-   * @param {Uint8Array} encryptedHeader ABE encrypted header
+   * @param {Uint8Array} encryptedHeader CoverCrypt encrypted header
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns {Uint8Array} plaintext decrypted ABE header
+   * @returns {Uint8Array} plaintext decrypted CoverCrypt header
    */
   public decryptHybridHeader(
     encryptedHeader: Uint8Array,
@@ -84,7 +84,7 @@ export class CoverCryptHybridDecryption {
   }
 
   /**
-   * Hybrid decrypt wrapper: ABE decrypt then AES decrypt
+   * Hybrid decrypt wrapper: CoverCrypt decrypt then AES decrypt
    *
    * @param  {Uint8Array} ciphertext the encrypted data
    * @param {object} options Additional optional options to the encryption

@@ -213,33 +213,33 @@ function App() {
       if (kmsServerUrl) {
         const client = new KmsClient(new URL(kmsServerUrl))
         const [privateMasterKeyUID, publicKeyUID] =
-          await client.createAbeMasterKeyPair(policy)
+          await client.createCoverCryptMasterKeyPair(policy)
         masterPublicKey = (
-          await client.retrieveAbePublicMasterKey(publicKeyUID)
+          await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)
         ).bytes()
 
-        let aliceUid = await client.createAbeUserDecryptionKey(
+        let aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",
           privateMasterKeyUID,
         )
         setAliceKey(
-          (await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes(),
+          (await client.retrieveCoverCryptUserDecryptionKey(aliceUid)).bytes(),
         )
 
-        let bobUid = await client.createAbeUserDecryptionKey(
+        let bobUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
           "country::Spain && department::HR",
           privateMasterKeyUID,
         )
-        setBobKey((await client.retrieveAbeUserDecryptionKey(bobUid)).bytes())
+        setBobKey((await client.retrieveCoverCryptUserDecryptionKey(bobUid)).bytes())
 
-        let charlieUid = await client.createAbeUserDecryptionKey(
+        let charlieUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           privateMasterKeyUID,
         )
         setCharlieKey(
-          (await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes(),
+          (await client.retrieveCoverCryptUserDecryptionKey(charlieUid)).bytes(),
         )
       } else {
         const keygen = new CoverCryptKeyGeneration()

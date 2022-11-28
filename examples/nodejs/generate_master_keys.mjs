@@ -14,13 +14,13 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
 
     if (useKms) {
         const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
-        const keys = await client.createAbeMasterKeyPair(policy)
+        const keys = await client.createCoverCryptMasterKeyPair(policy)
 
         privateKeyUID = keys[0];
         publicKeyUID = keys[1];
 
-        publicKeyBytes = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes()
-        privateKeyBytes = (await client.retrieveAbePrivateMasterKey(privateKeyUID)).bytes()
+        publicKeyBytes = (await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)).bytes()
+        privateKeyBytes = (await client.retrieveCoverCryptSecretMasterKey(privateKeyUID)).bytes()
     } else {
         const { CoverCryptKeyGeneration } = await CoverCrypt();
 

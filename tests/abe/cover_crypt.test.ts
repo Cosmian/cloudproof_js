@@ -15,7 +15,7 @@ const MEDIUM_SECRET_MKG_USK_ACCESS_POLICY =
 // Plaintext example is: My secret message
 const PLAINTEXT = hexDecode("4d7920736563726574206d657373616765")
 
-// Hybrid encrypted data: ABE access policy is "Security Level::Low Secret && Department::FIN"
+// Hybrid encrypted data: CoverCrypt access policy is "Security Level::Low Secret && Department::FIN"
 const ENCRYPTED_DATA = hexDecode(
   "e07ffb36e8935ee4c2c7a27402042c332868c647914f908abaf745a78b179a6a0cfc823dc18aefb894e49cf80f3d8868434b822498b17482a3285691d62f6f4101bd54050526d82b8048ed019e73ef818a2d1c61d1bd21b849fbf2721802b4f3d56dfe18f0107a1c0175864568d0cc9aaf8f123e7b4ef7d53196de5649c605d57e1c2db9125da53983fd5f99e997f20a29f4d2cf99d0f4367a3e460416ebb7f282358a762ddf8f0136e8114288004e69488f4496a184cad01555a0183ed4dd880d28317f0d3ec6d93e2f13",
 )

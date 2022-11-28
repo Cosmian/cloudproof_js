@@ -128,30 +128,30 @@ test(
       new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
     ])
     const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
-      await client.createAbeMasterKeyPair(policy)
+      await client.createCoverCryptMasterKeyPair(policy)
 
-    const publicKey = await client.retrieveAbePublicMasterKey(
+    const publicKey = await client.retrieveCoverCryptPublicMasterKey(
       publicKeyUniqueIdentifier,
     )
-    const privateKey = await client.retrieveAbePrivateMasterKey(
+    const privateKey = await client.retrieveCoverCryptSecretMasterKey(
       privateKeyUniqueIdentifier,
     )
 
     const importedPublicKeyUniqueIdentifier =
-      await client.importAbePublicMasterKey(
+      await client.importCoverCryptPublicMasterKey(
         `${publicKeyUniqueIdentifier}-imported`,
         publicKey,
       )
     const importedPrivateKeyUniqueIdentifier =
-      await client.importAbePrivateMasterKey(
+      await client.importCoverCryptSecretMasterKey(
         `${privateKeyUniqueIdentifier}-imported`,
         privateKey,
       )
 
-    const importedPublicKey = await client.retrieveAbePublicMasterKey(
+    const importedPublicKey = await client.retrieveCoverCryptPublicMasterKey(
       importedPublicKeyUniqueIdentifier,
     )
-    const importedPrivateKey = await client.retrieveAbePrivateMasterKey(
+    const importedPrivateKey = await client.retrieveCoverCryptSecretMasterKey(
       importedPrivateKeyUniqueIdentifier,
     )
   },
@@ -336,21 +336,21 @@ test(
     ])
 
     // create master keys
-    const [mskID, mpkID] = await client.createAbeMasterKeyPair(policy)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
 
     // recover keys and policies
-    const msk = await client.retrieveAbePrivateMasterKey(mskID)
+    const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     const policyMsk = Policy.fromKey(msk)
     expect(policyMsk.equals(policy)).toBeTruthy()
-    const mpk = await client.retrieveAbePublicMasterKey(mpkID)
+    const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policyMpk = Policy.fromKey(mpk)
     expect(policyMpk.equals(policy)).toBeTruthy()
 
     // create user decryption Key
     const apb =
       "(Department::MKG || Department::FIN) && Security Level::Confidential"
-    const udkID = await client.createAbeUserDecryptionKey(apb, mskID)
-    const udk = await client.retrieveAbeUserDecryptionKey(udkID)
+    const udkID = await client.createCoverCryptUserDecryptionKey(apb, mskID)
+    const udk = await client.retrieveCoverCryptUserDecryptionKey(udkID)
     expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
     // encryption
@@ -370,14 +370,14 @@ test(
     }
 
     // rotate
-    const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, [
+    const [mskID_, mpkID_] = await client.rotateCoverCryptAttributes(mskID, [
       "Department::FIN",
       "Department::MKG",
     ])
     expect(mskID_).toEqual(mskID)
     expect(mpkID_).toEqual(mpkID)
 
-    const mpk2 = await client.retrieveAbePublicMasterKey(mpkID)
+    const mpk2 = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policy2 = Policy.fromKey(mpk2)
 
     // encryption
@@ -396,7 +396,7 @@ test(
       // everything is fine - it should not decrypt
     }
     // retrieve refreshed udk
-    const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
+    const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
     const decrypter2 = new CoverCryptHybridDecryption(udk2)
     {
       const { plaintext } = decrypter2.decrypt(ciphertext2)

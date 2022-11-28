@@ -23,10 +23,10 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
 
         if (! userKeyUID) {
             const uniqueIdentifier = Math.random().toString(36).slice(2, 7);
-            userKeyUID = await client.importAbeUserDecryptionKey(uniqueIdentifier, { bytes: userKeyBytes, policy: userKeyAccessPolicy });
+            userKeyUID = await client.importCoverCryptUserDecryptionKey(uniqueIdentifier, { bytes: userKeyBytes, policy: userKeyAccessPolicy });
         }
 
-        result = await client.decrypt(userKeyUID, encryptedData)
+        result = await client.coverCryptDecrypt(userKeyUID, encryptedData)
     } else {
         const { CoverCryptHybridDecryption } = await CoverCrypt();
 

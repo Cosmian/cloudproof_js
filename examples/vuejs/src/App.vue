@@ -104,28 +104,28 @@ export default defineComponent({
       let masterPublicKey;
       if (this.kmsServerUrl) {
         const client = new KmsClient(new URL(this.kmsServerUrl))
-        const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
-        masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
+        const [privateMasterKeyUID, publicKeyUID] = await client.createCoverCryptMasterKeyPair(policy)
+        masterPublicKey = (await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)).bytes();
 
-        let aliceUid = await client.createAbeUserDecryptionKey(
+        let aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",
           privateMasterKeyUID,
         )
-        this.aliceKey = (await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes();
+        this.aliceKey = (await client.retrieveCoverCryptUserDecryptionKey(aliceUid)).bytes();
 
-        let bobUid = await client.createAbeUserDecryptionKey(
+        let bobUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
           "country::Spain && department::HR",
           privateMasterKeyUID,
         )
-        this.bobKey = (await client.retrieveAbeUserDecryptionKey(bobUid)).bytes();
+        this.bobKey = (await client.retrieveCoverCryptUserDecryptionKey(bobUid)).bytes();
 
-        let charlieUid = await client.createAbeUserDecryptionKey(
+        let charlieUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           privateMasterKeyUID,
         )
-        this.charlieKey = (await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes();
+        this.charlieKey = (await client.retrieveCoverCryptUserDecryptionKey(charlieUid)).bytes();
       } else {
         const keygen = new CoverCryptKeyGeneration()
         let masterKeys = keygen.generateMasterKeys(policy)

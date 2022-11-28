@@ -23,11 +23,11 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
 
         if (! privateMasterKeyUID) {
             const uniqueIdentifier = Math.random().toString(36).slice(2, 7);
-            privateMasterKeyUID = await client.importAbePrivateMasterKey(uniqueIdentifier, { bytes: privateMasterKeyBytes, policy });
+            privateMasterKeyUID = await client.importCoverCryptSecretMasterKey(uniqueIdentifier, { bytes: privateMasterKeyBytes, policy });
         }
 
-        userKeyUID = await client.createAbeUserDecryptionKey(accessPolicy, privateMasterKeyUID)
-        userKeyBytes = (await client.retrieveAbeUserDecryptionKey(userKeyUID)).bytes()
+        userKeyUID = await client.createCoverCryptUserDecryptionKey(accessPolicy, privateMasterKeyUID)
+        userKeyBytes = (await client.retrieveCoverCryptUserDecryptionKey(userKeyUID)).bytes()
     } else {
         const { CoverCryptKeyGeneration } = await CoverCrypt();
 

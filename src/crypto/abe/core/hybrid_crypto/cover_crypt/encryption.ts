@@ -10,7 +10,7 @@ import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
 
 /**
- * This class exposes the ABE primitives.
+ * This class exposes the CoverCrypt primitives.
  *
  */
 export class CoverCryptHybridEncryption {
@@ -107,7 +107,7 @@ export class CoverCryptHybridEncryption {
   }
 
   /**
-   * Hybrid encrypt wrapper: ABE encrypt then AES encrypt
+   * Hybrid encrypt wrapper: CoverCrypt encrypt then AES encrypt
    *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {Uint8Array} plaintext Stuff to encrypt
