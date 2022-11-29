@@ -229,7 +229,7 @@ export default defineComponent({
         url: '/users',
         body: data,
       });
-      this.encryptedUsers.push(data)
+      this.encryptedUsers[user.id] = data
     },
 
     async encrypt() {

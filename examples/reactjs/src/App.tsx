@@ -351,7 +351,10 @@ function App() {
       url: "/users",
       body: data,
     })
-    setEncryptedUsers((users) => [...users, data])
+    setEncryptedUsers((users) => {
+      users[user.id] = data
+      return users
+    })
   }
 
   const encrypt = async () => {
