@@ -53,7 +53,12 @@ async function runTest(
   page.on("error", async (err) => {
     await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
-  page.on('console', (msg) => console.log(`[PAGE LOG] ${msg.text()}`));
+  page.on('console', (msg) => {
+    // This is an expected error when trying to decrypt something we don't have the correct rigths
+    if (msg.text() !== "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)") {
+      console.log(`[PAGE LOG] ${msg.text()}`)
+    }
+  });
   page.on('requestfailed', async (request) => console.log(`[PAGE HTTP ERROR] ${request.failure().errorText} ${request.url()}`));
 
   try {
