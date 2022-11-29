@@ -1,5 +1,5 @@
 import { Attributes } from "../structs/object_attributes"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 import { GenericKeyPairResponse } from "../responses/GenericKeyPairResponse"
 
 export class CreateKeyPair implements KmsRequest<GenericKeyPairResponse> {

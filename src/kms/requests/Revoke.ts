@@ -1,5 +1,5 @@
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 import { RevocationReasonEnumeration } from "../structs/types"
 
 export class Revoke implements KmsRequest<GenericUniqueIdentifierResponse> {

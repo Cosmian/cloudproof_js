@@ -1,7 +1,7 @@
-import init from "../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { CoverCryptHybridDecryption } from "./hybrid_crypto/cover_crypt/decryption"
-import { CoverCryptHybridEncryption } from "./hybrid_crypto/cover_crypt/encryption"
-import { CoverCryptKeyGeneration } from "./keygen/cover_crypt"
+import init from "../pkg/cover_crypt/cosmian_cover_crypt"
+import { CoverCryptHybridDecryption } from "./decryption"
+import { CoverCryptHybridEncryption } from "./encryption"
+import { CoverCryptKeyGeneration } from "./key_generation"
 
 let initialized: Promise<void> | undefined
 

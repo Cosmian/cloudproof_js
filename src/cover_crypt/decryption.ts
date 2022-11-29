@@ -3,10 +3,10 @@ import {
   webassembly_decrypt_hybrid_header,
   webassembly_decrypt_symmetric_block,
   webassembly_hybrid_decrypt,
-} from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { PrivateKey } from "../../../../../kms/structs/objects"
-import { PlaintextHeader } from "../../../interfaces/plaintext_header"
-import { decode } from "../../../../../utils/leb128"
+} from "../pkg/cover_crypt/cosmian_cover_crypt"
+import { PrivateKey } from "../kms/structs/objects"
+import { PlaintextHeader } from "./interfaces/plaintext_header"
+import { decode } from "../utils/leb128"
 
 /**
  * This class exposes the CoverCrypt primitives.

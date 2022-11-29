@@ -2,12 +2,12 @@ import {
   webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
   webassembly_hybrid_encrypt,
-} from "../../../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { Policy } from "../../../../../crypto/abe/interfaces/policy"
-import { PublicKey } from "../../../../../kms/structs/objects"
-import { logger } from "../../../../../utils/logger"
-import { hexEncode } from "../../../../../utils/utils"
-import { EncryptedHeader } from "../../../interfaces/encrypted_header"
+} from "../pkg/cover_crypt/cosmian_cover_crypt"
+import { Policy } from "./interfaces/policy"
+import { PublicKey } from "../kms/structs/objects"
+import { logger } from "../utils/logger"
+import { hexEncode } from "../utils/utils"
+import { EncryptedHeader } from "./interfaces/encrypted_header"
 
 /**
  * This class exposes the CoverCrypt primitives.

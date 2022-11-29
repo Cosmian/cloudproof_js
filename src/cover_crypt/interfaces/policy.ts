@@ -1,9 +1,9 @@
 import {
   Attributes,
   VendorAttributes,
-} from "../../../kms/structs/object_attributes"
-import { PublicKey, PrivateKey } from "../../../kms/structs/objects"
-import { logger } from "../../../utils/logger"
+} from "../../kms/structs/object_attributes"
+import { PublicKey, PrivateKey } from "../../kms/structs/objects"
+import { logger } from "../../utils/logger"
 
 /* tslint:disable:max-classes-per-file */
 export class PolicyAxis {

@@ -1,5 +1,5 @@
-import { logger } from "../../../utils/logger"
-import { deserializeList, fromBeBytes } from "../../../utils/utils"
+import { logger } from "../../utils/logger"
+import { deserializeList, fromBeBytes } from "../../utils/utils"
 import { Metadata, SYMMETRIC_KEY_SIZE } from "./encryption_parameters"
 
 export class PlaintextHeader {

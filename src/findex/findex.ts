@@ -2,10 +2,9 @@ import init, {
   webassembly_graph_upsert,
   webassembly_search,
   webassembly_upsert,
-} from "../../../pkg/findex/cosmian_findex"
+} from "../pkg/findex/cosmian_findex"
 
-import { SymmetricKey } from "../../../kms/structs/objects"
-import { Index } from "./interfaces"
+import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid } from "uuid"
 
 let initialized: Promise<void> | undefined
@@ -13,6 +12,16 @@ let initialized: Promise<void> | undefined
 let wasmInit: (() => any) | undefined
 export const setFindexInit = (arg: () => any): void => {
   wasmInit = arg
+}
+
+export class Index {
+  uid: Uint8Array
+  value: Uint8Array
+
+  constructor(uid: Uint8Array, value: Uint8Array) {
+    this.uid = uid
+    this.value = value
+  }
 }
 
 /* tslint:disable:max-classes-per-file */

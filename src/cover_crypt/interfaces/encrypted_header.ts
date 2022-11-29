@@ -1,4 +1,4 @@
-import { deserializeList, toBeBytes } from "../../../utils/utils"
+import { deserializeList, toBeBytes } from "../../utils/utils"
 import { SYMMETRIC_KEY_SIZE } from "./encryption_parameters"
 
 export class EncryptedHeader {

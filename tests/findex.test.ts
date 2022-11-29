@@ -13,11 +13,11 @@ import {
   UpsertEntries,
   LocationIndexEntry,
   KeywordIndexEntry,
-} from "../.."
-import { USERS } from "../data/users"
+} from ".."
+import { USERS } from "./data/users"
 import { expect, test } from "vitest"
 import { createClient } from "redis"
-import { hexEncode } from "../../src/utils/utils"
+import { hexEncode } from "../src/utils/utils"
 import { randomBytes } from "crypto"
 import sqlite3 from "sqlite3"
 

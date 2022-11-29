@@ -1,5 +1,5 @@
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 
 export class Destroy implements KmsRequest<GenericUniqueIdentifierResponse> {
   __response: GenericUniqueIdentifierResponse | undefined

@@ -1,6 +1,6 @@
 import { ObjectType } from "../structs/objects"
 import { Attributes } from "../structs/object_attributes"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
 
 export class Create implements KmsRequest<GenericUniqueIdentifierResponse> {
