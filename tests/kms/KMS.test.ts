@@ -114,45 +114,51 @@ const CREATE_SYMMETRIC_KEY = `{
   ]
 }`
 
-test("KMS Import Master Keys", async () => {
-  await CoverCrypt()
-  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
-  if (!(await client.up())) {
-    console.error("No KMIP server. Skipping test")
-    return
-  }
+test(
+  "KMS Import Master Keys",
+  async () => {
+    await CoverCrypt()
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
 
-  const policy = new Policy([
-    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
-  ])
-  const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
-    await client.createAbeMasterKeyPair(policy)
+    const policy = new Policy([
+      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+    ])
+    const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
+      await client.createCoverCryptMasterKeyPair(policy)
 
-  const publicKey = await client.retrieveAbePublicMasterKey(
-    publicKeyUniqueIdentifier,
-  )
-  const privateKey = await client.retrieveAbePrivateMasterKey(
-    privateKeyUniqueIdentifier,
-  )
-
-  const importedPublicKeyUniqueIdentifier =
-    await client.importAbePublicMasterKey(
-      `${publicKeyUniqueIdentifier}-imported`,
-      publicKey,
+    const publicKey = await client.retrieveCoverCryptPublicMasterKey(
+      publicKeyUniqueIdentifier,
     )
-  const importedPrivateKeyUniqueIdentifier =
-    await client.importAbePrivateMasterKey(
-      `${privateKeyUniqueIdentifier}-imported`,
-      privateKey,
+    const privateKey = await client.retrieveCoverCryptSecretMasterKey(
+      privateKeyUniqueIdentifier,
     )
 
-  const importedPublicKey = await client.retrieveAbePublicMasterKey(
-    importedPublicKeyUniqueIdentifier,
-  )
-  const importedPrivateKey = await client.retrieveAbePrivateMasterKey(
-    importedPrivateKeyUniqueIdentifier,
-  )
-})
+    const importedPublicKeyUniqueIdentifier =
+      await client.importCoverCryptPublicMasterKey(
+        `${publicKeyUniqueIdentifier}-imported`,
+        publicKey,
+      )
+    const importedPrivateKeyUniqueIdentifier =
+      await client.importCoverCryptSecretMasterKey(
+        `${privateKeyUniqueIdentifier}-imported`,
+        privateKey,
+      )
+
+    const importedPublicKey = await client.retrieveCoverCryptPublicMasterKey(
+      importedPublicKeyUniqueIdentifier,
+    )
+    const importedPrivateKey = await client.retrieveCoverCryptSecretMasterKey(
+      importedPrivateKeyUniqueIdentifier,
+    )
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)
 
 test(
   "KMS Symmetric Key",
@@ -213,7 +219,9 @@ test(
     await client.destroySymmetricKey(uid)
     await client.destroySymmetricKey(uniqueIdentifier)
   },
-  10 * 1000,
+  {
+    timeout: 10 * 1000,
+  },
 )
 
 test("Policy", async () => {
@@ -304,88 +312,176 @@ test("KMS CoverCrypt Access Policy", async () => {
   expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
 })
 
-test("KMS CoverCrypt keys", async () => {
-  await CoverCrypt()
+test(
+  "KMS CoverCrypt keys",
+  async () => {
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    if (!(await client.up())) {
+      console.log("No KMIP server. Skipping test")
+      return
+    }
 
-  const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
-    await CoverCrypt()
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        ["Protected", "Confidential", "Top Secret"],
+        true,
+      ),
+      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+    ])
 
-  const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
-  if (!(await client.up())) {
-    console.log("No KMIP server. Skipping test")
-    return
-  }
+    // create master keys
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
 
-  const policy = new Policy([
-    new PolicyAxis(
-      "Security Level",
-      ["Protected", "Confidential", "Top Secret"],
-      true,
-    ),
-    new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
-  ])
+    // recover keys and policies
+    const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
+    const policyMsk = Policy.fromKey(msk)
+    expect(policyMsk.equals(policy)).toBeTruthy()
+    const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    const policyMpk = Policy.fromKey(mpk)
+    expect(policyMpk.equals(policy)).toBeTruthy()
 
-  // create master keys
-  const [mskID, mpkID] = await client.createAbeMasterKeyPair(policy)
+    // create user decryption Key
+    const apb =
+      "(Department::MKG || Department::FIN) && Security Level::Confidential"
+    const udkID = await client.createCoverCryptUserDecryptionKey(apb, mskID)
+    const udk = await client.retrieveCoverCryptUserDecryptionKey(udkID)
+    expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
-  // recover keys and policies
-  const msk = await client.retrieveAbePrivateMasterKey(mskID)
-  const policyMsk = Policy.fromKey(msk)
-  expect(policyMsk.equals(policy)).toBeTruthy()
-  const mpk = await client.retrieveAbePublicMasterKey(mpkID)
-  const policyMpk = Policy.fromKey(mpk)
-  expect(policyMpk.equals(policy)).toBeTruthy()
+    // encryption
+    const plaintext = new TextEncoder().encode("abcdefgh")
+    const ciphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Department::FIN && Security Level::Confidential",
+      plaintext,
+    )
 
-  // create user decryption Key
-  const apb =
-    "(Department::MKG || Department::FIN) && Security Level::Confidential"
-  const udkID = await client.createAbeUserDecryptionKey(apb, mskID)
-  const udk = await client.retrieveAbeUserDecryptionKey(udkID)
-  expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
+    {
+      const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext)
+      expect(plaintext).toEqual(plaintext)
+    }
 
-  // encryption
-  const plaintext = new TextEncoder().encode("abcdefgh")
-  const encrypter = new CoverCryptHybridEncryption(policy, mpk)
-  const ciphertext = encrypter.encrypt(
-    "Department::FIN && Security Level::Confidential",
-    plaintext,
-  )
-  // decryption
-  const decrypter = new CoverCryptHybridDecryption(udk)
-  const plaintext_ = decrypter.decrypt(ciphertext)
-  expect(plaintext_).toEqual(plaintext)
+    // rotate
+    const [rotatedMskID, rotatedMpkID] =
+      await client.rotateCoverCryptAttributes(mskID, [
+        "Department::FIN",
+        "Department::MKG",
+      ])
+    expect(rotatedMskID).toEqual(mskID)
+    expect(rotatedMpkID).toEqual(mpkID)
 
-  // rotate
-  const [mskID_, mpkID_] = await client.rotateAbeAttributes(mskID, [
-    "Department::FIN",
-    "Department::MKG",
-  ])
-  expect(mskID_).toEqual(mskID)
-  expect(mpkID_).toEqual(mpkID)
+    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(
+      rotatedMpkID,
+    )
+    expect(rotatedMpk).not.toEqual(mpk)
+    const rotatedPolicy = Policy.fromKey(rotatedMpk)
+    expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
 
-  const mpk2 = await client.retrieveAbePublicMasterKey(mpkID)
-  const policy2 = Policy.fromKey(mpk2)
+    // encryption
+    const plaintext2 = new TextEncoder().encode("abcdefgh")
+    const ciphertext2 = await client.coverCryptEncrypt(
+      mpkID,
+      "Department::FIN && Security Level::Confidential",
+      plaintext2,
+    )
 
-  // encryption
-  const plaintext2 = new TextEncoder().encode("abcdefgh")
-  const encrypter2 = new CoverCryptHybridEncryption(policy2, mpk2)
-  const ciphertext2 = encrypter2.encrypt(
-    "Department::FIN && Security Level::Confidential",
-    plaintext2,
-  )
-  // decryption
-  try {
-    const decrypter2 = new CoverCryptHybridDecryption(udk)
-    decrypter2.decrypt(ciphertext2)
-    return await Promise.reject(new Error("This should have failed"))
-  } catch (error) {
-    // everything is fine - it should not decrypt
-  }
-  // retrieve refreshed udk
-  const udk2 = await client.retrieveAbeUserDecryptionKey(udkID)
-  const decrypter2 = new CoverCryptHybridDecryption(udk2)
-  const plaintext2_ = decrypter2.decrypt(ciphertext2)
-  expect(plaintext2_).toEqual(plaintext)
+    // decryption
+    const { CoverCryptHybridDecryption } = await CoverCrypt()
+    {
+      // Previous local key should not work anymore.
+      const decrypter2 = new CoverCryptHybridDecryption(udk)
+      expect(() => decrypter2.decrypt(ciphertext2)).toThrow()
+    }
 
-  return await Promise.resolve("SUCCESS")
-})
+    // decrypt with new fetches KMS key
+    {
+      const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
+      const decrypter2 = new CoverCryptHybridDecryption(udk2)
+      const { plaintext } = decrypter2.decrypt(ciphertext2)
+      expect(plaintext).toEqual(plaintext)
+    }
+
+    // decrypt in KMS should still work
+    {
+      const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
+      expect(plaintext).toEqual(plaintext)
+    }
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)
+
+test(
+  "Key rotation security when importing with tempered access policy",
+  async () => {
+    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    if (!(await client.up())) {
+      console.log("No KMIP server. Skipping test")
+      return
+    }
+
+    const policy = new Policy([
+      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
+    ])
+
+    // create master keys
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const cyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::TopSecret",
+      Uint8Array.from([1, 2, 3]),
+    )
+
+    const userKeyID = await client.createCoverCryptUserDecryptionKey(
+      "Security::Simple",
+      mskID,
+    )
+    const userKey = await client.retrieveCoverCryptUserDecryptionKey(userKeyID)
+
+    const temperedUserKeyID = await client.importCoverCryptUserDecryptionKey(
+      `${userKeyID}-HACK`,
+      { bytes: userKey.bytes(), policy: "Security::TopSecret" },
+      {
+        link: [new Link(LinkType.ParentLink, mskID)],
+      },
+    )
+    expect(temperedUserKeyID).toEqual(`${userKeyID}-HACK`)
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, cyphertext)
+    }).rejects.toThrow()
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
+    }).rejects.toThrow()
+
+    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"])
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, cyphertext)
+    }).rejects.toThrow()
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
+    }).rejects.toThrow()
+
+    const newCyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::TopSecret",
+      Uint8Array.from([4, 5, 6]),
+    )
+
+    await expect(async () => {
+      return await client.coverCryptDecrypt(userKeyID, newCyphertext)
+    }).rejects.toThrow()
+
+    // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)
+    // await expect(async () => {
+    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCyphertext);
+    // }).rejects.toThrow()
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)

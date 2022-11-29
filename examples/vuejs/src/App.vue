@@ -12,6 +12,11 @@ type User = { id: number } & NewUser;
 
 type Request = { method: string, url: string, body?: object, response?: object };
 
+type EncrypterAndDecrypter = {
+  encrypt: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>,
+  decrypt: (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array) => Promise<Uint8Array>,
+}
+
 const DEFAULT_USER: NewUser = {
   first: '',
   last: '',
@@ -60,17 +65,13 @@ export default defineComponent({
       addingUser: false,
       newUser: { ...DEFAULT_USER },
 
+      encrypterAndDecrypter: null as null | EncrypterAndDecrypter,
+
       encrypting: false,
       showEncryptedData: true,
       encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[],
 
-      coverCryptHybridEncryption: null as CoverCryptHybridEncryption | null,
-      masterKeys: null as CoverCryptMasterKey | null,
-      aliceKey: null as Uint8Array | null,
-      bobKey: null as Uint8Array | null,
-      charlieKey: null as Uint8Array | null,
-
-      findexKeys: null as { searchKey: FindexKey, updateKey: FindexKey } | null,
+      masterKey: null as FindexKey | null,
       indexes: {
         entries: [] as UidsAndValues,
         chains: [] as UidsAndValues,
@@ -78,7 +79,8 @@ export default defineComponent({
       indexing: false,
       indexingDone: false,
 
-      key: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
+      selectedKey: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
+      
       doOr: false,
       query: '',
       searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>,
@@ -88,8 +90,8 @@ export default defineComponent({
   },
 
   methods: {
-    async generateCoverCryptHybridEncryption() {
-      let { CoverCryptKeyGeneration, CoverCryptHybridEncryption } = await CoverCrypt();
+    async getEncrypterAndDecrypter(): Promise<EncrypterAndDecrypter> {
+      if (this.encrypterAndDecrypter) return this.encrypterAndDecrypter
 
       const policy = new Policy(
         [
@@ -98,65 +100,98 @@ export default defineComponent({
         ],
         100,
       );
-      const policyBytes = policy.toJsonEncoded()
 
-
-      let masterPublicKey;
       if (this.kmsServerUrl) {
         const client = new KmsClient(new URL(this.kmsServerUrl))
-        const [privateMasterKeyUID, publicKeyUID] = await client.createAbeMasterKeyPair(policy)
-        masterPublicKey = (await client.retrieveAbePublicMasterKey(publicKeyUID)).bytes();
+        const [privateMasterKeyUID, publicKeyUID] = await client.createCoverCryptMasterKeyPair(policy)
 
-        let aliceUid = await client.createAbeUserDecryptionKey(
+        const aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",
           privateMasterKeyUID,
         )
-        this.aliceKey = (await client.retrieveAbeUserDecryptionKey(aliceUid)).bytes();
 
-        let bobUid = await client.createAbeUserDecryptionKey(
+        const bobUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
           "country::Spain && department::HR",
           privateMasterKeyUID,
         )
-        this.bobKey = (await client.retrieveAbeUserDecryptionKey(bobUid)).bytes();
 
-        let charlieUid = await client.createAbeUserDecryptionKey(
+        const charlieUid = await client.createCoverCryptUserDecryptionKey(
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           privateMasterKeyUID,
         )
-        this.charlieKey = (await client.retrieveAbeUserDecryptionKey(charlieUid)).bytes();
+
+        return this.encrypterAndDecrypter = {
+          encrypt: async (accessPolicy: string, data: Uint8Array): Promise<Uint8Array> => {
+            return await client.coverCryptEncrypt(publicKeyUID, accessPolicy, data)
+          },
+          decrypt: async (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array): Promise<Uint8Array> => {
+            let keyUid
+            if (selectedKey === "aliceKey") {
+              keyUid = aliceUid
+            } else if (selectedKey === "bobKey") {
+              keyUid = bobUid
+            } else if (selectedKey === "charlieKey") {
+              keyUid = charlieUid
+            } else {
+              throw new Error("No key selected to decrypt.")
+            }
+
+            return (await client.coverCryptDecrypt(keyUid, data)).plaintext
+          },
+        }
       } else {
+        const { CoverCryptKeyGeneration, CoverCryptHybridEncryption, CoverCryptHybridDecryption } = await CoverCrypt()
+
         const keygen = new CoverCryptKeyGeneration()
         let masterKeys = keygen.generateMasterKeys(policy)
-        masterPublicKey = masterKeys.publicKey;
+        const coverCryptHybridEncryption = new CoverCryptHybridEncryption(policy, masterKeys.publicKey)
 
-        this.aliceKey = keygen.generateUserSecretKey(
+        const aliceKey = keygen.generateUserSecretKey(
           masterKeys.secretKey,
           "country::France && department::Marketing",
           policy
         )
-        this.bobKey = keygen.generateUserSecretKey(
+        const bobKey = keygen.generateUserSecretKey(
           masterKeys.secretKey,
           // Since the "department" axis is hierarchical it's the same as "country::Spain && (department::HR || department::Marketing)"
           "country::Spain && department::HR",
           policy
         )
-        this.charlieKey = keygen.generateUserSecretKey(
+        const charlieKey = keygen.generateUserSecretKey(
           masterKeys.secretKey,
           // Since the "department" axis is hierarchical it's the same as "(country::France || country::Spain) && (department::HR || department::Marketing)"
           "(country::France || country::Spain) && department::HR",
           policy
         )
-      }
 
-      return this.coverCryptHybridEncryption = new CoverCryptHybridEncryption(policyBytes, masterPublicKey)
+        return this.encrypterAndDecrypter = {
+          encrypt: async (accessPolicy: string, data: Uint8Array): Promise<Uint8Array> => {
+            return coverCryptHybridEncryption.encrypt(accessPolicy, data)
+          },
+          decrypt: async (selectedKey: "aliceKey" | "bobKey" | "charlieKey", data: Uint8Array): Promise<Uint8Array> => {
+            let key
+            if (selectedKey === "aliceKey") {
+              key = aliceKey
+            } else if (selectedKey === "bobKey") {
+              key = bobKey
+            } else if (selectedKey === "charlieKey") {
+              key = charlieKey
+            } else {
+              throw new Error("No key selected to decrypt.")
+            }
+
+            return (new CoverCryptHybridDecryption(key)).decrypt(data).plaintext
+          },
+        }
+      }
     },
 
-    encryptAndSaveUser(coverCryptHybridEncryption: CoverCryptHybridEncryption, user: User) {
+    async encryptAndSaveUser(encrypter: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>, user: User) {
       // Encrypt user personal data for the marketing team
       // of the corresponding country
-      const encryptedForMarketing = coverCryptHybridEncryption.encrypt(
+      const encryptedForMarketing = await encrypter(
         `department::Marketing && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
           first: user.first,
@@ -167,7 +202,7 @@ export default defineComponent({
 
       // Encrypt user contact information for the HR team of
       // the corresponding country
-      const encryptedForHr = coverCryptHybridEncryption.encrypt(
+      const encryptedForHr = await encrypter(
         `department::HR && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
           email: user.email,
@@ -176,7 +211,7 @@ export default defineComponent({
 
       // Encrypt the user manager level for the manager
       // team of the corresponding country
-      const encryptedForManager = coverCryptHybridEncryption.encrypt(
+      const encryptedForManager = await encrypter(
         `department::Manager && country::${user.country}`,
         new TextEncoder().encode(JSON.stringify({
           project: user.project,
@@ -194,20 +229,22 @@ export default defineComponent({
         url: '/users',
         body: data,
       });
-      this.encryptedUsers.push(data)
+      this.encryptedUsers[user.id] = data
     },
 
     async encrypt() {
       this.encrypting = true;
-      const coverCryptHybridEncryption = this.coverCryptHybridEncryption = await this.generateCoverCryptHybridEncryption();
+      const encrypter = (await this.getEncrypterAndDecrypter()).encrypt;
 
-      for (const user of this.users) {
-        this.encryptAndSaveUser(coverCryptHybridEncryption, user);
-      }
+      let jobs = this.users
+        .map((user) => this.encryptAndSaveUser(encrypter, user))
+
+      await Promise.all(jobs);
+
       this.encrypting = false;
     },
 
-    async indexUsers(findexKeys: Exclude<typeof this.findexKeys, null>, users: User[]) {
+    async indexUsers(masterKey: Exclude<typeof this.masterKey, null>, users: User[]) {
       let { upsert } = await Findex();
 
       await upsert(
@@ -223,8 +260,7 @@ export default defineComponent({
             ]),
           };
         }),
-        findexKeys.searchKey,
-        findexKeys.updateKey,
+        masterKey,
         FINDEX_LABEL,
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
@@ -238,14 +274,10 @@ export default defineComponent({
     async index() {
       this.indexing = true;
 
-      this.findexKeys = {
-        searchKey: new FindexKey(Uint8Array.from(Array(32).fill(1))),
-        updateKey: new FindexKey(Uint8Array.from(Array(32).fill(2))),
-      };
+      this.masterKey = new FindexKey(Uint8Array.from(Array(32).fill(1)));
 
-      this.indexUsers(this.findexKeys, this.users);
+      this.indexUsers(this.masterKey, this.users);
 
-      console.log(`Done indexing ${this.indexes.entries.length} entries / ${this.indexes.chains.length} chains`);
       this.indexing = false;
       this.indexingDone = true;
     },
@@ -296,24 +328,23 @@ export default defineComponent({
     },
 
     async search() {
-      if (!this.query || !this.key) return [];
+      if (!this.query || !this.selectedKey) return [];
+
       let { search } = await Findex();
-      let { CoverCryptHybridDecryption } = await CoverCrypt();
+      const decrypter = (await this.getEncrypterAndDecrypter()).decrypt
 
+      if (!this.masterKey) throw "No Findex key";
 
-      if (!this.findexKeys) throw "No Findex key";
+      const query = this.query;
 
-      let key = this[this.key];
-      if (!key) throw "No decryption key";
-
-      let keywords = this.query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
+      let keywords = query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
       if (keywords.length === 0) return;
 
       let indexedValues: Array<IndexedValue> | null = null;
       if (this.doOr) {
         indexedValues = await search(
           new Set(keywords),
-          this.findexKeys.searchKey,
+          this.masterKey,
           FINDEX_LABEL,
           1000,
           async (uids) => await this.fetchCallback("entries", uids),
@@ -323,7 +354,7 @@ export default defineComponent({
         for (const keyword of keywords) {
           const newIndexedValues = await search(
             new Set([keyword]),
-            this.findexKeys.searchKey,
+            this.masterKey,
             FINDEX_LABEL,
             1000,
             async (uids) => await this.fetchCallback("entries", uids),
@@ -348,8 +379,6 @@ export default defineComponent({
 
       if (indexedValues === null) throw Error("Indexed values cannot be null when a query is provided");
 
-      let coverCryptDecryption = new CoverCryptHybridDecryption(key);
-
       let results = [];
       for (const indexedValue of indexedValues) {
         const userId = indexedValue.bytes[1];
@@ -363,19 +392,22 @@ export default defineComponent({
         let decryptedUser = {};
 
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.marketing))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await decrypter(this.selectedKey, encryptedUser.marketing))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.hr))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await decrypter(this.selectedKey, encryptedUser.hr))) };
         } catch (e) { }
         try {
-          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(coverCryptDecryption.decrypt(encryptedUser.manager))) };
+          decryptedUser = { ...decryptedUser, ...JSON.parse(this.decode(await decrypter(this.selectedKey, encryptedUser.manager))) };
         } catch (e) { }
 
         results.push(decryptedUser);
       }
 
-      this.searchResults = results;
+      // Show the results only if the query didn't change during the search/decrypt
+      if (this.query === query) {
+        this.searchResults = results;
+      }
     },
 
     async addUser() {
@@ -386,13 +418,13 @@ export default defineComponent({
 
       // Only if we didn't encrypt/index yet, encrypt and index this new user otherwise wait for the global encrypt/index
       if (this.encryptedUsers.length > 0) {
-        if (!this.coverCryptHybridEncryption) throw new Error("CoverCryptHybridEncryption should be present when first encrypting is done");
-        this.encryptAndSaveUser(this.coverCryptHybridEncryption as CoverCryptHybridEncryption, user);
+        const encrypter = (await this.getEncrypterAndDecrypter()).encrypt
+        this.encryptAndSaveUser(encrypter, user);
       }
 
       if (this.indexingDone) {
-        if (!this.findexKeys) throw new Error("FindexKeys should be present when first indexing is done");
-        await this.indexUsers(this.findexKeys, [user]);
+        if (!this.masterKey) throw new Error("masterKey should be present when first indexing is done");
+        await this.indexUsers(this.masterKey, [user]);
       }
 
       this.addingUser = false;
@@ -400,13 +432,13 @@ export default defineComponent({
     },
 
     canAccessUser(user: User, attribute: keyof User): boolean {
-      if (!this.key) return true;
+      if (!this.selectedKey) return true;
 
       let countries = {
         'aliceKey': ['France'],
         'bobKey': ['Spain'],
         'charlieKey': ['France', 'Spain'],
-      }[this.key];
+      }[this.selectedKey];
 
       if (!countries.includes(user.country)) {
         return false;
@@ -416,7 +448,7 @@ export default defineComponent({
         'aliceKey': ['email', 'project'],
         'bobKey': ['project'],
         'charlieKey': ['project'],
-      }[this.key];
+      }[this.selectedKey];
 
       if (unavailableAttributes.includes(attribute)) {
         return false;
@@ -462,7 +494,7 @@ export default defineComponent({
     query() {
       this.search();
     },
-    key() {
+    selectedKey() {
       this.search();
     },
     doOr() {
@@ -566,28 +598,28 @@ export default defineComponent({
               <tbody>
                 <tr v-for="user in users">
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'first'),
-                    'table-success': key && canAccessUser(user, 'first'),
+                    'table-warning opacity-25': selectedKey && !canAccessUser(user, 'first'),
+                    'table-success': selectedKey && canAccessUser(user, 'first'),
                   }">{{ user.first }}</td>
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'last'),
-                    'table-success': key && canAccessUser(user, 'last'),
+                    'table-warning opacity-25': selectedKey && !canAccessUser(user, 'last'),
+                    'table-success': selectedKey && canAccessUser(user, 'last'),
                   }">{{ user.last }}</td>
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'country'),
-                    'table-success': key && canAccessUser(user, 'country'),
+                    'table-warning opacity-25': selectedKey && !canAccessUser(user, 'country'),
+                    'table-success': selectedKey && canAccessUser(user, 'country'),
                   }">
                     <Key :name="user.country" />
                   </td>
                   <td class="border-start pe-3"></td>
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'email'),
-                    'table-success': key && canAccessUser(user, 'email'),
+                    'table-warning opacity-25': selectedKey && !canAccessUser(user, 'email'),
+                    'table-success': selectedKey && canAccessUser(user, 'email'),
                   }">{{ user.email }}</td>
                   <td class="border-start pe-3"></td>
                   <td :class="{
-                    'table-warning opacity-25': key && !canAccessUser(user, 'project'),
-                    'table-success': key && canAccessUser(user, 'project'),
+                    'table-warning opacity-25': selectedKey && !canAccessUser(user, 'project'),
+                    'table-success': selectedKey && canAccessUser(user, 'project'),
                   }"> {{ user.project }}</td>
                 </tr>
                 <tr id="new_user_row">
@@ -705,7 +737,7 @@ export default defineComponent({
               <div class="form-check me-5">
                 <label class="form-check-label">
                   <div class="d-flex align-items-center">
-                    <input class="form-check-input" type="radio" v-model="key" value="aliceKey">
+                    <input class="form-check-input" type="radio" v-model="selectedKey" value="aliceKey">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                       stroke="currentColor" width="40px">
                       <path stroke-linecap="round" stroke-linejoin="round"
@@ -724,7 +756,7 @@ export default defineComponent({
               <div class="form-check me-5">
                 <label class="form-check-label">
                   <div class="d-flex align-items-center">
-                    <input class="form-check-input" type="radio" v-model="key" value="bobKey">
+                    <input class="form-check-input" type="radio" v-model="selectedKey" value="bobKey">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                       stroke="currentColor" width="40px">
                       <path stroke-linecap="round" stroke-linejoin="round"
@@ -744,7 +776,7 @@ export default defineComponent({
               <div class="form-check me-5">
                 <label class="form-check-label">
                   <div class="d-flex align-items-center">
-                    <input class="form-check-input" type="radio" v-model="key" value="charlieKey">
+                    <input class="form-check-input" type="radio" v-model="selectedKey" value="charlieKey">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                       stroke="currentColor" width="40px">
                       <path stroke-linecap="round" stroke-linejoin="round"
@@ -777,16 +809,16 @@ export default defineComponent({
             </div>
           </div>
 
-          <div class="alert alert-light" role="alert" v-show="! query && ! key">
+          <div class="alert alert-light" role="alert" v-show="! query && ! selectedKey">
             Please select a key and type a query.
           </div>
-          <div class="alert alert-light" role="alert" v-show="! query && key">
+          <div class="alert alert-light" role="alert" v-show="! query && selectedKey">
             Please type a query.
           </div>
-          <div class="alert alert-light" role="alert" v-show="query && ! key">
+          <div class="alert alert-light" role="alert" v-show="query && ! selectedKey">
             Please select a key.
           </div>
-          <div class="alert alert-light" role="alert" v-show="query && key && ! searchResults.length">
+          <div class="alert alert-light" role="alert" v-show="query && selectedKey && ! searchResults.length">
             No result for "{{ query }}"
           </div>
 

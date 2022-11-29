@@ -10,7 +10,7 @@ import { hexEncode } from "../../../../../utils/utils"
 import { EncryptedHeader } from "../../../interfaces/encrypted_header"
 
 /**
- * This class exposes the ABE primitives.
+ * This class exposes the CoverCrypt primitives.
  *
  */
 export class CoverCryptHybridEncryption {
@@ -43,21 +43,21 @@ export class CoverCryptHybridEncryption {
    *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {object} options Additional optional options to the encryption
-   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.headerMetadata Data encrypted in the header
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
    * @returns {Uint8Array} encrypted header
    */
   public encryptHybridHeader(
     accessPolicy: string,
     options: {
-      additionalData?: Uint8Array
+      headerMetadata?: Uint8Array
       authenticatedData?: Uint8Array
     } = {},
   ): EncryptedHeader {
-    const additionalData =
-      typeof options.additionalData === "undefined"
+    const headerMetadata =
+      typeof options.headerMetadata === "undefined"
         ? new Uint8Array()
-        : options.additionalData
+        : options.headerMetadata
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
         ? new Uint8Array()
@@ -67,7 +67,7 @@ export class CoverCryptHybridEncryption {
       this.policy,
       accessPolicy,
       this.publicKey,
-      additionalData,
+      headerMetadata,
       authenticatedData,
     )
 
@@ -107,12 +107,12 @@ export class CoverCryptHybridEncryption {
   }
 
   /**
-   * Hybrid encrypt wrapper: ABE encrypt then AES encrypt
+   * Hybrid encrypt wrapper: CoverCrypt encrypt then AES encrypt
    *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {Uint8Array} plaintext Stuff to encrypt
    * @param {object} options Additional optional options to the encryption
-   * @param {Uint8Array} options.additionalData Data encrypted in the header
+   * @param {Uint8Array} options.headerMetadata Data encrypted in the header
    * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    * @returns {Uint8Array} encrypted
    */
@@ -120,14 +120,14 @@ export class CoverCryptHybridEncryption {
     accessPolicy: string,
     plaintext: Uint8Array,
     options: {
-      additionalData?: Uint8Array
+      headerMetadata?: Uint8Array
       authenticatedData?: Uint8Array
     } = {},
   ): Uint8Array {
-    const additionalData =
-      typeof options.additionalData === "undefined"
+    const headerMetadata =
+      typeof options.headerMetadata === "undefined"
         ? new Uint8Array()
-        : options.additionalData
+        : options.headerMetadata
     const authenticatedData =
       typeof options.authenticatedData === "undefined"
         ? new Uint8Array()
@@ -138,7 +138,7 @@ export class CoverCryptHybridEncryption {
       accessPolicy,
       this._publicKey,
       plaintext,
-      additionalData,
+      headerMetadata,
       authenticatedData,
     )
   }

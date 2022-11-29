@@ -32,8 +32,8 @@ import { CreateKeyPair } from "./requests/CreateKeyPair"
 import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
-import { hexEncode } from "../utils/utils"
 import { Decrypt } from "./requests/Decrypt"
+import { decode, encode } from "utils/leb128"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -288,7 +288,9 @@ export class KmsClient {
     return await this.destroyObject(uniqueIdentifier)
   }
 
-  public async createAbeMasterKeyPair(policy: Policy): Promise<string[]> {
+  public async createCoverCryptMasterKeyPair(
+    policy: Policy,
+  ): Promise<string[]> {
     const attributes = new Attributes("PrivateKey")
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
@@ -302,7 +304,7 @@ export class KmsClient {
   }
 
   /**
-   *  Retrieve an ABE Private Master key
+   *  Retrieve a CoverCrypt Secret Master key
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
@@ -310,7 +312,7 @@ export class KmsClient {
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
-  public async retrieveAbePrivateMasterKey(
+  public async retrieveCoverCryptSecretMasterKey(
     uniqueIdentifier: string,
   ): Promise<PrivateKey> {
     const object = await this.getObject(uniqueIdentifier)
@@ -333,7 +335,7 @@ export class KmsClient {
   }
 
   /**
-   *  Retrieve an ABE Public Master key
+   *  Retrieve a CoverCrypt Public Master key
    *
    *  Use PublicKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
@@ -341,7 +343,7 @@ export class KmsClient {
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PublicKey} the KMIP symmetric Key
    */
-  public async retrieveAbePublicMasterKey(
+  public async retrieveCoverCryptPublicMasterKey(
     uniqueIdentifier: string,
   ): Promise<PublicKey> {
     const object = await this.getObject(uniqueIdentifier)
@@ -368,19 +370,24 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the Private Master Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
-  public async importAbePrivateMasterKey(
+  public async importCoverCryptSecretMasterKey(
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: Policy },
-    replaceExisting: boolean = false,
+    options: {
+      replaceExisting?: boolean
+      link?: Link[]
+    } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
       uniqueIdentifier,
       "PrivateKey",
       key,
-      replaceExisting,
+      options,
     )
   }
 
@@ -389,19 +396,24 @@ export class KmsClient {
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PublicKey} key the Public Master Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
-  public async importAbePublicMasterKey(
+  public async importCoverCryptPublicMasterKey(
     uniqueIdentifier: string,
     key: PublicKey | { bytes: Uint8Array; policy: Policy },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean
+      link?: Link[]
+    } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
       uniqueIdentifier,
       "PublicKey",
       key,
-      replaceExisting,
+      options,
     )
   }
 
@@ -411,17 +423,22 @@ export class KmsClient {
    * @param uniqueIdentifier  the unique identifier of the key
    * @param type  PublicKey or PrivateKey. PrivateKey could be a master key or a user key
    * @param key the object key or bytes with a policy (Policy for master keys, AccessPolicy for user keys)
-   * @param replaceExisting set to true to replace an existing key with the same identifier
+   * @param options additional optional options
+   * @param options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns the unique identifier of the key
    */
-  public async importCoverCryptKey(
+  private async importCoverCryptKey(
     uniqueIdentifier: string,
     type: "PublicKey" | "PrivateKey",
     key:
       | PublicKey
       | PrivateKey
       | { bytes: Uint8Array; policy: Policy | AccessPolicy },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean
+      link?: Link[]
+    } = {},
   ): Promise<string> {
     // If we didn't pass a real Key object, build one from bytes and policy
     if (!(key instanceof PublicKey) && !(key instanceof PrivateKey)) {
@@ -432,6 +449,9 @@ export class KmsClient {
         PrivateKey: KeyFormatType.CoverCryptSecretKey,
       }[type]
       attributes.vendorAttributes = [await key.policy.toVendorAttribute()]
+      if (typeof options.link !== "undefined") {
+        attributes.link = options.link
+      }
 
       const keyValue = new KeyValue(key.bytes, attributes)
       const keyBlock = new KeyBlock(
@@ -466,17 +486,17 @@ export class KmsClient {
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
       { type, value: key },
-      replaceExisting,
+      options.replaceExisting,
     )
   }
 
   /**
-   * Mark a ABE Private Master Key as Revoked
+   * Mark a CoverCrypt Secret Master Key as Revoked
    *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
-  public async revokeAbePrivateMasterKey(
+  public async revokeCoverCryptSecretMasterKey(
     uniqueIdentifier: string,
     reason: string,
   ): Promise<void> {
@@ -484,12 +504,12 @@ export class KmsClient {
   }
 
   /**
-   * Mark a ABE Public Master Key as Revoked
+   * Mark a CoverCrypt Public Master Key as Revoked
    *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
-  public async revokeAbePublicMasterKey(
+  public async revokeCoverCryptPublicMasterKey(
     uniqueIdentifier: string,
     reason: string,
   ): Promise<void> {
@@ -497,25 +517,23 @@ export class KmsClient {
   }
 
   /**
-   * Create an ABE User Decryption Key with a given access policy
+   * Create a CoverCrypt User Decryption Key with a given access policy
    *
    * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
-   * @param {string} privateMasterKeyIdentifier the private master key identifier which will derive this key
+   * @param {string} secretMasterKeyIdentifier the secret master key identifier which will derive this key
    * @returns {string} the unique identifier of the user decryption key
    */
-  public async createAbeUserDecryptionKey(
+  public async createCoverCryptUserDecryptionKey(
     accessPolicy: AccessPolicy | string,
-    privateMasterKeyIdentifier: string,
+    secretMasterKeyIdentifier: string,
   ): Promise<string> {
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
 
     const attributes = new Attributes("PrivateKey")
-    attributes.link = [
-      new Link(LinkType.ParentLink, privateMasterKeyIdentifier),
-    ]
+    attributes.link = [new Link(LinkType.ParentLink, secretMasterKeyIdentifier)]
     attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
@@ -528,7 +546,7 @@ export class KmsClient {
   }
 
   /**
-   *  Retrieve an ABE User Decryption key
+   *  Retrieve a CoverCrypt User Decryption key
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use AccessPolicy.fromKey() to recover the Policy
@@ -536,24 +554,29 @@ export class KmsClient {
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
-  public async retrieveAbeUserDecryptionKey(
+  public async retrieveCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
   ): Promise<PrivateKey> {
-    return await this.retrieveAbePrivateMasterKey(uniqueIdentifier)
+    return await this.retrieveCoverCryptSecretMasterKey(uniqueIdentifier)
   }
 
   /**
-   * Import a ABE User Decryption Key key into the KMS
+   * Import a CoverCrypt User Decryption Key key into the KMS
    *
    * @param {string} uniqueIdentifier  the unique identifier of the key
-   * @param {PrivateKey} key the ABE User Decryption Key
-   * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
+   * @param {PrivateKey} key the CoverCrypt User Decryption Key
+   * @param options some additional optional options
+   * @param {boolean} options.replaceExisting set to true to replace an existing key with the same identifier
+   * @param options.link list of links to add to the Attributes KMIP object
    * @returns {string} the unique identifier of the key
    */
-  public async importAbeUserDecryptionKey(
+  public async importCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: AccessPolicy | string },
-    replaceExisting?: boolean,
+    options: {
+      replaceExisting?: boolean
+      link?: Link[]
+    } = {},
   ): Promise<string> {
     if (!(key instanceof PrivateKey) && typeof key.policy === "string") {
       key.policy = new AccessPolicy(key.policy)
@@ -563,17 +586,17 @@ export class KmsClient {
       uniqueIdentifier,
       "PrivateKey",
       key as any,
-      replaceExisting,
+      options,
     )
   }
 
   /**
-   * Mark a ABE User Decryption Key as Revoked
+   * Mark a CoverCrypt User Decryption Key as Revoked
    *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
-  public async revokeAbeUserDecryptionKey(
+  public async revokeCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
     reason: string,
   ): Promise<void> {
@@ -586,45 +609,43 @@ export class KmsClient {
    * @param uniqueIdentifier the unique identifier of the public key
    * @param accessPolicy the access policy to use for encryption
    * @param data to encrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.headerMetadata Data encrypted in the header
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    */
-  public async encrypt(
+  public async coverCryptEncrypt(
     uniqueIdentifier: string,
     accessPolicy: string,
     data: Uint8Array,
+    options: {
+      headerMetadata?: Uint8Array
+      authenticationData?: Uint8Array
+    } = {},
   ): Promise<Uint8Array> {
-    // This is temporary hack because we should not pass a JSON with a vec of attributes to the KMS
-    // but the string representing the access policy (to be more expressive)
+    const accessPolicyBytes = new TextEncoder().encode(accessPolicy)
+    const accessPolicySize = encode(accessPolicyBytes.length)
 
-    const accessPolicyObject = new AccessPolicy(accessPolicy)
-    const kmipJson = JSON.parse(await accessPolicyObject.toKmipJson())
-
-    if (typeof kmipJson.And === "undefined") {
-      throw new Error(
-        "Encrypting with the KMS only support AND access policies",
-      )
+    let headerMetadataSize = encode(0)
+    let headerMetadata = Uint8Array.from([])
+    if (typeof options.headerMetadata !== "undefined") {
+      headerMetadataSize = encode(options.headerMetadata.length)
+      headerMetadata = options.headerMetadata
     }
 
-    if (!Array.isArray(kmipJson.And)) {
-      throw new Error(
-        "Encrypting with the KMS only support simple AND access policies",
-      )
+    const dataToEncrypt = Uint8Array.from([
+      ...accessPolicySize,
+      ...accessPolicyBytes,
+      ...headerMetadataSize,
+      ...headerMetadata,
+      ...data,
+    ])
+
+    const encrypt = new Encrypt(uniqueIdentifier, dataToEncrypt)
+    if (typeof options.authenticationData !== "undefined") {
+      encrypt.authenticatedEncryptionAdditionalData = options.authenticationData
     }
 
-    const policyAttributes = kmipJson.And.map(
-      (policy: { Attr: string }) => policy.Attr,
-    )
-
-    const dataToEncrypt = new TextEncoder().encode(
-      JSON.stringify({
-        Data: hexEncode(data),
-        PolicyAttributes: policyAttributes,
-      }),
-    )
-    const response = await this.post(
-      new Encrypt(uniqueIdentifier, dataToEncrypt),
-    )
-
-    return response.data
+    return (await this.post(encrypt)).data
   }
 
   /**
@@ -633,12 +654,17 @@ export class KmsClient {
    * @param uniqueIdentifier the unique identifier of the private key
    * @param data to decrypt
    */
-  public async decrypt(
+  public async coverCryptDecrypt(
     uniqueIdentifier: string,
     data: Uint8Array,
-  ): Promise<Uint8Array> {
+  ): Promise<{ headerMetadata: Uint8Array; plaintext: Uint8Array }> {
     const response = await this.post(new Decrypt(uniqueIdentifier, data))
-    return response.data
+
+    const { result: headerMetadataLength, tail } = decode(response.data)
+    const headerMetadata = tail.slice(0, headerMetadataLength)
+    const plaintext = tail.slice(headerMetadataLength)
+
+    return { headerMetadata, plaintext }
   }
 
   /**
@@ -657,7 +683,7 @@ export class KmsClient {
    * @param {string[]} attributes to rotate e.g. ["Department::MKG", "Department::FIN"]
    * @returns {string[]} returns the IDs of the Private Master Key and Public Master Key
    */
-  public async rotateAbeAttributes(
+  public async rotateCoverCryptAttributes(
     privateMasterKeyUniqueIdentifier: string,
     attributes: string[],
   ): Promise<string[]> {

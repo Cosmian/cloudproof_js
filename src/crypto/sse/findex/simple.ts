@@ -6,6 +6,7 @@ import init, {
 
 import { SymmetricKey } from "../../../kms/structs/objects"
 import { Index } from "./interfaces"
+import { parse as parseUuid } from "uuid"
 
 let initialized: Promise<void> | undefined
 
@@ -58,6 +59,10 @@ export class Location {
   static fromUtf8String(value: string): Location {
     return new Label(new TextEncoder().encode(value))
   }
+
+  static fromUuid(value: string): Location {
+    return new Label(Uint8Array.from(parseUuid(value)))
+  }
 }
 export class Keyword {
   bytes: Uint8Array
@@ -67,6 +72,10 @@ export class Keyword {
 
   static fromUtf8String(value: string): Keyword {
     return new Keyword(new TextEncoder().encode(value))
+  }
+
+  static fromUuid(value: string): Keyword {
+    return new Keyword(Uint8Array.from(parseUuid(value)))
   }
 
   toBase64(): string {
@@ -217,8 +226,7 @@ export async function Findex() {
      * Insert or update existing (a.k.a upsert) entries in the index
      *
      * @param {IndexedEntry[]} newIndexedEntries new entries to upsert in indexes
-     * @param {FindexKey | SymmetricKey} searchKey Findex's read key
-     * @param {FindexKey | SymmetricKey} updateKey Findex's write key
+     * @param {FindexKey | SymmetricKey} masterKey Findex's key
      * @param {Label} label public label for the index
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
@@ -228,8 +236,7 @@ export async function Findex() {
      */
     upsert: async (
       newIndexedEntries: IndexedEntry[],
-      searchKey: FindexKey | SymmetricKey,
-      updateKey: FindexKey | SymmetricKey,
+      masterKey: FindexKey | SymmetricKey,
       label: Label,
       fetchEntries: FetchEntries,
       upsertEntries: UpsertEntries,
@@ -239,11 +246,8 @@ export async function Findex() {
       } = {},
     ): Promise<void> => {
       // convert key to a single representation
-      if (searchKey instanceof SymmetricKey) {
-        searchKey = new FindexKey(searchKey.bytes())
-      }
-      if (updateKey instanceof SymmetricKey) {
-        updateKey = new FindexKey(updateKey.bytes())
+      if (masterKey instanceof SymmetricKey) {
+        masterKey = new FindexKey(masterKey.bytes())
       }
 
       const generateGraphs =
@@ -270,8 +274,7 @@ export async function Findex() {
         ? webassembly_graph_upsert
         : webassembly_upsert
       return await upsertFn(
-        searchKey.bytes,
-        updateKey.bytes,
+        masterKey.bytes,
         label.bytes,
         indexedValuesAndWords,
         async (uids: Uint8Array[]) => {
@@ -290,7 +293,7 @@ export async function Findex() {
      * Search indexed keywords and return the corresponding IndexedValues
      *
      * @param {Set<string>} keywords keywords to search inside the indexes
-     * @param {FindexKey | SymmetricKey} searchKey Findex's read key
+     * @param {FindexKey | SymmetricKey} masterKey Findex's key
      * @param {Label} label public label for the index
      * @param {number} maxResultsPerKeyword the maximum number of results per keyword
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
@@ -301,7 +304,7 @@ export async function Findex() {
      */
     search: async (
       keywords: Set<string | Uint8Array>,
-      searchKey: FindexKey | SymmetricKey,
+      masterKey: FindexKey | SymmetricKey,
       label: Label,
       maxResultsPerKeyword: number,
       fetchEntries: FetchEntries,
@@ -309,8 +312,8 @@ export async function Findex() {
       progress?: Progress,
     ): Promise<IndexedValue[]> => {
       // convert key to a single representation
-      if (searchKey instanceof SymmetricKey) {
-        searchKey = new FindexKey(searchKey.bytes())
+      if (masterKey instanceof SymmetricKey) {
+        masterKey = new FindexKey(masterKey.bytes())
       }
 
       const kws: Uint8Array[] = []
@@ -322,7 +325,7 @@ export async function Findex() {
         typeof progress === "undefined" ? async () => true : progress
 
       const serializedIndexedValues = await webassembly_search(
-        searchKey.bytes,
+        masterKey.bytes,
         label.bytes,
         kws,
         maxResultsPerKeyword,

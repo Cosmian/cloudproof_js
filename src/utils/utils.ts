@@ -1,5 +1,4 @@
 import { decode } from "./leb128"
-import { logger } from "./logger"
 
 /**
  * Convert the binary string to base64 string and sanitize it.
@@ -82,29 +81,6 @@ export function toBeBytes(myNumber: number): Uint8Array {
 }
 
 /**
- * Return the number of bytes for encoding the number of bytes of the deserialized item
- *
- * @param {Uint8Array} stream Array being deserialized when using LEB128 deserialization
- * @returns {number} number of bytes
- */
-function getSizeNumberOfBytes(stream: Uint8Array): number {
-  const a: number[] = []
-
-  for (const element of stream) {
-    const b = element
-    a.push(b)
-
-    // tslint:disable-next-line: no-bitwise
-    if ((b & 0x80) === 0) {
-      logger.log(() => "break")
-      break
-    }
-  }
-
-  return a.length
-}
-
-/**
  * Deserialize Uint8Array as a list of Uint8Array
  *
  * @param {Uint8Array} serializedItems Uint8Array of serialized data
@@ -113,14 +89,10 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
-    const itemLen = decode(Buffer.from(serializedItems))
-    const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
+    const { result: itemLen, tail } = decode(Buffer.from(serializedItems))
 
-    const item = serializedItems.slice(
-      sizeNumberOfBytes,
-      sizeNumberOfBytes + itemLen,
-    )
-    serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen)
+    const item = tail.slice(0, itemLen)
+    serializedItems = tail.slice(itemLen)
     items.push(item)
   }
   return items

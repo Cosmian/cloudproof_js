@@ -8,14 +8,20 @@ All notable changes to this project will be documented in this file.
 
 - NodeJS support
 - encrypt/decrypt with the KMS
+- `Location.fromUuid()`
 
 ### Changed
 
+- Findex 0.11.0
+- `decrypt` function for CoverCrypt now return an object containing the decrypted header metadata and the plaintext decrypted value
 - WASM files are now base64 inline in the lib
 - `KmipClient` is now `KmsClient`
 - Removed `client.post()` function, please use the specific functions on the `KmsClient` object.
-- Switch from Jest to Vitest
 - Refactor the KMS structures (snake case to camel case for properties, change some types…)
+- Rename `*abe*` to `*CoverCrypt*` in KMS functions
+- Rename `ClearTextHeader` to `PlaintextHeader`
+- Rename `additionalData` to `headerMetadata`
+- Switch from Jest to Vitest
 
 ### Fixed
 

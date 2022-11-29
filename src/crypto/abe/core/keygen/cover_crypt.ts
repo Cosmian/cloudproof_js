@@ -5,7 +5,7 @@ import {
   webassembly_rotate_attributes,
 } from "../../../../pkg/cover_crypt/cosmian_cover_crypt"
 import { logger } from "../../../../utils/logger"
-import { fromBeBytes, hexEncode } from "../../../../utils/utils"
+import { fromBeBytes } from "../../../../utils/utils"
 import { Policy } from "../../interfaces/policy"
 
 export class CoverCryptMasterKey {
@@ -47,8 +47,6 @@ export class CoverCryptKeyGeneration {
    * @returns {CoverCryptMasterKey} the master keys
    */
   public generateMasterKeys(policy: Policy): CoverCryptMasterKey {
-    logger.log(() => `policy: ${policy.toString()}`)
-
     const policyBytes = policy.toJsonEncoded()
     const masterKeys = webassembly_generate_master_keys(policyBytes)
     const secretKeySize = fromBeBytes(masterKeys.slice(0, 4))
@@ -73,10 +71,6 @@ export class CoverCryptKeyGeneration {
     accessPolicy: string,
     policy: Policy,
   ): Uint8Array {
-    logger.log(() => `secretKey: ${hexEncode(masterSecretKeyBytes)}`)
-    logger.log(() => `accessPolicy: ${accessPolicy}`)
-    logger.log(() => `policy: ${policy.toString()}`)
-
     const policyBytes = policy.toJsonEncoded()
     const userSecretKey = webassembly_generate_user_secret_key(
       masterSecretKeyBytes,
@@ -98,9 +92,6 @@ export class CoverCryptKeyGeneration {
    * @returns {Policy} the updated policy
    */
   public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    logger.log(() => `attributes: ${JSON.stringify(attributes)}`)
-    logger.log(() => `policy: ${policy.toString()}`)
-
     const policyBytes = policy.toJsonEncoded()
     const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
     const newPolicyString = webassembly_rotate_attributes(

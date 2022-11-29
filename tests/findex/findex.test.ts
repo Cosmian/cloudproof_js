@@ -26,18 +26,18 @@ test("upsert and search memory", async () => {
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      new Location(new TextEncoder().encode("ROBERT file")),
+      Location.fromUtf8String("ROBERT file"),
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
+    keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const arrayLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      new Location(new TextEncoder().encode("ROBERT file array")),
+      Location.fromUtf8String("ROBERT file array"),
     ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("ROBERT"))]),
+    keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
   }
   const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
     new TextEncoder().encode("ROBERT"),
@@ -45,16 +45,13 @@ test("upsert and search memory", async () => {
   expect(arrayLocation_).toEqual(arrayLocation)
 
   const entryKeyword: IndexedEntry = {
-    indexedValue: IndexedValue.fromNextWord(
-      new Keyword(new TextEncoder().encode("ROBERT")),
-    ),
-    keywords: new Set([new Keyword(new TextEncoder().encode("BOB"))]),
+    indexedValue: IndexedValue.fromNextWord(Keyword.fromUtf8String("ROBERT")),
+    keywords: new Set([Keyword.fromUtf8String("BOB")]),
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
 
-  const searchKey = new FindexKey(randomBytes(32))
-  const updateKey = new FindexKey(randomBytes(32))
+  const masterKey = new FindexKey(randomBytes(32))
 
   const label = new Label("test")
 
@@ -107,8 +104,7 @@ test("upsert and search memory", async () => {
 
   await findex.upsert(
     [entryLocation, entryKeyword, arrayLocation],
-    searchKey,
-    updateKey,
+    masterKey,
     label,
     fetchEntries,
     upsertEntries,
@@ -117,7 +113,7 @@ test("upsert and search memory", async () => {
 
   const results0 = await findex.search(
     new Set(["ROBERT"]),
-    searchKey,
+    masterKey,
     label,
     100,
     fetchEntries,
@@ -127,7 +123,7 @@ test("upsert and search memory", async () => {
 
   const results1 = await findex.search(
     new Set([new TextEncoder().encode("ROBERT")]),
-    searchKey,
+    masterKey,
     label,
     100,
     fetchEntries,
@@ -137,7 +133,7 @@ test("upsert and search memory", async () => {
 
   const results2 = await findex.search(
     new Set(["BOB"]),
-    searchKey,
+    masterKey,
     label,
     100,
     fetchEntries,
@@ -317,17 +313,14 @@ async function run(
   upsertChains: UpsertChains,
 ): Promise<void> {
   const findex = await Findex()
-  const searchKey = new FindexKey(randomBytes(32))
-  const updateKey = new FindexKey(randomBytes(32))
+  const masterKey = new FindexKey(randomBytes(32))
   const label = new Label(randomBytes(10))
 
   {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(
-          Location.fromUtf8String(user.id),
-        ),
+        indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
         keywords: new Set([
           Keyword.fromUtf8String(user.firstName),
           Keyword.fromUtf8String(user.country),
@@ -337,8 +330,7 @@ async function run(
 
     await findex.upsert(
       newIndexedEntries,
-      searchKey,
-      updateKey,
+      masterKey,
       label,
       fetchEntries,
       upsertEntries,
@@ -347,7 +339,7 @@ async function run(
 
     const results = await findex.search(
       new Set([USERS[0].firstName]),
-      searchKey,
+      masterKey,
       label,
       1000,
       fetchEntries,
@@ -356,7 +348,7 @@ async function run(
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)),
+      IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
     )
   }
 
@@ -365,7 +357,7 @@ async function run(
 
     const results = await findex.search(
       new Set(["Spain"]),
-      searchKey,
+      masterKey,
       label,
       1000,
       fetchEntries,
@@ -386,8 +378,7 @@ async function run(
           keywords: new Set([Keyword.fromUtf8String("SomeAlias")]),
         },
       ],
-      searchKey,
-      updateKey,
+      masterKey,
       label,
       fetchEntries,
       upsertEntries,
@@ -396,7 +387,7 @@ async function run(
 
     const results = await findex.search(
       new Set(["SomeAlias"]),
-      searchKey,
+      masterKey,
       label,
       1000,
       fetchEntries,
@@ -405,7 +396,7 @@ async function run(
 
     expect(results.length).toEqual(1)
     expect(results[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUtf8String(USERS[0].id)),
+      IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
     )
   }
 }

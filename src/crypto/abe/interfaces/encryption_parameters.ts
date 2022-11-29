@@ -12,7 +12,7 @@ export class Metadata {
   /// The `additional_data` is not used as a security parameter. It is optional
   /// data (such as index tags) symmetrically encrypted as part of the header.
 
-  private _additionalData?: Uint8Array | undefined
+  private _headerMetadata?: Uint8Array | undefined
 
   // Getters and setters
   public get uid(): Uint8Array | undefined {
@@ -23,17 +23,17 @@ export class Metadata {
     this._uid = value
   }
 
-  public get additionalData(): Uint8Array | undefined {
-    return this._additionalData
+  public get headerMetadata(): Uint8Array | undefined {
+    return this._headerMetadata
   }
 
-  public set additionalData(value: Uint8Array | undefined) {
-    this._additionalData = value
+  public set headerMetadata(value: Uint8Array | undefined) {
+    this._headerMetadata = value
   }
 
-  constructor(uid?: Uint8Array, additionalData?: Uint8Array) {
+  constructor(uid?: Uint8Array, headerMetadata?: Uint8Array) {
     this._uid = uid
-    this._additionalData = additionalData
+    this._headerMetadata = headerMetadata
   }
 
   /**
@@ -48,38 +48,9 @@ export class Metadata {
     } else {
       metadata.uid = []
     }
-    if (this._additionalData !== undefined) {
-      metadata.additionalData = Array.from(this._additionalData)
+    if (this._headerMetadata !== undefined) {
+      metadata.headerMetadata = Array.from(this._headerMetadata)
     }
     return new TextEncoder().encode(JSON.stringify(metadata))
-  }
-}
-
-// tslint:disable-next-line: max-classes-per-file
-export class AbeEncryptionParameters {
-  // ABE attributes as a string: for example: ["Department::FIN" , "Security Level::Confidential"]
-  private _attributes: string[]
-  // Metadata used to save integrity parameter and additional data
-  private _metadata: Metadata
-
-  constructor(attributes: string[], metadata: Metadata) {
-    this._attributes = attributes
-    this._metadata = metadata
-  }
-
-  public get attributes(): string[] {
-    return this._attributes
-  }
-
-  public set attributes(value: string[]) {
-    this._attributes = value
-  }
-
-  public get metadata(): Metadata {
-    return this._metadata
-  }
-
-  public set metadata(value: Metadata) {
-    this._metadata = value
   }
 }

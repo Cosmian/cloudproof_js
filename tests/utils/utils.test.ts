@@ -5,6 +5,7 @@ import {
   hexEncode,
   toBeBytes,
 } from "../../src/utils/utils"
+import { encode, decode } from "../../src/utils/leb128"
 import { expect, test } from "vitest"
 
 test("hexEncode+hexDecode", () => {
@@ -60,4 +61,14 @@ test("leb128_real_case", () => {
   expect(deserialized.length).toBe(2)
   expect(deserialized[0]).toStrictEqual(symmetricKey)
   expect(deserialized[1]).toStrictEqual(header)
+})
+
+test("LEB128", () => {
+  for (const value of [0, 1, 42, 1000]) {
+    const leb = encode(value)
+    const { result, tail } = decode(leb)
+
+    expect(result).toEqual(value)
+    expect(tail).toEqual(Uint8Array.from([]))
+  }
 })
