@@ -335,7 +335,9 @@ export default defineComponent({
 
       if (!this.masterKey) throw "No Findex key";
 
-      let keywords = this.query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
+      const query = this.query;
+
+      let keywords = query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
       if (keywords.length === 0) return;
 
       let indexedValues: Array<IndexedValue> | null = null;
@@ -402,7 +404,10 @@ export default defineComponent({
         results.push(decryptedUser);
       }
 
-      this.searchResults = results;
+      // Show the results only if the query didn't change during the search/decrypt
+      if (this.query === query) {
+        this.searchResults = results;
+      }
     },
 
     async addUser() {

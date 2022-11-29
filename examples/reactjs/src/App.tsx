@@ -537,7 +537,9 @@ function App() {
 
     const decrypter = (await getEncrypterAndDecrypter()).decrypt
 
-    let keywords = query
+    const savedQuery = query;
+
+    let keywords = savedQuery
       .split(" ")
       .map((keyword) => keyword.trim())
       .filter((keyword) => keyword)
@@ -636,7 +638,10 @@ function App() {
       results.push(decryptedUser)
     }
 
-    setSearchResults(results)
+    // Show the results only if the query didn't change during the search/decrypt
+    if (savedQuery === query) {
+      setSearchResults(results)
+    }
   }
 
   useEffect(() => {
