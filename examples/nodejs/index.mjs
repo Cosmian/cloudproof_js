@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
       '--publicMasterKeyUID', masterKeys.publicKeyUID || '',
       '--dataToEncrypt', "Hello World",
       '--header-metadata', "Some metadata",
+      '--authentication-data', "Authentication Data",
       '--accessPolicy', "Department::HR && Security Level::Medium Secret",
     ])
     
@@ -31,6 +32,7 @@ import { fileURLToPath } from 'url';
       ]))
       
       const decryptedDataHexEncoded = JSON.parse(await run('decrypt.mjs', [
+        '--authentication-data', "Authentication Data",
         '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
         '--encryptedDataHexEncoded', encryptedDataHexEncoded,
         '--userKeyUID', userKey.uid || '',
@@ -47,6 +49,25 @@ import { fileURLToPath } from 'url';
         throw new Error(`Decrypted data should be "Some metadata". "${decryptedMetadata}" found.`);
       }
     }
+
+    {
+      // Medium Secret User Key shouldn't be able to decrypt with wrong Authentication Data
+      
+      const userKey = JSON.parse(await run('generate_user_key.mjs', [
+        '--authentication-data', "Authentication Data",
+        '--privateMasterKeyBytesHexEncoded', masterKeys.privateKeyBytesHexEncoded,
+        '--privateMasterKeyUID', masterKeys.privateKeyUID || '',
+        '--accessPolicy', "Department::HR && Security Level::Medium Secret",
+      ]))
+      
+      await run('decrypt.mjs', [
+        '--authentication-data', "WRONG AUTHENTICATION DATA !!!",
+        '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
+        '--encryptedDataHexEncoded', encryptedDataHexEncoded,
+        '--userKeyUID', userKey.uid || '',
+        '--userKeyAccessPolicy', "Department::HR && Security Level::Medium Secret",
+      ], true)
+    }
     
     {
       // High Secret User Key should be able to decrypt
@@ -58,6 +79,7 @@ import { fileURLToPath } from 'url';
       ]))
       
       const decryptedDataHexEncoded = JSON.parse(await run('decrypt.mjs', [
+        '--authentication-data', "Authentication Data",
         '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
         '--encryptedDataHexEncoded', encryptedDataHexEncoded,
         '--userKeyUID', userKey.uid || '',
@@ -86,6 +108,7 @@ import { fileURLToPath } from 'url';
       
       // Should fail
       await run('decrypt.mjs', [
+        '--authentication-data', "Authentication Data",
         '--userKeyBytesHexEncoded', userKey.bytesHexEncoded,
         '--encryptedDataHexEncoded', encryptedDataHexEncoded,
         '--userKeyUID', userKey.uid || '',

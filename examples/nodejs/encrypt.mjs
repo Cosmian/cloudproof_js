@@ -24,6 +24,12 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     headerMetadata = (new TextEncoder).encode(process.argv[headerMetadataIndex])
   }
   
+  let authenticationData
+  if (process.argv.includes('--authentication-data')) {
+    const authenticationDataIndex = process.argv.indexOf('--authentication-data') + 1;
+    authenticationData = (new TextEncoder).encode(process.argv[authenticationDataIndex])
+  }
+  
   let encryptedData
   if (useKms) {
     const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
@@ -35,6 +41,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     
     encryptedData = await client.coverCryptEncrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
       headerMetadata,
+      authenticationData,
     })
   } else {
     const { CoverCryptHybridEncryption } = await CoverCrypt();
@@ -43,6 +50,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     
     encryptedData = encryption.encrypt(accessPolicy, dataToEncrypt, {
       headerMetadata,
+      authenticationData,
     });
   }
   

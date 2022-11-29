@@ -44,31 +44,31 @@ export class CoverCryptHybridEncryption {
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.headerMetadata Data encrypted in the header
-   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
    * @returns {Uint8Array} encrypted header
    */
   public encryptHybridHeader(
     accessPolicy: string,
     options: {
       headerMetadata?: Uint8Array
-      authenticatedData?: Uint8Array
+      authenticationData?: Uint8Array
     } = {},
   ): EncryptedHeader {
     const headerMetadata =
       typeof options.headerMetadata === "undefined"
         ? new Uint8Array()
         : options.headerMetadata
-    const authenticatedData =
-      typeof options.authenticatedData === "undefined"
+    const authenticationData =
+      typeof options.authenticationData === "undefined"
         ? new Uint8Array()
-        : options.authenticatedData
+        : options.authenticationData
 
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
       this.policy,
       accessPolicy,
       this.publicKey,
       headerMetadata,
-      authenticatedData,
+      authenticationData,
     )
 
     logger.log(
@@ -84,25 +84,25 @@ export class CoverCryptHybridEncryption {
    * @param {Uint8Array} symmetricKey Symmetric key to use to encrypt
    * @param {Uint8Array} plaintext Stuff to encrypt
    * @param {object} options Additional optional options to the encryption
-   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    * @returns {Uint8Array} encrypted block
    */
   public encryptBlock(
     symmetricKey: Uint8Array,
     plaintext: Uint8Array,
     options: {
-      authenticatedData?: Uint8Array
+      authenticationData?: Uint8Array
     } = {},
   ): Uint8Array {
-    const authenticatedData =
-      typeof options.authenticatedData === "undefined"
+    const authenticationData =
+      typeof options.authenticationData === "undefined"
         ? new Uint8Array()
-        : options.authenticatedData
+        : options.authenticationData
 
     return webassembly_encrypt_symmetric_block(
       symmetricKey,
       plaintext,
-      authenticatedData,
+      authenticationData,
     )
   }
 
@@ -113,7 +113,7 @@ export class CoverCryptHybridEncryption {
    * @param {Uint8Array} plaintext Stuff to encrypt
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.headerMetadata Data encrypted in the header
-   * @param {Uint8Array} options.authenticatedData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
    * @returns {Uint8Array} encrypted
    */
   public encrypt(
@@ -121,17 +121,17 @@ export class CoverCryptHybridEncryption {
     plaintext: Uint8Array,
     options: {
       headerMetadata?: Uint8Array
-      authenticatedData?: Uint8Array
+      authenticationData?: Uint8Array
     } = {},
   ): Uint8Array {
     const headerMetadata =
       typeof options.headerMetadata === "undefined"
         ? new Uint8Array()
         : options.headerMetadata
-    const authenticatedData =
-      typeof options.authenticatedData === "undefined"
+    const authenticationData =
+      typeof options.authenticationData === "undefined"
         ? new Uint8Array()
-        : options.authenticatedData
+        : options.authenticationData
 
     return webassembly_hybrid_encrypt(
       this._policy,
@@ -139,7 +139,7 @@ export class CoverCryptHybridEncryption {
       this._publicKey,
       plaintext,
       headerMetadata,
-      authenticatedData,
+      authenticationData,
     )
   }
 }
