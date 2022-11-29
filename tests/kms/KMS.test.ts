@@ -362,14 +362,17 @@ test(
     }
 
     // rotate
-    const [rotatedMskID, rotatedMpkID] = await client.rotateCoverCryptAttributes(mskID, [
-      "Department::FIN",
-      "Department::MKG",
-    ])
+    const [rotatedMskID, rotatedMpkID] =
+      await client.rotateCoverCryptAttributes(mskID, [
+        "Department::FIN",
+        "Department::MKG",
+      ])
     expect(rotatedMskID).toEqual(mskID)
     expect(rotatedMpkID).toEqual(mpkID)
 
-    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(rotatedMpkID)
+    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(
+      rotatedMpkID,
+    )
     expect(rotatedMpk).not.toEqual(mpk)
     const rotatedPolicy = Policy.fromKey(rotatedMpk)
     expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
@@ -383,7 +386,7 @@ test(
     )
 
     // decryption
-    const { CoverCryptHybridDecryption } = await CoverCrypt();
+    const { CoverCryptHybridDecryption } = await CoverCrypt()
     {
       // Previous local key should not work anymore.
       const decrypter2 = new CoverCryptHybridDecryption(udk)
@@ -400,8 +403,8 @@ test(
 
     // decrypt in KMS should still work
     {
-        const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
-        expect(plaintext).toEqual(plaintext)
+      const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
+      expect(plaintext).toEqual(plaintext)
     }
   },
   {
@@ -419,49 +422,58 @@ test(
     }
 
     const policy = new Policy([
-      new PolicyAxis(
-        "Security",
-        ["Simple", "TopSecret"],
-        true,
-      ),
+      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
     ])
 
     // create master keys
     const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
-    const cyphertext = await client.coverCryptEncrypt(mpkID, "Security::TopSecret", Uint8Array.from([1, 2, 3]))
+    const cyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::TopSecret",
+      Uint8Array.from([1, 2, 3]),
+    )
 
-    const userKeyID = await client.createCoverCryptUserDecryptionKey("Security::Simple", mskID)
+    const userKeyID = await client.createCoverCryptUserDecryptionKey(
+      "Security::Simple",
+      mskID,
+    )
     const userKey = await client.retrieveCoverCryptUserDecryptionKey(userKeyID)
 
-    const temperedUserKeyID = await client.importCoverCryptUserDecryptionKey(`${userKeyID}-HACK`, { bytes: userKey.bytes(), policy: "Security::TopSecret" }, {
-      link: [
-        new Link(LinkType.ParentLink, mskID),
-      ],
-    })
+    const temperedUserKeyID = await client.importCoverCryptUserDecryptionKey(
+      `${userKeyID}-HACK`,
+      { bytes: userKey.bytes(), policy: "Security::TopSecret" },
+      {
+        link: [new Link(LinkType.ParentLink, mskID)],
+      },
+    )
     expect(temperedUserKeyID).toEqual(`${userKeyID}-HACK`)
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, cyphertext);
+      return await client.coverCryptDecrypt(userKeyID, cyphertext)
     }).rejects.toThrow()
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext);
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
     }).rejects.toThrow()
 
-    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"]);
+    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"])
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, cyphertext);
+      return await client.coverCryptDecrypt(userKeyID, cyphertext)
     }).rejects.toThrow()
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext);
+      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
     }).rejects.toThrow()
 
-    const newCyphertext = await client.coverCryptEncrypt(mpkID, "Security::TopSecret", Uint8Array.from([4, 5, 6]))
+    const newCyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::TopSecret",
+      Uint8Array.from([4, 5, 6]),
+    )
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, newCyphertext);
+      return await client.coverCryptDecrypt(userKeyID, newCyphertext)
     }).rejects.toThrow()
 
     // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)

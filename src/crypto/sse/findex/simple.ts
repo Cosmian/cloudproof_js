@@ -6,7 +6,7 @@ import init, {
 
 import { SymmetricKey } from "../../../kms/structs/objects"
 import { Index } from "./interfaces"
-import { parse as parseUuid } from 'uuid'
+import { parse as parseUuid } from "uuid"
 
 let initialized: Promise<void> | undefined
 

@@ -288,7 +288,9 @@ export class KmsClient {
     return await this.destroyObject(uniqueIdentifier)
   }
 
-  public async createCoverCryptMasterKeyPair(policy: Policy): Promise<string[]> {
+  public async createCoverCryptMasterKeyPair(
+    policy: Policy,
+  ): Promise<string[]> {
     const attributes = new Attributes("PrivateKey")
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
@@ -377,8 +379,8 @@ export class KmsClient {
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: Policy },
     options: {
-      replaceExisting?: boolean,
-      link?: Link[],
+      replaceExisting?: boolean
+      link?: Link[]
     } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
@@ -403,8 +405,8 @@ export class KmsClient {
     uniqueIdentifier: string,
     key: PublicKey | { bytes: Uint8Array; policy: Policy },
     options: {
-      replaceExisting?: boolean,
-      link?: Link[],
+      replaceExisting?: boolean
+      link?: Link[]
     } = {},
   ): Promise<string> {
     return await this.importCoverCryptKey(
@@ -434,8 +436,8 @@ export class KmsClient {
       | PrivateKey
       | { bytes: Uint8Array; policy: Policy | AccessPolicy },
     options: {
-      replaceExisting?: boolean,
-      link?: Link[],
+      replaceExisting?: boolean
+      link?: Link[]
     } = {},
   ): Promise<string> {
     // If we didn't pass a real Key object, build one from bytes and policy
@@ -448,7 +450,7 @@ export class KmsClient {
       }[type]
       attributes.vendorAttributes = [await key.policy.toVendorAttribute()]
       if (typeof options.link !== "undefined") {
-        attributes.link = options.link;
+        attributes.link = options.link
       }
 
       const keyValue = new KeyValue(key.bytes, attributes)
@@ -531,9 +533,7 @@ export class KmsClient {
     }
 
     const attributes = new Attributes("PrivateKey")
-    attributes.link = [
-      new Link(LinkType.ParentLink, secretMasterKeyIdentifier),
-    ]
+    attributes.link = [new Link(LinkType.ParentLink, secretMasterKeyIdentifier)]
     attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
@@ -574,8 +574,8 @@ export class KmsClient {
     uniqueIdentifier: string,
     key: PrivateKey | { bytes: Uint8Array; policy: AccessPolicy | string },
     options: {
-      replaceExisting?: boolean,
-      link?: Link[],
+      replaceExisting?: boolean
+      link?: Link[]
     } = {},
   ): Promise<string> {
     if (!(key instanceof PrivateKey) && typeof key.policy === "string") {

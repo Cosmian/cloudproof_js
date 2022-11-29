@@ -25,14 +25,18 @@ test("upsert and search memory", async () => {
   const findex = await Findex()
 
   const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(Location.fromUtf8String("ROBERT file")),
+    indexedValue: IndexedValue.fromLocation(
+      Location.fromUtf8String("ROBERT file"),
+    ),
     keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const arrayLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(Location.fromUtf8String("ROBERT file array")),
+    indexedValue: IndexedValue.fromLocation(
+      Location.fromUtf8String("ROBERT file array"),
+    ),
     keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
   }
   const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
@@ -41,9 +45,7 @@ test("upsert and search memory", async () => {
   expect(arrayLocation_).toEqual(arrayLocation)
 
   const entryKeyword: IndexedEntry = {
-    indexedValue: IndexedValue.fromNextWord(
-      Keyword.fromUtf8String("ROBERT"),
-    ),
+    indexedValue: IndexedValue.fromNextWord(Keyword.fromUtf8String("ROBERT")),
     keywords: new Set([Keyword.fromUtf8String("BOB")]),
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
@@ -318,9 +320,7 @@ async function run(
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(
-          Location.fromUuid(user.id),
-        ),
+        indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
         keywords: new Set([
           Keyword.fromUtf8String(user.firstName),
           Keyword.fromUtf8String(user.country),
