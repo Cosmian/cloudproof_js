@@ -30,7 +30,8 @@ eslint:
   extends: .services
   stage: test
   script:
-    - npm run format
+    - npm run prettier:check
+    - npm run lint
 
 build:
   stage: test

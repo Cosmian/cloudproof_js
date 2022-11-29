@@ -34,7 +34,7 @@
         "test": "vitest",
         "lint": "npx eslint src",
         "lint:fix": "npm run lint -- --fix",
-        "prettier": "npx prettier src tests --check",
+        "prettier:check": "npx prettier src tests --check",
         "prettier:fix": "npm run prettier -- --write",
         "format": "npm run prettier:fix && npm run lint:fix"
     },
