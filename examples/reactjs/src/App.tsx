@@ -166,9 +166,7 @@ function App() {
     }[],
   )
 
-  const [findexKeys, setFindexKeys] = useState(
-    null as { searchKey: FindexKey; updateKey: FindexKey } | null,
-  )
+  const [masterKey, setMasterKey] = useState(null as FindexKey | null)
   const [indexesEntries, setIndexesEntries] = useState([] as UidsAndValues)
   const [indexesChains, setIndexesChains] = useState([] as UidsAndValues)
 
@@ -368,7 +366,7 @@ function App() {
   }
 
   const indexUsers = async (
-    localFindexKeys: Exclude<typeof findexKeys, null>,
+    localMasterKey: Exclude<typeof masterKey, null>,
     users: User[],
   ) => {
     const { upsert } = await Findex()
@@ -388,8 +386,7 @@ function App() {
           ]),
         }
       }),
-      localFindexKeys.searchKey,
-      localFindexKeys.updateKey,
+      localMasterKey,
       FINDEX_LABEL,
       async (uids) => await fetchCallback("entries", uids),
       async (uidsAndValues) => await upsertCallback("entries", uidsAndValues),
@@ -403,13 +400,10 @@ function App() {
   const index = async () => {
     setIndexing(true)
 
-    let findexKeys = {
-      searchKey: new FindexKey(Uint8Array.from(Array(32).keys())),
-      updateKey: new FindexKey(Uint8Array.from(Array(32).keys())),
-    }
-    setFindexKeys(findexKeys)
+    let masterKey = new FindexKey(Uint8Array.from(Array(32).keys()))
+    setMasterKey(masterKey)
 
-    indexUsers(findexKeys, users)
+    indexUsers(masterKey, users)
 
     setIndexing(false)
     setIndexingDone(true)
@@ -487,11 +481,11 @@ function App() {
     }
 
     if (indexingDone) {
-      if (!findexKeys)
+      if (!masterKey)
         throw new Error(
-          "FindexKeys should be present when first indexing is done",
+          "masterKey should be present when first indexing is done",
         )
-      await indexUsers(findexKeys, [user])
+      await indexUsers(masterKey, [user])
     }
 
     setAddingUser(false)
@@ -537,7 +531,7 @@ function App() {
   const doSearch = async () => {
     if (!query) return []
     if (!selectedKey) return []
-    if (!findexKeys) throw new Error("No Findex key")
+    if (!masterKey) throw new Error("No Findex key")
 
     const { search } = await Findex()
 
@@ -553,7 +547,7 @@ function App() {
     if (doOr) {
       indexedValues = await search(
         new Set(keywords),
-        findexKeys.searchKey,
+        masterKey,
         FINDEX_LABEL,
         1000,
         async (uids) => await fetchCallback("entries", uids),
@@ -563,7 +557,7 @@ function App() {
       for (const keyword of keywords) {
         const newIndexedValues = await search(
           new Set([keyword]),
-          findexKeys.searchKey,
+          masterKey,
           FINDEX_LABEL,
           1000,
           async (uids) => await fetchCallback("entries", uids),

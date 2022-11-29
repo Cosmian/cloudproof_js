@@ -9,7 +9,6 @@ export const USERS = [
     email: "enim.diam@icloud.edu",
     phone: "01 01 31 41 37",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "892dfdea-6a0e-4ebe-bc55-c1e2762d8699",
@@ -21,7 +20,6 @@ export const USERS = [
     email: "ultrices.vivamus@aol.net",
     phone: "07 45 55 66 55",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "034c1cf8-5522-4549-a74d-38610f012f8a",
@@ -33,7 +31,6 @@ export const USERS = [
     email: "vitae@outlook.com",
     phone: "07 17 88 69 58",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "8f6b1dfa-4056-4485-b76f-d18c90874f0f",
@@ -45,7 +42,6 @@ export const USERS = [
     email: "felis.adipiscing@hotmail.org",
     phone: "01 11 46 84 14",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "91a7e3ff-ed3f-4413-8831-3ac44bc2d0d5",
@@ -57,7 +53,6 @@ export const USERS = [
     email: "risus.a@yahoo.ca",
     phone: "03 53 66 40 67",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "80b6c7cb-6453-4c2b-bd81-f4d1f3f13f42",
@@ -69,7 +64,6 @@ export const USERS = [
     email: "mus.donec@aol.couk",
     phone: "01 69 11 40 51",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "3934698d-8dd0-4765-b930-665cf7135868",
@@ -81,7 +75,6 @@ export const USERS = [
     email: "fringilla.mi@google.com",
     phone: "07 36 72 54 66",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "74d8d381-2649-480d-a39d-4442b095acdb",
@@ -93,7 +86,6 @@ export const USERS = [
     email: "egestas.aliquam@hotmail.edu",
     phone: "02 75 95 77 31",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "a308bce2-1db9-4ca4-923a-fa410686ba28",
@@ -105,7 +97,6 @@ export const USERS = [
     email: "ullamcorper.eu.euismod@google.ca",
     phone: "02 44 54 20 55",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "20f2f902-e553-47cb-86fb-7bf928c41244",
@@ -117,7 +108,6 @@ export const USERS = [
     email: "nascetur.ridiculus.mus@outlook.net",
     phone: "03 35 75 32 28",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "06a25652-8c6b-4dac-9336-8e5070d848d2",
@@ -129,7 +119,6 @@ export const USERS = [
     email: "pede.suspendisse@icloud.com",
     phone: "05 13 27 74 63",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "2aaf7a25-33bb-4302-8ffe-e08a76ba6781",
@@ -141,7 +130,6 @@ export const USERS = [
     email: "lacus.varius.et@yahoo.ca",
     phone: "06 72 81 43 63",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "ff8e2183-68d0-405a-b972-b2513a20be7f",
@@ -153,7 +141,6 @@ export const USERS = [
     email: "in.cursus@aol.com",
     phone: "08 71 12 69 37",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "be5c2fde-5e19-4623-82aa-1ad3eb6920e6",
@@ -165,7 +152,6 @@ export const USERS = [
     email: "elit@google.net",
     phone: "Figueroa",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "8b19fb4f-83d9-4da0-b8f2-8dde22dd039b",
@@ -177,7 +163,6 @@ export const USERS = [
     email: "neque.vitae@yahoo.edu",
     phone: "07 56 26 00 16",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "a21b0101-ab59-4846-8a73-4dfe1e63ca0a",
@@ -189,7 +174,6 @@ export const USERS = [
     email: "eget.magna@google.ca",
     phone: "06 73 42 44 47",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "31aff1b6-7ce2-4e29-8614-f73fb89de85b",
@@ -201,7 +185,6 @@ export const USERS = [
     email: "aenean.eget@protonmail.ca",
     phone: "02 44 08 45 32",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "10463c2d-7a40-409b-a8f9-df13a3e8b8a0",
@@ -213,7 +196,6 @@ export const USERS = [
     email: "orci.ut@protonmail.couk",
     phone: "02 24 15 21 81",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "09fbc8eb-4a8f-42de-acb0-dc81a4f20d28",
@@ -225,7 +207,6 @@ export const USERS = [
     email: "tellus@yahoo.org",
     phone: "06 87 82 58 97",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "46dc3f62-d515-45e8-b29b-8037a0ea934f",
@@ -237,7 +218,6 @@ export const USERS = [
     email: "iaculis.quis@yahoo.com",
     phone: "06 81 51 26 17",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "fab5fb27-1cbe-4581-ad76-aeb0c878336f",
@@ -249,7 +229,6 @@ export const USERS = [
     email: "ut@yahoo.com",
     phone: "01 37 79 08 31",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "f5dabed0-17f7-4d64-8c11-8ecd7f497959",
@@ -261,7 +240,6 @@ export const USERS = [
     email: "non.egestas.a@aol.ca",
     phone: "02 24 48 01 44",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "489d26e7-2860-48d1-95be-89b50608690d",
@@ -273,7 +251,6 @@ export const USERS = [
     email: "sit.amet@icloud.edu",
     phone: "07 42 02 43 15",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "1dcbe519-2200-4cad-b2d5-3e6dac0a12f0",
@@ -285,7 +262,6 @@ export const USERS = [
     email: "tempor.arcu@icloud.ca",
     phone: "02 15 66 88 81",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "0eaad4b1-1307-41bf-9e53-48dac336021e",
@@ -297,7 +273,6 @@ export const USERS = [
     email: "nunc.sed@protonmail.com",
     phone: "08 97 39 30 70",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "ff7a54ad-eddc-4416-af27-dbbb96dee886",
@@ -309,7 +284,6 @@ export const USERS = [
     email: "suscipit.nonummy.fusce@hotmail.couk",
     phone: "02 02 52 43 30",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "75d9aa55-e13e-4f0d-b83e-387e94b93f6c",
@@ -321,7 +295,6 @@ export const USERS = [
     email: "neque.vitae@google.org",
     phone: "09 82 18 22 16",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "ce9ebfd3-abe2-41cc-aaec-f9715db67fe2",
@@ -333,7 +306,6 @@ export const USERS = [
     email: "tristique.senectus@outlook.net",
     phone: "02 46 85 81 87",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "fab86289-5f23-4730-bbb1-71f7f8865c8f",
@@ -345,7 +317,6 @@ export const USERS = [
     email: "laoreet.ipsum@hotmail.com",
     phone: "02 99 26 61 08",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "c38b6d85-fb50-44bc-ba00-d89bb446a0bf",
@@ -357,7 +328,6 @@ export const USERS = [
     email: "non@aol.ca",
     phone: "05 69 55 17 78",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "0f2f2b95-614d-435c-abaf-2e489ad0f85d",
@@ -369,7 +339,6 @@ export const USERS = [
     email: "volutpat.nulla@protonmail.org",
     phone: "03 44 78 02 98",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "54738c1e-d2b5-4a7c-8bdd-e567ffaff4b3",
@@ -381,7 +350,6 @@ export const USERS = [
     email: "ipsum.dolor@aol.net",
     phone: "08 43 33 76 76",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "dd8c0793-771d-4424-8aaa-ab18c4777e94",
@@ -393,7 +361,6 @@ export const USERS = [
     email: "venenatis.vel@outlook.net",
     phone: "07 13 38 17 82",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "64d8f259-3086-4b7b-8e3b-009d55871005",
@@ -405,7 +372,6 @@ export const USERS = [
     email: "mus.proin@hotmail.net",
     phone: "03 56 82 77 04",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "1e4e418c-43c9-4b82-baa2-26b103a3b6b3",
@@ -417,7 +383,6 @@ export const USERS = [
     email: "sit.amet.lorem@google.org",
     phone: "04 95 11 83 54",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "5db23f4f-5874-483b-a837-14824bdf7e3b",
@@ -429,7 +394,6 @@ export const USERS = [
     email: "nonummy.ut@aol.couk",
     phone: "02 24 31 11 26",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "2df54d1a-5a9e-40e6-a13b-0208505350ec",
@@ -441,7 +405,6 @@ export const USERS = [
     email: "vestibulum@protonmail.couk",
     phone: "01 48 61 56 13",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "cc016df8-2679-47da-b6c1-aca7a1f6a25d",
@@ -453,7 +416,6 @@ export const USERS = [
     email: "integer.eu@aol.edu",
     phone: "06 78 56 75 66",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "b29a7814-9c5f-4131-b3ab-11454c1b39ea",
@@ -465,7 +427,6 @@ export const USERS = [
     email: "dignissim.maecenas@aol.com",
     phone: "09 61 37 41 27",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "470411e8-1458-4d25-bc98-1f1583223961",
@@ -477,7 +438,6 @@ export const USERS = [
     email: "feugiat.non@icloud.com",
     phone: "09 80 48 88 65",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "020ca23d-f76b-456a-af4d-e5d4e698a093",
@@ -489,7 +449,6 @@ export const USERS = [
     email: "convallis.convallis@aol.org",
     phone: "07 24 80 13 06",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "1d74729b-196e-4b52-bc51-d46f5e0f2dfe",
@@ -501,7 +460,6 @@ export const USERS = [
     email: "libero.mauris@yahoo.couk",
     phone: "05 92 75 54 58",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "0d9ecd4b-1f69-446e-b3eb-65bbf11365ce",
@@ -513,7 +471,6 @@ export const USERS = [
     email: "arcu.sed@protonmail.couk",
     phone: "08 22 77 36 03",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "f3c3984a-367a-4d04-b651-11e7eaf18d0b",
@@ -525,7 +482,6 @@ export const USERS = [
     email: "pede.praesent@outlook.edu",
     phone: "07 71 71 93 44",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "10fac43b-3d9f-4675-a739-1d50f46f94ca",
@@ -537,7 +493,6 @@ export const USERS = [
     email: "magnis.dis@outlook.com",
     phone: "06 88 58 74 37",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "dac2a7f3-7444-4317-b3c1-195fd5a989dd",
@@ -549,7 +504,6 @@ export const USERS = [
     email: "venenatis.lacus.etiam@google.net",
     phone: "08 42 86 17 33",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "2c215047-47e6-446e-97d4-f61805325867",
@@ -561,7 +515,6 @@ export const USERS = [
     email: "risus@hotmail.org",
     phone: "08 84 84 60 44",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "0b21fb44-ec72-4963-a74d-f5b7b7e3ab4e",
@@ -573,7 +526,6 @@ export const USERS = [
     email: "interdum.nunc.sollicitudin@yahoo.couk",
     phone: "06 61 67 75 61",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "94a0a90a-0636-4a4f-9b2b-02665e38fb6b",
@@ -585,7 +537,6 @@ export const USERS = [
     email: "molestie@protonmail.org",
     phone: "08 73 28 17 78",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "5b2cb217-5b5d-446e-bb98-a3e40d45f15d",
@@ -597,7 +548,6 @@ export const USERS = [
     email: "nulla.semper@protonmail.ca",
     phone: "02 57 65 38 41",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "12efdc10-19b2-4348-8f48-cbd124c79e8f",
@@ -609,7 +559,6 @@ export const USERS = [
     email: "in.molestie@hotmail.ca",
     phone: "04 74 61 75 34",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "0a91bd45-bffc-46ef-97c2-887ad8a2fc97",
@@ -621,7 +570,6 @@ export const USERS = [
     email: "ultricies@yahoo.edu",
     phone: "07 98 70 76 64",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "69cc7fd6-1fdf-4f4e-92c1-830b5226add7",
@@ -633,7 +581,6 @@ export const USERS = [
     email: "eget.lacus@aol.ca",
     phone: "06 50 84 72 43",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "a5cb5ab7-b743-4051-af50-47ee84b56bc2",
@@ -645,7 +592,6 @@ export const USERS = [
     email: "ac@outlook.ca",
     phone: "07 17 21 15 05",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "24f9665e-21e1-4b61-aa93-fab25098ab78",
@@ -657,7 +603,6 @@ export const USERS = [
     email: "at.sem.molestie@yahoo.com",
     phone: "03 47 59 28 56",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "edf3b06e-b176-4831-a275-251405afee48",
@@ -669,7 +614,6 @@ export const USERS = [
     email: "bibendum@google.ca",
     phone: "04 57 71 59 02",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "1cce337e-2043-46af-830d-a802a99ca318",
@@ -681,7 +625,6 @@ export const USERS = [
     email: "ipsum@aol.org",
     phone: "05 35 71 18 22",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "762d4388-2780-4117-aff6-cfc8495bcb83",
@@ -693,7 +636,6 @@ export const USERS = [
     email: "a.feugiat@outlook.couk",
     phone: "08 30 96 35 54",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "fea6a761-3b35-4b2f-924a-b98ba6dea8b6",
@@ -705,7 +647,6 @@ export const USERS = [
     email: "lacus@aol.com",
     phone: "06 57 86 21 77",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "1e9d7923-65dc-47ef-97c9-071a2e859c58",
@@ -717,7 +658,6 @@ export const USERS = [
     email: "sem.ut@protonmail.edu",
     phone: "02 59 68 76 19",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "2143a5c9-4fdb-47a6-8f9c-dda62be8436c",
@@ -729,7 +669,6 @@ export const USERS = [
     email: "tellus.sem.mollis@icloud.ca",
     phone: "08 96 37 63 57",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "89438568-92a4-4ef7-b8a6-cd98c9119842",
@@ -741,7 +680,6 @@ export const USERS = [
     email: "arcu.sed@outlook.couk",
     phone: "04 88 58 20 33",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "17a55caf-e98d-4e80-ab46-5866f85b7de7",
@@ -753,7 +691,6 @@ export const USERS = [
     email: "nullam.suscipit@yahoo.ca",
     phone: "07 66 19 62 82",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "a2505e7b-eaf8-4128-81df-617acb31a7fe",
@@ -765,7 +702,6 @@ export const USERS = [
     email: "ante@aol.ca",
     phone: "01 00 34 62 27",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "7450e8c2-d27e-4087-b4ab-623e20b1be1c",
@@ -777,7 +713,6 @@ export const USERS = [
     email: "ipsum@google.couk",
     phone: "06 84 59 78 28",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "384a4fc8-0edb-46a4-8e6e-a2c5b8ee29e9",
@@ -789,7 +724,6 @@ export const USERS = [
     email: "erat.volutpat@protonmail.com",
     phone: "02 21 24 02 39",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "cbda0cde-41d6-4c74-b4ac-18f6bda49912",
@@ -801,7 +735,6 @@ export const USERS = [
     email: "risus.odio@protonmail.com",
     phone: "03 05 74 29 97",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "6d6c413f-a476-4688-83ef-beb4ae31cb68",
@@ -813,7 +746,6 @@ export const USERS = [
     email: "nunc.lectus@aol.com",
     phone: "05 65 15 40 63",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "f6e4e8ef-bff3-41f3-bea3-55cf12da1eb9",
@@ -825,7 +757,6 @@ export const USERS = [
     email: "aliquet.magna.a@protonmail.couk",
     phone: "04 23 46 16 33",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "03576033-de6b-4852-9cab-42413d5af427",
@@ -837,7 +768,6 @@ export const USERS = [
     email: "malesuada@aol.couk",
     phone: "07 42 38 86 27",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "dffac4da-4d77-4b0c-b1a4-3ef96f88cc35",
@@ -849,7 +779,6 @@ export const USERS = [
     email: "posuere.enim@google.edu",
     phone: "02 47 45 63 07",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "40fb984a-c03b-4141-bf83-ed2bcec4b625",
@@ -861,7 +790,6 @@ export const USERS = [
     email: "mollis.non@yahoo.couk",
     phone: "05 19 20 79 58",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "a07c5a75-4add-44c5-80e0-5950e387cd2f",
@@ -873,7 +801,6 @@ export const USERS = [
     email: "tincidunt.orci@google.ca",
     phone: "05 56 71 95 15",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "771a3eb3-6793-427c-a496-db8fd50060c3",
@@ -885,7 +812,6 @@ export const USERS = [
     email: "dui.in.sodales@protonmail.net",
     phone: "08 25 25 31 93",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "223c93ce-fffb-47e8-95b8-1b3e6b18a8c7",
@@ -897,7 +823,6 @@ export const USERS = [
     email: "consectetuer.cursus.et@google.couk",
     phone: "04 26 15 12 98",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "9e052f25-0aca-4ea6-a2de-0e9ff903d04e",
@@ -909,7 +834,6 @@ export const USERS = [
     email: "lobortis.quam@google.edu",
     phone: "02 46 54 90 13",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "77f4832f-b9e3-4fc1-b53a-60202495f972",
@@ -921,7 +845,6 @@ export const USERS = [
     email: "integer.eu@google.org",
     phone: "08 03 38 16 24",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "e8cb109e-1451-4296-8256-370f19a6ce5e",
@@ -933,7 +856,6 @@ export const USERS = [
     email: "varius.nam@protonmail.edu",
     phone: "07 22 43 06 14",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "6aa2fe16-4f97-485d-b6cc-fd336c41a5c8",
@@ -945,7 +867,6 @@ export const USERS = [
     email: "pharetra.nam@icloud.edu",
     phone: "03 93 73 18 84",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "da1a43e9-17bd-46bd-bfd4-941ba5043db1",
@@ -957,7 +878,6 @@ export const USERS = [
     email: "eu.metus@icloud.org",
     phone: "06 37 54 06 88",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "f456c2b7-54b1-401b-9328-2de44d3b00a8",
@@ -969,7 +889,6 @@ export const USERS = [
     email: "a.auctor@google.edu",
     phone: "01 95 80 85 96",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "fe6aa006-d92b-4aa4-8cf6-79b841b77a96",
@@ -981,7 +900,6 @@ export const USERS = [
     email: "donec.nibh@google.ca",
     phone: "04 15 43 21 21",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "bdba58ca-3d0d-4fff-b2ba-aaedb5147470",
@@ -993,7 +911,6 @@ export const USERS = [
     email: "aliquam@protonmail.net",
     phone: "08 88 35 57 43",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "54362c0b-3828-42ee-8e1e-61760ebb777f",
@@ -1005,7 +922,6 @@ export const USERS = [
     email: "cras@protonmail.edu",
     phone: "01 56 71 49 15",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "c1c84ffb-49cd-4402-a3ca-bf7cc796535b",
@@ -1017,7 +933,6 @@ export const USERS = [
     email: "lectus@google.com",
     phone: "02 15 37 96 48",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "83aef262-dab8-40d6-a4c3-4ffaeaf6cffe",
@@ -1029,7 +944,6 @@ export const USERS = [
     email: "sed.id@protonmail.ca",
     phone: "07 25 82 47 51",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "853d0773-17b2-4db4-9027-bbfecfa8323a",
@@ -1041,7 +955,6 @@ export const USERS = [
     email: "quis.arcu.vel@icloud.ca",
     phone: "02 55 88 99 01",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "6e61c268-dc08-40fc-9cea-6583299214f6",
@@ -1053,7 +966,6 @@ export const USERS = [
     email: "diam.duis.mi@icloud.org",
     phone: "02 38 25 54 78",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "10f1f231-7544-4f40-983f-2ebb78ebbbf9",
@@ -1065,7 +977,6 @@ export const USERS = [
     email: "cras.eu@yahoo.edu",
     phone: "08 78 28 44 11",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "718f847a-0e06-4f30-ad08-d41a14b88261",
@@ -1077,7 +988,6 @@ export const USERS = [
     email: "donec.sollicitudin@yahoo.de",
     phone: "05 27 63 48 34",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "5330d540-a3de-49d2-9776-8461b9c0e438",
@@ -1089,7 +999,6 @@ export const USERS = [
     email: "et.magnis@hotmail.es",
     phone: "05 95 41 55 09",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "cc8fdfe1-8437-4204-aec8-e4bf1f51a487",
@@ -1101,7 +1010,6 @@ export const USERS = [
     email: "sit.amet.lorem@protonmail.edu",
     phone: "06 13 89 12 11",
     security: "confidential",
-    enc_uid: "",
   },
   {
     id: "0ed6b9e8-83fc-4c62-89b8-f6bbe483decf",
@@ -1113,7 +1021,6 @@ export const USERS = [
     email: "adipiscing.lobortis.risus@hotmail.ca",
     phone: "08 99 13 97 15",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "b02947ad-1dbe-40ce-8f7e-82ae9073ca87",
@@ -1125,7 +1032,6 @@ export const USERS = [
     email: "pede.sagittis@aol.es",
     phone: "08 26 78 84 71",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "c7e8aed4-a724-4f57-b5e3-d1171d54cc0d",
@@ -1137,7 +1043,6 @@ export const USERS = [
     email: "felis.ullamcorper@google.couk",
     phone: "08 72 82 86 44",
     security: "secret",
-    enc_uid: "",
   },
   {
     id: "cb9b6ead-d94c-41a4-9013-e6a941d3d620",
@@ -1149,7 +1054,6 @@ export const USERS = [
     email: "dolor.sit@hotmail.fr",
     phone: "03 37 88 63 83",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "394f7122-60fb-47e2-b786-dfbce615e44b",
@@ -1161,7 +1065,6 @@ export const USERS = [
     email: "magna.sed@yahoo.org",
     phone: "09 21 34 93 29",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "0cd48f60-81d7-4c59-8a96-1ffb99fb0a6b",
@@ -1173,7 +1076,6 @@ export const USERS = [
     email: "mi.fringilla.mi@yahoo.edu",
     phone: "09 39 55 67 05",
     security: "top_secret",
-    enc_uid: "",
   },
   {
     id: "eb5dc420-e2cb-4614-8598-5571a64eaf85",
@@ -1185,6 +1087,5 @@ export const USERS = [
     email: "vitae@yahoo.com",
     phone: "02 91 58 54 73",
     security: "confidential",
-    enc_uid: "",
   },
 ]

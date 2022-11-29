@@ -71,7 +71,7 @@ export default defineComponent({
       showEncryptedData: true,
       encryptedUsers: [] as { marketing: Uint8Array, hr: Uint8Array, manager: Uint8Array }[],
 
-      findexKeys: null as { searchKey: FindexKey, updateKey: FindexKey } | null,
+      masterKey: null as FindexKey | null,
       indexes: {
         entries: [] as UidsAndValues,
         chains: [] as UidsAndValues,
@@ -244,7 +244,7 @@ export default defineComponent({
       this.encrypting = false;
     },
 
-    async indexUsers(findexKeys: Exclude<typeof this.findexKeys, null>, users: User[]) {
+    async indexUsers(masterKey: Exclude<typeof this.masterKey, null>, users: User[]) {
       let { upsert } = await Findex();
 
       await upsert(
@@ -260,8 +260,7 @@ export default defineComponent({
             ]),
           };
         }),
-        findexKeys.searchKey,
-        findexKeys.updateKey,
+        masterKey,
         FINDEX_LABEL,
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
@@ -275,12 +274,9 @@ export default defineComponent({
     async index() {
       this.indexing = true;
 
-      this.findexKeys = {
-        searchKey: new FindexKey(Uint8Array.from(Array(32).fill(1))),
-        updateKey: new FindexKey(Uint8Array.from(Array(32).fill(2))),
-      };
+      this.masterKey = new FindexKey(Uint8Array.from(Array(32).fill(1)));
 
-      this.indexUsers(this.findexKeys, this.users);
+      this.indexUsers(this.masterKey, this.users);
 
       this.indexing = false;
       this.indexingDone = true;
@@ -337,7 +333,7 @@ export default defineComponent({
       let { search } = await Findex();
       const decrypter = (await this.getEncrypterAndDecrypter()).decrypt
 
-      if (!this.findexKeys) throw "No Findex key";
+      if (!this.masterKey) throw "No Findex key";
 
       let keywords = this.query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
       if (keywords.length === 0) return;
@@ -346,7 +342,7 @@ export default defineComponent({
       if (this.doOr) {
         indexedValues = await search(
           new Set(keywords),
-          this.findexKeys.searchKey,
+          this.masterKey,
           FINDEX_LABEL,
           1000,
           async (uids) => await this.fetchCallback("entries", uids),
@@ -356,7 +352,7 @@ export default defineComponent({
         for (const keyword of keywords) {
           const newIndexedValues = await search(
             new Set([keyword]),
-            this.findexKeys.searchKey,
+            this.masterKey,
             FINDEX_LABEL,
             1000,
             async (uids) => await this.fetchCallback("entries", uids),
@@ -422,8 +418,8 @@ export default defineComponent({
       }
 
       if (this.indexingDone) {
-        if (!this.findexKeys) throw new Error("FindexKeys should be present when first indexing is done");
-        await this.indexUsers(this.findexKeys, [user]);
+        if (!this.masterKey) throw new Error("masterKey should be present when first indexing is done");
+        await this.indexUsers(this.masterKey, [user]);
       }
 
       this.addingUser = false;
