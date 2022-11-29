@@ -10,7 +10,7 @@ SOURCE=${BASH_SOURCE[0]}
 DIR=$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
 
 if [[ -z "${CI_JOB_TOKEN}" ]]; then
-    if [[ -d "../findex2" ]]; then
+    if [[ -d "../findex" ]]; then
         pushd ../findex
     else
         git clone git@gitlab.cosmian.com:core/findex.git /tmp/findex
@@ -21,7 +21,7 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
     wasm-pack build --target web -d $DIR/src/pkg/findex --release --features wasm_bindgen
     popd
     
-    if [[ -d "../cover_crypt2" ]]; then
+    if [[ -d "../cover_crypt" ]]; then
         pushd ../cover_crypt
     else
         git clone https://github.com/Cosmian/cover_crypt.git /tmp/cover_crypt
