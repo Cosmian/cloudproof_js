@@ -17,7 +17,7 @@ import { fileURLToPath } from 'url';
       '--publicMasterKeyBytesHexEncoded', masterKeys.publicKeyBytesHexEncoded,
       '--publicMasterKeyUID', masterKeys.publicKeyUID || '',
       '--dataToEncrypt', "Hello World",
-      '--metadata', "Some metadata",
+      '--header-metadata', "Some metadata",
       '--accessPolicy', "Department::HR && Security Level::Medium Secret",
     ])
     

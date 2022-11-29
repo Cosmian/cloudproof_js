@@ -18,10 +18,10 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
   const accessPolicyIndex = process.argv.indexOf('--accessPolicy') + 1;
   const accessPolicy = process.argv[accessPolicyIndex]
   
-  let metadata
-  if (process.argv.includes('--metadata')) {
-    const metadataIndex = process.argv.indexOf('--metadata') + 1;
-    metadata = (new TextEncoder).encode(process.argv[metadataIndex])
+  let headerMetadata
+  if (process.argv.includes('--header-metadata')) {
+    const headerMetadataIndex = process.argv.indexOf('--header-metadata') + 1;
+    headerMetadata = (new TextEncoder).encode(process.argv[headerMetadataIndex])
   }
   
   let encryptedData
@@ -34,7 +34,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     }
     
     encryptedData = await client.coverCryptEncrypt(publicMasterKeyUID, accessPolicy, dataToEncrypt, {
-      headerMetadata: metadata,
+      headerMetadata,
     })
   } else {
     const { CoverCryptHybridEncryption } = await CoverCrypt();
@@ -42,7 +42,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
     const encryption = new CoverCryptHybridEncryption(policy, publicMasterKeyBytes);
     
     encryptedData = encryption.encrypt(accessPolicy, dataToEncrypt, {
-      headerMetadata: metadata,
+      headerMetadata,
     });
   }
   
