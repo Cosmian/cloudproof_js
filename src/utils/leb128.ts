@@ -1,7 +1,7 @@
 // Copy/paste from https://www.npmjs.com/package/leb128
 
 /**
- * decodes a LEB128 encoded unsigned interger
+ * decodes a LEB128 encoded unsigned integer
  *
  * @param buffer the buffer of bytes to read
  * @returns the decoded number
