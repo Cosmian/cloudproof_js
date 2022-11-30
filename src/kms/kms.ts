@@ -653,12 +653,22 @@ export class KmsClient {
    *
    * @param uniqueIdentifier the unique identifier of the private key
    * @param data to decrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should have been use during encryption)
    */
   public async coverCryptDecrypt(
     uniqueIdentifier: string,
     data: Uint8Array,
+    options: {
+      authenticationData?: Uint8Array
+    } = {},
   ): Promise<{ headerMetadata: Uint8Array; plaintext: Uint8Array }> {
-    const response = await this.post(new Decrypt(uniqueIdentifier, data))
+    const decrypt = new Decrypt(uniqueIdentifier, data)
+    if (typeof options.authenticationData !== "undefined") {
+      decrypt.authenticatedEncryptionAdditionalData = options.authenticationData
+    }
+
+    const response = await this.post(decrypt)
 
     const { result: headerMetadataLength, tail } = decode(response.data)
     const headerMetadata = tail.slice(0, headerMetadataLength)
