@@ -1,4 +1,5 @@
 import { KeyBlock } from "./object_data_structures"
+import { Policy } from "../../cover_crypt/interfaces/policy"
 
 export type ObjectType =
   | "Certificate"
@@ -100,6 +101,10 @@ export class PrivateKey {
   bytes(): Uint8Array {
     return this.keyBlock.bytes()
   }
+
+  policy(): Policy {
+    return this.keyBlock.policy()
+  }
 }
 
 export class PublicKey {
@@ -113,6 +118,10 @@ export class PublicKey {
 
   bytes(): Uint8Array {
     return this.keyBlock.bytes()
+  }
+
+  policy(): Policy {
+    return this.keyBlock.policy()
   }
 }
 

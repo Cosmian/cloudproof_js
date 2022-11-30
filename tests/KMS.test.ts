@@ -362,23 +362,15 @@ test(
     }
 
     // rotate
-    const [rotatedMskID, rotatedMpkID] =
-      await client.rotateCoverCryptAttributes(mskID, [
-        "Department::FIN",
-        "Department::MKG",
-      ])
-    expect(rotatedMskID).toEqual(mskID)
-    expect(rotatedMpkID).toEqual(mpkID)
+    const rotatedPolicy = await client.rotateCoverCryptAttributes(mskID, [
+      "Department::FIN",
+      "Department::MKG",
+    ])
 
-    const rotatedMsk = await client.retrieveCoverCryptSecretMasterKey(
-      rotatedMskID,
-    )
+    const rotatedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
-    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(
-      rotatedMpkID,
-    )
+    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
-    const rotatedPolicy = Policy.fromKey(rotatedMpk)
     expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
 
     // encryption
@@ -503,38 +495,115 @@ test(
       new PolicyAxis("Security", ["Simple", "TopSecret"], true),
     ])
 
-    const { CoverCryptHybridDecryption } = await CoverCrypt();
+    const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
+      await CoverCrypt()
 
     // create master keys
     const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const oldPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    const oldLocalEncryption = new CoverCryptHybridEncryption(
+      policy,
+      oldPublicKey,
+    )
+
     const oldPlaintext = Uint8Array.from([1, 2, 3])
-    const oldCyphertext = await client.coverCryptEncrypt(mpkID, "Security::Simple", oldPlaintext)
+    const oldKmsCyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::Simple",
+      oldPlaintext,
+    )
+    const oldLocalCyphertext = oldLocalEncryption.encrypt(
+      "Security::Simple",
+      oldPlaintext,
+    )
 
     const userKeyID = await client.createCoverCryptUserDecryptionKey(
       "Security::Simple",
       mskID,
     )
-    const oldUserKey = await client.retrieveCoverCryptUserDecryptionKey(userKeyID)
-    const oldLocalDecryption = new CoverCryptHybridDecryption(oldUserKey);
 
-    expect((await client.coverCryptDecrypt(userKeyID, oldCyphertext)).plaintext).toEqual(oldPlaintext)
-    expect(oldLocalDecryption.decrypt(oldCyphertext).plaintext).toEqual(oldPlaintext)
-    
-    await client.rotateCoverCryptAttributes(mskID, ["Security::Simple"])
+    const oldUserKey = await client.retrieveCoverCryptUserDecryptionKey(
+      userKeyID,
+    )
+    const oldLocalDecryption = new CoverCryptHybridDecryption(oldUserKey)
+
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, oldKmsCyphertext)).plaintext,
+    ).toEqual(oldPlaintext)
+    expect(oldLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, oldLocalCyphertext)).plaintext,
+    ).toEqual(oldPlaintext)
+    expect(oldLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+
+    const newPolicy = await client.rotateCoverCryptAttributes(mskID, [
+      "Security::Simple",
+    ])
+    const newPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    const newLocalEncryption = new CoverCryptHybridEncryption(
+      newPolicy,
+      newPublicKey,
+    )
+    expect(newPublicKey.bytes()).not.toEqual(oldPublicKey.bytes())
+
     const newPlaintext = Uint8Array.from([4, 5, 6])
-    const newCyphertext = await client.coverCryptEncrypt(mpkID, "Security::Simple", newPlaintext)
+    const newKmsCyphertext = await client.coverCryptEncrypt(
+      mpkID,
+      "Security::Simple",
+      newPlaintext,
+    )
+    const newLocalCyphertext = newLocalEncryption.encrypt(
+      "Security::Simple",
+      newPlaintext,
+    )
 
-    const newUserKey = await client.retrieveCoverCryptUserDecryptionKey(userKeyID)
-    const newLocalDecryption = new CoverCryptHybridDecryption(newUserKey);
-    
-    expect((await client.coverCryptDecrypt(userKeyID, oldCyphertext)).plaintext).toEqual(oldPlaintext)
-    expect((await client.coverCryptDecrypt(userKeyID, newCyphertext)).plaintext).toEqual(newPlaintext)
+    const newUserKey = await client.retrieveCoverCryptUserDecryptionKey(
+      userKeyID,
+    )
+    const newLocalDecryption = new CoverCryptHybridDecryption(newUserKey)
 
-    expect(oldLocalDecryption.decrypt(oldCyphertext).plaintext).toEqual(oldPlaintext)
-    expect(newLocalDecryption.decrypt(oldCyphertext).plaintext).toEqual(oldPlaintext)
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, oldKmsCyphertext)).plaintext,
+    ).toEqual(oldPlaintext)
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, newKmsCyphertext)).plaintext,
+    ).toEqual(newPlaintext)
 
-    expect(() => oldLocalDecryption.decrypt(newCyphertext)).toThrow()
-    expect(newLocalDecryption.decrypt(newCyphertext).plaintext).toEqual(newPlaintext)
+    expect(oldLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+    expect(newLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+
+    expect(() => oldLocalDecryption.decrypt(newKmsCyphertext)).toThrow()
+    expect(newLocalDecryption.decrypt(newKmsCyphertext).plaintext).toEqual(
+      newPlaintext,
+    )
+
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, oldLocalCyphertext)).plaintext,
+    ).toEqual(oldPlaintext)
+    expect(
+      (await client.coverCryptDecrypt(userKeyID, newLocalCyphertext)).plaintext,
+    ).toEqual(newPlaintext)
+
+    expect(oldLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+    expect(newLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+      oldPlaintext,
+    )
+
+    expect(() => oldLocalDecryption.decrypt(newLocalCyphertext)).toThrow()
+    expect(newLocalDecryption.decrypt(newLocalCyphertext).plaintext).toEqual(
+      newPlaintext,
+    )
   },
   {
     timeout: 10 * 1000,

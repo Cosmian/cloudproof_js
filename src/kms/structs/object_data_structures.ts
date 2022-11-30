@@ -1,4 +1,5 @@
 import { Attributes, CryptographicParameters } from "./object_attributes"
+import { Policy } from "../../cover_crypt/interfaces/policy"
 
 export enum KeyFormatType {
   Raw = 0x01,
@@ -148,6 +149,24 @@ export class KeyBlock {
       `Cannot extract bytes from key of type ${typeof this.keyValue
         .keyMaterial}`,
     )
+  }
+
+  public policy(): Policy {
+    if (this.keyValue === null) {
+      throw new Error("Cannot get policy from a key with no key value.")
+    }
+
+    if (this.keyValue instanceof Uint8Array) {
+      throw new Error(
+        "Cannot get policy from a key represented by only raw bytes.",
+      )
+    }
+
+    if (this.keyValue.attributes === null) {
+      throw new Error("Cannot get policy from a key with no attributes.")
+    }
+
+    return Policy.fromAttributes(this.keyValue.attributes)
   }
 }
 
