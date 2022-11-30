@@ -1,7 +1,7 @@
 import { KmsObject, ObjectType } from "../structs/objects"
 import { Attributes } from "../structs/object_attributes"
 import { KeyWrapType } from "../structs/types"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
 
 export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {

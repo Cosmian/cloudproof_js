@@ -1,26 +1,23 @@
 import cover_crypt_wasm from "./pkg/cover_crypt/cosmian_cover_crypt_bg.wasm"
-import { setCoverCryptInit } from "./crypto/abe/core/cover_crypt"
+import { setCoverCryptInit } from "./cover_crypt/cover_crypt"
 
 import findex_wasm from "./pkg/findex/cosmian_findex_bg.wasm"
-import { setFindexInit } from "./crypto/sse/findex/simple"
+import { setFindexInit } from "./findex/findex"
 
-export * from "./crypto/sse/findex/simple"
+export * from "./findex/findex"
 export {
   CoverCryptMasterKey,
   type CoverCryptKeyGeneration,
-} from "./crypto/abe/core/keygen/cover_crypt"
-export { type CoverCryptHybridDecryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/decryption"
-export { type CoverCryptHybridEncryption } from "./crypto/abe/core/hybrid_crypto/cover_crypt/encryption"
-export * from "./crypto/abe/core/cover_crypt"
-export * from "./crypto/abe/interfaces/encryption_parameters"
-export * from "./crypto/abe/interfaces/access_policy"
-export * from "./crypto/abe/interfaces/plaintext_header"
-export * from "./crypto/abe/interfaces/encrypted_header"
-export * from "./crypto/abe/interfaces/policy"
-export * from "./crypto/sse/findex/simple"
-export * from "./crypto/sse/findex/interfaces/dbInterface"
-export * from "./crypto/sse/findex/interfaces/master_keys"
-export * from "./crypto/sse/findex/interfaces/index"
+} from "./cover_crypt/key_generation"
+export { type CoverCryptHybridDecryption } from "./cover_crypt/decryption"
+export { type CoverCryptHybridEncryption } from "./cover_crypt/encryption"
+export * from "./cover_crypt/cover_crypt"
+export * from "./cover_crypt/interfaces/encryption_parameters"
+export * from "./cover_crypt/interfaces/access_policy"
+export * from "./cover_crypt/interfaces/plaintext_header"
+export * from "./cover_crypt/interfaces/encrypted_header"
+export * from "./cover_crypt/interfaces/policy"
+export * from "./findex/findex"
 export { logger } from "./utils/logger"
 export {
   hexDecode,
@@ -31,7 +28,7 @@ export {
   toBeBytes,
 } from "./utils/utils"
 
-export * from "./kms"
+export * from "./kms/kms"
 export * from "./kms/kmip"
 export * from "./kms/requests/Create"
 export * from "./kms/requests/CreateKeyPair"

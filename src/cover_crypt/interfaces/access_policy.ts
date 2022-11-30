@@ -1,10 +1,10 @@
-import { webassembly_parse_boolean_access_policy } from "../../../pkg/cover_crypt/cosmian_cover_crypt"
+import { webassembly_parse_boolean_access_policy } from "../../pkg/cover_crypt/cosmian_cover_crypt"
 import {
   Attributes,
   VendorAttributes,
-} from "../../../kms/structs/object_attributes"
-import { PrivateKey } from "../../../kms/structs/objects"
-import { CoverCrypt } from "../core/cover_crypt"
+} from "../../kms/structs/object_attributes"
+import { PrivateKey } from "../../kms/structs/objects"
+import { CoverCrypt } from "../cover_crypt"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string

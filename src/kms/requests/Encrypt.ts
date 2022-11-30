@@ -1,5 +1,5 @@
 import { CryptographicParameters } from "../structs/object_attributes"
-import { KmsRequest } from ".."
+import { KmsRequest } from "../kms"
 import { EncryptResponse } from "../responses/EncryptResponse"
 
 export class Encrypt implements KmsRequest<EncryptResponse> {

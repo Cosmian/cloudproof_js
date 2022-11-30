@@ -27,13 +27,13 @@ import {
   KeyValue,
   TransparentSymmetricKey,
 } from "./structs/object_data_structures"
-import { Policy } from "../crypto/abe/interfaces/policy"
+import { Policy } from "../cover_crypt/interfaces/policy"
 import { CreateKeyPair } from "./requests/CreateKeyPair"
-import { AccessPolicy } from "crypto/abe/interfaces/access_policy"
+import { AccessPolicy } from "../cover_crypt/interfaces/access_policy"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
 import { Decrypt } from "./requests/Decrypt"
-import { decode, encode } from "utils/leb128"
+import { decode, encode } from "../utils/leb128"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {

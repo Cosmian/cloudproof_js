@@ -3,10 +3,10 @@ import {
   webassembly_generate_master_keys,
   webassembly_generate_user_secret_key,
   webassembly_rotate_attributes,
-} from "../../../../pkg/cover_crypt/cosmian_cover_crypt"
-import { logger } from "../../../../utils/logger"
-import { fromBeBytes } from "../../../../utils/utils"
-import { Policy } from "../../interfaces/policy"
+} from "../pkg/cover_crypt/cosmian_cover_crypt"
+import { logger } from "../utils/logger"
+import { fromBeBytes } from "../utils/utils"
+import { Policy } from "./interfaces/policy"
 
 export class CoverCryptMasterKey {
   private _secretKey: Uint8Array

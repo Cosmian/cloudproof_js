@@ -4,8 +4,8 @@ import {
   hexDecode,
   hexEncode,
   toBeBytes,
-} from "../../src/utils/utils"
-import { encode, decode } from "../../src/utils/leb128"
+} from "../src/utils/utils"
+import { encode, decode } from "../src/utils/leb128"
 import { expect, test } from "vitest"
 
 test("hexEncode+hexDecode", () => {

@@ -24,7 +24,7 @@ import {
   fromTTLV,
   CryptographicUsageMask,
   serialize,
-} from "../.."
+} from ".."
 
 import { expect, test } from "vitest"
 
