@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - NodeJS support
 - encrypt/decrypt with the KMS
 - `Location.fromUuid()`
+- Verify non regression test vectors for CoverCrypt
 
 ### Changed
 

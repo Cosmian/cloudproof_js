@@ -427,7 +427,7 @@ test(
 
     // create master keys
     const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
-    const cyphertext = await client.coverCryptEncrypt(
+    const ciphertext = await client.coverCryptEncrypt(
       mpkID,
       "Security::TopSecret",
       Uint8Array.from([1, 2, 3]),
@@ -449,36 +449,36 @@ test(
     expect(temperedUserKeyID).toEqual(`${userKeyID}-HACK`)
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, cyphertext)
+      return await client.coverCryptDecrypt(userKeyID, ciphertext)
     }).rejects.toThrow()
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
+      return await client.coverCryptDecrypt(temperedUserKeyID, ciphertext)
     }).rejects.toThrow()
 
     await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"])
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, cyphertext)
+      return await client.coverCryptDecrypt(userKeyID, ciphertext)
     }).rejects.toThrow()
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(temperedUserKeyID, cyphertext)
+      return await client.coverCryptDecrypt(temperedUserKeyID, ciphertext)
     }).rejects.toThrow()
 
-    const newCyphertext = await client.coverCryptEncrypt(
+    const newCiphertext = await client.coverCryptEncrypt(
       mpkID,
       "Security::TopSecret",
       Uint8Array.from([4, 5, 6]),
     )
 
     await expect(async () => {
-      return await client.coverCryptDecrypt(userKeyID, newCyphertext)
+      return await client.coverCryptDecrypt(userKeyID, newCiphertext)
     }).rejects.toThrow()
 
     // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)
     // await expect(async () => {
-    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCyphertext);
+    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCiphertext);
     // }).rejects.toThrow()
   },
   {

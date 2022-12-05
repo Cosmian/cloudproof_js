@@ -1,23 +1,22 @@
-import { exit } from "process";
+import { exit } from "process"
 import puppeteer from "puppeteer"
 
-const host = process.argv[2] || undefined;
-const kmsHost = process.argv[3] || undefined;
+const host = process.argv[2] || undefined
+const kmsHost = process.argv[3] || undefined
 
-if (! host) {
-  console.error("Please provide host: chome.mjs http://localhost:8080");
-  exit(1);
+if (!host) {
+  console.error("Please provide host: chome.mjs http://localhost:8080")
+  exit(1)
 }
 
-console.log(`Running tests on ${host}`);
+console.log(`Running tests on ${host}`)
 if (kmsHost) {
-  console.log(`Running KMS tests on ${kmsHost}`);
+  console.log(`Running KMS tests on ${kmsHost}`)
 } else {
-  console.log("Skip KMS tests because no host provided.");
+  console.log("Skip KMS tests because no host provided.")
 }
-console.log();
-
-(async () => {
+console.log()
+;(async () => {
   await runTest("JS without graphs", false, false)
   await runTest("JS with graphs", true, false)
 
@@ -33,11 +32,7 @@ console.log();
  * @param withGraphs
  * @param withKms
  */
-async function runTest(
-  name,
-  withGraphs,
-  withKms,
-) {
+async function runTest(name, withGraphs, withKms) {
   const browser = await puppeteer.launch({
     headless: process.env.CI !== undefined,
     args: ["--no-sandbox"],
@@ -53,13 +48,20 @@ async function runTest(
   page.on("error", async (err) => {
     await reportError(page, `[PAGE ERROR] ${err.toString()}`)
   })
-  page.on('console', (msg) => {
-    // This is an expected error when trying to decrypt something we don't have the correct rigths
-    if (msg.text() !== "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)") {
+  page.on("console", (msg) => {
+    // This is an expected error when trying to decrypt something we don't have the correct rights
+    if (
+      msg.text() !==
+      "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+    ) {
       console.log(`[PAGE LOG] ${msg.text()}`)
     }
-  });
-  page.on('requestfailed', async (request) => console.log(`[PAGE HTTP ERROR] ${request.failure().errorText} ${request.url()}`));
+  })
+  page.on("requestfailed", async (request) =>
+    console.log(
+      `[PAGE HTTP ERROR] ${request.failure().errorText} ${request.url()}`,
+    ),
+  )
 
   try {
     await page.goto(host)
@@ -102,11 +104,7 @@ async function runTest(
 
   await page.click("#encrypt_user")
   await page.waitForSelector("#table_encrypted_users", { timeout: 5000 })
-  await assertCountSelector(
-    page,
-    "#table_encrypted_users tbody tr",
-    10,
-  )
+  await assertCountSelector(page, "#table_encrypted_users tbody tr", 10)
 
   await page.click("#index")
   await page.waitForSelector("#search", { timeout: 2000 })
@@ -117,94 +115,93 @@ async function runTest(
     charlieKey: 28,
   }
 
-  const expectedResults = 
-    [
-      {
-        key: "aliceKey",
-        doOr: false,
-        query: "Margaret",
-        lines: 1,
-        notDecryptedCount: 2,
-      },
-      {
-        key: "bobKey",
-        doOr: false,
-        query: "Margaret",
-        lines: 1,
-        notDecryptedCount: 5,
-      },
-      {
-        key: "charlieKey",
-        doOr: false,
-        query: "Margaret",
-        lines: 1,
-        notDecryptedCount: 1,
-      },
-      {
-        key: "aliceKey",
-        doOr: false,
-        query: "Simone",
-        lines: 2,
-        notDecryptedCount: 7,
-      },
-      {
-        key: "bobKey",
-        doOr: false,
-        query: "Simone",
-        lines: 2,
-        notDecryptedCount: 10,
-      },
-      {
-        key: "charlieKey",
-        doOr: false,
-        query: "Simone",
-        lines: 2,
-        notDecryptedCount: 6,
-      },
-      {
-        key: "aliceKey",
-        doOr: false,
-        query: "Simone France",
-        lines: 1,
-        notDecryptedCount: 2,
-      },
-      {
-        key: "bobKey",
-        doOr: false,
-        query: "Simone France",
-        lines: 1,
-        notDecryptedCount: 5,
-      },
-      {
-        key: "charlieKey",
-        doOr: false,
-        query: "Simone France",
-        lines: 1,
-        notDecryptedCount: 1,
-      },
-      {
-        key: "aliceKey",
-        doOr: true,
-        query: "Simone France",
-        lines: 5,
-        notDecryptedCount: 13,
-      },
-      {
-        key: "bobKey",
-        doOr: true,
-        query: "Simone France",
-        lines: 5,
-        notDecryptedCount: 25,
-      },
-      {
-        key: "charlieKey",
-        doOr: true,
-        query: "Simone France",
-        lines: 5,
-        notDecryptedCount: 9,
-      },
-      // eslint-disable-next-line no-unused-vars
-    ].sort((a, b) => 0.5 - Math.random())
+  const expectedResults = [
+    {
+      key: "aliceKey",
+      doOr: false,
+      query: "Margaret",
+      lines: 1,
+      notDecryptedCount: 2,
+    },
+    {
+      key: "bobKey",
+      doOr: false,
+      query: "Margaret",
+      lines: 1,
+      notDecryptedCount: 5,
+    },
+    {
+      key: "charlieKey",
+      doOr: false,
+      query: "Margaret",
+      lines: 1,
+      notDecryptedCount: 1,
+    },
+    {
+      key: "aliceKey",
+      doOr: false,
+      query: "Simone",
+      lines: 2,
+      notDecryptedCount: 7,
+    },
+    {
+      key: "bobKey",
+      doOr: false,
+      query: "Simone",
+      lines: 2,
+      notDecryptedCount: 10,
+    },
+    {
+      key: "charlieKey",
+      doOr: false,
+      query: "Simone",
+      lines: 2,
+      notDecryptedCount: 6,
+    },
+    {
+      key: "aliceKey",
+      doOr: false,
+      query: "Simone France",
+      lines: 1,
+      notDecryptedCount: 2,
+    },
+    {
+      key: "bobKey",
+      doOr: false,
+      query: "Simone France",
+      lines: 1,
+      notDecryptedCount: 5,
+    },
+    {
+      key: "charlieKey",
+      doOr: false,
+      query: "Simone France",
+      lines: 1,
+      notDecryptedCount: 1,
+    },
+    {
+      key: "aliceKey",
+      doOr: true,
+      query: "Simone France",
+      lines: 5,
+      notDecryptedCount: 13,
+    },
+    {
+      key: "bobKey",
+      doOr: true,
+      query: "Simone France",
+      lines: 5,
+      notDecryptedCount: 25,
+    },
+    {
+      key: "charlieKey",
+      doOr: true,
+      query: "Simone France",
+      lines: 5,
+      notDecryptedCount: 9,
+    },
+    // eslint-disable-next-line no-unused-vars
+  ].sort((a, b) => 0.5 - Math.random())
 
   if (withGraphs) {
     expectedResults.push({
@@ -328,19 +325,25 @@ async function reportError(page, message) {
  * @param additionalMessage
  * @param timeout
  */
-async function assertCountSelector(page, selector, expected, additionalMessage = '', timeout = 30000) {
-  const start = new Date();
-  let count = null;
+async function assertCountSelector(
+  page,
+  selector,
+  expected,
+  additionalMessage = "",
+  timeout = 30000,
+) {
+  const start = new Date()
+  let count = null
   do {
     count = await page.evaluate((selector) => {
       return document.querySelectorAll(selector).length
     }, selector)
 
-    if (count === expected) return;
+    if (count === expected) return
 
     await new Promise((resolve) => setTimeout(resolve, 50))
-  } while((new Date) - start < timeout)
-  
+  } while (new Date() - start < timeout)
+
   await reportError(
     page,
     `"${selector}" should have ${expected} elements, ${count} still found after ${timeout}ms. ${additionalMessage}`,
@@ -358,10 +361,7 @@ async function addNewUser(page, newUser, newCount) {
   await page.type("#new_user_row input#new_user_last", newUser.last)
   await page.select("#new_user_row select#new_user_country", newUser.country)
   await page.type("#new_user_row input#new_user_email", newUser.email)
-  await page.type(
-    "#new_user_row input#new_user_project",
-    newUser.project,
-  )
+  await page.type("#new_user_row input#new_user_project", newUser.project)
   await page.click("#new_user_row button")
 
   await assertCountSelector(
