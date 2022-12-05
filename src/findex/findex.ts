@@ -188,6 +188,13 @@ export class KeywordIndexEntry implements IndexedEntry {
  */
 export type UidsAndValues = Index[]
 
+
+/**
+ * Represents a `(uid, oldValue, newValue)` tuple to upsert
+ * (do not upsert if oldValue is not coherent with the database)
+ */
+export type UidsAndValuesToUpsert = { uid: Uint8Array; oldValue: Uint8Array | null; newValue: Uint8Array; }[]
+
 /**
  * Fetch a uid in the Entry table and return the (uid, value) column
  */
@@ -201,12 +208,12 @@ export type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>
 /**
  * Insert, or update an existing, (uid, value) line in the Entry table
  */
-export type UpsertEntries = (uidsAndValues: UidsAndValues) => Promise<void>
+export type UpsertEntries = (uidsAndValues: UidsAndValuesToUpsert) => Promise<UidsAndValues>
 
 /**
  * Insert, or update an existing, (uid, value) line in the Chain table
  */
-export type UpsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
+export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 
 /**
  * Called with results found at every node while the search walks the search graph.
@@ -239,7 +246,7 @@ export async function Findex() {
      * @param {Label} label public label for the index
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
-     * @param {UpsertChains} upsertChains callback to upsert inside chains table
+     * @param {InsertChains} insertChains callback to upsert inside chains table
      * @param {object} options some optional options to customize the upsert
      * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
      */
@@ -249,7 +256,7 @@ export async function Findex() {
       label: Label,
       fetchEntries: FetchEntries,
       upsertEntries: UpsertEntries,
-      upsertChains: UpsertChains,
+      insertChains: InsertChains,
       options: {
         generateGraphs?: boolean
       } = {},
@@ -289,11 +296,11 @@ export async function Findex() {
         async (uids: Uint8Array[]) => {
           return await fetchEntries(uids)
         },
-        async (uidsAndValues: UidsAndValues) => {
+        async (uidsAndValues: UidsAndValuesToUpsert) => {
           return await upsertEntries(uidsAndValues)
         },
         async (uidsAndValues: UidsAndValues) => {
-          return await upsertChains(uidsAndValues)
+          return await insertChains(uidsAndValues)
         },
       )
     },

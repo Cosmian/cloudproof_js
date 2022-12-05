@@ -7,6 +7,7 @@ import {
   Label,
   UidsAndValues,
   Location,
+  UidsAndValuesToUpsert,
 } from ".."
 import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
@@ -41,6 +42,26 @@ const fetchCallback = async (
   return results
 }
 const upsertCallback = async (
+  table: UidsAndValues,
+  uidsAndValues: UidsAndValuesToUpsert,
+): Promise<UidsAndValues> => {
+  for (const { uid: newUid, newValue } of uidsAndValues) {
+    for (const tableEntry of table) {
+      if (
+        Buffer.from(tableEntry.uid).toString("base64") ===
+        Buffer.from(newUid).toString("base64")
+      ) {
+        tableEntry.value = newValue
+        break
+      }
+    }
+
+    // The uid doesn't exist yet.
+    table.push({ uid: newUid, value: newValue })
+  }
+  return []
+}
+const insertCallback = async (
   table: UidsAndValues,
   uidsAndValues: UidsAndValues,
 ): Promise<void> => {
@@ -82,7 +103,7 @@ describe("Findex Upsert", async () => {
       label,
       async (uids) => await fetchCallback(entryTable, uids),
       async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-      async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues),
+      async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
     )
   })
 
@@ -107,7 +128,7 @@ describe("Findex Upsert", async () => {
       label,
       async (uids) => await fetchCallback(entryTable, uids),
       async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-      async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues),
+      async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
     )
   })
 })
@@ -133,7 +154,7 @@ describe("Findex Search", async () => {
     label,
     async (uids) => await fetchCallback(entryTable, uids),
     async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-    async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues),
+    async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
   )
 
   bench("Search", async () => {

@@ -9,7 +9,8 @@ import {
   Location,
   Findex,
   UidsAndValues,
-  UpsertChains,
+  UidsAndValuesToUpsert,
+  InsertChains,
   UpsertEntries,
   LocationIndexEntry,
   KeywordIndexEntry,
@@ -85,15 +86,15 @@ test("upsert and search memory", async () => {
   }
 
   const upsertEntries: UpsertEntries = async (
-    uidsAndValues: UidsAndValues,
-  ): Promise<void> => {
-    for (const { uid, value } of uidsAndValues) {
-      entryTable[hexEncode(uid)] = value
+    uidsAndValues: UidsAndValuesToUpsert,
+  ): Promise<UidsAndValues> => {
+    for (const { uid, newValue } of uidsAndValues) {
+      entryTable[hexEncode(uid)] = newValue
     }
-    return await Promise.resolve()
+    return await Promise.resolve([])
   }
 
-  const upsertChains: UpsertChains = async (
+  const insertChains: InsertChains = async (
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid, value } of uidsAndValues) {
@@ -108,7 +109,7 @@ test("upsert and search memory", async () => {
     label,
     fetchEntries,
     upsertEntries,
-    upsertChains,
+    insertChains,
   )
 
   const results0 = await findex.search(
@@ -166,6 +167,27 @@ test("in memory", async () => {
   }
   const upsertCallback = async (
     table: UidsAndValues,
+    uidsAndValues: UidsAndValuesToUpsert,
+  ): Promise<UidsAndValues> => {
+    for (const { uid: newUid, newValue } of uidsAndValues) {
+      for (const tableEntry of table) {
+        if (
+          Buffer.from(tableEntry.uid).toString("base64") ===
+          Buffer.from(newUid).toString("base64")
+        ) {
+          tableEntry.value = newValue
+          break
+        }
+      }
+
+      // The uid doesn't exist yet.
+      table.push({ uid: newUid, value: newValue })
+    }
+
+    return []
+  }
+  const insertCallback = async (
+    table: UidsAndValues,
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
     for (const { uid: newUid, value: newValue } of uidsAndValues) {
@@ -188,7 +210,7 @@ test("in memory", async () => {
     async (uids) => await fetchCallback(entryTable, uids),
     async (uids) => await fetchCallback(chainTable, uids),
     async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-    async (uidsAndValues) => await upsertCallback(chainTable, uidsAndValues),
+    async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
   )
 })
 
@@ -224,7 +246,7 @@ test("SQLite", async () => {
       )
     })
   }
-  const upsertCallback = async (
+  const insertCallback = async (
     table: string,
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
@@ -241,12 +263,31 @@ test("SQLite", async () => {
       })
     }
   }
+  const upsertCallback = async (
+    table: string,
+    uidsAndValues: UidsAndValuesToUpsert,
+  ): Promise<UidsAndValues> => {
+    for (const { uid, newValue: value } of uidsAndValues) {
+      await new Promise((resolve, reject) => {
+        db.run(
+          `INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`,
+          [uid, value],
+          (err: any) => {
+            if (err !== null && typeof err !== "undefined") reject(err)
+            resolve(null)
+          },
+        )
+      })
+    }
+
+    return []
+  }
 
   await run(
     async (uids) => await fetchCallback("entry_table", uids),
     async (uids) => await fetchCallback("chain_table", uids),
     async (uidsAndValues) => await upsertCallback("entry_table", uidsAndValues),
-    async (uidsAndValues) => await upsertCallback("chain_table", uidsAndValues),
+    async (uidsAndValues) => await insertCallback("chain_table", uidsAndValues),
   )
 })
 
@@ -282,6 +323,20 @@ test("Redis", async () => {
 
     const upsertCallback = async (
       prefix: string,
+      uidsAndValues: UidsAndValuesToUpsert,
+    ): Promise<UidsAndValues> => {
+      const toSet = uidsAndValues.map(({ uid, newValue: value }) => [
+        `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+        Buffer.from(value).toString("base64"),
+      ])
+
+      await client.mSet(toSet as any)
+
+      return [];
+    }
+
+    const insertCallback = async (
+      prefix: string,
       uidsAndValues: UidsAndValues,
     ): Promise<void> => {
       const toSet = uidsAndValues.map(({ uid, value }) => [
@@ -298,7 +353,7 @@ test("Redis", async () => {
       async (uidsAndValues) =>
         await upsertCallback("entry_table", uidsAndValues),
       async (uidsAndValues) =>
-        await upsertCallback("chain_table", uidsAndValues),
+        await insertCallback("chain_table", uidsAndValues),
     )
   } finally {
     await client.disconnect()
@@ -310,7 +365,7 @@ async function run(
   fetchEntries: FetchEntries,
   fetchChains: FetchChains,
   upsertEntries: UpsertEntries,
-  upsertChains: UpsertChains,
+  insertChains: InsertChains,
 ): Promise<void> {
   const findex = await Findex()
   const masterKey = new FindexKey(randomBytes(32))
@@ -334,7 +389,7 @@ async function run(
       label,
       fetchEntries,
       upsertEntries,
-      upsertChains,
+      insertChains,
     )
 
     const results = await findex.search(
@@ -382,7 +437,7 @@ async function run(
       label,
       fetchEntries,
       upsertEntries,
-      upsertChains,
+      insertChains,
     )
 
     const results = await findex.search(
