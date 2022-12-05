@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euxo pipefail
+
 FINDEX_VERSION=develop
 COVER_CRYPT_VERSION=develop
 
