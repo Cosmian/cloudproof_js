@@ -167,7 +167,7 @@ test("in memory", async () => {
     uidsAndValues: UidsAndValuesToUpsert,
   ): Promise<UidsAndValues> => {
     const rejected = [] as UidsAndValues
-    for (const { uid: newUid, oldValue, newValue } of uidsAndValues) {
+    uidsAndValuesLoop: for (const { uid: newUid, oldValue, newValue } of uidsAndValues) {
       for (const tableEntry of table) {
         if (bytesEquals(tableEntry.uid, newUid)) {
           if (bytesEquals(tableEntry.value, oldValue)) {
@@ -175,11 +175,15 @@ test("in memory", async () => {
           } else {
             rejected.push(tableEntry)
           }
-          break
+          continue uidsAndValuesLoop;
         }
       }
 
       // The uid doesn't exist yet.
+      if (oldValue !== null) {
+        throw new Error("Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)")
+      }
+
       table.push({ uid: newUid, value: newValue })
     }
 
