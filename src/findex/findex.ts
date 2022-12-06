@@ -188,12 +188,15 @@ export class KeywordIndexEntry implements IndexedEntry {
  */
 export type UidsAndValues = Index[]
 
-
 /**
  * Represents a `(uid, oldValue, newValue)` tuple to upsert
  * (do not upsert if oldValue is not coherent with the database)
  */
-export type UidsAndValuesToUpsert = { uid: Uint8Array; oldValue: Uint8Array | null; newValue: Uint8Array; }[]
+export type UidsAndValuesToUpsert = Array<{
+  uid: Uint8Array
+  oldValue: Uint8Array | null
+  newValue: Uint8Array
+}>
 
 /**
  * Fetch a uid in the Entry table and return the (uid, value) column
@@ -208,7 +211,9 @@ export type FetchChains = (uids: Uint8Array[]) => Promise<UidsAndValues>
 /**
  * Insert, or update an existing, (uid, value) line in the Entry table
  */
-export type UpsertEntries = (uidsAndValues: UidsAndValuesToUpsert) => Promise<UidsAndValues>
+export type UpsertEntries = (
+  uidsAndValues: UidsAndValuesToUpsert,
+) => Promise<UidsAndValues>
 
 /**
  * Insert, or update an existing, (uid, value) line in the Chain table

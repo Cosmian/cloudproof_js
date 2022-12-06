@@ -167,7 +167,11 @@ test("in memory", async () => {
     uidsAndValues: UidsAndValuesToUpsert,
   ): Promise<UidsAndValues> => {
     const rejected = [] as UidsAndValues
-    uidsAndValuesLoop: for (const { uid: newUid, oldValue, newValue } of uidsAndValues) {
+    uidsAndValuesLoop: for (const {
+      uid: newUid,
+      oldValue,
+      newValue,
+    } of uidsAndValues) {
       for (const tableEntry of table) {
         if (bytesEquals(tableEntry.uid, newUid)) {
           if (bytesEquals(tableEntry.value, oldValue)) {
@@ -175,13 +179,15 @@ test("in memory", async () => {
           } else {
             rejected.push(tableEntry)
           }
-          continue uidsAndValuesLoop;
+          continue uidsAndValuesLoop
         }
       }
 
       // The uid doesn't exist yet.
       if (oldValue !== null) {
-        throw new Error("Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)")
+        throw new Error(
+          "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
+        )
       }
 
       table.push({ uid: newUid, value: newValue })
@@ -267,57 +273,61 @@ test("SQLite", async () => {
     table: string,
     uidsAndValues: UidsAndValuesToUpsert,
   ): Promise<UidsAndValues> => {
-    const rejected = [] as UidsAndValues;
-    await Promise.all(uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-      let changed
-      if (oldValue === null) {
-        changed = await new Promise((resolve, reject) => {
-          db.run(
-            `INSERT OR IGNORE INTO ${table} (uid, value) VALUES (?, ?)`,
-            [uid, newValue],
-            function (err: any) {
-              if (err !== null && typeof err !== "undefined") {
-                reject(err)
-              } else {
-                resolve(this.changes === 1)
-              }
-            },
-          )
-        })
-      } else {
-        changed = await new Promise((resolve, reject) => {
-          db.run(
-            `UPDATE ${table} SET value = ? WHERE uid = ? AND value = ?`,
-            [newValue, uid, oldValue],
-            function (err: any) {
-              if (err !== null && typeof err !== "undefined") {
-                reject(err)
-              } else {
-                resolve(this.changes === 1)
-              }
-            },
-          )
-        })
-      }
+    const rejected = [] as UidsAndValues
+    await Promise.all(
+      uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
+        let changed
+        if (oldValue === null) {
+          changed = await new Promise((resolve, reject) => {
+            db.run(
+              `INSERT OR IGNORE INTO ${table} (uid, value) VALUES (?, ?)`,
+              [uid, newValue],
+              function (err: any) {
+                if (err !== null && typeof err !== "undefined") {
+                  reject(err)
+                } else {
+                  resolve(this.changes === 1)
+                }
+              },
+            )
+          })
+        } else {
+          changed = await new Promise((resolve, reject) => {
+            db.run(
+              `UPDATE ${table} SET value = ? WHERE uid = ? AND value = ?`,
+              [newValue, uid, oldValue],
+              function (err: any) {
+                if (err !== null && typeof err !== "undefined") {
+                  reject(err)
+                } else {
+                  resolve(this.changes === 1)
+                }
+              },
+            )
+          })
+        }
 
-      if (!changed) {
-        let valueInSqlite: Uint8Array = await new Promise((resolve, reject) => {
-          db.get(
-            `SELECT value FROM ${table} WHERE uid = ?`,
-            [uid],
-            (err: any, row: { value: Uint8Array }) => {
-              if (err !== null && typeof err !== "undefined") {
-                reject(err)
-              } else {
-                resolve(row.value)
-              }
+        if (!changed) {
+          let valueInSqlite: Uint8Array = await new Promise(
+            (resolve, reject) => {
+              db.get(
+                `SELECT value FROM ${table} WHERE uid = ?`,
+                [uid],
+                (err: any, row: { value: Uint8Array }) => {
+                  if (err !== null && typeof err !== "undefined") {
+                    reject(err)
+                  } else {
+                    resolve(row.value)
+                  }
+                },
+              )
             },
           )
-        })
 
-        rejected.push({ uid, value: valueInSqlite })
-      }
-    }))
+          rejected.push({ uid, value: valueInSqlite })
+        }
+      }),
+    )
 
     return rejected
   }
@@ -335,25 +345,27 @@ test("Redis", async () => {
     scripts: {
       setIfSame: defineScript({
         NUMBER_OF_KEYS: 1,
-        SCRIPT:
-          `
+        SCRIPT: `
           local value = redis.call('GET', KEYS[1]) 
           if (((value == false) and (ARGV[1] == "")) or (not(value == false) and (ARGV[1] == value))) 
             then return redis.call('SET', KEYS[1], ARGV[2])
-            else return 'NA' end`
-        ,
-        transformArguments(key: string, oldValue: Uint8Array | null, newValue: Uint8Array): Array<string> {
+            else return 'NA' end`,
+        transformArguments(
+          key: string,
+          oldValue: Uint8Array | null,
+          newValue: Uint8Array,
+        ): Array<string> {
           return [
             key,
             oldValue === null ? "" : Buffer.from(oldValue).toString("base64"),
             Buffer.from(newValue).toString("base64"),
-          ];
+          ]
         },
         transformReply(reply: string): boolean {
-          return reply !== "NA";
-        }
-      })
-    }
+          return reply !== "NA"
+        },
+      }),
+    },
   })
   await client.connect()
 
@@ -387,26 +399,33 @@ test("Redis", async () => {
       prefix: string,
       uidsAndValues: UidsAndValuesToUpsert,
     ): Promise<UidsAndValues> => {
-      const rejected = [] as UidsAndValues;
-      await Promise.all(uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-        const key = `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`
+      const rejected = [] as UidsAndValues
+      await Promise.all(
+        uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
+          const key = `findex.test.ts::${prefix}.${Buffer.from(uid).toString(
+            "base64",
+          )}`
 
-        let updated = await client.setIfSame(key, oldValue, newValue)
+          let updated = await client.setIfSame(key, oldValue, newValue)
 
-        if (!updated) {
-          const valueInRedis = await client.get(key);
-          rejected.push({ uid: uid, value: Buffer.from(valueInRedis as string, "base64") })
-        }
-      }))
+          if (!updated) {
+            const valueInRedis = await client.get(key)
+            rejected.push({
+              uid: uid,
+              value: Buffer.from(valueInRedis as string, "base64"),
+            })
+          }
+        }),
+      )
 
-      return rejected;
+      return rejected
     }
 
     const insertCallback = async (
       prefix: string,
       uidsAndValues: UidsAndValues,
     ): Promise<void> => {
-      if (!uidsAndValues.length) return;
+      if (!uidsAndValues.length) return
 
       const toSet = uidsAndValues.map(({ uid, value }) => [
         `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
@@ -525,23 +544,25 @@ async function run(
   }
 
   {
-    await Promise.all(Array.from(Array(100).keys()).map((index) => {
-      return findex.upsert(
-        [
-          {
-            indexedValue: IndexedValue.fromLocation(
-              Location.fromUtf8String(index.toString()),
-            ),
-            keywords: new Set([Keyword.fromUtf8String("Concurrent")]),
-          },
-        ],
-        masterKey,
-        label,
-        fetchEntries,
-        upsertEntries,
-        insertChains,
-      )
-    }))
+    await Promise.all(
+      Array.from(Array(100).keys()).map((index) => {
+        return findex.upsert(
+          [
+            {
+              indexedValue: IndexedValue.fromLocation(
+                Location.fromUtf8String(index.toString()),
+              ),
+              keywords: new Set([Keyword.fromUtf8String("Concurrent")]),
+            },
+          ],
+          masterKey,
+          label,
+          fetchEntries,
+          upsertEntries,
+          insertChains,
+        )
+      }),
+    )
 
     const results = await findex.search(
       new Set(["Concurrent"]),
@@ -556,11 +577,10 @@ async function run(
   }
 }
 
-
 function bytesEquals(a: Uint8Array | null, b: Uint8Array | null): boolean {
   if (a === null && b === null) return true
   if (a === null) return false
   if (b === null) return false
 
   return Buffer.from(a).toString("base64") === Buffer.from(b).toString("base64")
-} 
+}
