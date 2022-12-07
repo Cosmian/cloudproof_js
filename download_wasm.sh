@@ -19,8 +19,10 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
         pushd /tmp/findex || exit
     fi
 
+    git fetch
     git checkout $FINDEX_VERSION
     wasm-pack build --target web -d "$DIR/src/pkg/findex" --release --features wasm_bindgen
+    git checkout -
     popd || exit
 
     if [[ -d "../cover_crypt" ]]; then
@@ -30,8 +32,10 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
         pushd /tmp/cover_crypt || exit
     fi
 
+    git fetch
     git checkout $COVER_CRYPT_VERSION
     wasm-pack build --target web -d "$DIR/src/pkg/cover_crypt" --release --features wasm_bindgen
+    git checkout -
     popd || exit
 else
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Ffindex/jobs/artifacts/$FINDEX_VERSION/download?job=build_wasm"
