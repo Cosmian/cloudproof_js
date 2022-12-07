@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption } from 'cloudproof_js';
+import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption, type UidsAndValuesToUpsert } from 'cloudproof_js';
 import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
@@ -80,7 +80,7 @@ export default defineComponent({
       indexingDone: false,
 
       selectedKey: null as null | 'aliceKey' | 'bobKey' | 'charlieKey',
-      
+
       doOr: false,
       query: '',
       searchResults: [] as Array<{ first?: string, last?: string, country?: string, email?: string, project?: number }>,
@@ -264,7 +264,7 @@ export default defineComponent({
         FINDEX_LABEL,
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
-        async (uidsAndValues) => await this.upsertCallback("chains", uidsAndValues),
+        async (uidsAndValues) => await this.insertCallback("chains", uidsAndValues),
         {
           generateGraphs: this.usingGraphs,
         },
@@ -305,7 +305,7 @@ export default defineComponent({
       return results
     },
 
-    async upsertCallback(
+    async insertCallback(
       table: "entries" | "chains",
       uidsAndValues: UidsAndValues
     ): Promise<void> {
@@ -325,6 +325,34 @@ export default defineComponent({
         })
         this.indexes[table].push({ uid: newUid, value: newValue })
       }
+    },
+
+    async upsertCallback(
+      table: "entries" | "chains",
+      uidsAndValues: UidsAndValuesToUpsert,
+    ): Promise<UidsAndValues> {
+      const rejected = []
+      uidsAndValuesLoop: for (const { uid: newUid, oldValue, newValue } of uidsAndValues) {
+        for (const tableEntry of this.indexes[table]) {
+          if (this.uint8ArrayEquals(tableEntry.uid, newUid)) {
+            if (oldValue !== null && this.uint8ArrayEquals(tableEntry.value, oldValue)) {
+              tableEntry.value = newValue
+            } else {
+              rejected.push(tableEntry)
+            }
+            continue uidsAndValuesLoop
+          }
+        }
+
+        // The uid doesn't exist yet.
+        this.logRequest({
+          method: 'POST',
+          url: `/index_${table}`,
+          body: { uid: newUid, value: newValue },
+        })
+        this.indexes[table].push({ uid: newUid, value: newValue })
+      }
+      return rejected
     },
 
     async search() {
@@ -809,16 +837,16 @@ export default defineComponent({
             </div>
           </div>
 
-          <div class="alert alert-light" role="alert" v-show="! query && ! selectedKey">
+          <div class="alert alert-light" role="alert" v-show="!query && !selectedKey">
             Please select a key and type a query.
           </div>
-          <div class="alert alert-light" role="alert" v-show="! query && selectedKey">
+          <div class="alert alert-light" role="alert" v-show="!query && selectedKey">
             Please type a query.
           </div>
-          <div class="alert alert-light" role="alert" v-show="query && ! selectedKey">
+          <div class="alert alert-light" role="alert" v-show="query && !selectedKey">
             Please select a key.
           </div>
-          <div class="alert alert-light" role="alert" v-show="query && selectedKey && ! searchResults.length">
+          <div class="alert alert-light" role="alert" v-show="query && selectedKey && !searchResults.length">
             No result for "{{ query }}"
           </div>
 

@@ -10,6 +10,7 @@ import {
   Keyword,
   CoverCrypt,
   KmsClient,
+  UidsAndValuesToUpsert,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -362,7 +363,7 @@ function App() {
 
     const encrypter = (await getEncrypterAndDecrypter()).encrypt;
 
-    const jobs = users.map((user) =>  encryptAndSaveUser(encrypter, user))
+    const jobs = users.map((user) => encryptAndSaveUser(encrypter, user))
     await Promise.all(jobs)
 
     setEncrypting(false)
@@ -393,7 +394,7 @@ function App() {
       FINDEX_LABEL,
       async (uids) => await fetchCallback("entries", uids),
       async (uidsAndValues) => await upsertCallback("entries", uidsAndValues),
-      async (uidsAndValues) => await upsertCallback("chains", uidsAndValues),
+      async (uidsAndValues) => await insertCallback("chains", uidsAndValues),
       {
         generateGraphs: usingGraphs,
       },
@@ -437,7 +438,7 @@ function App() {
     return results
   }
 
-  const upsertCallback = async (
+  const insertCallback = async (
     table: "entries" | "chains",
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
@@ -468,6 +469,45 @@ function App() {
         ])
       }
     }
+  }
+
+  const upsertCallback = async (
+    table: "entries" | "chains",
+    uidsAndValues: UidsAndValuesToUpsert,
+  ): Promise<UidsAndValues> => {
+    const rejected = []
+    uidsAndValuesLoop: for (const { uid: newUid, oldValue, newValue } of uidsAndValues) {
+      for (const tableEntry of table === "entries"
+        ? indexesEntries
+        : indexesChains) {
+        if (uint8ArrayEquals(tableEntry.uid, newUid)) {
+          if (oldValue !== null && uint8ArrayEquals(tableEntry.value, oldValue)) {
+            tableEntry.value = newValue
+          } else {
+            rejected.push(tableEntry)
+          }
+          continue uidsAndValuesLoop
+        }
+      }
+
+      logRequest({
+        method: "POST",
+        url: `/index_${table}`,
+        body: { uid: newUid, value: newValue },
+      })
+      if (table === "entries") {
+        setIndexesEntries((entries) => [
+          ...entries,
+          { uid: newUid, value: newValue },
+        ])
+      } else {
+        setIndexesChains((chains) => [
+          ...chains,
+          { uid: newUid, value: newValue },
+        ])
+      }
+    }
+    return rejected
   }
 
   const addUser = async (e: FormEvent) => {
@@ -620,7 +660,7 @@ function App() {
             decode(await decrypter(selectedKey, encryptedUser.marketing)),
           ),
         }
-      } catch (e) {}
+      } catch (e) { }
       try {
         decryptedUser = {
           ...decryptedUser,
@@ -628,7 +668,7 @@ function App() {
             decode(await decrypter(selectedKey, encryptedUser.hr)),
           ),
         }
-      } catch (e) {}
+      } catch (e) { }
       try {
         decryptedUser = {
           ...decryptedUser,
@@ -636,7 +676,7 @@ function App() {
             decode(await decrypter(selectedKey, encryptedUser.hr)),
           ),
         }
-      } catch (e) {}
+      } catch (e) { }
 
       results.push(decryptedUser)
     }
@@ -996,9 +1036,8 @@ function App() {
         {encryptedUsers.length > 0 && (
           <div className="position-relative mx-5 mb-4">
             <div
-              className={`${
-                showEncryptedData ? "position-absolute" : ""
-              } pt-2 ps-4`}
+              className={`${showEncryptedData ? "position-absolute" : ""
+                } pt-2 ps-4`}
               style={{ zIndex: "999" }}
             >
               <div className="form-check form-switch">

@@ -2,8 +2,8 @@
 
 set -euxo pipefail
 
-FINDEX_VERSION=develop
-COVER_CRYPT_VERSION=develop
+FINDEX_VERSION=v0.11.1
+COVER_CRYPT_VERSION=main
 
 rm -rf src/pkg/findex
 rm -rf src/pkg/cover_crypt
