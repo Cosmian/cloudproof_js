@@ -3,7 +3,7 @@
 set -exo pipefail
 
 FINDEX_VERSION=v0.11.1
-COVER_CRYPT_VERSION=main
+COVER_CRYPT_VERSION=v8.0.1
 
 rm -rf src/pkg/findex
 rm -rf src/pkg/cover_crypt
