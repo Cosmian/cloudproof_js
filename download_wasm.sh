@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -exo pipefail
 
 FINDEX_VERSION=v0.11.1
 COVER_CRYPT_VERSION=main
