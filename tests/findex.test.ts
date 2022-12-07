@@ -276,36 +276,19 @@ test("SQLite", async () => {
     const rejected = [] as UidsAndValues
     await Promise.all(
       uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-        let changed: boolean
-        if (oldValue === null) {
-          changed = await new Promise((resolve, reject) => {
-            db.run(
-              `INSERT OR IGNORE INTO ${table} (uid, value) VALUES (?, ?)`,
-              [uid, newValue],
-              function (err: any) {
-                if (err !== null && typeof err !== "undefined") {
-                  reject(err)
-                } else {
-                  resolve(this.changes === 1)
-                }
-              },
-            )
-          })
-        } else {
-          changed = await new Promise((resolve, reject) => {
-            db.run(
-              `UPDATE ${table} SET value = ? WHERE uid = ? AND value = ?`,
-              [newValue, uid, oldValue],
-              function (err: any) {
-                if (err !== null && typeof err !== "undefined") {
-                  reject(err)
-                } else {
-                  resolve(this.changes === 1)
-                }
-              },
-            )
-          })
-        }
+        const changed: boolean = await new Promise((resolve, reject) => {
+          db.run(
+            `INSERT INTO ${table} (uid, value) VALUES (?, ?)  ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
+            [uid, newValue, newValue, oldValue],
+            function (err: any) {
+              if (err !== null && typeof err !== "undefined") {
+                reject(err)
+              } else {
+                resolve(this.changes === 1)
+              }
+            },
+          )
+        })
 
         if (!changed) {
           const valueInSqlite: Uint8Array = await new Promise(
