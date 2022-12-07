@@ -38,5 +38,5 @@ else
     unzip -o -j artifacts.zip "pkg/bundler/*" -d src/pkg/findex
 
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Fcover_crypt/jobs/artifacts/$COVER_CRYPT_VERSION/download?job=build_wasm"
-    unzip -o -j artifacts.zip "pkg/bundler/*" -d src/pkg/cover_crypt
+    unzip -o -j artifacts.zip "pkg/web/*" -d src/pkg/cover_crypt
 fi
