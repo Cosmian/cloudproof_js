@@ -4,7 +4,6 @@ import {
   webassembly_generate_user_secret_key,
   webassembly_rotate_attributes,
 } from "../pkg/cover_crypt/cosmian_cover_crypt"
-import { logger } from "../utils/logger"
 import { fromBeBytes } from "../utils/utils"
 import { Policy } from "./interfaces/policy"
 
@@ -47,14 +46,7 @@ export class CoverCryptKeyGeneration {
    * @returns {CoverCryptMasterKey} the master keys
    */
   public generateMasterKeys(policy: Policy): CoverCryptMasterKey {
-    const policyBytes = policy.toJsonEncoded()
-    const masterKeys = webassembly_generate_master_keys(policyBytes)
-    const secretKeySize = fromBeBytes(masterKeys.slice(0, 4))
-    logger.log(() => `private key size: ${secretKeySize}`)
-    return new CoverCryptMasterKey(
-      masterKeys.slice(4, 4 + secretKeySize),
-      masterKeys.slice(4 + secretKeySize, masterKeys.length),
-    )
+    return generateMasterKeys(policy)
   }
 
   /**
@@ -71,14 +63,7 @@ export class CoverCryptKeyGeneration {
     accessPolicy: string,
     policy: Policy,
   ): Uint8Array {
-    const policyBytes = policy.toJsonEncoded()
-    const userSecretKey = webassembly_generate_user_secret_key(
-      masterSecretKeyBytes,
-      accessPolicy,
-      policyBytes,
-    )
-
-    return userSecretKey
+    return generateUserSecretKey(masterSecretKeyBytes, accessPolicy, policy)
   }
 
   /**
@@ -92,13 +77,67 @@ export class CoverCryptKeyGeneration {
    * @returns {Policy} the updated policy
    */
   public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    const policyBytes = policy.toJsonEncoded()
-    const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
-    const newPolicyString = webassembly_rotate_attributes(
-      attributesBytes,
-      policyBytes,
-    )
-
-    return Policy.fromJsonEncoded(newPolicyString)
+    return rotateAttributes(attributes, policy)
   }
+}
+
+/**
+ * Generate the Master Key Par
+ *
+ * @param {Policy} policy the policy to use
+ * @returns {CoverCryptMasterKey} the master keys
+ */
+export function generateMasterKeys(policy: Policy): CoverCryptMasterKey {
+  const policyBytes = policy.toJsonEncoded()
+  const masterKeys = webassembly_generate_master_keys(policyBytes)
+  const secretKeySize = fromBeBytes(masterKeys.slice(0, 4))
+  return new CoverCryptMasterKey(
+    masterKeys.slice(4, 4 + secretKeySize),
+    masterKeys.slice(4 + secretKeySize, masterKeys.length),
+  )
+}
+
+/**
+ * Generate a User Decryption Key
+ *
+ * @param {Uint8Array} masterSecretKeyBytes The Master Private Key Bytes
+ * @param {string} accessPolicy the access policy as a boolean expression
+ *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
+ * @param {Policy} policy the policy of the master key
+ * @returns {Uint8Array} the user decryption key bytes
+ */
+export function generateUserSecretKey(
+  masterSecretKeyBytes: Uint8Array,
+  accessPolicy: string,
+  policy: Policy,
+): Uint8Array {
+  const policyBytes = policy.toJsonEncoded()
+  const userSecretKey = webassembly_generate_user_secret_key(
+    masterSecretKeyBytes,
+    accessPolicy,
+    policyBytes,
+  )
+
+  return userSecretKey
+}
+
+/**
+ * Rotate attributes in the given policy
+ *
+ * Note: this does NOT refresh the keys
+ *
+ * @param {string[]} attributes to rotate
+ * e.g. ["Department::MKG" , "Department::FIN"]
+ * @param {Policy} policy the policy
+ * @returns {Policy} the updated policy
+ */
+export function rotateAttributes(attributes: string[], policy: Policy): Policy {
+  const policyBytes = policy.toJsonEncoded()
+  const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
+  const newPolicyString = webassembly_rotate_attributes(
+    attributesBytes,
+    policyBytes,
+  )
+
+  return Policy.fromJsonEncoded(newPolicyString)
 }

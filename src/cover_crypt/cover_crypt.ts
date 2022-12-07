@@ -1,7 +1,12 @@
 import init from "../pkg/cover_crypt/cosmian_cover_crypt"
-import { CoverCryptHybridDecryption } from "./decryption"
-import { CoverCryptHybridEncryption } from "./encryption"
-import { CoverCryptKeyGeneration } from "./key_generation"
+import { CoverCryptHybridDecryption, decrypt } from "./decryption"
+import { CoverCryptHybridEncryption, encrypt } from "./encryption"
+import {
+  CoverCryptKeyGeneration,
+  generateMasterKeys,
+  generateUserSecretKey,
+  rotateAttributes,
+} from "./key_generation"
 
 let initialized: Promise<void> | undefined
 
@@ -24,6 +29,13 @@ export async function CoverCrypt() {
   await initialized
 
   return {
+    encrypt,
+    decrypt,
+
+    generateMasterKeys,
+    generateUserSecretKey,
+    rotateAttributes,
+
     CoverCryptKeyGeneration,
     CoverCryptHybridDecryption,
     CoverCryptHybridEncryption,

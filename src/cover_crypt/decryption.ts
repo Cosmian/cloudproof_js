@@ -89,7 +89,7 @@ export class CoverCryptHybridDecryption {
    * @param  {Uint8Array} ciphertext the encrypted data
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns {Uint8Array} the plaintext value
+   * @returns the decrypted header metadata and the the plaintext value
    */
   public decrypt(
     ciphertext: Uint8Array,
@@ -97,21 +97,40 @@ export class CoverCryptHybridDecryption {
       authenticationData?: Uint8Array
     } = {},
   ): { headerMetadata: Uint8Array; plaintext: Uint8Array } {
-    const authenticationData =
-      typeof options.authenticationData === "undefined"
-        ? new Uint8Array()
-        : options.authenticationData
-
-    const result = webassembly_hybrid_decrypt(
-      this.asymmetricDecryptionKey,
-      ciphertext,
-      authenticationData,
-    )
-
-    const { result: headerMetadataLength, tail } = decode(result)
-    const headerMetadata = tail.slice(0, headerMetadataLength)
-    const plaintext = tail.slice(headerMetadataLength)
-
-    return { headerMetadata, plaintext }
+    return decrypt(this.asymmetricDecryptionKey, ciphertext, options)
   }
+}
+
+/**
+ * Hybrid decrypt wrapper: CoverCrypt decrypt then AES decrypt
+ *
+ * @param decryptionKey the user key to decrypt
+ * @param {Uint8Array} ciphertext the encrypted data
+ * @param {object} options Additional optional options to the encryption
+ * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
+ * @returns the decrypted header metadata and the the plaintext value
+ */
+export function decrypt(
+  decryptionKey: PrivateKey | Uint8Array,
+  ciphertext: Uint8Array,
+  options: {
+    authenticationData?: Uint8Array
+  } = {},
+): { headerMetadata: Uint8Array; plaintext: Uint8Array } {
+  const authenticationData =
+    typeof options.authenticationData === "undefined"
+      ? new Uint8Array()
+      : options.authenticationData
+
+  const result = webassembly_hybrid_decrypt(
+    decryptionKey instanceof PrivateKey ? decryptionKey.bytes() : decryptionKey,
+    ciphertext,
+    authenticationData,
+  )
+
+  const { result: headerMetadataLength, tail } = decode(result)
+  const headerMetadata = tail.slice(0, headerMetadataLength)
+  const plaintext = tail.slice(headerMetadataLength)
+
+  return { headerMetadata, plaintext }
 }

@@ -55,7 +55,7 @@ export class KmsClient {
    * @param {string} apiKey optional, to authenticate to the KMS server
    */
   constructor(url: URL | string, apiKey: string | null = null) {
-    this.url = typeof url === "string" ? new URL(url): url
+    this.url = typeof url === "string" ? new URL(url) : url
     this.headers = {
       "Content-Type": "application/json; charset=utf-8",
     }
