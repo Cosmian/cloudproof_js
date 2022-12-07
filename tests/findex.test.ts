@@ -276,7 +276,7 @@ test("SQLite", async () => {
     const rejected = [] as UidsAndValues
     await Promise.all(
       uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-        let changed
+        let changed: boolean
         if (oldValue === null) {
           changed = await new Promise((resolve, reject) => {
             db.run(
@@ -308,7 +308,7 @@ test("SQLite", async () => {
         }
 
         if (!changed) {
-          let valueInSqlite: Uint8Array = await new Promise(
+          const valueInSqlite: Uint8Array = await new Promise(
             (resolve, reject) => {
               db.get(
                 `SELECT value FROM ${table} WHERE uid = ?`,
@@ -354,7 +354,7 @@ test("Redis", async () => {
           key: string,
           oldValue: Uint8Array | null,
           newValue: Uint8Array,
-        ): Array<string> {
+        ): string[] {
           return [
             key,
             oldValue === null ? "" : Buffer.from(oldValue).toString("base64"),
@@ -406,12 +406,12 @@ test("Redis", async () => {
             "base64",
           )}`
 
-          let updated = await client.setIfSame(key, oldValue, newValue)
+          const updated = await client.setIfSame(key, oldValue, newValue)
 
           if (!updated) {
             const valueInRedis = await client.get(key)
             rejected.push({
-              uid: uid,
+              uid,
               value: Buffer.from(valueInRedis as string, "base64"),
             })
           }
@@ -425,7 +425,7 @@ test("Redis", async () => {
       prefix: string,
       uidsAndValues: UidsAndValues,
     ): Promise<void> => {
-      if (!uidsAndValues.length) return
+      if (uidsAndValues.length === 0) return
 
       const toSet = uidsAndValues.map(({ uid, value }) => [
         `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
@@ -545,6 +545,7 @@ async function run(
 
   {
     await Promise.all(
+      // eslint-disable-next-line @typescript-eslint/promise-function-async
       Array.from(Array(100).keys()).map((index) => {
         return findex.upsert(
           [
@@ -577,6 +578,11 @@ async function run(
   }
 }
 
+/**
+ * @param a one Uint8Array
+ * @param b one Uint8Array
+ * @returns is equals
+ */
 function bytesEquals(a: Uint8Array | null, b: Uint8Array | null): boolean {
   if (a === null && b === null) return true
   if (a === null) return false
