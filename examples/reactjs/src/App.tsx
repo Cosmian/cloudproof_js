@@ -600,7 +600,6 @@ function App() {
         new Set(keywords),
         masterKey,
         FINDEX_LABEL,
-        1000,
         async (uids) => await fetchCallback("entries", uids),
         async (uids) => await fetchCallback("chains", uids),
       )
@@ -610,7 +609,6 @@ function App() {
           new Set([keyword]),
           masterKey,
           FINDEX_LABEL,
-          1000,
           async (uids) => await fetchCallback("entries", uids),
           async (uids) => await fetchCallback("chains", uids),
         )

@@ -117,7 +117,6 @@ test("upsert and search memory", async () => {
     new Set(["ROBERT"]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -127,7 +126,6 @@ test("upsert and search memory", async () => {
     new Set([new TextEncoder().encode("ROBERT")]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -137,7 +135,6 @@ test("upsert and search memory", async () => {
     new Set(["BOB"]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -439,7 +436,6 @@ async function run(
   upsertEntries: UpsertEntries,
   insertChains: InsertChains,
 ): Promise<void> {
-  console.log("Running!!!")
   const findex = await Findex()
   const masterKey = new FindexKey(randomBytes(32))
   const label = new Label(randomBytes(10))
@@ -469,7 +465,6 @@ async function run(
       new Set([USERS[0].firstName]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )
@@ -487,7 +482,6 @@ async function run(
       new Set(["Spain"]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )
@@ -519,7 +513,6 @@ async function run(
         new Set([keyword]),
         masterKey,
         label,
-        1000,
         fetchEntries,
         fetchChains,
       )
@@ -564,7 +557,6 @@ async function run(
       new Set(["Concurrent"]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )

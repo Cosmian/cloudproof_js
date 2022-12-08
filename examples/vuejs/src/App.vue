@@ -379,7 +379,6 @@ export default defineComponent({
           new Set(keywords),
           this.masterKey,
           FINDEX_LABEL,
-          1000,
           async (uids) => await this.fetchCallback("entries", uids),
           async (uids) => await this.fetchCallback("chains", uids),
         );
@@ -389,7 +388,6 @@ export default defineComponent({
             new Set([keyword]),
             this.masterKey,
             FINDEX_LABEL,
-            1000,
             async (uids) => await this.fetchCallback("entries", uids),
             async (uids) => await this.fetchCallback("chains", uids),
           );

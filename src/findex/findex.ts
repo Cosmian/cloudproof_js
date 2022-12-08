@@ -330,21 +330,25 @@ export async function Findex() {
      * @param {Set<string>} keywords keywords to search inside the indexes
      * @param {FindexKey | SymmetricKey} masterKey Findex's key
      * @param {Label} label public label for the index
-     * @param {number} maxResultsPerKeyword the maximum number of results per keyword
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {FetchChains} fetchChains callback to fetch the chains table
-     * @param {Progress} progress the optional callback of found values as the search graph is walked.
-     *    Returning false stops the walk
+     * @param options Additional optional options to the search
+     * @param options.maxResultsPerKeyword the maximum number of results per keyword
+     * @param options.maxGraphDepth automaticaly follow the nextwords to find only locations
+     * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
      * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
      */
     search: async (
       keywords: Set<string | Uint8Array>,
       masterKey: FindexKey | SymmetricKey,
       label: Label,
-      maxResultsPerKeyword: number,
       fetchEntries: FetchEntries,
       fetchChains: FetchChains,
-      progress?: Progress,
+      options: {
+        maxResultsPerKeyword?: number,
+        maxGraphDepth?: number,
+        progress?: Progress,
+      } = {},
     ): Promise<IndexedValue[]> => {
       // convert key to a single representation
       if (masterKey instanceof SymmetricKey) {
@@ -357,14 +361,14 @@ export async function Findex() {
       }
 
       const progress_: Progress =
-        typeof progress === "undefined" ? async () => true : progress
+        typeof options.progress === "undefined" ? async () => true : options.progress
 
       const serializedIndexedValues = await webassembly_search(
         masterKey.bytes,
         label.bytes,
         kws,
-        maxResultsPerKeyword,
-        1000,
+        typeof options.maxResultsPerKeyword === "undefined" ? 1000 : options.maxResultsPerKeyword,
+        typeof options.maxGraphDepth === "undefined" ? 1000 : options.maxGraphDepth,
         async (serializedIndexedValues: Uint8Array[]) => {
           const indexedValues = serializedIndexedValues.map((bytes) => {
             return new IndexedValue(bytes)
