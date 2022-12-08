@@ -13,6 +13,7 @@ import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
 import { randomBytes } from "crypto"
 
+
 describe("Wasm loading", async () => {
   bench("Load Findex functions", async () => {
     await Findex()
@@ -162,7 +163,6 @@ describe("Findex Search", async () => {
       new Set([USERS[0].firstName]),
       masterKey,
       label,
-      1000,
       async (uids) => await fetchCallback(entryTable, uids),
       async (uids) => await fetchCallback(chainTable, uids),
     )
