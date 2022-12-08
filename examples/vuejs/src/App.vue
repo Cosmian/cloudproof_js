@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption, type UidsAndValuesToUpsert } from 'cloudproof_js';
+import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption, type UidsAndValuesToUpsert, generateAliases } from 'cloudproof_js';
 import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
@@ -248,26 +248,31 @@ export default defineComponent({
       let { upsert } = await Findex();
 
       await upsert(
-        this.users.map((user, index) => {
-          return {
-            indexedValue: IndexedValue.fromLocation(new Location(Uint8Array.from([index]))),
-            keywords: new Set([
-              Keyword.fromUtf8String(user.first),
-              Keyword.fromUtf8String(user.last),
-              Keyword.fromUtf8String(user.country),
-              Keyword.fromUtf8String(user.email),
-              Keyword.fromUtf8String(user.project.toString()),
-            ]),
-          };
+        this.users.flatMap((user, index) => {
+          return [
+            {
+              indexedValue: IndexedValue.fromLocation(new Location(Uint8Array.from([index]))),
+              keywords: new Set([
+                Keyword.fromUtf8String(user.first),
+                Keyword.fromUtf8String(user.last),
+                Keyword.fromUtf8String(user.country),
+                Keyword.fromUtf8String(user.email),
+                Keyword.fromUtf8String(user.project.toString()),
+              ]),
+            },
+            ...(this.usingGraphs ? [
+              // Not required to generate aliases for all fields, you can choose which one you want to alias
+              ...generateAliases(user.first),
+              ...generateAliases(user.last),
+              ...generateAliases(user.email),
+            ] : []),
+          ];
         }),
         masterKey,
         FINDEX_LABEL,
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) => await this.upsertCallback("entries", uidsAndValues),
         async (uidsAndValues) => await this.insertCallback("chains", uidsAndValues),
-        {
-          generateGraphs: this.usingGraphs,
-        },
       );
     },
 

@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - encrypt/decrypt with the KMS
 - `Location.fromUuid()`
 - Verify non regression test vectors for CoverCrypt
+- New simple API for CoverCrypt (new functions `encrypt`, `decrypt`, `generateMasterKeys`, `generateUserSecretKey` and `rotateAttributes`)
 
 ### Changed
 
@@ -23,6 +24,10 @@ All notable changes to this project will be documented in this file.
 - Rename `ClearTextHeader` to `PlaintextHeader`
 - Rename `additionalData` to `headerMetadata`
 - Switch from Jest to Vitest
+
+### Removed
+
+- `options.generateGraphs` in the `upsert` function. Please use `generateAliases()` to build the keywords/nextwords (see VueJS or ReactJS examples)
 
 ### Fixed
 

@@ -1,5 +1,4 @@
 import init, {
-  webassembly_graph_upsert,
   webassembly_search,
   webassembly_upsert,
 } from "../pkg/findex/cosmian_findex"
@@ -131,6 +130,34 @@ export interface IndexedEntry {
 }
 
 /**
+ * Generates aliases for a keyword to use in upsert
+ * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thibaud", "Thib" => "Thibaud", "Thiba" => "Thibaud", "Thibau" => "Thibaud"]
+ *
+ * @param keyword Generate aliases to this keyword
+ * @param minChars Start at this number of caracters
+ * @returns IndexedEntry to add with upsert
+ */
+export function generateAliases(
+  keyword: string,
+  minChars: number = 3,
+): IndexedEntry[] {
+  const entries = []
+  const indexedValue = IndexedValue.fromNextWord(
+    Keyword.fromUtf8String(keyword),
+  )
+
+  for (let charsIndex = minChars; charsIndex < keyword.length; charsIndex++) {
+    const substring = keyword.slice(0, charsIndex)
+    entries.push({
+      indexedValue,
+      keywords: new Set([Keyword.fromUtf8String(substring)]),
+    })
+  }
+
+  return entries
+}
+
+/**
  * A helper class to create a {@link IndexedEntry} when
  * indexing a {@link Location} with keywords supplied
  * as arrays of strings or bytes
@@ -252,8 +279,6 @@ export async function Findex() {
      * @param {FetchEntries} fetchEntries callback to fetch the entries table
      * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
      * @param {InsertChains} insertChains callback to upsert inside chains table
-     * @param {object} options some optional options to customize the upsert
-     * @param {boolean} options.generateGraphs Generate indexes to match "Thibaud" when searching for "Thi".
      */
     upsert: async (
       newIndexedEntries: IndexedEntry[],
@@ -262,19 +287,11 @@ export async function Findex() {
       fetchEntries: FetchEntries,
       upsertEntries: UpsertEntries,
       insertChains: InsertChains,
-      options: {
-        generateGraphs?: boolean
-      } = {},
     ): Promise<void> => {
       // convert key to a single representation
       if (masterKey instanceof SymmetricKey) {
         masterKey = new FindexKey(masterKey.bytes())
       }
-
-      const generateGraphs =
-        typeof options.generateGraphs === "undefined"
-          ? false
-          : options.generateGraphs
 
       const indexedValuesAndWords: Array<{
         indexedValue: Uint8Array
@@ -291,10 +308,7 @@ export async function Findex() {
         })
       }
 
-      const upsertFn = generateGraphs
-        ? webassembly_graph_upsert
-        : webassembly_upsert
-      return await upsertFn(
+      return await webassembly_upsert(
         masterKey.bytes,
         label.bytes,
         indexedValuesAndWords,
