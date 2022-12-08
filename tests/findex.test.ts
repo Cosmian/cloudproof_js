@@ -14,6 +14,7 @@ import {
   UpsertEntries,
   LocationIndexEntry,
   KeywordIndexEntry,
+  generateAliases,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
@@ -116,7 +117,6 @@ test("upsert and search memory", async () => {
     new Set(["ROBERT"]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -126,7 +126,6 @@ test("upsert and search memory", async () => {
     new Set([new TextEncoder().encode("ROBERT")]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -136,7 +135,6 @@ test("upsert and search memory", async () => {
     new Set(["BOB"]),
     masterKey,
     label,
-    100,
     fetchEntries,
     fetchChains,
   )
@@ -467,7 +465,6 @@ async function run(
       new Set([USERS[0].firstName]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )
@@ -485,7 +482,6 @@ async function run(
       new Set(["Spain"]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )
@@ -503,6 +499,7 @@ async function run(
           ),
           keywords: new Set([Keyword.fromUtf8String("SomeAlias")]),
         },
+        ...generateAliases("SomeAlias"),
       ],
       masterKey,
       label,
@@ -511,19 +508,27 @@ async function run(
       insertChains,
     )
 
-    const results = await findex.search(
-      new Set(["SomeAlias"]),
-      masterKey,
-      label,
-      1000,
-      fetchEntries,
-      fetchChains,
-    )
+    const searchAndCheck = async (keyword: string): Promise<void> => {
+      const results = await findex.search(
+        new Set([keyword]),
+        masterKey,
+        label,
+        fetchEntries,
+        fetchChains,
+      )
 
-    expect(results.length).toEqual(1)
-    expect(results[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
-    )
+      expect(results.length).toEqual(1)
+      expect(results[0]).toEqual(
+        IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
+      )
+    }
+
+    await searchAndCheck("Som")
+    await searchAndCheck("Some")
+    await searchAndCheck("SomeA")
+    await searchAndCheck("SomeAl")
+    await searchAndCheck("SomeAli")
+    await searchAndCheck("SomeAlia")
   }
 
   {
@@ -552,7 +557,6 @@ async function run(
       new Set(["Concurrent"]),
       masterKey,
       label,
-      1000,
       fetchEntries,
       fetchChains,
     )
@@ -560,6 +564,52 @@ async function run(
     expect(results.length).toEqual(100)
   }
 }
+
+test("generateAliases", async () => {
+  {
+    const aliases = generateAliases("Thibaud")
+
+    expect(aliases.length).toEqual(4)
+
+    for (const alias of aliases) {
+      expect(alias.indexedValue).toEqual(
+        IndexedValue.fromNextWord(Keyword.fromUtf8String("Thibaud")),
+      )
+    }
+
+    expect(aliases[0].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thi")]),
+    )
+    expect(aliases[1].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thib")]),
+    )
+    expect(aliases[2].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thiba")]),
+    )
+    expect(aliases[3].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thibau")]),
+    )
+  }
+
+  {
+    const aliases = generateAliases("Thibaud", 5)
+
+    expect(aliases.length).toEqual(2)
+
+    for (const alias of aliases) {
+      expect(alias.indexedValue).toEqual(
+        IndexedValue.fromNextWord(Keyword.fromUtf8String("Thibaud")),
+      )
+    }
+
+    expect(aliases[0].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thiba")]),
+    )
+    expect(aliases[1].keywords).toEqual(
+      new Set([Keyword.fromUtf8String("Thibau")]),
+    )
+  }
+})
 
 /**
  * @param a one Uint8Array

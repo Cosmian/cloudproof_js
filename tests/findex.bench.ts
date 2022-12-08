@@ -162,7 +162,6 @@ describe("Findex Search", async () => {
       new Set([USERS[0].firstName]),
       masterKey,
       label,
-      1000,
       async (uids) => await fetchCallback(entryTable, uids),
       async (uids) => await fetchCallback(chainTable, uids),
     )

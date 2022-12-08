@@ -2,7 +2,7 @@
 
 set -exo pipefail
 
-FINDEX_VERSION=v0.11.1
+FINDEX_VERSION=v0.11.2
 COVER_CRYPT_VERSION=v8.0.1
 
 rm -rf src/pkg/findex
@@ -39,7 +39,7 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
     popd || exit
 else
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Ffindex/jobs/artifacts/$FINDEX_VERSION/download?job=build_wasm"
-    unzip -o -j artifacts.zip "pkg/bundler/*" -d src/pkg/findex
+    unzip -o -j artifacts.zip "pkg/web/*" -d src/pkg/findex
 
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Fcover_crypt/jobs/artifacts/$COVER_CRYPT_VERSION/download?job=build_wasm"
     unzip -o -j artifacts.zip "pkg/web/*" -d src/pkg/cover_crypt

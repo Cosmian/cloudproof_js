@@ -25,6 +25,5 @@ test("Verify non-regression vector", async () => {
     const content = fs.readFileSync(testFolder + file, "utf8")
     const nrv = NonRegressionVector.fromJson(content)
     nrv.verify()
-    console.log("... OK: " + file)
   })
 })

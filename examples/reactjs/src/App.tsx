@@ -11,6 +11,7 @@ import {
   CoverCrypt,
   KmsClient,
   UidsAndValuesToUpsert,
+  generateAliases,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -376,28 +377,33 @@ function App() {
     const { upsert } = await Findex()
 
     await upsert(
-      users.map((user) => {
-        return {
-          indexedValue: IndexedValue.fromLocation(
-            new Location(Uint8Array.from([user.id])),
-          ),
-          keywords: new Set([
-            Keyword.fromUtf8String(user.first),
-            Keyword.fromUtf8String(user.last),
-            Keyword.fromUtf8String(user.country),
-            Keyword.fromUtf8String(user.email),
-            Keyword.fromUtf8String(user.project.toString()),
-          ]),
-        }
+      users.flatMap((user) => {
+        return [
+          {
+            indexedValue: IndexedValue.fromLocation(
+              new Location(Uint8Array.from([user.id])),
+            ),
+            keywords: new Set([
+              Keyword.fromUtf8String(user.first),
+              Keyword.fromUtf8String(user.last),
+              Keyword.fromUtf8String(user.country),
+              Keyword.fromUtf8String(user.email),
+              Keyword.fromUtf8String(user.project.toString()),
+            ]),
+          },
+          ...(usingGraphs ? [
+              // Not required to generate aliases for all fields, you can choose which one you want to alias
+              ...generateAliases(user.first),
+              ...generateAliases(user.last),
+              ...generateAliases(user.email),
+          ] : []),
+        ]
       }),
       localMasterKey,
       FINDEX_LABEL,
       async (uids) => await fetchCallback("entries", uids),
       async (uidsAndValues) => await upsertCallback("entries", uidsAndValues),
       async (uidsAndValues) => await insertCallback("chains", uidsAndValues),
-      {
-        generateGraphs: usingGraphs,
-      },
     )
   }
 
@@ -594,7 +600,6 @@ function App() {
         new Set(keywords),
         masterKey,
         FINDEX_LABEL,
-        1000,
         async (uids) => await fetchCallback("entries", uids),
         async (uids) => await fetchCallback("chains", uids),
       )
@@ -604,7 +609,6 @@ function App() {
           new Set([keyword]),
           masterKey,
           FINDEX_LABEL,
-          1000,
           async (uids) => await fetchCallback("entries", uids),
           async (uids) => await fetchCallback("chains", uids),
         )

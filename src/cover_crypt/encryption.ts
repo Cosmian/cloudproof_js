@@ -15,14 +15,11 @@ import { EncryptedHeader } from "./interfaces/encrypted_header"
  */
 export class CoverCryptHybridEncryption {
   private readonly _publicKey: Uint8Array
-  private readonly _policy: Uint8Array
+  private readonly _policy: Policy
 
-  constructor(policy: Policy | Uint8Array, publicKey: PublicKey | Uint8Array) {
-    if (policy instanceof Policy) {
-      this._policy = policy.toJsonEncoded()
-    } else {
-      this._policy = policy
-    }
+  constructor(policy: Policy, publicKey: PublicKey | Uint8Array) {
+    this._policy = policy
+
     if (publicKey instanceof PublicKey) {
       this._publicKey = publicKey.bytes()
     } else {
@@ -30,7 +27,7 @@ export class CoverCryptHybridEncryption {
     }
   }
 
-  public get policy(): Uint8Array {
+  public get policy(): Policy {
     return this._policy
   }
 
@@ -64,7 +61,7 @@ export class CoverCryptHybridEncryption {
         : options.authenticationData
 
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
-      this.policy,
+      this.policy.toJsonEncoded(),
       accessPolicy,
       this.publicKey,
       headerMetadata,
@@ -124,22 +121,53 @@ export class CoverCryptHybridEncryption {
       authenticationData?: Uint8Array
     } = {},
   ): Uint8Array {
-    const headerMetadata =
-      typeof options.headerMetadata === "undefined"
-        ? new Uint8Array()
-        : options.headerMetadata
-    const authenticationData =
-      typeof options.authenticationData === "undefined"
-        ? new Uint8Array()
-        : options.authenticationData
-
-    return webassembly_hybrid_encrypt(
+    return encrypt(
       this._policy,
-      accessPolicy,
       this._publicKey,
+      accessPolicy,
       plaintext,
-      headerMetadata,
-      authenticationData,
+      options,
     )
   }
+}
+
+/**
+ * Hybrid encrypt wrapper: CoverCrypt encrypt then AES encrypt
+ *
+ * @param {Policy} policy CoverCrypt global policy
+ * @param {Uint8Array} publicKey Master public key
+ * @param {string} accessPolicy Encrypt with this access policy
+ * @param {Uint8Array} plaintext Stuff to encrypt
+ * @param {object} options Additional optional options to the encryption
+ * @param {Uint8Array} options.headerMetadata Data encrypted in the header
+ * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+ * @returns {Uint8Array} encrypted
+ */
+export function encrypt(
+  policy: Policy,
+  publicKey: Uint8Array,
+  accessPolicy: string,
+  plaintext: Uint8Array,
+  options: {
+    headerMetadata?: Uint8Array
+    authenticationData?: Uint8Array
+  } = {},
+): Uint8Array {
+  const headerMetadata =
+    typeof options.headerMetadata === "undefined"
+      ? new Uint8Array()
+      : options.headerMetadata
+  const authenticationData =
+    typeof options.authenticationData === "undefined"
+      ? new Uint8Array()
+      : options.authenticationData
+
+  return webassembly_hybrid_encrypt(
+    policy.toJsonEncoded(),
+    accessPolicy,
+    publicKey,
+    plaintext,
+    headerMetadata,
+    authenticationData,
+  )
 }
