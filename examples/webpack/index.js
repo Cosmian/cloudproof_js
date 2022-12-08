@@ -25,15 +25,15 @@ const policy = new Policy([
   //
   // create master keys
   const [privateMasterKeyUID, publicKeyUID] =
-    await client.createAbeMasterKeyPair(policy)
+    await client.createCoverCryptMasterKeyPair(policy)
 
   // fetch the keys from the KMS
-  const privateMasterKey = await client.retrieveAbePrivateMasterKey(
+  const privateMasterKey = await client.retrieveCoverCryptSecretMasterKey(
     privateMasterKeyUID,
   )
   // eslint-disable-next-line no-unused-vars
   const privateMasterKeyBytes = privateMasterKey.bytes()
-  const publicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
+  const publicKey = await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)
   const publicKeyBytes = publicKey.bytes()
 
   //
@@ -73,11 +73,11 @@ const policy = new Policy([
   // the medium secret marketing user
   const mediumSecretMkgAccess =
     "Department::MKG && Security Level::Medium Secret"
-  const mediumSecretMkgUserKeyUid = await client.createAbeUserDecryptionKey(
+  const mediumSecretMkgUserKeyUid = await client.createCoverCryptUserDecryptionKey(
     mediumSecretMkgAccess,
     privateMasterKeyUID,
   )
-  const mediumSecretMkgUserKey = await client.retrieveAbeUserDecryptionKey(
+  const mediumSecretMkgUserKey = await client.retrieveCoverCryptUserDecryptionKey(
     mediumSecretMkgUserKeyUid,
   )
   const mediumSecretMkgUserKeyBytes = mediumSecretMkgUserKey.bytes()
@@ -85,22 +85,22 @@ const policy = new Policy([
   // the top secret marketing financial user
   const topSecretMkgFinAccess =
     "(Department::MKG || Department::FIN) && Security Level::Top Secret"
-  const topSecretMkgFinUserKeyUid = await client.createAbeUserDecryptionKey(
+  const topSecretMkgFinUserKeyUid = await client.createCoverCryptUserDecryptionKey(
     topSecretMkgFinAccess,
     privateMasterKeyUID,
   )
-  const topSecretMkgFinUserKey = await client.retrieveAbeUserDecryptionKey(
+  const topSecretMkgFinUserKey = await client.retrieveCoverCryptUserDecryptionKey(
     topSecretMkgFinUserKeyUid,
   )
   const topSecretMkgFinUserKeyBytes = topSecretMkgFinUserKey.bytes()
 
   // the top secret financial user
   const topSecretFinAccess = "(Department::FIN) && Security Level::Top Secret"
-  const topSecretFinUserKeyUid = await client.createAbeUserDecryptionKey(
+  const topSecretFinUserKeyUid = await client.createCoverCryptUserDecryptionKey(
     topSecretFinAccess,
     privateMasterKeyUID,
   )
-  const topSecretFinUserKey = await client.retrieveAbeUserDecryptionKey(
+  const topSecretFinUserKey = await client.retrieveCoverCryptUserDecryptionKey(
     topSecretFinUserKeyUid,
   )
   // eslint-disable-next-line no-unused-vars
@@ -158,16 +158,16 @@ const policy = new Policy([
   //
   // retrieve the key
   const originalMediumSecretMkgUserKey =
-    await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
+    await client.retrieveCoverCryptUserDecryptionKey(mediumSecretMkgUserKeyUid)
 
   // Now revoke the MKG attribute - all active keys will be rekeyed
-  client.rotateAbeAttributes(privateMasterKeyUID, ["Department::MKG"])
+  client.rotateCoverCryptAttributes(privateMasterKeyUID, ["Department::MKG"])
 
   // retrieve the rekeyed public key
-  const rekeyedPublicKey = await client.retrieveAbePublicMasterKey(publicKeyUID)
+  const rekeyedPublicKey = await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)
   // retrieve the rekeyed user decryption key
   const rekeyedMediumSecretMkgUserKey =
-    await client.retrieveAbeUserDecryptionKey(mediumSecretMkgUserKeyUid)
+    await client.retrieveCoverCryptUserDecryptionKey(mediumSecretMkgUserKeyUid)
 
   //
   // creating a new medium secret marketing message

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -exo pipefail
 
 FINDEX_VERSION=v0.11.1
-COVER_CRYPT_VERSION=main
+COVER_CRYPT_VERSION=v8.0.1
 
 rm -rf src/pkg/findex
 rm -rf src/pkg/cover_crypt
@@ -19,8 +19,10 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
         pushd /tmp/findex || exit
     fi
 
+    git fetch
     git checkout $FINDEX_VERSION
     wasm-pack build --target web -d "$DIR/src/pkg/findex" --release --features wasm_bindgen
+    git checkout -
     popd || exit
 
     if [[ -d "../cover_crypt" ]]; then
@@ -30,13 +32,15 @@ if [[ -z "${CI_JOB_TOKEN}" ]]; then
         pushd /tmp/cover_crypt || exit
     fi
 
+    git fetch
     git checkout $COVER_CRYPT_VERSION
     wasm-pack build --target web -d "$DIR/src/pkg/cover_crypt" --release --features wasm_bindgen
+    git checkout -
     popd || exit
 else
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Ffindex/jobs/artifacts/$FINDEX_VERSION/download?job=build_wasm"
     unzip -o -j artifacts.zip "pkg/bundler/*" -d src/pkg/findex
 
     curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "http://gitlab.cosmian.com/api/v4/projects/core%2Fcover_crypt/jobs/artifacts/$COVER_CRYPT_VERSION/download?job=build_wasm"
-    unzip -o -j artifacts.zip "pkg/bundler/*" -d src/pkg/cover_crypt
+    unzip -o -j artifacts.zip "pkg/web/*" -d src/pkg/cover_crypt
 fi

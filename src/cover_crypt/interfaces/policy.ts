@@ -185,16 +185,7 @@ export class Policy {
    * @returns {Policy} the recovered Policy
    */
   public static fromKey(key: PrivateKey | PublicKey): Policy {
-    const keyValue = key.keyBlock.keyValue
-    if (
-      keyValue === null ||
-      keyValue instanceof Uint8Array ||
-      keyValue.attributes === null
-    ) {
-      throw new Error("No policy can be extracted from that key")
-    }
-
-    return this.fromAttributes(keyValue.attributes)
+    return key.policy()
   }
 
   /**

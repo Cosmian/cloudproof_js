@@ -691,12 +691,12 @@ export class KmsClient {
    *
    * @param {string} privateMasterKeyUniqueIdentifier the unique identifier of the Private Master Key
    * @param {string[]} attributes to rotate e.g. ["Department::MKG", "Department::FIN"]
-   * @returns {string[]} returns the IDs of the Private Master Key and Public Master Key
+   * @returns {Policy} returns the new Policy to use for new encryption
    */
   public async rotateCoverCryptAttributes(
     privateMasterKeyUniqueIdentifier: string,
     attributes: string[],
-  ): Promise<string[]> {
+  ): Promise<Policy> {
     const privateKeyAttributes = new Attributes("PrivateKey")
     privateKeyAttributes.link = [
       new Link(LinkType.ParentLink, privateMasterKeyUniqueIdentifier),
@@ -716,10 +716,11 @@ export class KmsClient {
     request.privateKeyAttributes = privateKeyAttributes
 
     const response = await this.post(request)
-    return [
-      response.privateKeyUniqueIdentifier,
+
+    const publicMasterKey = await this.retrieveCoverCryptPublicMasterKey(
       response.publicKeyUniqueIdentifier,
-    ]
+    )
+    return publicMasterKey.policy()
   }
 }
 
