@@ -89,7 +89,7 @@ export class CoverCryptHybridDecryption {
    * @param  {Uint8Array} ciphertext the encrypted data
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
-   * @returns the decrypted header metadata and the the plaintext value
+   * @returns the decrypted header metadata and the plaintext value
    */
   public decrypt(
     ciphertext: Uint8Array,

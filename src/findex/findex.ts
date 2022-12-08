@@ -134,7 +134,7 @@ export interface IndexedEntry {
  * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thibaud", "Thib" => "Thibaud", "Thiba" => "Thibaud", "Thibau" => "Thibaud"]
  *
  * @param keyword Generate aliases to this keyword
- * @param minChars Start at this number of caracters
+ * @param minChars Start at this number of characters
  * @returns IndexedEntry to add with upsert
  */
 export function generateAliases(
@@ -334,7 +334,7 @@ export async function Findex() {
      * @param {FetchChains} fetchChains callback to fetch the chains table
      * @param options Additional optional options to the search
      * @param options.maxResultsPerKeyword the maximum number of results per keyword
-     * @param options.maxGraphDepth automaticaly follow the nextwords to find only locations
+     * @param options.maxGraphDepth automatically follow the nextwords to find only locations
      * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
      * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
      */
