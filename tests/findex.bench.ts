@@ -13,7 +13,6 @@ import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
 import { randomBytes } from "crypto"
 
-
 describe("Wasm loading", async () => {
   bench("Load Findex functions", async () => {
     await Findex()

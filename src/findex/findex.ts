@@ -345,9 +345,9 @@ export async function Findex() {
       fetchEntries: FetchEntries,
       fetchChains: FetchChains,
       options: {
-        maxResultsPerKeyword?: number,
-        maxGraphDepth?: number,
-        progress?: Progress,
+        maxResultsPerKeyword?: number
+        maxGraphDepth?: number
+        progress?: Progress
       } = {},
     ): Promise<IndexedValue[]> => {
       // convert key to a single representation
@@ -361,14 +361,20 @@ export async function Findex() {
       }
 
       const progress_: Progress =
-        typeof options.progress === "undefined" ? async () => true : options.progress
+        typeof options.progress === "undefined"
+          ? async () => true
+          : options.progress
 
       const serializedIndexedValues = await webassembly_search(
         masterKey.bytes,
         label.bytes,
         kws,
-        typeof options.maxResultsPerKeyword === "undefined" ? 1000 : options.maxResultsPerKeyword,
-        typeof options.maxGraphDepth === "undefined" ? 1000 : options.maxGraphDepth,
+        typeof options.maxResultsPerKeyword === "undefined"
+          ? 1000
+          : options.maxResultsPerKeyword,
+        typeof options.maxGraphDepth === "undefined"
+          ? 1000
+          : options.maxGraphDepth,
         async (serializedIndexedValues: Uint8Array[]) => {
           const indexedValues = serializedIndexedValues.map((bytes) => {
             return new IndexedValue(bytes)
