@@ -370,7 +370,7 @@ export async function Findex() {
         label.bytes,
         kws,
         typeof options.maxResultsPerKeyword === "undefined"
-          ? 1000
+          ? 1000 * 1000
           : options.maxResultsPerKeyword,
         typeof options.maxGraphDepth === "undefined"
           ? 1000
