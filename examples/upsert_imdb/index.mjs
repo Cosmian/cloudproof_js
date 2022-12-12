@@ -68,40 +68,59 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
   const countEntryTable = dbIndex.prepare(`SELECT COUNT(*) as count FROM entry_table`);
   const countChainTable = dbIndex.prepare(`SELECT COUNT(*) as count FROM chain_table`);
 
+  const upsertIntoChainTableStmt = dbIndex.prepare(`INSERT OR REPLACE INTO chain_table (uid, value) VALUES(?, ?)`)
+  const upsertIntoEntryTableStmt = dbIndex.prepare(`INSERT INTO entry_table (uid, value) VALUES (?, ?)  ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`)
+  const selectOneEntryTableItemStmt = dbIndex.prepare(`SELECT value FROM entry_table WHERE uid = ?`)
+
+  const fetchMultipleEntryTableStmt = {};
+  const fetchMultipleChainTableStmt = {};
+
+  let fetchEntryTableCallbackCount = 0;
+  let fetchChainTableCallbackCount = 0;
+  let insertChainTableCallbackCount = 0;
+  let upsertEntryTableCallbackCount = 0;
+
   const fetchCallback = async (
       table,
       uids,
     ) => {
-      return dbIndex.prepare(`
-        SELECT uid, value
-        FROM ${table}
-        WHERE uid IN (${uids.map(() => "?").join(",")})
-      `).all(...uids);
+      let fetchMultipleStmt;
+      if (table === 'entry_table') {
+        fetchEntryTableCallbackCount++
+        fetchMultipleStmt = fetchMultipleEntryTableStmt[uids.length] || (fetchMultipleEntryTableStmt[uids.length] = dbIndex.prepare(`
+          SELECT uid, value
+          FROM entry_table
+          WHERE uid IN (${uids.map(() => "?").join(",")})
+        `))
+      } else {
+        fetchChainTableCallbackCount++
+        fetchMultipleStmt = fetchMultipleChainTableStmt[uids.length] || (fetchMultipleChainTableStmt[uids.length] = dbIndex.prepare(`
+          SELECT uid, value
+          FROM chain_table
+          WHERE uid IN (${uids.map(() => "?").join(",")})
+        `))
+      }
+      
+      return fetchMultipleStmt.all(...uids);
     }
     const insertCallback = async (
-      table,
       uidsAndValues,
     ) => {
-      const stmt = dbIndex.prepare(`INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`)
-
+      insertChainTableCallbackCount++
       for (const { uid, value } of uidsAndValues) {
-        stmt.run(uid, value);
+        upsertIntoChainTableStmt.run(uid, value);
       }
     }
     const upsertCallback = async (
-      table,
       uidsAndValues,
     ) => {
-      const insertStmt = dbIndex.prepare(`INSERT INTO ${table} (uid, value) VALUES (?, ?)  ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`)
-      const selectStmt = dbIndex.prepare(`SELECT value FROM ${table} WHERE uid = ?`)
+      upsertEntryTableCallbackCount++
 
       const rejected = []
-
-      
       for (const { uid, oldValue, newValue } of uidsAndValues) {
-        const changed = insertStmt.run(uid, newValue, newValue, oldValue);
+        const changed = upsertIntoEntryTableStmt.run(uid, newValue, newValue, oldValue);
         if (!changed) {
-          const valueInSqlite = selectStmt.get(uid)
+          const valueInSqlite = selectOneEntryTableItemStmt.get(uid)
           rejected.push({ uid, value: valueInSqlite })
         }
       }
@@ -121,7 +140,7 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
   let header = true;
   let toUpsert = [];
   // const indexedValuesByKeyword = {}
-  const MAX_UPSERT_LINES = 100;
+  const MAX_UPSERT_LINES = 10000;
   const APPROX_NUMBER_OF_LINES = 9427158;
 
   let globalLineIndex = 1
@@ -182,8 +201,8 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
         masterKey,
         label,
         async (uids) => await fetchCallback("entry_table", uids),
-        async (uidsAndValues) => await upsertCallback("entry_table", uidsAndValues),
-        async (uidsAndValues) => await insertCallback("chain_table", uidsAndValues),
+        async (uidsAndValues) => await upsertCallback(uidsAndValues),
+        async (uidsAndValues) => await insertCallback(uidsAndValues),
       )
       timeFindexLocal += performance.now() - insertFindexStart
   
@@ -218,6 +237,16 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
         const { count: entryTableCount } = countEntryTable.get()
         const { count: chainTableCount } = countChainTable.get()
 
+        console.log()
+        
+        console.log(`Callbacks Before Search:`);
+        console.log(`\tfetchEntryTableCallbackCount ${fetchEntryTableCallbackCount}`);
+        console.log(`\tfetchChainTableCallbackCount ${fetchChainTableCallbackCount}`);
+        console.log(`\tinsertChainTableCallbackCount ${insertChainTableCallbackCount}`);
+        console.log(`\tupsertEntryTableCallbackCount ${upsertEntryTableCallbackCount}`);
+
+        console.log()
+
         let findexResults;
         {
           const searchNow = performance.now()
@@ -228,18 +257,21 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
             label,
             async (uids) => await fetchCallback("entry_table", uids),
             async (uids) => await fetchCallback("chain_table", uids),
+            {
+              maxResultsPerKeyword: 1000,
+            },
           )
 
           findexResults = new Set(results.map((indexedLocation) => new TextDecoder().decode(indexedLocation.bytes.slice(1))))
   
-          console.log(`${findexResults.size} documentaries found with Findex in ${numberFormat((performance.now() - searchNow))}ms.`);
+          console.log(`${numberFormat(findexResults.size)} documentaries found with Findex in ${numberFormat((performance.now() - searchNow))}ms.`);
         }
         {
           const searchNow = performance.now()
 
-          const results = new Set(dbClear.prepare(`SELECT id FROM movies WHERE genre1 = 'Documentary' OR genre2 = 'Documentary' OR genre3 = 'Documentary'`).all().map(({ id }) => id));
+          const results = new Set(dbClear.prepare(`SELECT id FROM movies WHERE genre1 = 'Documentary' OR genre2 = 'Documentary' OR genre3 = 'Documentary' LIMIT 1000`).all().map(({ id }) => id));
 
-          console.log(`${results.size} documentaries found with no index in ${numberFormat((performance.now() - searchNow))}ms.`);
+          console.log(`${numberFormat(results.size)} documentaries found with no index in ${numberFormat((performance.now() - searchNow))}ms.`);
 
           // console.log(difference(results, findexResults));
         }
@@ -252,9 +284,9 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
         {
           const searchNow = performance.now()
 
-          const results = new Set(dbClearWithIndexes.prepare(`SELECT id FROM movies WHERE genre1 = 'Documentary' OR genre2 = 'Documentary' OR genre3 = 'Documentary'`).all().map(({ id }) => id));
+          const results = new Set(dbClearWithIndexes.prepare(`SELECT id FROM movies WHERE genre1 = 'Documentary' OR genre2 = 'Documentary' OR genre3 = 'Documentary' LIMIT 1000`).all().map(({ id }) => id));
   
-          console.log(`${results.size} documentaries found with cleartext index in ${numberFormat((performance.now() - searchNow))}ms.`);
+          console.log(`${numberFormat(results.size)} documentaries found with cleartext index in ${numberFormat((performance.now() - searchNow))}ms.`);
         }
 
         await dbClearWithIndexes.backup('database_clear_with_indexes.sqlite')
@@ -263,6 +295,15 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
         await dbIndex.backup('database_index.sqlite')
         const encryptedIndexSizeOnDisk = fs.statSync("database_index.sqlite").size
 
+        console.log()
+        
+        console.log(`Callbacks After Search:`);
+        console.log(`\tfetchEntryTableCallbackCount ${fetchEntryTableCallbackCount}`);
+        console.log(`\tfetchChainTableCallbackCount ${fetchChainTableCallbackCount}`);
+        console.log(`\tinsertChainTableCallbackCount ${insertChainTableCallbackCount}`);
+        console.log(`\tupsertEntryTableCallbackCount ${upsertEntryTableCallbackCount}`);
+
+      
         console.log()
 
         console.log(`${numberFormat(localLineIndex)} movies indexed:\n\tSQLite index in ${numberFormat(timeSqliteIndexLocal / 1000)}s\n\tFindex index in ${numberFormat(timeFindexLocal / 1000)}s`)
@@ -277,7 +318,7 @@ const NUMBER_OF_MOVIES = 100 * 1000 * 1000;
         }
 
         {
-          const theory = chainTableCount * (190 + 32)
+          const theory = chainTableCount * (32 + 28 + 5 * 34)
 
           const diff = (chainTableSize - theory) / theory
           console.log(`Table chain_table (${numberFormat(chainTableCount)} lines) is ${numberFormat(chainTableSize / 1024 / 1024)}MB (${numberFormat(theory / 1024 / 1024)}MB in theory, diff is ${percentageFormat(diff)})`)
