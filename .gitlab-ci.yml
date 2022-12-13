@@ -23,7 +23,6 @@ stages:
     - node --version
     - npm --version
     - apt install -y curl unzip
-    - ./download_wasm.sh
     - npm install
 
 eslint:
