@@ -72,7 +72,7 @@ let insertChainTableCallbackCount = 0;
 let upsertEntryTableCallbackCount = 0;
 
 // Number of movies to index (stop after this count)
-const NUMBER_OF_MOVIES = 10 * 1000;
+const NUMBER_OF_MOVIES = 100 * 1000;
 
 const USE_GRAPHS = true;
 

@@ -42,35 +42,35 @@ Cleartext indexes on disk are 16.01MB
 Encrypted indexes on disk are 64.73MB (x3.04)
 ```
 
-## Results after 0.1% processing (searching for documentaries, limit 1000, using graphs)
+## Results after 1% processing (searching for documentaries, limit 1000, using graphs)
 
 ```
 Callbacks Before Search:
-	fetchEntryTableCallbackCount 23
+	fetchEntryTableCallbackCount 102
 	fetchChainTableCallbackCount 0
-	insertChainTableCallbackCount 23
-	upsertEntryTableCallbackCount 23
+	insertChainTableCallbackCount 102
+	upsertEntryTableCallbackCount 102
 
-262 documentaries found with Findex in 3.69ms.
-262 documentaries found with no index in 1.58ms.
-262 documentaries found with cleartext index in 1.81ms.
+4,336 documentaries found with Findex in 45.3ms.
+1,000 documentaries found with no index in 4.31ms.
+1,000 documentaries found with cleartext index in 3.33ms.
 
 Callbacks After Search:
-	fetchEntryTableCallbackCount 24
-	fetchChainTableCallbackCount 63
-	insertChainTableCallbackCount 23
-	upsertEntryTableCallbackCount 23
+	fetchEntryTableCallbackCount 103
+	fetchChainTableCallbackCount 907
+	insertChainTableCallbackCount 102
+	upsertEntryTableCallbackCount 102
 
-10,562 movies indexed:
-	SQLite index in 0.07s
-	Findex index in 9.21s
-10,562 movies indexed in total (0.77MB on disk)
-	SQLite index in 0.07s
-	Findex index in 9.21s
+94,743 movies indexed:
+	SQLite index in 0.91s
+	Findex index in 66.39s
+94,743 movies indexed in total (7.16MB on disk)
+	SQLite index in 0.91s
+	Findex index in 66.39s
 
-Table entry_table (106,444 lines) is 14.21MB
-Table chain_table (139,230 lines) is 30.54MB
+Table entry_table (243,030 lines) is 32.45MB
+Table chain_table (579,221 lines) is 127.05MB
 
-Cleartext indexes on disk are 1.71MB
-Encrypted indexes on disk are 59.92MB (x34.1)
+Cleartext indexes on disk are 16.07MB
+Encrypted indexes on disk are 212.87MB (x12.24)
 ```
