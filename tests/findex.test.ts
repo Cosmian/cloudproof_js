@@ -570,9 +570,7 @@ test("generateAliases", async () => {
     expect(alias.indexedValue).toEqual(
       IndexedValue.fromNextWord(Keyword.fromUtf8String(to)),
     )
-    expect(alias.keywords).toEqual(
-      new Set([Keyword.fromUtf8String(from)]),
-    )
+    expect(alias.keywords).toEqual(new Set([Keyword.fromUtf8String(from)]))
   }
 
   {

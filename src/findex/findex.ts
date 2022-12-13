@@ -145,18 +145,17 @@ export function generateAliases(
 ): IndexedEntry[] {
   const entries = []
 
-  const endIndex = (maxChars + 1) > keyword.length ? keyword.length : (maxChars + 1);
+  const endIndex = maxChars + 1 > keyword.length ? keyword.length : maxChars + 1
 
   for (let charsIndex = minChars; charsIndex < endIndex; charsIndex++) {
     const from = keyword.slice(0, charsIndex)
 
     // If we are at the last loop, target the original keyword
-    const to = charsIndex === endIndex - 1 ? keyword : keyword.slice(0, charsIndex + 1);
+    const to =
+      charsIndex === endIndex - 1 ? keyword : keyword.slice(0, charsIndex + 1)
 
     entries.push({
-      indexedValue: IndexedValue.fromNextWord(
-        Keyword.fromUtf8String(to),
-      ),
+      indexedValue: IndexedValue.fromNextWord(Keyword.fromUtf8String(to)),
       keywords: new Set([Keyword.fromUtf8String(from)]),
     })
   }
