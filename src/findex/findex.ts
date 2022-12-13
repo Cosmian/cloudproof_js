@@ -131,21 +131,28 @@ export interface IndexedEntry {
 
 /**
  * Generates aliases for a keyword to use in upsert
- * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thibaud", "Thib" => "Thibaud", "Thiba" => "Thibaud", "Thibau" => "Thibaud"]
+ * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thib", "Thib" => "Thiba", "Thiba" => "Thibau", "Thibau" => "Thibaud"]
  *
  * @param keyword Generate aliases to this keyword
  * @param minChars Start at this number of characters
+ * @param maxChars Do not generate alias of greater length than maxChars, last alias will target the original keyword
  * @returns IndexedEntry to add with upsert
  */
 export function generateAliases(
   keyword: string,
   minChars: number = 3,
+  maxChars: number = 8,
 ): IndexedEntry[] {
   const entries = []
 
-  for (let charsIndex = minChars; charsIndex < keyword.length; charsIndex++) {
+  const endIndex = (maxChars + 1) > keyword.length ? keyword.length : (maxChars + 1);
+
+  for (let charsIndex = minChars; charsIndex < endIndex; charsIndex++) {
     const from = keyword.slice(0, charsIndex)
-    const to = keyword.slice(0, charsIndex + 1)
+
+    // If we are at the last loop, target the original keyword
+    const to = charsIndex === endIndex - 1 ? keyword : keyword.slice(0, charsIndex + 1);
+
     entries.push({
       indexedValue: IndexedValue.fromNextWord(
         Keyword.fromUtf8String(to),

@@ -566,29 +566,24 @@ async function run(
 }
 
 test("generateAliases", async () => {
+  const checkAlias = (alias: IndexedEntry, from: string, to: string): void => {
+    expect(alias.indexedValue).toEqual(
+      IndexedValue.fromNextWord(Keyword.fromUtf8String(to)),
+    )
+    expect(alias.keywords).toEqual(
+      new Set([Keyword.fromUtf8String(from)]),
+    )
+  }
+
   {
     const aliases = generateAliases("Thibaud")
 
     expect(aliases.length).toEqual(4)
 
-    for (const alias of aliases) {
-      expect(alias.indexedValue).toEqual(
-        IndexedValue.fromNextWord(Keyword.fromUtf8String("Thibaud")),
-      )
-    }
-
-    expect(aliases[0].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thi")]),
-    )
-    expect(aliases[1].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thib")]),
-    )
-    expect(aliases[2].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thiba")]),
-    )
-    expect(aliases[3].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thibau")]),
-    )
+    checkAlias(aliases[0], "Thi", "Thib")
+    checkAlias(aliases[1], "Thib", "Thiba")
+    checkAlias(aliases[2], "Thiba", "Thibau")
+    checkAlias(aliases[3], "Thibau", "Thibaud")
   }
 
   {
@@ -596,18 +591,18 @@ test("generateAliases", async () => {
 
     expect(aliases.length).toEqual(2)
 
-    for (const alias of aliases) {
-      expect(alias.indexedValue).toEqual(
-        IndexedValue.fromNextWord(Keyword.fromUtf8String("Thibaud")),
-      )
-    }
+    checkAlias(aliases[0], "Thiba", "Thibau")
+    checkAlias(aliases[1], "Thibau", "Thibaud")
+  }
 
-    expect(aliases[0].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thiba")]),
-    )
-    expect(aliases[1].keywords).toEqual(
-      new Set([Keyword.fromUtf8String("Thibau")]),
-    )
+  {
+    const aliases = generateAliases("Thibaud", 3, 5)
+
+    expect(aliases.length).toEqual(3)
+
+    checkAlias(aliases[0], "Thi", "Thib")
+    checkAlias(aliases[1], "Thib", "Thiba")
+    checkAlias(aliases[2], "Thiba", "Thibaud")
   }
 })
 
