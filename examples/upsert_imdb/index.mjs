@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { IndexedValue, Location, Keyword, Findex, FindexKey, Label } from "cloudproof_js"
+import { IndexedValue, Location, Keyword, Findex, FindexKey, Label, generateAliases } from "cloudproof_js"
 import path from 'path';
 import {fileURLToPath} from 'url';
 import { randomBytes } from "crypto"
@@ -72,7 +72,9 @@ let insertChainTableCallbackCount = 0;
 let upsertEntryTableCallbackCount = 0;
 
 // Number of movies to index (stop after this count)
-const NUMBER_OF_MOVIES = 100 * 1000;
+const NUMBER_OF_MOVIES = 10 * 1000;
+
+const USE_GRAPHS = true;
 
 // Number of movies to index in a single `upsert` call
 const MAX_UPSERT_LINES = 10 * 1000;
@@ -130,6 +132,10 @@ for await (const line of rl) {
     indexedValue: IndexedValue.fromLocation(Location.fromUtf8String(info[0])),
     keywords: new Set(keywords.map((keyword) => Keyword.fromUtf8String(keyword))),
   })
+
+  if (USE_GRAPHS) {
+    toUpsert = [...toUpsert, ...generateAliases(info[2])];
+  }
 
   const percentage = numberOfMoviesIndexedSoFar / NUMBER_OF_MOVIES_INSIDE_TSV;
   const percentageToShow = formatPercentage(percentage);

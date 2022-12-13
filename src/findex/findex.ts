@@ -142,15 +142,15 @@ export function generateAliases(
   minChars: number = 3,
 ): IndexedEntry[] {
   const entries = []
-  const indexedValue = IndexedValue.fromNextWord(
-    Keyword.fromUtf8String(keyword),
-  )
 
   for (let charsIndex = minChars; charsIndex < keyword.length; charsIndex++) {
-    const substring = keyword.slice(0, charsIndex)
+    const from = keyword.slice(0, charsIndex)
+    const to = keyword.slice(0, charsIndex + 1)
     entries.push({
-      indexedValue,
-      keywords: new Set([Keyword.fromUtf8String(substring)]),
+      indexedValue: IndexedValue.fromNextWord(
+        Keyword.fromUtf8String(to),
+      ),
+      keywords: new Set([Keyword.fromUtf8String(from)]),
     })
   }
 
