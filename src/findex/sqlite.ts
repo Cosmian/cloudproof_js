@@ -46,8 +46,11 @@ export function callbacksExamplesBetterSqlite3(db: Database): {
   const fetchMultipleEntriesTableStmt: { [id: number]: Statement } = {}
   const fetchMultipleChainsTableStmt: { [id: number]: Statement } = {}
 
-  const prepareFetchMultipleQuery = (table: "entries" | "chains", numberOfUids: number): Statement => {
-    let cache;
+  const prepareFetchMultipleQuery = (
+    table: "entries" | "chains",
+    numberOfUids: number,
+  ): Statement => {
+    let cache
     if (table === "entries") {
       cache = fetchMultipleEntriesTableStmt
     } else {
@@ -72,7 +75,9 @@ export function callbacksExamplesBetterSqlite3(db: Database): {
     table: "entries" | "chains",
     uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
-    return prepareFetchMultipleQuery(table, uids.length).all(...uids) as UidsAndValues
+    return prepareFetchMultipleQuery(table, uids.length).all(
+      ...uids,
+    ) as UidsAndValues
   }
 
   const upsertEntries = async (

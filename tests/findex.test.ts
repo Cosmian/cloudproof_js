@@ -16,95 +16,29 @@ import {
   KeywordIndexEntry,
   generateAliases,
   callbacksExamplesBetterSqlite3,
+  callbacksExamplesInMemory,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
 import { createClient, defineScript } from "redis"
-import { hexEncode } from "../src/utils/utils"
 import { randomBytes } from "crypto"
 import Database from "better-sqlite3"
 
 test("in memory", async () => {
-  const entryTable: UidsAndValues = []
-  const chainTable: UidsAndValues = []
-
-  const fetchCallback = async (
-    table: UidsAndValues,
-    uids: Uint8Array[],
-  ): Promise<UidsAndValues> => {
-    const results: UidsAndValues = []
-    for (const requestedUid of uids) {
-      for (const { uid, value } of table) {
-        if (bytesEquals(uid, requestedUid)) {
-          results.push({ uid, value })
-          break
-        }
-      }
-    }
-    return results
-  }
-  const upsertCallback = async (
-    table: UidsAndValues,
-    uidsAndValues: UidsAndValuesToUpsert,
-  ): Promise<UidsAndValues> => {
-    const rejected = [] as UidsAndValues
-    uidsAndValuesLoop: for (const {
-      uid: newUid,
-      oldValue,
-      newValue,
-    } of uidsAndValues) {
-      for (const tableEntry of table) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          if (bytesEquals(tableEntry.value, oldValue)) {
-            tableEntry.value = newValue
-          } else {
-            rejected.push(tableEntry)
-          }
-          continue uidsAndValuesLoop
-        }
-      }
-
-      // The uid doesn't exist yet.
-      if (oldValue !== null) {
-        throw new Error(
-          "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
-        )
-      }
-
-      table.push({ uid: newUid, value: newValue })
-    }
-
-    return rejected
-  }
-  const insertCallback = async (
-    table: UidsAndValues,
-    uidsAndValues: UidsAndValues,
-  ): Promise<void> => {
-    for (const { uid: newUid, value: newValue } of uidsAndValues) {
-      for (const tableEntry of table) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          tableEntry.value = newValue
-          break
-        }
-      }
-
-      // The uid doesn't exist yet.
-      table.push({ uid: newUid, value: newValue })
-    }
-  }
+  const callbacks = callbacksExamplesInMemory()
 
   await run(
-    async (uids) => await fetchCallback(entryTable, uids),
-    async (uids) => await fetchCallback(chainTable, uids),
-    async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-    async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
+    callbacks.upsertEntries,
+    callbacks.insertChains,
   )
 })
 
 test.only("SQLite", async () => {
   const db = new Database(":memory:")
 
-  const callbacks = callbacksExamplesBetterSqlite3(db);
+  const callbacks = callbacksExamplesBetterSqlite3(db)
 
   await run(
     callbacks.fetchEntries,
@@ -275,7 +209,7 @@ async function run(
       )
 
       expect(results.length).toEqual(1)
-      expect(results[0]).toEqual(Location.fromUuid(USERS[0].id))
+      expect(results[0].toUuidString()).toEqual(USERS[0].id)
     }
   }
 
@@ -335,7 +269,7 @@ async function run(
         )
 
         expect(results.length).toEqual(1)
-        expect(results[0]).toEqual(Location.fromUuid(USERS[0].id))
+        expect(results[0].toUuidString()).toEqual(USERS[0].id)
       }
     }
 
@@ -451,69 +385,23 @@ test("upsert and search memory", async () => {
   const masterKey = new FindexKey(randomBytes(32))
 
   const label = new Label("test")
-
-  const entryTable: { [uid: string]: Uint8Array } = {}
-  const chainTable: { [uid: string]: Uint8Array } = {}
-
-  const fetchEntries: FetchEntries = async (
-    uids: Uint8Array[],
-  ): Promise<UidsAndValues> => {
-    const results: UidsAndValues = []
-    for (const uid of uids) {
-      const value = entryTable[hexEncode(uid)]
-      if (typeof value !== "undefined") {
-        results.push({ uid, value })
-      }
-    }
-    return await Promise.resolve(results)
-  }
-
-  const fetchChains: FetchChains = async (
-    uids: Uint8Array[],
-  ): Promise<UidsAndValues> => {
-    const results: UidsAndValues = []
-    for (const uid of uids) {
-      const value = chainTable[hexEncode(uid)]
-      if (typeof value !== "undefined") {
-        results.push({ uid, value })
-      }
-    }
-    return await Promise.resolve(results)
-  }
-
-  const upsertEntries: UpsertEntries = async (
-    uidsAndValues: UidsAndValuesToUpsert,
-  ): Promise<UidsAndValues> => {
-    for (const { uid, newValue } of uidsAndValues) {
-      entryTable[hexEncode(uid)] = newValue
-    }
-    return await Promise.resolve([])
-  }
-
-  const insertChains: InsertChains = async (
-    uidsAndValues: UidsAndValues,
-  ): Promise<void> => {
-    for (const { uid, value } of uidsAndValues) {
-      chainTable[hexEncode(uid)] = value
-    }
-    return await Promise.resolve()
-  }
+  const callbacks = callbacksExamplesInMemory()
 
   await findex.upsert(
     [entryLocation, entryKeyword, arrayLocation],
     masterKey,
     label,
-    fetchEntries,
-    upsertEntries,
-    insertChains,
+    callbacks.fetchEntries,
+    callbacks.upsertEntries,
+    callbacks.insertChains,
   )
 
   const results0 = await findex.rawSearch(
     new Set(["ROBERT"]),
     masterKey,
     label,
-    fetchEntries,
-    fetchChains,
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
   )
   expect(results0.length).toEqual(2)
 
@@ -521,8 +409,8 @@ test("upsert and search memory", async () => {
     new Set([new TextEncoder().encode("ROBERT")]),
     masterKey,
     label,
-    fetchEntries,
-    fetchChains,
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
   )
   expect(results1.length).toEqual(2)
 
@@ -530,21 +418,8 @@ test("upsert and search memory", async () => {
     new Set(["BOB"]),
     masterKey,
     label,
-    fetchEntries,
-    fetchChains,
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
   )
   expect(results2.length).toEqual(2)
 })
-
-/**
- * @param a one Uint8Array
- * @param b one Uint8Array
- * @returns is equals
- */
-function bytesEquals(a: Uint8Array | null, b: Uint8Array | null): boolean {
-  if (a === null && b === null) return true
-  if (a === null) return false
-  if (b === null) return false
-
-  return Buffer.from(a).toString("base64") === Buffer.from(b).toString("base64")
-}

@@ -4,9 +4,10 @@ import init, {
 } from "../pkg/findex/cosmian_findex"
 
 import { SymmetricKey } from "../kms/structs/objects"
-import { parse as parseUuid } from "uuid"
+import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
 
 export * from "./sqlite"
+export * from "./in_memory"
 
 let initialized: Promise<void> | undefined
 
@@ -92,6 +93,10 @@ export class Location {
 
   toString(): string {
     return new TextDecoder().decode(this.bytes)
+  }
+
+  toUuidString(): string {
+    return stringifyUuid(this.bytes)
   }
 }
 export class Keyword {
@@ -324,29 +329,33 @@ export async function Findex() {
       masterKey = new FindexKey(masterKey.bytes())
     }
 
-    const indexedValuesAndWords = newIndexedEntries.map(({ indexedValue, keywords}) => {
-      let indexedValueBytes;
-      if (indexedValue instanceof IndexedValue) {
-        indexedValueBytes = indexedValue.bytes
-      } else if  (indexedValue instanceof Location) {
-        indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
-      } else if  (indexedValue instanceof Keyword) {
-        indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
-      } else {
-        throw new Error(`Wrong indexedValue type ${JSON.stringify(indexedValue)}`)
-      }
+    const indexedValuesAndWords = newIndexedEntries.map(
+      ({ indexedValue, keywords }) => {
+        let indexedValueBytes
+        if (indexedValue instanceof IndexedValue) {
+          indexedValueBytes = indexedValue.bytes
+        } else if (indexedValue instanceof Location) {
+          indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
+        } else if (indexedValue instanceof Keyword) {
+          indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
+        } else {
+          throw new Error(
+            `Wrong indexedValue type ${JSON.stringify(indexedValue)}`,
+          )
+        }
 
-      return {
-        indexedValue: indexedValueBytes,
-        keywords: [...keywords].map((keyword) => {
-          if (keyword instanceof Keyword) {
-            return keyword.bytes
-          } else {
-            return Keyword.fromUtf8String(keyword).bytes
-          }
-        })
-      }
-    })
+        return {
+          indexedValue: indexedValueBytes,
+          keywords: [...keywords].map((keyword) => {
+            if (keyword instanceof Keyword) {
+              return keyword.bytes
+            } else {
+              return Keyword.fromUtf8String(keyword).bytes
+            }
+          }),
+        }
+      },
+    )
 
     return await webassembly_upsert(
       masterKey.bytes,

@@ -5,9 +5,8 @@ import {
   IndexedValue,
   Keyword,
   Label,
-  UidsAndValues,
   Location,
-  UidsAndValuesToUpsert,
+  callbacksExamplesInMemory,
 } from ".."
 import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
@@ -23,68 +22,9 @@ const findex = await Findex()
 const masterKey = new FindexKey(randomBytes(32))
 const label = new Label(randomBytes(10))
 
-const fetchCallback = async (
-  table: UidsAndValues,
-  uids: Uint8Array[],
-): Promise<UidsAndValues> => {
-  const results: UidsAndValues = []
-  for (const requestedUid of uids) {
-    for (const { uid, value } of table) {
-      if (
-        Buffer.from(uid).toString("base64") ===
-        Buffer.from(requestedUid).toString("base64")
-      ) {
-        results.push({ uid, value })
-        break
-      }
-    }
-  }
-  return results
-}
-const upsertCallback = async (
-  table: UidsAndValues,
-  uidsAndValues: UidsAndValuesToUpsert,
-): Promise<UidsAndValues> => {
-  for (const { uid: newUid, newValue } of uidsAndValues) {
-    for (const tableEntry of table) {
-      if (
-        Buffer.from(tableEntry.uid).toString("base64") ===
-        Buffer.from(newUid).toString("base64")
-      ) {
-        tableEntry.value = newValue
-        break
-      }
-    }
-
-    // The uid doesn't exist yet.
-    table.push({ uid: newUid, value: newValue })
-  }
-  return []
-}
-const insertCallback = async (
-  table: UidsAndValues,
-  uidsAndValues: UidsAndValues,
-): Promise<void> => {
-  for (const { uid: newUid, value: newValue } of uidsAndValues) {
-    for (const tableEntry of table) {
-      if (
-        Buffer.from(tableEntry.uid).toString("base64") ===
-        Buffer.from(newUid).toString("base64")
-      ) {
-        tableEntry.value = newValue
-        break
-      }
-    }
-
-    // The uid doesn't exist yet.
-    table.push({ uid: newUid, value: newValue })
-  }
-}
-
 describe("Findex Upsert", async () => {
   bench("Upsert 10 users", async () => {
-    const entryTable: UidsAndValues = []
-    const chainTable: UidsAndValues = []
+    const callbacks = callbacksExamplesInMemory()
 
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS.slice(0, 10)) {
@@ -101,15 +41,14 @@ describe("Findex Upsert", async () => {
       newIndexedEntries,
       masterKey,
       label,
-      async (uids) => await fetchCallback(entryTable, uids),
-      async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-      async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
+      callbacks.fetchEntries,
+      callbacks.upsertEntries,
+      callbacks.insertChains,
     )
   })
 
   bench("Upsert 99 users", async () => {
-    const entryTable: UidsAndValues = []
-    const chainTable: UidsAndValues = []
+    const callbacks = callbacksExamplesInMemory()
 
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
@@ -126,16 +65,15 @@ describe("Findex Upsert", async () => {
       newIndexedEntries,
       masterKey,
       label,
-      async (uids) => await fetchCallback(entryTable, uids),
-      async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-      async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
+      callbacks.fetchEntries,
+      callbacks.upsertEntries,
+      callbacks.insertChains,
     )
   })
 })
 
 describe("Findex Search", async () => {
-  const entryTable: UidsAndValues = []
-  const chainTable: UidsAndValues = []
+  const callbacks = callbacksExamplesInMemory()
 
   const newIndexedEntries: IndexedEntry[] = []
   for (const user of USERS) {
@@ -152,9 +90,9 @@ describe("Findex Search", async () => {
     newIndexedEntries,
     masterKey,
     label,
-    async (uids) => await fetchCallback(entryTable, uids),
-    async (uidsAndValues) => await upsertCallback(entryTable, uidsAndValues),
-    async (uidsAndValues) => await insertCallback(chainTable, uidsAndValues),
+    callbacks.fetchEntries,
+    callbacks.upsertEntries,
+    callbacks.insertChains,
   )
 
   bench("Search", async () => {
@@ -162,8 +100,8 @@ describe("Findex Search", async () => {
       new Set([USERS[0].firstName]),
       masterKey,
       label,
-      async (uids) => await fetchCallback(entryTable, uids),
-      async (uids) => await fetchCallback(chainTable, uids),
+      callbacks.fetchEntries,
+      callbacks.fetchChains,
     )
   })
 })
