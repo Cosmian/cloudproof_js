@@ -5,9 +5,7 @@ import {
   FindexKey,
   type UidsAndValues,
   Label,
-  IndexedValue,
   Location,
-  Keyword,
   CoverCrypt,
   KmsClient,
   UidsAndValuesToUpsert,
@@ -380,16 +378,14 @@ function App() {
       users.flatMap((user) => {
         return [
           {
-            indexedValue: IndexedValue.fromLocation(
-              new Location(Uint8Array.from([user.id])),
-            ),
-            keywords: new Set([
-              Keyword.fromUtf8String(user.first),
-              Keyword.fromUtf8String(user.last),
-              Keyword.fromUtf8String(user.country),
-              Keyword.fromUtf8String(user.email),
-              Keyword.fromUtf8String(user.project.toString()),
-            ]),
+            indexedValue: Location.fromUtf8String(user.id.toString()),
+            keywords: [
+              user.first,
+              user.last,
+              user.country,
+              user.email,
+              user.project.toString(),
+            ],
           },
           ...(usingGraphs ? [
               // Not required to generate aliases for all fields, you can choose which one you want to alias
@@ -594,9 +590,9 @@ function App() {
       .filter((keyword) => keyword)
     if (keywords.length === 0) return
 
-    let indexedValues: Array<IndexedValue> | null = null
+    let locations: Array<Location> | null = null
     if (doOr) {
-      indexedValues = await search(
+      locations = await search(
         new Set(keywords),
         masterKey,
         FINDEX_LABEL,
@@ -605,7 +601,7 @@ function App() {
       )
     } else {
       for (const keyword of keywords) {
-        const newIndexedValues = await search(
+        const newLocations = await search(
           new Set([keyword]),
           masterKey,
           FINDEX_LABEL,
@@ -613,16 +609,16 @@ function App() {
           async (uids) => await fetchCallback("chains", uids),
         )
 
-        if (indexedValues === null) {
-          indexedValues = newIndexedValues
+        if (locations === null) {
+          locations = newLocations
         } else {
-          indexedValues = indexedValues.filter(
-            (alreadyReturnedIndexedValue) => {
-              for (let newIndexedValue of newIndexedValues) {
+          locations = locations.filter(
+            (alreadyReturnedLocation) => {
+              for (let newLocation of newLocations) {
                 if (
                   uint8ArrayEquals(
-                    newIndexedValue.bytes,
-                    alreadyReturnedIndexedValue.bytes,
+                    newLocation.bytes,
+                    alreadyReturnedLocation.bytes,
                   )
                 ) {
                   return true
@@ -636,12 +632,12 @@ function App() {
       }
     }
 
-    if (indexedValues === null)
+    if (locations === null)
       throw Error("Indexed values cannot be null when a query is provided")
 
     let results = []
-    for (const indexedValue of indexedValues) {
-      let userId = indexedValue.bytes[1]
+    for (const location of locations) {
+      const userId = parseInt(location.toString())
       let encryptedUser = encryptedUsers.find(
         (encryptedUser) => encryptedUser.id === userId,
       )

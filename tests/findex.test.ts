@@ -35,7 +35,7 @@ test("in memory", async () => {
   )
 })
 
-test.only("SQLite", async () => {
+test("SQLite", async () => {
   const db = new Database(":memory:")
 
   const callbacks = callbacksExamplesBetterSqlite3(db)
