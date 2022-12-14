@@ -92,6 +92,8 @@ example_imdb:
   extends: .services
   stage: test
   script:
+    - curl https://datasets.imdbws.com/title.basics.tsv.gz --output imdb.tsv.gz
+    - gzip -d imdb.tsv.gz
     - cd examples/nodejs_search_imdb
     - npm install
     - node test.mjs
