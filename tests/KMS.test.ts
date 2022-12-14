@@ -156,7 +156,7 @@ test(
     )
   },
   {
-    timeout: 20 * 1000,
+    timeout: 30 * 1000,
   },
 )
 
@@ -220,7 +220,7 @@ test(
     await client.destroySymmetricKey(uniqueIdentifier)
   },
   {
-    timeout: 20 * 1000,
+    timeout: 30 * 1000,
   },
 )
 
@@ -404,7 +404,7 @@ test(
     }
   },
   {
-    timeout: 20 * 1000,
+    timeout: 30 * 1000,
   },
 )
 
@@ -478,7 +478,7 @@ test(
     // }).rejects.toThrow()
   },
   {
-    timeout: 20 * 1000,
+    timeout: 30 * 1000,
   },
 )
 

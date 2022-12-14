@@ -9,15 +9,6 @@ function getObject(idx) { return heap[idx]; }
 
 let heap_next = heap.length;
 
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
 function dropObject(idx) {
     if (idx < 36) return;
     heap[idx] = heap_next;
@@ -28,6 +19,15 @@ function takeObject(idx) {
     const ret = getObject(idx);
     dropObject(idx);
     return ret;
+}
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
 }
 
 const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
@@ -205,51 +205,18 @@ function __wbg_adapter_26(arg0, arg1, arg2) {
 }
 
 /**
-* Upsert a map of IndexedValue -> [Keywords] in the encrypted index
+* Index the given values for the given keywords. After upserting, any search
+* for such a keyword will result in finding (at least) the corresponding
+* value.
 *
 * # Parameters
-* - `search_key`  : the search key (a.k.a `k`) bytes
-* - `update_key`  : the update key (a.k.a `k*`) bytes
-* - `label`       : the public label bytes
-* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed
-*   keywords bytes
-* - `fetch_entries` : the callback to fetch from the entry table
-* - `upsert_entries`: the callback to insert/update in the entry table
-* - `upsert_chains` : the callback to insert/update in the chain table
-* @param {Uint8Array} master_key
-* @param {Uint8Array} label_bytes
-* @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_and_words
-* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
-* @param {(uidsAndValues: {uid: Uint8Array, oldValue: Uint8Array | null, newValue: Uint8Array}[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} upsert_entries
-* @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} upsert_chains
-* @returns {Promise<void>}
-*/
-export function webassembly_upsert(master_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entries, upsert_chains) {
-    const ret = wasm.webassembly_upsert(addHeapObject(master_key), addHeapObject(label_bytes), addHeapObject(indexed_values_and_words), addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(upsert_chains));
-    return takeObject(ret);
-}
-
-/**
-* Build the graph of a `Word` and upsert it.
 *
-* A graph is built with the sub-words starting from 3 letters.
-* If the `Word` is smaller than 3, the graph
-* will be empty.
-*
-* Graph example for `robert`: `rob` -> `robe` -> `rober` -> `robert`
-*
-* *Note*: the `Location` associated to the `Word` needs to be upserted
-* using a regular upsert.
-*
-* # Parameters
-* - `search_key`  : the search key (a.k.a `k`) bytes
-* - `update_key`  : the update key (a.k.a `k*`) bytes
-* - `label`       : the public label bytes
-* - `indexed_values_and_words`: a map of IndexedValues bytes to their indexed
-*   keywords bytes
-* - `fetch_entries` : the callback to fetch from the entry table
-* - `upsert_entries`: the callback to insert/update in the entry table
-* - `upsert_chains` : the callback to insert/update in the chain table
+* - `master_key`                  : master key
+* - `label_bytes`                 : public label used for hashing
+* - `indexed_value_to_keywords`   : map of `IndexedValue`s to `KeyWord` bytes
+* - `fetch_entries`               : the callback to fetch from the entry table
+* - `upsert_entries`              : the callback to upsert in the entry table
+* - `insert_chains`               : the callback to insert in the chain table
 * @param {Uint8Array} master_key
 * @param {Uint8Array} label_bytes
 * @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_and_words
@@ -258,36 +225,36 @@ export function webassembly_upsert(master_key, label_bytes, indexed_values_and_w
 * @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} insert_chains
 * @returns {Promise<void>}
 */
-export function webassembly_graph_upsert(master_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entries, insert_chains) {
-    const ret = wasm.webassembly_graph_upsert(addHeapObject(master_key), addHeapObject(label_bytes), addHeapObject(indexed_values_and_words), addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(insert_chains));
+export function webassembly_upsert(master_key, label_bytes, indexed_values_and_words, fetch_entries, upsert_entries, insert_chains) {
+    const ret = wasm.webassembly_upsert(addHeapObject(master_key), addHeapObject(label_bytes), addHeapObject(indexed_values_and_words), addHeapObject(fetch_entries), addHeapObject(upsert_entries), addHeapObject(insert_chains));
     return takeObject(ret);
 }
 
 /**
-* Search Keywords in the index, returning a list of IndexedValues
+* Recursively searches Findex graphs for values indexed by the given keywords.
 *
 * # Parameters
-* - `search_key`    : the search key (a.k.a `k`) bytes
-* - `label`         : the public label bytes
-* - `keywords`      : a list of keyword (bytes) to search
-* - `max_results_per_word`: the maximum results returned for a keyword
-* - `max_depth`: the maximum depth the search graph will be walked
-* - `progress` : the progress callback called as a graph is walked; returning
-*   `false` stops the walk
-* - `fetch_entries` : the callback to fetch from the entry table
-* - `fetch_chains` : the callback to fetch from the chain table
+*
+* - `master_key`              : master key
+* - `label_bytes`             : bytes of the public label used for hashing
+* - `keywords`                : list of keyword bytes to search
+* - `max_results_per_keyword` : maximum results returned for a keyword
+* - `max_depth`               : maximum recursion level allowed
+* - `progress`                : progress callback
+* - `fetch_entries`           : callback to fetch from the Entry Table
+* - `fetch_chains`            : callback to fetch from the Chain Table
 * @param {Uint8Array} master_key
 * @param {Uint8Array} label_bytes
 * @param {Array<Uint8Array>} keywords
-* @param {number} max_results_per_word
+* @param {number} max_results_per_keyword
 * @param {number} max_depth
 * @param {(indexedValues: Uint8Array[]) => Promise<Boolean>} progress
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_chains
 * @returns {Promise<Array<Uint8Array>>}
 */
-export function webassembly_search(master_key, label_bytes, keywords, max_results_per_word, max_depth, progress, fetch_entries, fetch_chains) {
-    const ret = wasm.webassembly_search(addHeapObject(master_key), addHeapObject(label_bytes), addHeapObject(keywords), max_results_per_word, max_depth, addHeapObject(progress), addHeapObject(fetch_entries), addHeapObject(fetch_chains));
+export function webassembly_search(master_key, label_bytes, keywords, max_results_per_keyword, max_depth, progress, fetch_entries, fetch_chains) {
+    const ret = wasm.webassembly_search(addHeapObject(master_key), addHeapObject(label_bytes), addHeapObject(keywords), max_results_per_keyword, max_depth, addHeapObject(progress), addHeapObject(fetch_entries), addHeapObject(fetch_chains));
     return takeObject(ret);
 }
 
@@ -302,7 +269,7 @@ function handleError(f, args) {
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function __wbg_adapter_76(arg0, arg1, arg2, arg3) {
+function __wbg_adapter_75(arg0, arg1, arg2, arg3) {
     wasm.__wbindgen_export_5(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
@@ -340,16 +307,8 @@ async function load(module, imports) {
 function getImports() {
     const imports = {};
     imports.wbg = {};
-    imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
-        const ret = getObject(arg0);
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
-    };
-    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-        const ret = getStringFromWasm0(arg0, arg1);
-        return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cb_drop = function(arg0) {
         const obj = takeObject(arg0).original;
@@ -360,11 +319,25 @@ function getImports() {
         const ret = false;
         return ret;
     };
+    imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
+        const ret = getObject(arg0);
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbindgen_boolean_get = function(arg0) {
         const v = getObject(arg0);
         const ret = typeof(v) === 'boolean' ? (v ? 1 : 0) : 2;
         return ret;
     };
+    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+        const ret = getStringFromWasm0(arg0, arg1);
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbg_randomFillSync_6894564c2c334c42 = function() { return handleError(function (arg0, arg1, arg2) {
+        getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
+    }, arguments) };
+    imports.wbg.__wbg_getRandomValues_805f1c3d65988a5a = function() { return handleError(function (arg0, arg1) {
+        getObject(arg0).getRandomValues(getObject(arg1));
+    }, arguments) };
     imports.wbg.__wbg_crypto_e1d53a1d73fb10b8 = function(arg0) {
         const ret = getObject(arg0).crypto;
         return addHeapObject(ret);
@@ -402,12 +375,6 @@ function getImports() {
         const ret = typeof(getObject(arg0)) === 'function';
         return ret;
     };
-    imports.wbg.__wbg_getRandomValues_805f1c3d65988a5a = function() { return handleError(function (arg0, arg1) {
-        getObject(arg0).getRandomValues(getObject(arg1));
-    }, arguments) };
-    imports.wbg.__wbg_randomFillSync_6894564c2c334c42 = function() { return handleError(function (arg0, arg1, arg2) {
-        getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
-    }, arguments) };
     imports.wbg.__wbg_get_57245cc7d7c7619d = function(arg0, arg1) {
         const ret = getObject(arg0)[arg1 >>> 0];
         return addHeapObject(ret);
@@ -498,7 +465,7 @@ function getImports() {
                 const a = state0.a;
                 state0.a = 0;
                 try {
-                    return __wbg_adapter_76(a, state0.b, arg0, arg1);
+                    return __wbg_adapter_75(a, state0.b, arg0, arg1);
                 } finally {
                     state0.a = a;
                 }
@@ -566,8 +533,8 @@ function getImports() {
         const ret = wasm.memory;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbindgen_closure_wrapper276 = function(arg0, arg1, arg2) {
-        const ret = makeMutClosure(arg0, arg1, 60, __wbg_adapter_26);
+    imports.wbg.__wbindgen_closure_wrapper261 = function(arg0, arg1, arg2) {
+        const ret = makeMutClosure(arg0, arg1, 59, __wbg_adapter_26);
         return addHeapObject(ret);
     };
 
