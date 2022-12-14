@@ -232,7 +232,7 @@ async function run(
     await findex.upsert(
       [
         {
-          indexedValue: Keyword.fromUtf8String(USERS[0].firstName),
+          indexedValue: Keyword.fromString(USERS[0].firstName),
           keywords: ["SomeAlias"],
         },
         ...generateAliases("SomeAlias"),
@@ -288,7 +288,7 @@ async function run(
         return findex.upsert(
           [
             {
-              indexedValue: Location.fromUtf8String(index.toString()),
+              indexedValue: Location.fromString(index.toString()),
               keywords: ["Concurrent"],
             },
           ],
@@ -316,9 +316,9 @@ async function run(
 test("generateAliases", async () => {
   const checkAlias = (alias: IndexedEntry, from: string, to: string): void => {
     expect(alias.indexedValue).toEqual(
-      IndexedValue.fromNextWord(Keyword.fromUtf8String(to)),
+      IndexedValue.fromNextWord(Keyword.fromString(to)),
     )
-    expect(alias.keywords).toEqual(new Set([Keyword.fromUtf8String(from)]))
+    expect(alias.keywords).toEqual(new Set([Keyword.fromString(from)]))
   }
 
   {
@@ -357,18 +357,18 @@ test("upsert and search memory", async () => {
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      Location.fromUtf8String("ROBERT file"),
+      Location.fromString("ROBERT file"),
     ),
-    keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
+    keywords: new Set([Keyword.fromString("ROBERT")]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
   expect(entryLocation_).toEqual(entryLocation)
 
   const arrayLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(
-      Location.fromUtf8String("ROBERT file array"),
+      Location.fromString("ROBERT file array"),
     ),
-    keywords: new Set([Keyword.fromUtf8String("ROBERT")]),
+    keywords: new Set([Keyword.fromString("ROBERT")]),
   }
   const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
     new TextEncoder().encode("ROBERT"),
@@ -376,8 +376,8 @@ test("upsert and search memory", async () => {
   expect(arrayLocation_).toEqual(arrayLocation)
 
   const entryKeyword: IndexedEntry = {
-    indexedValue: IndexedValue.fromNextWord(Keyword.fromUtf8String("ROBERT")),
-    keywords: new Set([Keyword.fromUtf8String("BOB")]),
+    indexedValue: IndexedValue.fromNextWord(Keyword.fromString("ROBERT")),
+    keywords: new Set([Keyword.fromString("BOB")]),
   }
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)

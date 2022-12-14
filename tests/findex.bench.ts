@@ -31,8 +31,8 @@ describe("Findex Upsert", async () => {
       newIndexedEntries.push({
         indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
         keywords: new Set([
-          Keyword.fromUtf8String(user.firstName),
-          Keyword.fromUtf8String(user.country),
+          Keyword.fromString(user.firstName),
+          Keyword.fromString(user.country),
         ]),
       })
     }
@@ -55,8 +55,8 @@ describe("Findex Upsert", async () => {
       newIndexedEntries.push({
         indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
         keywords: new Set([
-          Keyword.fromUtf8String(user.firstName),
-          Keyword.fromUtf8String(user.country),
+          Keyword.fromString(user.firstName),
+          Keyword.fromString(user.country),
         ]),
       })
     }
@@ -80,8 +80,8 @@ describe("Findex Search", async () => {
     newIndexedEntries.push({
       indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
       keywords: new Set([
-        Keyword.fromUtf8String(user.firstName),
-        Keyword.fromUtf8String(user.country),
+        Keyword.fromString(user.firstName),
+        Keyword.fromString(user.country),
       ]),
     })
   }

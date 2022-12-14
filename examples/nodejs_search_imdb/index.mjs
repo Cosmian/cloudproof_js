@@ -68,7 +68,7 @@ for await (const line of rl) {
   }
 
   toUpsert.push({
-    indexedValue: Location.fromUtf8String(info[0]),
+    indexedValue: Location.fromString(info[0]),
     keywords,
   })
 

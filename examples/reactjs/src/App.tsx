@@ -378,7 +378,7 @@ function App() {
       users.flatMap((user) => {
         return [
           {
-            indexedValue: Location.fromUtf8String(user.id.toString()),
+            indexedValue: Location.fromString(user.id.toString()),
             keywords: [
               user.first,
               user.last,

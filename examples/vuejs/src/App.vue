@@ -251,7 +251,7 @@ export default defineComponent({
         this.users.flatMap((user, index) => {
           return [
             {
-              indexedValue: Location.fromUtf8String(index.toString()),
+              indexedValue: Location.fromString(index.toString()),
               keywords: [
                 user.first,
                 user.last,

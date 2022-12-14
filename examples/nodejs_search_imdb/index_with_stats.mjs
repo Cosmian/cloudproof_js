@@ -117,8 +117,8 @@ for await (const line of rl) {
   }
 
   toUpsert.push({
-    indexedValue: IndexedValue.fromLocation(Location.fromUtf8String(info[0])),
-    keywords: new Set(keywords.map((keyword) => Keyword.fromUtf8String(keyword))),
+    indexedValue: IndexedValue.fromLocation(Location.fromString(info[0])),
+    keywords: new Set(keywords.map((keyword) => Keyword.fromString(keyword))),
   })
 
   if (USE_GRAPHS) {
