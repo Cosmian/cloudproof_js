@@ -119,12 +119,12 @@ import { fileURLToPath } from 'url';
 })()
 
 /**
-* Run a sub-script to do one task
-* 
-* @param filename name of the file to run
-* @param args additional arguments
-* @param shouldCrash return empty string if the program crash and shouldCrash is true
-*/
+ * Run a sub-script to do one task
+ * 
+ * @param filename name of the file to run
+ * @param args additional arguments
+ * @param shouldCrash return empty string if the program crash and shouldCrash is true
+ */
 async function run(filename, args = [], shouldCrash = false) {
   args = [path.join(dirname(fileURLToPath(import.meta.url)), filename), ...args];
   

@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { IndexedValue, Location, Keyword, Findex, FindexKey, Label, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
 import path from 'path';
 import {fileURLToPath} from 'url';
 import { randomBytes } from "crypto"
@@ -77,8 +77,8 @@ for await (const line of rl) {
   const percentage = numberOfMoviesIndexedSoFar / NUMBER_OF_MOVIES_INSIDE_TSV;
   const percentageToShow = formatPercentage(percentage);
   if (percentageToShow !== latestPercentageShown) {
-    process.stdout.clearLine(0);
-    process.stdout.cursorTo(0);
+    readline.clearLine(process.stdout, 0);
+    readline.cursorTo(process.stdout, 0, null);
     process.stdout.write(`Progress: ${percentageToShow}`);
     latestPercentageShown = percentageToShow
   }
