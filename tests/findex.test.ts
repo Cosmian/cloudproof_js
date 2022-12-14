@@ -281,26 +281,27 @@ async function run(
     await searchAndCheck("SomeAlia")
   }
 
-  {
-    await Promise.all(
-      // eslint-disable-next-line @typescript-eslint/promise-function-async
-      Array.from(Array(100).keys()).map((index) => {
-        return findex.upsert(
-          [
-            {
-              indexedValue: Location.fromString(index.toString()),
-              keywords: ["Concurrent"],
-            },
-          ],
-          masterKey,
-          label,
-          fetchEntries,
-          upsertEntries,
-          insertChains,
-        )
-      }),
-    )
+  const sourceIds = Array.from(Array(100).keys()).map((id) => id * id)
 
+  await Promise.all(
+    // eslint-disable-next-line @typescript-eslint/promise-function-async
+    sourceIds.map((id) => {
+      return findex.upsert(
+        [
+          {
+            indexedValue: Location.fromNumber(id),
+            keywords: ["Concurrent"],
+          },
+        ],
+        masterKey,
+        label,
+        fetchEntries,
+        upsertEntries,
+        insertChains,
+      )
+    }),
+  )
+  {
     const results = await findex.rawSearch(
       ["Concurrent"],
       masterKey,
@@ -310,6 +311,22 @@ async function run(
     )
 
     expect(results.length).toEqual(100)
+  }
+
+  {
+    const results = await findex.search(
+      ["Concurrent"],
+      masterKey,
+      label,
+      fetchEntries,
+      fetchChains,
+    )
+
+    expect(results.length).toEqual(100)
+    const resultsIds = results
+      .map((location) => location.toNumber())
+      .sort((a, b) => a - b)
+    expect(resultsIds).toEqual(sourceIds)
   }
 }
 

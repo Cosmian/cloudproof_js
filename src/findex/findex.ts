@@ -5,6 +5,8 @@ import init, {
 
 import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
+import { encode, decode } from "../utils/leb128"
+import { hexEncode } from "../utils/utils"
 
 export * from "./sqlite"
 export * from "./in_memory"
@@ -87,12 +89,29 @@ export class Location {
     return new Location(new TextEncoder().encode(value))
   }
 
+  static fromNumber(value: number): Location {
+    return new Location(encode(value))
+  }
+
   static fromUuid(value: string): Location {
     return new Location(Uint8Array.from(parseUuid(value)))
   }
 
   toString(): string {
     return new TextDecoder().decode(this.bytes)
+  }
+
+  toNumber(): number {
+    const { result, tail } = decode(this.bytes)
+    if (tail.length !== 0) {
+      throw new Error(
+        `The value encoded inside this location is not a LEB128 number created with the \`Location.fromNumber()\`. Here is the hex encoded value: ${hexEncode(
+          this.bytes,
+        )}`,
+      )
+    }
+
+    return result
   }
 
   toUuidString(): string {
