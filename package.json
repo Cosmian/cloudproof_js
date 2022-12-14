@@ -40,6 +40,7 @@
         "format": "npm run prettier:fix && npm run lint:fix"
     },
     "dependencies": {
+        "better-sqlite3": "^8.0.1",
         "process": "^0.11.10",
         "stream-browserify": "^3.0.0"
     },
@@ -47,6 +48,7 @@
         "@rollup/plugin-node-resolve": "^15.0.1",
         "@rollup/plugin-typescript": "^9.0.2",
         "@rollup/plugin-wasm": "^6.0.1",
+        "@types/better-sqlite3": "^7.6.3",
         "@types/node": "^18.7.18",
         "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.36.2",
