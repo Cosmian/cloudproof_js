@@ -84,10 +84,6 @@ export class Location {
   }
 
   static fromString(value: string): Location {
-    return Location.fromUtf8String(value)
-  }
-
-  static fromUtf8String(value: string): Location {
     return new Location(new TextEncoder().encode(value))
   }
 
@@ -110,10 +106,6 @@ export class Keyword {
   }
 
   static fromString(value: string): Keyword {
-    return Keyword.fromUtf8String(value)
-  }
-
-  static fromUtf8String(value: string): Keyword {
     return new Keyword(new TextEncoder().encode(value))
   }
 
@@ -155,11 +147,7 @@ export class Label {
   }
 
   static fromString(value: string): Label {
-    return Label.fromUtf8String(value)
-  }
-
-  static fromUtf8String(label: string): Label {
-    return new Label(new TextEncoder().encode(label))
+    return new Label(new TextEncoder().encode(value))
   }
 }
 

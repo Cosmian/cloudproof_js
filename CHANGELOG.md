@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - `options.generateGraphs` in the `upsert` function. Please use `generateAliases()` to build the keywords/nextwords (see VueJS or ReactJS examples)
+- In `Location`, `Keyword` and `Label`: `fromUtf8String()`, replaced by `fromString()`
 
 ### Fixed
 
