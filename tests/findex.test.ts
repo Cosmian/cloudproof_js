@@ -356,9 +356,7 @@ test("upsert and search memory", async () => {
   const findex = await Findex()
 
   const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(
-      Location.fromString("ROBERT file"),
-    ),
+    indexedValue: IndexedValue.fromLocation(Location.fromString("ROBERT file")),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
   const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
