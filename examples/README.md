@@ -1,5 +1,8 @@
 # Examples
 
-This folder contains examples for Vue.js, React and Webpack.
+This folder contains multiple examples to get started with CloudproofJS.
 
-Each of these folders are standalone project.
+- **If you want to use search (Findex) and encryption (CoverCrypt), and you know VueJS** go to [the VueJS example](./vuejs)
+- **If you want to use search (Findex) and encryption (CoverCrypt), and you know ReactJS** go to [the ReactJS example](./reactjs)
+- **If you want to use only encryption (CoverCrypt)** go to [the NodeJS example](./nodejs)
+- **If you want to use only search (Findex)** go to [the IMDB example](./nodejs_search_imdb)
