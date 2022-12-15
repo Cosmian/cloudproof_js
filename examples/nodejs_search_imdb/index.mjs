@@ -24,7 +24,6 @@ if (!fs.existsSync(dataFilename)) {
   process.exit(1)
 }
 const input = fs.createReadStream(dataFilename)
-const rl = readline.createInterface({ input })
 
 // Init Findex with random key and random label
 const { upsert, search } = await Findex();
@@ -46,7 +45,7 @@ let header = true;
 
 console.log("Press Ctrl-C to quit the importation and start the search.");
 
-for await (const line of rl) {
+for await (const line of readline.createInterface({ input })) {
   // Skip pass the header
   if (header) {
     header = false
