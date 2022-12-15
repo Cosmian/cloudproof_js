@@ -30,7 +30,7 @@ process.stdin.end();
 // Wait the search results
 await new Promise((resolve) => setTimeout(resolve, 10 * 100));
 
-if (! stdout.includes('https://www.imdb.com/title/tt0009910')) {
+if (! stdout.includes('https://www.imdb.com/title/tt0005833')) {
     console.log(stdout)
     throw new Error("Stdout doesn't contains the documentary link")
 }
