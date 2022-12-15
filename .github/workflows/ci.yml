@@ -134,7 +134,8 @@ jobs:
           npm run build
           npm run serve -- --port 8090 &
           sleep 5
-          node ../test/chrome.mjs http://localhost:8090 http://kms:9998
+          cd ../test
+          node chrome.mjs http://localhost:8090 http://kms:9998
 
   example_reactjs:
     runs-on: ubuntu-latest
@@ -169,7 +170,8 @@ jobs:
           npm run build
           npm run serve -- --port 8090 &
           sleep 5
-          node ../test/chrome.mjs http://localhost:8090 http://kms:9998
+          cd ../test
+          node chrome.mjs http://localhost:8090 http://kms:9998
 
   example_webpack:
     runs-on: ubuntu-latest
