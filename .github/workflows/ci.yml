@@ -2,14 +2,39 @@ name: clouproof_js CI
 on: push
 
 jobs:
+  # Caching the build is not working because we're
+  # using ubuntu on this job but a node:18 container
+  # for the other jobs requiring services.
+  # We also need to install zstd inside the node:18 container
+  # which take a lot of time (maybe more than building the project
+  # again…).
+  #
+  # build:
+  #   runs-on: ubuntu-22.04
+
+  #   steps:
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v3
+
+  #     - name: Cache build
+  #       uses: actions/cache@v3
+  #       with:
+  #         path: |
+  #           node_modules
+  #           dist
+  #         key: build-${{ github.run_id }}
+
+  #     - name: Install dependencies and build
+  #       run: npm install
+
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install dependencies and build
         run: npm install
 
       - name: Check Prettier
@@ -43,7 +68,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Install dependencies
+      - name: Install dependencies and build
         run: npm install
 
       - name: Test
