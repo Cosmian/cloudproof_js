@@ -48,3 +48,6 @@ jobs:
 
       - name: Test
         run: npm test
+        env:
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
