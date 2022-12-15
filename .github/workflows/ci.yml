@@ -1,4 +1,4 @@
-name: clouproof_js CI
+name: CI
 on: push
 
 jobs:
