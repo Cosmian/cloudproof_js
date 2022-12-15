@@ -86,7 +86,17 @@ example_nodejs:
   script:
     - cd examples/nodejs
     - npm install
-    - node index.mjs 10
+    - node test.mjs 10
+
+example_imdb:
+  extends: .services
+  stage: test
+  script:
+    - cd examples/nodejs_search_imdb
+    - curl https://datasets.imdbws.com/title.basics.tsv.gz --output imdb.tsv.gz
+    - gzip -d imdb.tsv.gz
+    - npm install
+    - node test.mjs
 
 pack:
   stage: pack

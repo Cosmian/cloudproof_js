@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Policy, PolicyAxis, CoverCrypt, CoverCryptMasterKey, Findex, FindexKey, type UidsAndValues, Label, IndexedValue, Location, Keyword, KmsClient, type CoverCryptHybridEncryption, type UidsAndValuesToUpsert, generateAliases } from 'cloudproof_js';
+import { Policy, PolicyAxis, CoverCrypt, Findex, FindexKey, type UidsAndValues, Label, Location, KmsClient, type UidsAndValuesToUpsert, generateAliases } from 'cloudproof_js';
 import { defineComponent } from 'vue';
 import Key from './Key.vue';
 
@@ -251,14 +251,14 @@ export default defineComponent({
         this.users.flatMap((user, index) => {
           return [
             {
-              indexedValue: IndexedValue.fromLocation(new Location(Uint8Array.from([index]))),
-              keywords: new Set([
-                Keyword.fromUtf8String(user.first),
-                Keyword.fromUtf8String(user.last),
-                Keyword.fromUtf8String(user.country),
-                Keyword.fromUtf8String(user.email),
-                Keyword.fromUtf8String(user.project.toString()),
-              ]),
+              indexedValue: Location.fromString(index.toString()),
+              keywords: [
+                user.first,
+                user.last,
+                user.country,
+                user.email,
+                user.project.toString(),
+              ],
             },
             ...(this.usingGraphs ? [
               // Not required to generate aliases for all fields, you can choose which one you want to alias
@@ -373,10 +373,10 @@ export default defineComponent({
       let keywords = query.split(' ').map((keyword) => keyword.trim()).filter((keyword) => keyword);
       if (keywords.length === 0) return;
 
-      let indexedValues: Array<IndexedValue> | null = null;
+      let locations: Array<Location> | null = null;
       if (this.doOr) {
-        indexedValues = await search(
-          new Set(keywords),
+        locations = await search(
+          keywords,
           this.masterKey,
           FINDEX_LABEL,
           async (uids) => await this.fetchCallback("entries", uids),
@@ -384,20 +384,20 @@ export default defineComponent({
         );
       } else {
         for (const keyword of keywords) {
-          const newIndexedValues = await search(
-            new Set([keyword]),
+          const newLocations = await search(
+            [keyword],
             this.masterKey,
             FINDEX_LABEL,
             async (uids) => await this.fetchCallback("entries", uids),
             async (uids) => await this.fetchCallback("chains", uids),
           );
 
-          if (indexedValues === null) {
-            indexedValues = newIndexedValues;
+          if (locations === null) {
+            locations = newLocations;
           } else {
-            indexedValues = indexedValues.filter((alreadyReturnedIndexedValue) => {
-              for (let newIndexedValue of newIndexedValues) {
-                if (this.uint8ArrayEquals(newIndexedValue.bytes, alreadyReturnedIndexedValue.bytes)) {
+            locations = locations.filter((alreadyReturnedLocations) => {
+              for (let newLocation of newLocations) {
+                if (this.uint8ArrayEquals(newLocation.bytes, alreadyReturnedLocations.bytes)) {
                   return true;
                 }
               }
@@ -408,11 +408,11 @@ export default defineComponent({
         }
       }
 
-      if (indexedValues === null) throw Error("Indexed values cannot be null when a query is provided");
+      if (locations === null) throw Error("Indexed values cannot be null when a query is provided");
 
       let results = [];
-      for (const indexedValue of indexedValues) {
-        const userId = indexedValue.bytes[1];
+      for (const location of locations) {
+        const userId = parseInt(location.toString());
 
         let encryptedUser = this.encryptedUsers[userId];
         this.logRequest({

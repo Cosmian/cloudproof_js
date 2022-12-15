@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 - Findex 0.12.0
 - Simplify `search` signature (move optional options to an `options` object at the end)
+- `search` now return only `Location` (no `NextWord`), use `rawSearch` to get the full `IndexedValue` list
 - `decrypt` function for CoverCrypt now return an object containing the decrypted header metadata and the plaintext decrypted value
 - WASM files are now base64 inline in the lib
 - `KmipClient` is now `KmsClient`
@@ -29,6 +30,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - `options.generateGraphs` in the `upsert` function. Please use `generateAliases()` to build the keywords/nextwords (see VueJS or ReactJS examples)
+- In `Location`, `Keyword` and `Label`: `fromUtf8String()`, replaced by `fromString()`
 
 ### Fixed
 
