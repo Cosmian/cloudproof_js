@@ -54,8 +54,6 @@ test("Redis", async () => {
     url = `redis://${process.env.REDIS_HOST}:6379`
   }
 
-  console.log(url)
-
   const client = createClient({
     url,
     scripts: {
