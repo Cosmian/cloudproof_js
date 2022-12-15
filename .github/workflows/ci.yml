@@ -1,0 +1,50 @@
+name: clouproof_js CI
+on: push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check Prettier
+        run: npm run prettier:check
+
+      - name: Lint
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    container: node:18
+
+    services:
+      kms:
+        image: cosmian/kms
+        env:
+          COSMIAN_SERVER_URL: http://localhost:9998
+          KMS_PUBLIC_PATH: /tmp
+          KMS_PRIVATE_PATH: /tmp
+          KMS_SHARED_PATH: /tmp
+
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Test
+        run: npm test
