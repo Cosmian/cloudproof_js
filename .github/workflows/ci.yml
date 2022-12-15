@@ -224,6 +224,8 @@ jobs:
           cd examples/nodejs
           npm install
           node test.mjs 10
+        env:
+          KMS_HOST: kms
 
   example_imdb:
     runs-on: ubuntu-latest
