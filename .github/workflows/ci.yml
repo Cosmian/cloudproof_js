@@ -2,30 +2,24 @@ name: clouproof_js CI
 on: push
 
 jobs:
-  # Caching the build is not working because we're
-  # using ubuntu on this job but a node container
-  # for the other jobs requiring services.
-  # We also need to install zstd inside the node container
-  # which take a lot of time (maybe more than building the project
-  # again…).
-  #
-  # build:
-  #   runs-on: ubuntu-22.04
+  build:
+    runs-on: ubuntu-22.04
+    container: cosmian/node_ci_puppeteer
 
-  #   steps:
-  #     - name: Check out repository code
-  #       uses: actions/checkout@v3
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
 
-  #     - name: Cache build
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: |
-  #           node_modules
-  #           dist
-  #         key: build-${{ github.run_id }}
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
 
-  #     - name: Install dependencies and build
-  #       run: npm install
+      - name: Install dependencies and build
+        run: npm install
 
   lint:
     runs-on: ubuntu-22.04
@@ -45,7 +39,8 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
-    container: node
+    container: cosmian/node_ci_puppeteer
+    needs: build
 
     services:
       kms:
@@ -68,8 +63,13 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Install dependencies and build
-        run: npm install
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
 
       - name: Test
         run: npm test
@@ -79,7 +79,8 @@ jobs:
 
   example_vuejs:
     runs-on: ubuntu-latest
-    container: node
+    container: cosmian/node_ci_puppeteer
+    needs: build
 
     services:
       kms:
@@ -94,11 +95,13 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Install dependencies and build
-        run: apt update && apt install -y gconf-service libgbm-dev libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
-
-      - name: Install dependencies and build
-        run: npm install
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
 
       - name: Test VueJS
         run: |
