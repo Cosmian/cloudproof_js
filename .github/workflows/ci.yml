@@ -50,4 +50,4 @@ jobs:
         run: npm test
         env:
           REDIS_HOST: redis
-          REDIS_PORT: 6379
+          KMS_HOST: kms

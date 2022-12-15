@@ -49,10 +49,12 @@ test("SQLite", async () => {
 })
 
 test("Redis", async () => {
-  let url;
+  let url
   if (typeof process.env.REDIS_HOST !== "undefined") {
-      url = `${process.env.REDIS_HOST}:6379`
+    url = `redis://${process.env.REDIS_HOST}:6379`
   }
+
+  console.log(url)
 
   const client = createClient({
     url,
