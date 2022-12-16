@@ -1,0 +1,46 @@
+{{Wikipedia how-to|H:DP}}
+'''Downloading pages''' is saving a MediaWiki page as a local copy.
+
+== Downloading a page as HTML file ==
+
+Saving a [[webpage]] shows the possibilities for saving a local copy of a webpage. 
+
+=== A set of linked pages ===
+When saving a local copy of pages, please note the following.
+
+A link to e.g. the train article in Wikipedia is given in the HTML-code as <code>/wiki/Train</code> . This refers to <code>http://en.wikipedia.org/wiki/Train</code> . Depending on  your browser settings, the former may be changed into the latter when saving the page. To avoid this, apply View Source and save that.
+
+Put the copy in folder <code>C:\wiki</code> (another drive letter is also possible, but wiki should not be a sub-folder) and do not use any file name extension. This way the links work. One inconvenient aspect is that you cannot open a file in a folder listing by clicking on it, because of the lack of a file name extension.
+
+A problem with saving the source code is that images are not saved automatically with the page. Saving them separately in a place corresponding to the HTML code is cumbersome, e.g. the first image of the train article would have to be <code>C:/upload/thumb/c/c2/250px-Tile_Hill_train_550.jpg</code>
+
+If the images are more important than the mutual links, then one can use the browser 'save page' option to save the webpage with images.
+
+Of course variations are possible by changing the HTML-code oneself, e.g. changing <code>http://en.wikipedia.org</code> to <code>C:</code> and/or adding the file name extension .htm .
+
+== Downloading the wikitext of a page ==
+
+Alternatively one can copy the [[Help:Filling the page|wikitext]], i.e. the text in the edit box (the source code within the database).
+
+This has a limited use. There is more information in the webpage than conveyed by the wikitext:
+
+*images
+*content of [[Help:Template|template]]s referred to  (to access a full wikitext, with all templates being expanded, use [[Special:ExpandTemplates]]; it has the effect of the recursively applied "[[Help:Template#subst|subst]]:" operation).
+*values of [[Help:Variable|variable]]s
+*existence at the time of saving of linked internal pages
+*date and time of the last edit before saving
+*in the Image namespace ([[Help:Image description page|Image description page]]s): the image itself, the image history and the list of pages linking to the image
+*in the Category namespace: the lists of subcategories and pages in the category.
+
+Information in the wikitext but not in the webpage:
+
+*comments (even though HTML also allows comments)
+
+See also [[Help:Export|XML export]].
+
+== See also ==
+
+*[[Wikipedia:Database download]]
+*[[Help:Export]], for downloading to another MediaWiki site
+
+{{Help navigation}}
