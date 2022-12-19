@@ -32,7 +32,7 @@ process.removeAllListeners('warning'); // To remove experimental fetch warnings
   
   let encryptedData
   if (useKms) {
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(new URL(`http://${process.env.KMS_HOST || 'localhost'}:9998/kmip/2_1`))
     
     if (! publicMasterKeyUID) {
       const uniqueIdentifier = Math.random().toString(36).slice(2, 7);

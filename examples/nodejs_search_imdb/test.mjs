@@ -19,7 +19,7 @@ process.stderr.on('data', (data) => {
 });
 
 // Wait 10 seconds before killing the importation
-await new Promise((resolve) => setTimeout(resolve, 10 * 100));
+await new Promise((resolve) => setTimeout(resolve, 5 * 100));
 
 process.kill('SIGINT')
 
@@ -28,9 +28,9 @@ process.stdin.write("Documentary\n");
 process.stdin.end();
 
 // Wait the search results
-await new Promise((resolve) => setTimeout(resolve, 10 * 100));
+await new Promise((resolve) => setTimeout(resolve, 5 * 100));
 
-if (! stdout.includes('https://www.imdb.com/title/tt0009910')) {
+if (! stdout.includes('https://www.imdb.com/title/tt0000001')) {
     console.log(stdout)
     throw new Error("Stdout doesn't contains the documentary link")
 }

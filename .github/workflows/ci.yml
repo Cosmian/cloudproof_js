@@ -1,0 +1,259 @@
+name: CI
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
+
+      - name: Install dependencies and build
+        run: npm install
+
+  build_in_docker:
+    runs-on: ubuntu-latest
+    container: cosmian/node_ci_puppeteer
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+          key: build-docker-${{ github.run_id }}
+
+      - name: Install dependencies and build
+        run: npm install
+
+  lint:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
+
+      - name: Check Prettier
+        run: npm run prettier:check
+
+      - name: Lint
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    container: cosmian/node_ci_puppeteer
+    needs: build_in_docker
+
+    services:
+      kms:
+        image: cosmian/kms
+        env:
+          COSMIAN_SERVER_URL: http://localhost:9998
+          KMS_PUBLIC_PATH: /tmp
+          KMS_PRIVATE_PATH: /tmp
+          KMS_SHARED_PATH: /tmp
+
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+          key: build-docker-${{ github.run_id }}
+
+      - name: Test
+        run: npm test
+        env:
+          REDIS_HOST: redis
+          KMS_HOST: kms
+
+  example_vuejs:
+    runs-on: ubuntu-latest
+    container: cosmian/node_ci_puppeteer
+    needs: build_in_docker
+
+    services:
+      kms:
+        image: cosmian/kms
+        env:
+          COSMIAN_SERVER_URL: http://localhost:9998
+          KMS_PUBLIC_PATH: /tmp
+          KMS_PRIVATE_PATH: /tmp
+          KMS_SHARED_PATH: /tmp
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+          key: build-docker-${{ github.run_id }}
+
+      - name: Test VueJS
+        run: |
+          cd examples/vuejs
+          npm install
+          npm run build
+          npm run serve -- --port 8090 &
+          sleep 5
+          cd ../test
+          node chrome.mjs http://localhost:8090 http://kms:9998
+
+  example_reactjs:
+    runs-on: ubuntu-latest
+    container: cosmian/node_ci_puppeteer
+    needs: build_in_docker
+
+    services:
+      kms:
+        image: cosmian/kms
+        env:
+          COSMIAN_SERVER_URL: http://localhost:9998
+          KMS_PUBLIC_PATH: /tmp
+          KMS_PRIVATE_PATH: /tmp
+          KMS_SHARED_PATH: /tmp
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+          key: build-docker-${{ github.run_id }}
+
+      - name: Test ReactJS
+        run: |
+          cd examples/reactjs
+          npm install
+          npm run build
+          npm run serve -- --port 8090 &
+          sleep 5
+          cd ../test
+          node chrome.mjs http://localhost:8090 http://kms:9998
+
+  example_webpack:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
+
+      - name: Test Webpack
+        run: |
+          cd examples/webpack
+          npm install
+          npx webpack
+
+  example_nodejs:
+    runs-on: ubuntu-latest
+    container: cosmian/node_ci_puppeteer
+    needs: build_in_docker
+
+    services:
+      kms:
+        image: cosmian/kms
+        env:
+          COSMIAN_SERVER_URL: http://localhost:9998
+          KMS_PUBLIC_PATH: /tmp
+          KMS_PRIVATE_PATH: /tmp
+          KMS_SHARED_PATH: /tmp
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+          key: build-docker-${{ github.run_id }}
+
+      - name: Test NodeJS
+        run: |
+          cd examples/nodejs
+          npm install
+          node test.mjs 10
+        env:
+          KMS_HOST: kms
+
+  example_imdb:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
+
+      - name: Test IMDB
+        run: |
+          cd examples/nodejs_search_imdb
+          curl https://datasets.imdbws.com/title.basics.tsv.gz --output imdb.tsv.gz
+          gzip -d imdb.tsv.gz
+          npm install
+          node test.mjs

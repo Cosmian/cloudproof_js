@@ -118,7 +118,9 @@ test(
   "KMS Import Master Keys",
   async () => {
     await CoverCrypt()
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
     if (!(await client.up())) {
       console.error("No KMIP server. Skipping test")
       return
@@ -165,7 +167,9 @@ test(
   async () => {
     await CoverCrypt()
 
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
 
     if (!(await client.up())) {
       console.error("No KMIP server. Skipping test")
@@ -315,7 +319,9 @@ test("KMS CoverCrypt Access Policy", async () => {
 test(
   "KMS CoverCrypt keys",
   async () => {
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
       return
@@ -411,7 +417,9 @@ test(
 test(
   "Key rotation security when importing with tempered access policy",
   async () => {
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
       return
@@ -485,7 +493,9 @@ test(
 test(
   "Decrypt old cyphertext after rotation",
   async () => {
-    const client = new KmsClient(new URL("http://localhost:9998/kmip/2_1"))
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
       return
