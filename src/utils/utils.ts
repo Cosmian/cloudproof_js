@@ -145,5 +145,11 @@ export function bytesEquals(
   if (a === null) return false
   if (b === null) return false
 
-  return Buffer.from(a).toString("base64") === Buffer.from(b).toString("base64")
+  if (a.length !== b.length) return false
+
+  for (const index in a) {
+    if (a[index] !== b[index]) return false
+  }
+
+  return true
 }

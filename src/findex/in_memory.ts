@@ -1,3 +1,4 @@
+import { bytesEquals } from "../utils/utils"
 import {
   FetchChains,
   FetchEntries,
@@ -88,17 +89,4 @@ export function callbacksExamplesInMemory(): {
     upsertEntries,
     insertChains,
   }
-}
-
-/**
- * @param a one Uint8Array
- * @param b one Uint8Array
- * @returns is equals
- */
-function bytesEquals(a: Uint8Array | null, b: Uint8Array | null): boolean {
-  if (a === null && b === null) return true
-  if (a === null) return false
-  if (b === null) return false
-
-  return Buffer.from(a).toString("base64") === Buffer.from(b).toString("base64")
 }
