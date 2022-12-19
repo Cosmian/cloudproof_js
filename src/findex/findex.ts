@@ -513,11 +513,19 @@ class SearchResults {
   }
 
   *[Symbol.iterator](): Generator<Location, void, void> {
+    const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
+
     for (const { indexedValues } of this.indexedValuesPerKeywords) {
       for (const indexedValue of indexedValues) {
         const location = indexedValue.getLocation()
+
         if (location !== null) {
-          yield location
+          const locationEncoded = hexEncode(location.bytes)
+
+          if (!alreadyYields.has(locationEncoded)) {
+            alreadyYields.add(locationEncoded)
+            yield location
+          }
         }
       }
     }
