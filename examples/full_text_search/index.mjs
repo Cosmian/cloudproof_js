@@ -7,6 +7,7 @@ import { randomBytes } from "crypto"
 import Database from 'better-sqlite3';
 import { removeStopwords, eng } from 'stopword'
 import natural from 'natural'
+import synonyms from 'synonyms'
 
 const files = fs.readdirSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "data"))
 const contents = {}
@@ -76,7 +77,10 @@ for (const [name, content] of Object.entries(contents)) {
   )
 }
 
-// Add alias from word's stem to word
+
+console.log('---')
+console.log(`Add aliases from word's stem to word…`)
+console.log('---')
 await upsert(
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
@@ -93,15 +97,37 @@ await upsert(
 )
 
 
-// // Add alias from word's phonetic to word
-// // Since phonetic is not a correct word (for exemple the phonetic for "Phrase" is "FRS")
-// // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
-// // which will make searching for it highly unlikely. We'll use this prefix in our search below.
+console.log('---')
+console.log(`Add aliases from word's phonetic to word…`)
+console.log('---')
+// Since phonetic is not a correct word (for exemple the phonetic for "Phrase" is "FRS")
+// we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
+// which will make searching for it highly unlikely. We'll use this prefix in our search below.
 await upsert(
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)]
   })),
+  masterKey,
+  label,
+  callbacks.fetchEntries,
+  callbacks.upsertEntries,
+  callbacks.insertChains,
+)
+
+console.log('---')
+console.log(`Add aliases from word's synonyms to word…`)
+console.log('---')
+await upsert(
+  Array.from(uniqueWords).map((word) => {
+    const wordSynonyms = synonyms(word);
+    if (! wordSynonyms) return null;
+
+    return {
+      indexedValue: Keyword.fromString(word),
+      keywords: [...wordSynonyms.n || [], ...wordSynonyms.v || []].filter((synonym) => synonym !== word),
+    }
+  }).filter((synonymsToUpsert) => synonymsToUpsert !== null),
   masterKey,
   label,
   callbacks.fetchEntries,
@@ -170,6 +196,12 @@ while (true) {
       const wordPhonetic = natural.Metaphone.process(word.toLowerCase());
       if (wordPhonetic === phonetic) {
         explain = ` (phonetic ${wordPhonetic})`
+      }
+
+      const wordSynonyms = synonyms(word) || {}
+      const synonymsList = [...(wordSynonyms.n || []), ...(wordSynonyms.v || [])]
+      if (synonymsList.includes(query)) {
+        explain = ` (synonym of ${query})`
       }
     }
 

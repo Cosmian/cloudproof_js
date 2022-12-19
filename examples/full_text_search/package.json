@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "natural": "^5.2.4",
-    "stopword": "^2.0.5"
+    "stopword": "^2.0.5",
+    "synonyms": "^1.0.1"
   }
 }
