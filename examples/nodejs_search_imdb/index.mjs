@@ -124,7 +124,7 @@ for await (const query of queries) {
     },
   );
 
-  console.log(`Searching for ${query} returned ${results.length} results:`)
+  console.log(`Searching for ${query} returned ${results.total()} results:`)
   for (const result of results) {
     console.log(`\t- https://www.imdb.com/title/${result}`);
   }

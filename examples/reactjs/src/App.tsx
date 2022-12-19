@@ -592,22 +592,22 @@ function App() {
 
     let locations: Array<Location> | null = null
     if (doOr) {
-      locations = await search(
+      locations = (await search(
         new Set(keywords),
         masterKey,
         FINDEX_LABEL,
         async (uids) => await fetchCallback("entries", uids),
         async (uids) => await fetchCallback("chains", uids),
-      )
+      )).locations()
     } else {
       for (const keyword of keywords) {
-        const newLocations = await search(
+        const newLocations = (await search(
           new Set([keyword]),
           masterKey,
           FINDEX_LABEL,
           async (uids) => await fetchCallback("entries", uids),
           async (uids) => await fetchCallback("chains", uids),
-        )
+        )).locations()
 
         if (locations === null) {
           locations = newLocations

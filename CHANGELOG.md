@@ -14,9 +14,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Findex 0.12.0
+- Findex 1.0
 - Simplify `search` signature (move optional options to an `options` object at the end)
-- `search` now return only `Location` (no `NextWord`), use `rawSearch` to get the full `IndexedValue` list
+- `search` now return `SearchResults`, use `locations()` to get all the locations, use `getAllIndexedValues()` to get the full `IndexedValue` list
 - `decrypt` function for CoverCrypt now return an object containing the decrypted header metadata and the plaintext decrypted value
 - WASM files are now base64 inline in the lib
 - `KmipClient` is now `KmsClient`

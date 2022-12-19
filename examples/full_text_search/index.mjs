@@ -160,10 +160,10 @@ while (true) {
     }
   );
 
-  console.log(`Searching for ${query} (${stem}, ${phonetic}), ${rawResults.length} results.`)
+  console.log(`Searching for ${query} (${stem}, ${phonetic}), ${rawResults.total()} results.`)
 
   // Parse locations and compute distances
-  const results = rawResults.map((result) => {
+  const results = rawResults.locations().map((result) => {
     const { result: filenameLength, tail } = decode(result.bytes);
     const filename = new TextDecoder().decode(tail.slice(0, filenameLength))
 
