@@ -2,7 +2,7 @@
 
 set -exo pipefail
 
-FINDEX_VERSION=v0.12.0
+FINDEX_VERSION=v1.0.0
 COVER_CRYPT_VERSION=v8.0.1
 
 rm -rf src/pkg/findex
