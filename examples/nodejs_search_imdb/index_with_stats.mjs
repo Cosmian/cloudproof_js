@@ -22,7 +22,7 @@ const csvStats = fs.createWriteStream("stats.csv", {flags:'a+'});
 
 // Init Findex with random key and random label
 const { upsert, search } = await Findex();
-const masterKey = new FindexKey(randomBytes(32))
+const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 // Init databases

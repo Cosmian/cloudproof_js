@@ -131,3 +131,16 @@ export function uncapitalize(value: string): string {
 export function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
+
+/**
+ * @param a one Uint8Array
+ * @param b one Uint8Array
+ * @returns is equals
+ */
+export function bytesEquals(a: Uint8Array | null, b: Uint8Array | null): boolean {
+  if (a === null && b === null) return true
+  if (a === null) return false
+  if (b === null) return false
+
+  return Buffer.from(a).toString("base64") === Buffer.from(b).toString("base64")
+}

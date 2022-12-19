@@ -170,7 +170,7 @@ async function run(
   insertChains: InsertChains,
 ): Promise<void> {
   const findex = await Findex()
-  const masterKey = new FindexKey(randomBytes(32))
+  const masterKey = new FindexKey(randomBytes(16))
   const label = new Label(randomBytes(10))
 
   {
@@ -191,38 +191,31 @@ async function run(
       insertChains,
     )
 
-    {
-      const results = await findex.rawSearch(
-        [USERS[0].firstName],
-        masterKey,
-        label,
-        fetchEntries,
-        fetchChains,
-      )
+    const results = await findex.search(
+      [USERS[0].firstName],
+      masterKey,
+      label,
+      fetchEntries,
+      fetchChains,
+    )
 
-      expect(results.length).toEqual(1)
-      expect(results[0]).toEqual(
-        IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
-      )
-    }
-    {
-      const results = await findex.search(
-        [USERS[0].firstName],
-        masterKey,
-        label,
-        fetchEntries,
-        fetchChains,
-      )
+    const indexedValues = results.getAllIndexedValues(USERS[0].firstName)
 
-      expect(results.length).toEqual(1)
-      expect(results[0].toUuidString()).toEqual(USERS[0].id)
-    }
+    expect(indexedValues.length).toEqual(1)
+    expect(indexedValues[0]).toEqual(
+      IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
+    )
+
+    const locations = results.get(USERS[0].firstName)
+
+    expect(locations.length).toEqual(1)
+    expect(locations[0].toUuidString()).toEqual(USERS[0].id)
   }
 
   {
     // Test with multiple results.
 
-    const results = await findex.rawSearch(
+    const results = await findex.search(
       ["Spain"],
       masterKey,
       label,
@@ -230,7 +223,7 @@ async function run(
       fetchChains,
     )
 
-    expect(results.length).toEqual(30)
+    expect(results.total()).toEqual(30)
   }
 
   {
@@ -251,32 +244,23 @@ async function run(
     )
 
     const searchAndCheck = async (keyword: string): Promise<void> => {
-      {
-        const results = await findex.rawSearch(
-          [keyword],
-          masterKey,
-          label,
-          fetchEntries,
-          fetchChains,
-        )
+      const results = await findex.search(
+        [keyword],
+        masterKey,
+        label,
+        fetchEntries,
+        fetchChains,
+      )
 
-        expect(results.length).toEqual(1)
-        expect(results[0]).toEqual(
-          IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
-        )
-      }
-      {
-        const results = await findex.search(
-          new Set([keyword]),
-          masterKey,
-          label,
-          fetchEntries,
-          fetchChains,
-        )
+      const indexedValues = results.getAllIndexedValues(keyword)
+      expect(indexedValues.length).toEqual(1)
+      expect(indexedValues[0]).toEqual(
+        IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
+      )
 
-        expect(results.length).toEqual(1)
-        expect(results[0].toUuidString()).toEqual(USERS[0].id)
-      }
+      const locations = results.get(keyword)
+      expect(locations.length).toEqual(1)
+      expect(locations[0].toUuidString()).toEqual(USERS[0].id)
     }
 
     await searchAndCheck("Som")
@@ -308,7 +292,7 @@ async function run(
     }),
   )
   {
-    const results = await findex.rawSearch(
+    const results = await findex.search(
       ["Concurrent"],
       masterKey,
       label,
@@ -316,7 +300,7 @@ async function run(
       fetchChains,
     )
 
-    expect(results.length).toEqual(100)
+    expect(results.total()).toEqual(100)
   }
 
   {
@@ -328,8 +312,9 @@ async function run(
       fetchChains,
     )
 
-    expect(results.length).toEqual(100)
-    const resultsIds = results
+    expect(results.total()).toEqual(100)
+    const locations = results.locations();
+    const resultsIds = locations
       .map((location) => location.toNumber())
       .sort((a, b) => a - b)
     expect(resultsIds).toEqual(sourceIds)
@@ -375,6 +360,39 @@ test("generateAliases", async () => {
   }
 })
 
+test.skip("upsert and search cycle", async () => {
+  const findex = await Findex()
+  const masterKey = new FindexKey(randomBytes(16))
+  const label = new Label(randomBytes(10))
+  const callbacks = callbacksExamplesInMemory()
+
+  await findex.upsert(
+    [
+      {
+        indexedValue: Keyword.fromString("B"),
+        keywords: ["A"],
+      },
+      {
+        indexedValue: Keyword.fromString("A"),
+        keywords: ["B"],
+      },
+    ],
+    masterKey,
+    label,
+    callbacks.fetchEntries,
+    callbacks.upsertEntries,
+    callbacks.insertChains,
+  )
+
+  await findex.search(
+    ["A"],
+    masterKey,
+    label,
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
+  )
+})
+
 test("upsert and search memory", async () => {
   const findex = await Findex()
 
@@ -403,7 +421,7 @@ test("upsert and search memory", async () => {
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
 
-  const masterKey = new FindexKey(randomBytes(32))
+  const masterKey = new FindexKey(randomBytes(16))
 
   const label = new Label("test")
   const callbacks = callbacksExamplesInMemory()
@@ -417,30 +435,30 @@ test("upsert and search memory", async () => {
     callbacks.insertChains,
   )
 
-  const results0 = await findex.rawSearch(
+  const results0 = await findex.search(
     new Set(["ROBERT"]),
     masterKey,
     label,
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
-  expect(results0.length).toEqual(2)
+  expect(results0.total()).toEqual(2)
 
-  const results1 = await findex.rawSearch(
+  const results1 = await findex.search(
     new Set([new TextEncoder().encode("ROBERT")]),
     masterKey,
     label,
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
-  expect(results1.length).toEqual(2)
+  expect(results1.total()).toEqual(2)
 
-  const results2 = await findex.rawSearch(
+  const results2 = await findex.search(
     new Set(["BOB"]),
     masterKey,
     label,
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
-  expect(results2.length).toEqual(2)
+  expect(results2.total()).toEqual(2)
 })

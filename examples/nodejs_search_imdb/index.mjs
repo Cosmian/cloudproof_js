@@ -27,7 +27,7 @@ const input = fs.createReadStream(dataFilename)
 
 // Init Findex with random key and random label
 const { upsert, search } = await Findex();
-const masterKey = new FindexKey(randomBytes(32))
+const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 const db = new Database(":memory:");

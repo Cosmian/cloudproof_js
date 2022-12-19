@@ -6,7 +6,7 @@ import init, {
 import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
 import { encode, decode } from "../utils/leb128"
-import { hexEncode } from "../utils/utils"
+import { bytesEquals, hexEncode } from "../utils/utils"
 
 export * from "./sqlite"
 export * from "./in_memory"
@@ -404,9 +404,9 @@ export async function Findex() {
    * @param options.maxResultsPerKeyword the maximum number of results per keyword
    * @param options.maxGraphDepth automatically follow the nextwords to find only locations
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
-   * @returns {Promise<IndexedValue[]>} a list of `IndexedValue`
+   * @returns the search results
    */
-  const rawSearch = async (
+  const search = async (
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
     masterKey: FindexKey | SymmetricKey,
     label: Label,
@@ -417,7 +417,7 @@ export async function Findex() {
       maxGraphDepth?: number
       progress?: Progress
     } = {},
-  ): Promise<IndexedValue[]> => {
+  ): Promise<SearchResults> => {
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
@@ -432,8 +432,7 @@ export async function Findex() {
       typeof options.progress === "undefined"
         ? async () => true
         : options.progress
-
-    const serializedIndexedValues = await webassembly_search(
+    const resultsPerKeywords = await webassembly_search(
       masterKey.bytes,
       label.bytes,
       kws,
@@ -444,6 +443,7 @@ export async function Findex() {
         ? 1000
         : options.maxGraphDepth,
       async (serializedIndexedValues: Uint8Array[]) => {
+        
         const indexedValues = serializedIndexedValues.map((bytes) => {
           return new IndexedValue(bytes)
         })
@@ -457,52 +457,60 @@ export async function Findex() {
       },
     )
 
-    return serializedIndexedValues.map((bytes) => new IndexedValue(bytes))
-  }
-
-  /**
-   * Search indexed keywords and return the corresponding IndexedValues
-   *
-   * @param keywords keywords to search inside the indexes
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
-   * @param {Label} label public label for the index
-   * @param {FetchEntries} fetchEntries callback to fetch the entries table
-   * @param {FetchChains} fetchChains callback to fetch the chains table
-   * @param options Additional optional options to the search
-   * @param options.maxResultsPerKeyword the maximum number of results per keyword
-   * @param options.maxGraphDepth automatically follow the nextwords to find only locations
-   * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
-   * @returns a list of `Location`
-   */
-  const search = async (
-    keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
-    masterKey: FindexKey | SymmetricKey,
-    label: Label,
-    fetchEntries: FetchEntries,
-    fetchChains: FetchChains,
-    options: {
-      maxResultsPerKeyword?: number
-      maxGraphDepth?: number
-      progress?: Progress
-    } = {},
-  ): Promise<Location[]> => {
-    const results = await rawSearch(
-      keywords,
-      masterKey,
-      label,
-      fetchEntries,
-      fetchChains,
-      options,
-    )
-
-    return results
-      .map((result) => result.getLocation())
-      .filter((location) => location !== null) as Location[]
+    return new SearchResults(resultsPerKeywords)
   }
 
   return {
     upsert,
-    rawSearch,
     search,
   }
+}
+
+class SearchResults {
+  indexedValuesPerKeywords: Array<{ keyword: Uint8Array, indexedValues: IndexedValue[] }>
+
+  constructor(resultsPerKeywords: Array<{ keyword: Uint8Array, results: Uint8Array[] }>) {
+    this.indexedValuesPerKeywords = resultsPerKeywords.map(({ keyword, results }) => ({
+      keyword,
+      indexedValues: results.map((bytes) => new IndexedValue(bytes))
+    }));
+  }
+
+  get(keyword: string | Uint8Array): Location[] {
+    return this.getAllIndexedValues(keyword)
+      .map((result) => result.getLocation())
+      .filter((location) => location !== null) as Location[]
+  }
+
+  getAllIndexedValues(keyword: string | Uint8Array): IndexedValue[] {
+    const keywordAsBytes = typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
+
+    for (const { keyword: keywordInResults, indexedValues } of this.indexedValuesPerKeywords) {
+      if (bytesEquals(keywordAsBytes, keywordInResults)) {
+        return indexedValues
+      }
+    }
+
+    const keywordAsString = keyword instanceof Uint8Array ? hexEncode(keyword) : keyword
+    throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
+  }
+  
+  locations(): Location[] {
+    return Array.from(this)
+  }
+
+  total(): number {
+    return this.locations().length
+  }
+
+  * [Symbol.iterator](): Generator<Location, void, void> {
+    for (const { indexedValues } of this.indexedValuesPerKeywords) {
+      for (const indexedValue of indexedValues) {
+        const location = indexedValue.getLocation()
+        if (location !== null) {
+          yield location
+        }
+      }
+    }
+  };
 }

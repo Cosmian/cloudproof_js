@@ -406,7 +406,7 @@ function App() {
   const index = async () => {
     setIndexing(true)
 
-    let masterKey = new FindexKey(Uint8Array.from(Array(32).keys()))
+    let masterKey = new FindexKey(Uint8Array.from(Array(16).keys()))
     setMasterKey(masterKey)
 
     indexUsers(masterKey, users)

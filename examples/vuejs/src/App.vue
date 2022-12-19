@@ -279,7 +279,7 @@ export default defineComponent({
     async index() {
       this.indexing = true;
 
-      this.masterKey = new FindexKey(Uint8Array.from(Array(32).fill(1)));
+      this.masterKey = new FindexKey(Uint8Array.from(Array(16).fill(1)));
 
       this.indexUsers(this.masterKey, this.users);
 
