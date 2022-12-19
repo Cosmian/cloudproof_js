@@ -160,7 +160,7 @@ while (true) {
     }
   );
 
-  console.log(`Searching for ${query} (${stem}, ${phonetic}), ${rawResults.total()} results.`)
+  console.log(`Searching for ${query} (${stem}, ${phonetic}), ${rawResults.locations().length} results.`)
 
   // Parse locations and compute distances
   const results = rawResults.locations().map((result) => {

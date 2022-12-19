@@ -443,7 +443,6 @@ export async function Findex() {
         ? 1000
         : options.maxGraphDepth,
       async (serializedIndexedValues: Uint8Array[]) => {
-        
         const indexedValues = serializedIndexedValues.map((bytes) => {
           return new IndexedValue(bytes)
         })
@@ -467,13 +466,20 @@ export async function Findex() {
 }
 
 class SearchResults {
-  indexedValuesPerKeywords: Array<{ keyword: Uint8Array, indexedValues: IndexedValue[] }>
+  indexedValuesPerKeywords: Array<{
+    keyword: Uint8Array
+    indexedValues: IndexedValue[]
+  }>
 
-  constructor(resultsPerKeywords: Array<{ keyword: Uint8Array, results: Uint8Array[] }>) {
-    this.indexedValuesPerKeywords = resultsPerKeywords.map(({ keyword, results }) => ({
-      keyword,
-      indexedValues: results.map((bytes) => new IndexedValue(bytes))
-    }));
+  constructor(
+    resultsPerKeywords: Array<{ keyword: Uint8Array; results: Uint8Array[] }>,
+  ) {
+    this.indexedValuesPerKeywords = resultsPerKeywords.map(
+      ({ keyword, results }) => ({
+        keyword,
+        indexedValues: results.map((bytes) => new IndexedValue(bytes)),
+      }),
+    )
   }
 
   get(keyword: string | Uint8Array): Location[] {
@@ -483,18 +489,21 @@ class SearchResults {
   }
 
   getAllIndexedValues(keyword: string | Uint8Array): IndexedValue[] {
-    const keywordAsBytes = typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
+    const keywordAsBytes =
+      typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
 
-    for (const { keyword: keywordInResults, indexedValues } of this.indexedValuesPerKeywords) {
+    for (const { keyword: keywordInResults, indexedValues } of this
+      .indexedValuesPerKeywords) {
       if (bytesEquals(keywordAsBytes, keywordInResults)) {
         return indexedValues
       }
     }
 
-    const keywordAsString = keyword instanceof Uint8Array ? hexEncode(keyword) : keyword
+    const keywordAsString =
+      keyword instanceof Uint8Array ? hexEncode(keyword) : keyword
     throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
   }
-  
+
   locations(): Location[] {
     return Array.from(this)
   }
@@ -503,7 +512,7 @@ class SearchResults {
     return this.locations().length
   }
 
-  * [Symbol.iterator](): Generator<Location, void, void> {
+  *[Symbol.iterator](): Generator<Location, void, void> {
     for (const { indexedValues } of this.indexedValuesPerKeywords) {
       for (const indexedValue of indexedValues) {
         const location = indexedValue.getLocation()
@@ -512,5 +521,5 @@ class SearchResults {
         }
       }
     }
-  };
+  }
 }

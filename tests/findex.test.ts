@@ -313,7 +313,7 @@ async function run(
     )
 
     expect(results.total()).toEqual(100)
-    const locations = results.locations();
+    const locations = results.locations()
     const resultsIds = locations
       .map((location) => location.toNumber())
       .sort((a, b) => a - b)
