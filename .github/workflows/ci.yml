@@ -257,3 +257,25 @@ jobs:
           gzip -d imdb.tsv.gz
           npm install
           node test.mjs
+
+  example_full_text_search:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+          key: build-${{ github.run_id }}
+
+      - name: Test Full Text Search
+        run: |
+          cd examples/full_text_search
+          npm install
+          node test.mjs

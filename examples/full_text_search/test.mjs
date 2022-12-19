@@ -18,21 +18,35 @@ process.stderr.on('data', (data) => {
     throw new Error(`Error while running: ${data}`);
 });
 
-// Wait 10 seconds before killing the importation
-await new Promise((resolve) => setTimeout(resolve, 10 * 100));
+while (! stdout.includes('Search:')) {
+    // Wait 10 seconds before killing the importation
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+}
 
-process.kill('SIGINT')
-
-await new Promise((resolve) => setTimeout(resolve, 1 * 100));
-process.stdin.write("Documentary\n");
+process.stdin.write("title\n");
 process.stdin.end();
 
 // Wait the search results
-await new Promise((resolve) => setTimeout(resolve, 10 * 100));
+await new Promise((resolve) => setTimeout(resolve, 1000));
 
-if (! stdout.includes('https://www.imdb.com/title/tt0009910')) {
+if (! stdout.includes('Searching for title (titl, TTL), 20 results.')) {
     console.log(stdout)
-    throw new Error("Stdout doesn't contains the documentary link")
+    throw new Error("Search didin't end or wrong number of results")
 }
 
+if (! stdout.includes('If you modify the section \x1b[32mtitle\x1b[2m')) {
+    console.log(stdout)
+    throw new Error("Stdout doesn't contains a simple search result")
+}
+
+if (! stdout.includes('such as \x1b[32mtitles\x1b[2m (stem titl)')) {
+    console.log(stdout)
+    throw new Error("Stdout doesn't contains a stem result")
+}
+
+
+if (! stdout.includes('dots represent the \x1b[32mtotal\x1b[2m (phonetic TTL)')) {
+    console.log(stdout)
+    throw new Error("Stdout doesn't contains a phonetic result")
+}
 
