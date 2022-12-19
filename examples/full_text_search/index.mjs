@@ -141,7 +141,9 @@ const rl = readline.createInterface({
 });
 
 while (true) {
-  const originalQuery = await ask('\n---------------------\nSearch: ')
+  const originalQuery = await new Promise(resolve => {
+    rl.question('\n---------------------\nSearch: ', resolve)
+  })
   const query = originalQuery.toLowerCase()
 
   const stem = natural.PorterStemmer.stem(query)
@@ -258,10 +260,4 @@ function encode(value) {
   }
 
   return Uint8Array.from(result)
-}
-
-async function ask(prompt) {
-  return await new Promise(resolve => {
-    rl.question(prompt, resolve)
-  })
 }
