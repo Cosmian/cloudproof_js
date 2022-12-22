@@ -491,7 +491,7 @@ test(
 )
 
 test(
-  "Decrypt old cyphertext after rotation",
+  "Decrypt old ciphertext after rotation",
   async () => {
     const client = new KmsClient(
       new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
@@ -517,12 +517,12 @@ test(
     )
 
     const oldPlaintext = Uint8Array.from([1, 2, 3])
-    const oldKmsCyphertext = await client.coverCryptEncrypt(
+    const oldKmsCiphertext = await client.coverCryptEncrypt(
       mpkID,
       "Security::Simple",
       oldPlaintext,
     )
-    const oldLocalCyphertext = oldLocalEncryption.encrypt(
+    const oldLocalCiphertext = oldLocalEncryption.encrypt(
       "Security::Simple",
       oldPlaintext,
     )
@@ -538,16 +538,16 @@ test(
     const oldLocalDecryption = new CoverCryptHybridDecryption(oldUserKey)
 
     expect(
-      (await client.coverCryptDecrypt(userKeyID, oldKmsCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, oldKmsCiphertext)).plaintext,
     ).toEqual(oldPlaintext)
-    expect(oldLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+    expect(oldLocalDecryption.decrypt(oldKmsCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
 
     expect(
-      (await client.coverCryptDecrypt(userKeyID, oldLocalCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, oldLocalCiphertext)).plaintext,
     ).toEqual(oldPlaintext)
-    expect(oldLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+    expect(oldLocalDecryption.decrypt(oldLocalCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
 
@@ -562,12 +562,12 @@ test(
     expect(newPublicKey.bytes()).not.toEqual(oldPublicKey.bytes())
 
     const newPlaintext = Uint8Array.from([4, 5, 6])
-    const newKmsCyphertext = await client.coverCryptEncrypt(
+    const newKmsCiphertext = await client.coverCryptEncrypt(
       mpkID,
       "Security::Simple",
       newPlaintext,
     )
-    const newLocalCyphertext = newLocalEncryption.encrypt(
+    const newLocalCiphertext = newLocalEncryption.encrypt(
       "Security::Simple",
       newPlaintext,
     )
@@ -578,40 +578,40 @@ test(
     const newLocalDecryption = new CoverCryptHybridDecryption(newUserKey)
 
     expect(
-      (await client.coverCryptDecrypt(userKeyID, oldKmsCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, oldKmsCiphertext)).plaintext,
     ).toEqual(oldPlaintext)
     expect(
-      (await client.coverCryptDecrypt(userKeyID, newKmsCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, newKmsCiphertext)).plaintext,
     ).toEqual(newPlaintext)
 
-    expect(oldLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+    expect(oldLocalDecryption.decrypt(oldKmsCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
-    expect(newLocalDecryption.decrypt(oldKmsCyphertext).plaintext).toEqual(
+    expect(newLocalDecryption.decrypt(oldKmsCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
 
-    expect(() => oldLocalDecryption.decrypt(newKmsCyphertext)).toThrow()
-    expect(newLocalDecryption.decrypt(newKmsCyphertext).plaintext).toEqual(
+    expect(() => oldLocalDecryption.decrypt(newKmsCiphertext)).toThrow()
+    expect(newLocalDecryption.decrypt(newKmsCiphertext).plaintext).toEqual(
       newPlaintext,
     )
 
     expect(
-      (await client.coverCryptDecrypt(userKeyID, oldLocalCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, oldLocalCiphertext)).plaintext,
     ).toEqual(oldPlaintext)
     expect(
-      (await client.coverCryptDecrypt(userKeyID, newLocalCyphertext)).plaintext,
+      (await client.coverCryptDecrypt(userKeyID, newLocalCiphertext)).plaintext,
     ).toEqual(newPlaintext)
 
-    expect(oldLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+    expect(oldLocalDecryption.decrypt(oldLocalCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
-    expect(newLocalDecryption.decrypt(oldLocalCyphertext).plaintext).toEqual(
+    expect(newLocalDecryption.decrypt(oldLocalCiphertext).plaintext).toEqual(
       oldPlaintext,
     )
 
-    expect(() => oldLocalDecryption.decrypt(newLocalCyphertext)).toThrow()
-    expect(newLocalDecryption.decrypt(newLocalCyphertext).plaintext).toEqual(
+    expect(() => oldLocalDecryption.decrypt(newLocalCiphertext)).toThrow()
+    expect(newLocalDecryption.decrypt(newLocalCiphertext).plaintext).toEqual(
       newPlaintext,
     )
   },

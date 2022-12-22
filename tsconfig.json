@@ -3,11 +3,7 @@
     "target": "ES2020",
     "noEmit": true,
     "module": "esnext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2020"
-    ],
+    "lib": ["dom", "dom.iterable", "es2020"],
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
@@ -19,13 +15,6 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src",
-    "tests",
-  ],
-  "exclude": [
-    "node_modules",
-    "**/__tests__/*",
-    "examples",
-  ]
+  "include": ["src", "tests"],
+  "exclude": ["node_modules", "**/__tests__/*", "examples"]
 }

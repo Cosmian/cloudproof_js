@@ -1,3 +1,4 @@
+---
 name: Publish to NPM
 
 on:
@@ -14,7 +15,7 @@ jobs:
       - name: Install dependencies and build
         run: npm install
 
-      - name: Set NPN token
+      - name: Set NPM token
         run: echo "//registry.npmjs.org/:_authToken=$NPM_ACCESS_TOKEN" > ~/.npmrc
         env:
           NPM_ACCESS_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}

@@ -12,13 +12,9 @@
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
-    "project": [
-      "./tsconfig.json"
-    ]
+    "project": ["./tsconfig.json"]
   },
-  "plugins": [
-    "jsdoc"
-  ],
+  "plugins": ["jsdoc"],
   "rules": {
     "@typescript-eslint/no-empty-interface": 0,
     "no-labels": 0,
@@ -33,7 +29,5 @@
     "jsdoc/require-param-type": 0,
     "jsdoc/require-returns-type": 0
   },
-  "ignorePatterns": [
-    "src/pkg"
-  ]
+  "ignorePatterns": ["src/pkg"]
 }

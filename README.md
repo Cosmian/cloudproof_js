@@ -1,15 +1,16 @@
-<!-- toc -->
+# Cloudproof Javascript Library
 
-- [Cloudproof Javascript Lib](#cloudproof-javascript-lib)
-  - [Getting started](#getting-started)
-  - [Using in Javascript projects](#using-in-javascript-projects)
-  - [Versions Correspondence](#versions-correspondence)
-
-<!-- tocstop -->
-
-# Cloudproof Javascript Lib
+![Build status](https://github.com/Cosmian/cloudproof_js/actions/workflows/ci.yml/badge.svg)
 
 The library provides a Typescript-friendly API to the **Cloudproof Encryption** product of the [Cosmian Ubiquitous Encryption platform](https://cosmian.com).
+
+<!-- toc -->
+
+- [Getting started](#getting-started)
+- [Using in Javascript projects](#using-in-javascript-projects)
+- [Versions Correspondence](#versions-correspondence)
+
+<!-- tocstop -->
 
 ## Getting started
 
