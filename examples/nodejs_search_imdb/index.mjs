@@ -27,7 +27,7 @@ const input = fs.createReadStream(dataFilename)
 
 // Init Findex with random key and random label
 const { upsert, search } = await Findex();
-const masterKey = new FindexKey(randomBytes(32))
+const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 const db = new Database(":memory:");
@@ -124,7 +124,7 @@ for await (const query of queries) {
     },
   );
 
-  console.log(`Searching for ${query} returned ${results.length} results:`)
+  console.log(`Searching for ${query} returned ${results.total()} results:`)
   for (const result of results) {
     console.log(`\t- https://www.imdb.com/title/${result}`);
   }

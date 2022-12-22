@@ -1,29 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
-* Index the given values for the given keywords. After upserting, any search
-* for such a keyword will result in finding (at least) the corresponding
-* value.
-*
-* # Parameters
-*
-* - `master_key`                  : master key
-* - `label_bytes`                 : public label used for hashing
-* - `indexed_value_to_keywords`   : map of `IndexedValue`s to `KeyWord` bytes
-* - `fetch_entries`               : the callback to fetch from the entry table
-* - `upsert_entries`              : the callback to upsert in the entry table
-* - `insert_chains`               : the callback to insert in the chain table
-* @param {Uint8Array} master_key
-* @param {Uint8Array} label_bytes
-* @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_and_words
-* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
-* @param {(uidsAndValues: {uid: Uint8Array, oldValue: Uint8Array | null, newValue: Uint8Array}[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} upsert_entries
-* @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} insert_chains
-* @returns {Promise<void>}
-*/
-export function webassembly_upsert(master_key: Uint8Array, label_bytes: Uint8Array, indexed_values_and_words: Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>, fetch_entries: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, upsert_entries: (uidsAndValues: {uid: Uint8Array, oldValue: Uint8Array | null, newValue: Uint8Array}[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, insert_chains: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>): Promise<void>;
-/**
-* Recursively searches Findex graphs for values indexed by the given keywords.
+* See [`FindexSearch::search()`](crate::core::FindexSearch::search).
 *
 * # Parameters
 *
@@ -41,18 +19,38 @@ export function webassembly_upsert(master_key: Uint8Array, label_bytes: Uint8Arr
 * @param {number} max_results_per_keyword
 * @param {number} max_depth
 * @param {(indexedValues: Uint8Array[]) => Promise<Boolean>} progress
-* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entries
-* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_chains
-* @returns {Promise<Array<Uint8Array>>}
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entry
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_chain
+* @returns {Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>}
 */
-export function webassembly_search(master_key: Uint8Array, label_bytes: Uint8Array, keywords: Array<Uint8Array>, max_results_per_keyword: number, max_depth: number, progress: (indexedValues: Uint8Array[]) => Promise<Boolean>, fetch_entries: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, fetch_chains: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>): Promise<Array<Uint8Array>>;
+export function webassembly_search(master_key: Uint8Array, label_bytes: Uint8Array, keywords: Array<Uint8Array>, max_results_per_keyword: number, max_depth: number, progress: (indexedValues: Uint8Array[]) => Promise<Boolean>, fetch_entry: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, fetch_chain: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>): Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>;
+/**
+* See [`FindexUpsert::upsert()`](crate::core::FindexUpsert::upsert).
+*
+* # Parameters
+*
+* - `master_key`                  : master key
+* - `label_bytes`                 : public label used for hashing
+* - `indexed_value_to_keywords`   : map of `IndexedValue`s to `Keyword` bytes
+* - `fetch_entries`               : the callback to fetch from the entry table
+* - `upsert_entries`              : the callback to upsert in the entry table
+* - `insert_chains`               : the callback to insert in the chain table
+* @param {Uint8Array} master_key
+* @param {Uint8Array} label_bytes
+* @param {Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>} indexed_values_to_keywords
+* @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entry
+* @param {(uidsAndValues: {uid: Uint8Array, oldValue: Uint8Array | null, newValue: Uint8Array}[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} upsert_entry
+* @param {(uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>} insert_chain
+* @returns {Promise<void>}
+*/
+export function webassembly_upsert(master_key: Uint8Array, label_bytes: Uint8Array, indexed_values_to_keywords: Array<{indexedValue: Uint8Array, keywords: Uint8Array[]}>, fetch_entry: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, upsert_entry: (uidsAndValues: {uid: Uint8Array, oldValue: Uint8Array | null, newValue: Uint8Array}[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, insert_chain: (uidsAndValues: {uid: Uint8Array, value: Uint8Array}[]) => Promise<void>): Promise<void>;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly webassembly_upsert: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly webassembly_search: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
+  readonly webassembly_upsert: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly __wbindgen_export_0: (a: number) => number;
   readonly __wbindgen_export_1: (a: number, b: number, c: number) => number;
   readonly __wbindgen_export_2: WebAssembly.Table;

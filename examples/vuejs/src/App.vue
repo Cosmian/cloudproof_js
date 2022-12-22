@@ -279,7 +279,7 @@ export default defineComponent({
     async index() {
       this.indexing = true;
 
-      this.masterKey = new FindexKey(Uint8Array.from(Array(32).fill(1)));
+      this.masterKey = new FindexKey(Uint8Array.from(Array(16).fill(1)));
 
       this.indexUsers(this.masterKey, this.users);
 
@@ -375,22 +375,22 @@ export default defineComponent({
 
       let locations: Array<Location> | null = null;
       if (this.doOr) {
-        locations = await search(
+        locations = (await search(
           keywords,
           this.masterKey,
           FINDEX_LABEL,
           async (uids) => await this.fetchCallback("entries", uids),
           async (uids) => await this.fetchCallback("chains", uids),
-        );
+        )).locations();
       } else {
         for (const keyword of keywords) {
-          const newLocations = await search(
+          const newLocations = (await search(
             [keyword],
             this.masterKey,
             FINDEX_LABEL,
             async (uids) => await this.fetchCallback("entries", uids),
             async (uids) => await this.fetchCallback("chains", uids),
-          );
+          )).locations();
 
           if (locations === null) {
             locations = newLocations;

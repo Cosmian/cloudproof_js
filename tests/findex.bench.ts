@@ -19,7 +19,7 @@ describe("Wasm loading", async () => {
 })
 
 const findex = await Findex()
-const masterKey = new FindexKey(randomBytes(32))
+const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 describe("Findex Upsert", async () => {
