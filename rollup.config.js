@@ -1,16 +1,16 @@
-import typescript from "@rollup/plugin-typescript";
-import { wasm } from "@rollup/plugin-wasm";
-import { nodeResolve } from '@rollup/plugin-node-resolve';
+import typescript from "@rollup/plugin-typescript"
+import { wasm } from "@rollup/plugin-wasm"
+import { nodeResolve } from "@rollup/plugin-node-resolve"
 
 const production = !process.env.ROLLUP_WATCH
 
 const outdir = (fmt, env) => {
   if (env === "node") {
-    return `dist/node`;
+    return `dist/node`
   } else {
-    return `dist/${fmt}${env === "slim" ? "-slim" : ""}`;
+    return `dist/${fmt}${env === "slim" ? "-slim" : ""}`
   }
-};
+}
 
 const rolls = (fmt, env) => ({
   input: env !== "slim" ? "src/index.ts" : "src/index_slim.ts",
@@ -28,9 +28,13 @@ const rolls = (fmt, env) => ({
       wasm(
         env === "node"
           ? { maxFileSize: 0, targetEnv: "node" }
-          : { targetEnv: "auto-inline" }
+          : { targetEnv: "auto-inline" },
       ),
-    typescript({ outDir: outdir(fmt, env), rootDir: "src", sourceMap: !production, }),
+    typescript({
+      outDir: outdir(fmt, env),
+      rootDir: "src",
+      sourceMap: !production,
+    }),
     {
       name: "copy-pkg",
 
@@ -44,13 +48,13 @@ const rolls = (fmt, env) => ({
       resolveImportMeta: () => `""`,
     },
   ],
-});
+})
 
 export default [
   rolls("umd", "fat"),
   rolls("es", "fat"),
   rolls("cjs", "fat"),
   rolls("cjs", "node"),
-//   rolls("es", "slim"),
-//   rolls("cjs", "slim"),
-];
+  //   rolls("es", "slim"),
+  //   rolls("cjs", "slim"),
+]
