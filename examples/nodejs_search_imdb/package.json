@@ -1,0 +1,7 @@
+{
+  "name": "upsert_imdb",
+  "dependencies": {
+    "better-sqlite3": "^8.0.1",
+    "cloudproof_js": "file:../.."
+  }
+}

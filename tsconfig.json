@@ -1,17 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2020"
-    ],
+    "noEmit": true,
+    "module": "esnext",
+    "lib": ["dom", "dom.iterable", "es2020"],
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./tmp/dist/commonjs",
     "strict": true,
     "moduleResolution": "node",
     "baseUrl": "./src",
@@ -19,15 +15,6 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src",
-    "tests",
-    "@types"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/__tests__/*",
-    "tests/wasm_lib",
-    "examples"
-  ]
+  "include": ["src", "tests"],
+  "exclude": ["node_modules", "**/__tests__/*", "examples"]
 }

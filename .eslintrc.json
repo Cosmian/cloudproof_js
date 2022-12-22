@@ -12,15 +12,12 @@
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
-    "project": [
-      "./tsconfig.json"
-    ]
+    "project": ["./tsconfig.json"]
   },
-  "plugins": [
-    "jsdoc"
-  ],
+  "plugins": ["jsdoc"],
   "rules": {
     "@typescript-eslint/no-empty-interface": 0,
+    "no-labels": 0,
     "no-unused-vars": [
       "error",
       {
@@ -28,9 +25,9 @@
         "args": "all",
         "ignoreRestSiblings": false
       }
-    ]
+    ],
+    "jsdoc/require-param-type": 0,
+    "jsdoc/require-returns-type": 0
   },
-  "ignorePatterns": [
-    "tests/wasm_lib"
-  ]
+  "ignorePatterns": ["src/pkg"]
 }

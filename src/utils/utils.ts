@@ -1,6 +1,4 @@
-import { Index } from "crypto/sse/findex/interfaces"
-import * as leb from "leb128"
-import { logger } from "./logger"
+import { decode } from "./leb128"
 
 /**
  * Convert the binary string to base64 string and sanitize it.
@@ -83,29 +81,6 @@ export function toBeBytes(myNumber: number): Uint8Array {
 }
 
 /**
- * Return the number of bytes for encoding the number of bytes of the deserialized item
- *
- * @param {Uint8Array} stream Array being deserialized when using LEB128 deserialization
- * @returns {number} number of bytes
- */
-function getSizeNumberOfBytes(stream: Uint8Array): number {
-  const a: number[] = []
-
-  for (const element of stream) {
-    const b = element
-    a.push(b)
-
-    // tslint:disable-next-line: no-bitwise
-    if ((b & 0x80) === 0) {
-      logger.log(() => "break")
-      break
-    }
-  }
-
-  return a.length
-}
-
-/**
  * Deserialize Uint8Array as a list of Uint8Array
  *
  * @param {Uint8Array} serializedItems Uint8Array of serialized data
@@ -114,95 +89,13 @@ function getSizeNumberOfBytes(stream: Uint8Array): number {
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
-    const itemLen = parseInt(leb.unsigned.decode(serializedItems), 10)
-    const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
+    const { result: itemLen, tail } = decode(Buffer.from(serializedItems))
 
-    const item = serializedItems.slice(
-      sizeNumberOfBytes,
-      sizeNumberOfBytes + itemLen,
-    )
-    serializedItems = serializedItems.slice(sizeNumberOfBytes + itemLen)
+    const item = tail.slice(0, itemLen)
+    serializedItems = tail.slice(itemLen)
     items.push(item)
   }
   return items
-}
-
-/**
- * Deserialize Uint8Array as an array of objects with key and value
- *
- * @param {Uint8Array} serializedItems Uint8Array of serialized data
- * @returns {Index[]} an array of objects with key and value properties as Uint8Array
- */
-export function deserializeHashMap(serializedItems: Uint8Array): Index[] {
-  const items: Index[] = []
-  while (serializedItems.length > 1) {
-    const keyLen = parseInt(leb.unsigned.decode([...serializedItems]), 10)
-    const sizeNumberOfBytes = getSizeNumberOfBytes(serializedItems)
-    const key = serializedItems.slice(
-      sizeNumberOfBytes,
-      sizeNumberOfBytes + keyLen,
-    )
-    serializedItems = serializedItems.slice(sizeNumberOfBytes + keyLen)
-
-    if (key.length > 1) {
-      const valueLen = parseInt(leb.unsigned.decode(serializedItems), 10)
-      const lengthNbBytes = getSizeNumberOfBytes(serializedItems)
-      const value = serializedItems.slice(
-        lengthNbBytes,
-        lengthNbBytes + valueLen,
-      )
-      const item: Index = {
-        uid: new Uint8Array(),
-        value: new Uint8Array(),
-      }
-      if (value.length > 0) {
-        item.uid = key
-        item.value = value
-      }
-      items.push(item)
-      serializedItems = serializedItems.slice(lengthNbBytes + valueLen)
-    }
-  }
-  return items
-}
-
-/**
- * Serialize a list of Uint8Array as a Uint8Array
- *
- * @param {Uint8Array[]} list an array of deserialized item
- * @returns {Uint8Array} Uint8Array of serialized data
- */
-export function serializeList(list: Uint8Array[]): Uint8Array {
-  let serializedData = new Uint8Array()
-  for (const item of list) {
-    const itemLen = leb.unsigned.encode(item.length)
-    serializedData = Uint8Array.from([...serializedData, ...itemLen, ...item])
-  }
-  serializedData = Uint8Array.from([...serializedData, 0])
-  return serializedData
-}
-
-/**
- * Serialize an array of uids and values as a Uint8Array
- *
- * @param {Index[]} data  an array of objects containing uids and values
- * @returns {Uint8Array} Uint8Array of serialized data
- */
-export function serializeHashMap(data: Index[]): Uint8Array {
-  let serializedData = new Uint8Array()
-  for (const item of data) {
-    const keyLen = leb.unsigned.encode(item.uid.length)
-    const valueLen = leb.unsigned.encode(item.value.length)
-    serializedData = Uint8Array.from([
-      ...serializedData,
-      ...keyLen,
-      ...item.uid,
-      ...valueLen,
-      ...item.value,
-    ])
-  }
-  serializedData = Uint8Array.from([...serializedData, 0])
-  return serializedData
 }
 
 /**
@@ -220,27 +113,43 @@ export function sanitizeString(str: string): string {
 }
 
 /**
- * Init wasm for Findex
+ * Lowercase the first letter of a string
+ *
+ * @param value the string
+ * @returns the string with the first letter lowercased
  */
-export async function initFindex(): Promise<void> {
-  if (
-    typeof process === "undefined" ||
-    process.env.JEST_WORKER_ID === undefined
-  ) {
-    const module = await import("cosmian_findex")
-    await module.default()
-  }
+export function uncapitalize(value: string): string {
+  return value.charAt(0).toLowerCase() + value.slice(1)
 }
 
 /**
- * Init wasm for CoverCrypt
+ * Uppercase the first letter of a string
+ *
+ * @param value the string
+ * @returns the string with the first letter uppercased
  */
-export async function initCoverCrypt(): Promise<void> {
-  if (
-    typeof process === "undefined" ||
-    process.env.JEST_WORKER_ID === undefined
-  ) {
-    const module = await import("cosmian_cover_crypt")
-    await module.default()
+export function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
+
+/**
+ * @param a one Uint8Array
+ * @param b one Uint8Array
+ * @returns is equals
+ */
+export function bytesEquals(
+  a: Uint8Array | null,
+  b: Uint8Array | null,
+): boolean {
+  if (a === null && b === null) return true
+  if (a === null) return false
+  if (b === null) return false
+
+  if (a.length !== b.length) return false
+
+  for (const index in a) {
+    if (a[index] !== b[index]) return false
   }
+
+  return true
 }

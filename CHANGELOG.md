@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.0] - 2022-12-22
+
+### Added
+
+- NodeJS support
+- encrypt/decrypt with the KMS
+- `Location.fromUuid()`
+- Verify non regression test vectors for CoverCrypt
+- New simple API for CoverCrypt (new functions `encrypt`, `decrypt`, `generateMasterKeys`, `generateUserSecretKey` and `rotateAttributes`)
+
+### Changed
+
+- Findex 1.0
+- Simplify `search` signature (move optional options to an `options` object at the end)
+- `search` now return `SearchResults`, use `locations()` to get all the locations, use `getAllIndexedValues()` to get the full `IndexedValue` list
+- `decrypt` function for CoverCrypt now return an object containing the decrypted header metadata and the plaintext decrypted value
+- WASM files are now base64 inline in the lib
+- `KmipClient` is now `KmsClient`
+- Removed `client.post()` function, please use the specific functions on the `KmsClient` object.
+- Refactor the KMS structures (snake case to camel case for properties, change some types…)
+- Rename `*abe*` to `*CoverCrypt*` in KMS functions
+- Rename `ClearTextHeader` to `PlaintextHeader`
+- Rename `additionalData` to `headerMetadata`
+- Switch from Jest to Vitest
+
+### Removed
+
+- `options.generateGraphs` in the `upsert` function. Please use `generateAliases()` to build the keywords/nextwords (see VueJS or ReactJS examples)
+- In `Location`, `Keyword` and `Label`: `fromUtf8String()`, replaced by `fromString()`
+
+### Fixed
+
+- `AccessPolicy.toKmipJson` and `AccessPolicy.toVendorAttribute` are now async (because they call the WASM)
+
 ---
 
 ## [5.1.0] - 2022-11-17
@@ -15,8 +49,10 @@ All notable changes to this project will be documented in this file.
 - update `cover_crypt` to 7.1.0
 
 ### Fixed
+
 - fix TypeScript 4.9
 - fix E2E test and small HTML tweaks
+
 ---
 
 ## [5.0.1] - 2022-11-15

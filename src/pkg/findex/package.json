@@ -1,0 +1,28 @@
+{
+  "name": "cosmian_findex",
+  "collaborators": [
+    "Chloé Hébant <chloe.hebant@cosmian.com>",
+    "Bruno Grieder <bruno.grieder@cosmian.com>",
+    "Célia Corsin <celia.corsin@cosmian.com>",
+    "Emmanuel Coste <emmanuel.coste@cosmian.com>"
+  ],
+  "description": "Symmetric Searchable Encryption",
+  "version": "1.0.0",
+  "license": "MIT/Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cosmian/findex/"
+  },
+  "files": [
+    "cosmian_findex_bg.wasm",
+    "cosmian_findex.js",
+    "cosmian_findex.d.ts",
+    "LICENSE.md"
+  ],
+  "module": "cosmian_findex.js",
+  "types": "cosmian_findex.d.ts",
+  "sideEffects": false,
+  "keywords": [
+    "SSE"
+  ]
+}
