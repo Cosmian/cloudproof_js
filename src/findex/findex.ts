@@ -337,8 +337,8 @@ export async function Findex() {
    */
   const upsert = async (
     newIndexedEntries: IndexedEntry[],
-    masterKey: FindexKey | SymmetricKey,
-    label: Label,
+    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    label: Label | Uint8Array,
     fetchEntries: FetchEntries,
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
@@ -346,6 +346,13 @@ export async function Findex() {
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
+    }
+    if (masterKey instanceof Uint8Array) {
+      masterKey = new FindexKey(masterKey)
+    }
+
+    if (label instanceof Uint8Array) {
+      label = new Label(label)
     }
 
     const indexedValuesAndWords = newIndexedEntries.map(
@@ -408,8 +415,8 @@ export async function Findex() {
    */
   const search = async (
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
-    masterKey: FindexKey | SymmetricKey,
-    label: Label,
+    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    label: Label | Uint8Array,
     fetchEntries: FetchEntries,
     fetchChains: FetchChains,
     options: {
@@ -421,6 +428,13 @@ export async function Findex() {
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
+    }
+    if (masterKey instanceof Uint8Array) {
+      masterKey = new FindexKey(masterKey)
+    }
+
+    if (label instanceof Uint8Array) {
+      label = new Label(label)
     }
 
     const kws: Uint8Array[] = []
