@@ -20,7 +20,7 @@ test("Generate non-regression tests vector", async () => {
 })
 
 test("Verify non-regression vector", async () => {
-  const testFolder = "tests/data/cover_crypt/"
+  const testFolder = "tests/data/cover_crypt/non_regression/"
   fs.readdirSync(testFolder).forEach((file: string) => {
     const content = fs.readFileSync(testFolder + file, "utf8")
     const nrv = NonRegressionVector.fromJson(content)
