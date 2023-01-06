@@ -173,4 +173,56 @@ test("errors", async () => {
   }).rejects.toThrow(
     "During Findex upsert: inside array returned by upsertEntries, position 0 contains an object without a `uid` property.",
   )
+  expect(async () => {
+    await findex.upsert(
+      toUpsert,
+      masterKey,
+      label,
+      (uids) => {
+        return uids.map((uid) => ({
+          uid,
+          value: Uint8Array.from([]),
+        }));
+      },
+      callbacks.upsertEntries,
+      callbacks.insertChains,
+    )
+  }).rejects.toThrow(
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid as hex was '[a-z0-9]+', value was empty\)/,
+  )
+  expect(async () => {
+    await findex.upsert(
+      toUpsert,
+      masterKey,
+      label,
+      (uids) => {
+        return uids.map((uid) => ({
+          uid,
+          value: Uint8Array.from([1, 2, 3, 4]),
+        }));
+      },
+      callbacks.upsertEntries,
+      callbacks.insertChains,
+    )
+  }).rejects.toThrow(
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid as hex was '[a-z0-9]+', value as hex was '01020304'\)/,
+  )
+
+  expect(async () => {
+    await findex.upsert(
+      toUpsert,
+      masterKey,
+      label,
+      (uids) => {
+        return uids.map((uid) => ({
+          uid: uid.slice(0, 12),
+          value: Uint8Array.from([1, 2, 3, 4]),
+        }));
+      },
+      callbacks.upsertEntries,
+      callbacks.insertChains,
+    )
+  }).rejects.toThrow(
+    /During Findex upsert: cannot parse the `uid` returned by `fetchEntries` at position 0 \(wrong size when parsing bytes: 12 given should be 32\)\. `uid` as hex was '[a-z0-9]+'\./,
+  )
 })

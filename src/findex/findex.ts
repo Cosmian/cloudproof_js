@@ -454,6 +454,7 @@ export async function Findex() {
       typeof options.progress === "undefined"
         ? async () => true
         : options.progress
+
     const resultsPerKeywords = await webassembly_search(
       masterKey.bytes,
       label.bytes,
