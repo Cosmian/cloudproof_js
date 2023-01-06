@@ -8,7 +8,7 @@ test("Generate non-regression tests vector", async () => {
 
   // Uncomment this code to write new test vector on disk
   fs.writeFile(
-    "node_modules/non_regression_test_vector.json",
+    "node_modules/non_regression_vector.json",
     nonRegVector.toJson(),
     (err: any) => {
       if (err !== null) {
