@@ -1,10 +1,8 @@
-import { webassembly_parse_boolean_access_policy } from "../../pkg/cover_crypt/cosmian_cover_crypt"
 import {
   Attributes,
   VendorAttributes,
 } from "../../kms/structs/object_attributes"
 import { PrivateKey } from "../../kms/structs/objects"
-import { CoverCrypt } from "../cover_crypt"
 
 export class AccessPolicy {
   private readonly _booleanAccessPolicy: string
@@ -24,16 +22,6 @@ export class AccessPolicy {
   }
 
   /**
-   * Convert to KMIP JSON format (to set in Vendor Attributes)
-   *
-   * @returns {string} the KMIP JSON Format
-   */
-  public async toKmipJson(): Promise<string> {
-    await CoverCrypt()
-    return webassembly_parse_boolean_access_policy(this._booleanAccessPolicy)
-  }
-
-  /**
    * Packages the access policy into a vendor attribute to include in a user decryption key
    *
    * @returns {VendorAttributes} the Access Policy as a VendorAttributes
@@ -42,18 +30,8 @@ export class AccessPolicy {
     return new VendorAttributes(
       VendorAttributes.VENDOR_ID_COSMIAN,
       VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY,
-      new TextEncoder().encode(await this.toKmipJson()),
+      new TextEncoder().encode(await this._booleanAccessPolicy),
     )
-  }
-
-  /**
-   * Create an Access Policy from the KMIP JSON format
-   *
-   * @param {string} kmipJsonAccessPolicy the KMIP JSON access policy format
-   * @returns {AccessPolicy} the access policy
-   */
-  public static fromKmipJson(kmipJsonAccessPolicy: string): AccessPolicy {
-    return new AccessPolicy(toBooleanExpression(kmipJsonAccessPolicy))
   }
 
   /**
@@ -73,9 +51,7 @@ export class AccessPolicy {
           VendorAttributes.VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY ||
         att.attributeName === VendorAttributes.VENDOR_ATTR_ABE_ACCESS_POLICY
       ) {
-        return AccessPolicy.fromKmipJson(
-          new TextDecoder().decode(att.attributeValue),
-        )
+        return new AccessPolicy(new TextDecoder().decode(att.attributeValue))
       }
     }
     throw new Error("No access policy available in the vendor attributes")

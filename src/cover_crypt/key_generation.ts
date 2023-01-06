@@ -88,8 +88,7 @@ export class CoverCryptKeyGeneration {
  * @returns {CoverCryptMasterKey} the master keys
  */
 export function generateMasterKeys(policy: Policy): CoverCryptMasterKey {
-  const policyBytes = policy.toJsonEncoded()
-  const masterKeys = webassembly_generate_master_keys(policyBytes)
+  const masterKeys = webassembly_generate_master_keys(policy.toBytes())
   const secretKeySize = fromBeBytes(masterKeys.slice(0, 4))
   return new CoverCryptMasterKey(
     masterKeys.slice(4, 4 + secretKeySize),
@@ -111,11 +110,10 @@ export function generateUserSecretKey(
   accessPolicy: string,
   policy: Policy,
 ): Uint8Array {
-  const policyBytes = policy.toJsonEncoded()
   const userSecretKey = webassembly_generate_user_secret_key(
     masterSecretKeyBytes,
     accessPolicy,
-    policyBytes,
+    policy.toBytes(),
   )
 
   return userSecretKey
@@ -132,12 +130,10 @@ export function generateUserSecretKey(
  * @returns {Policy} the updated policy
  */
 export function rotateAttributes(attributes: string[], policy: Policy): Policy {
-  const policyBytes = policy.toJsonEncoded()
-  const attributesBytes = new TextEncoder().encode(JSON.stringify(attributes))
   const newPolicyString = webassembly_rotate_attributes(
-    attributesBytes,
-    policyBytes,
+    attributes,
+    policy.toBytes(),
   )
 
-  return Policy.fromJsonEncoded(newPolicyString)
+  return new Policy(newPolicyString)
 }

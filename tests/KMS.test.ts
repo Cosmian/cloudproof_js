@@ -4,14 +4,11 @@ import {
   CoverCrypt,
   AccessPolicy,
   VendorAttributes,
-  Policy,
-  PolicyAxis,
   Attributes,
   CryptographicAlgorithm,
   KeyFormatType,
   SymmetricKey,
   TransparentSymmetricKey,
-  hexEncode,
   TTLV,
   KeyValue,
   toTTLV,
@@ -24,6 +21,7 @@ import {
   fromTTLV,
   CryptographicUsageMask,
   serialize,
+  hexEncode,
 } from ".."
 
 import { expect, test } from "vitest"
@@ -126,9 +124,20 @@ test(
       return
     }
 
-    const policy = new Policy([
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+    let { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = Policy.generate(100, [
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
     ])
+
     const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
       await client.createCoverCryptMasterKeyPair(policy)
 
@@ -229,27 +238,27 @@ test(
 )
 
 test("Policy", async () => {
-  await CoverCrypt()
+  let { Policy, PolicyAxis } = await CoverCrypt()
 
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level",
-        ["Protected", "Confidential", "Top Secret"],
-        true,
-      ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
-    ],
-    20,
-  )
-  // JSON encoding test
-  const json = JSON.parse(new TextDecoder().decode(policy.toJsonEncoded()))
-  expect(json.last_attribute_value).toEqual(6)
-  expect(json.max_attribute_creations).toEqual(20)
-  expect(json.attribute_to_int["Department::FIN"]).toEqual([4])
-  expect(json.axes["Security Level"]).toEqual([
-    ["Protected", "Confidential", "Top Secret"],
-    true,
+  const policy = Policy.generate(100, [
+    new PolicyAxis(
+      "Security Level",
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true,
+    ),
+    new PolicyAxis(
+      "Department",
+      [
+        { name: "FIN", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "HR", isHybridized: false },
+      ],
+      false,
+    ),
   ])
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
@@ -258,7 +267,7 @@ test("Policy", async () => {
   expect(children[1].value).toEqual(
     VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
   )
-  expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
+  expect(children[2].value).toEqual(hexEncode(policy.toBytes()))
   // Vendor Attributes test
   const va = policy.toVendorAttribute()
   const att = new Attributes("PrivateKey")
@@ -303,12 +312,6 @@ test("KMS CoverCrypt Access Policy", async () => {
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
-  const apj = await apb.toKmipJson()
-  expect(apj).toEqual(
-    '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
-  )
-  const apb_ = AccessPolicy.fromKmipJson(apj)
-  expect(apb_).toEqual(apb)
   // vendor attributes
   const va = await apb.toVendorAttribute()
   const attributes = new Attributes("PrivateKey")
@@ -327,13 +330,27 @@ test(
       return
     }
 
-    const policy = new Policy([
+    let { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = Policy.generate(100, [
       new PolicyAxis(
         "Security Level",
-        ["Protected", "Confidential", "Top Secret"],
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
         true,
       ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
     ])
 
     // create master keys
@@ -342,10 +359,10 @@ test(
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     const policyMsk = Policy.fromKey(msk)
-    expect(policyMsk.equals(policy)).toBeTruthy()
+    expect(policyMsk.toString() === policy.toString()).toBeTruthy()
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policyMpk = Policy.fromKey(mpk)
-    expect(policyMpk.equals(policy)).toBeTruthy()
+    expect(policyMpk.toString() === policy.toString()).toBeTruthy()
 
     // create user decryption Key
     const apb =
@@ -377,7 +394,7 @@ test(
     expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
     const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
-    expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
+    expect(policy.toBytes()).not.toEqual(rotatedPolicy.toBytes())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")
@@ -425,8 +442,17 @@ test(
       return
     }
 
-    const policy = new Policy([
-      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
+    let { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = Policy.generate(100, [
+      new PolicyAxis(
+        "Security",
+        [
+          { name: "Simple", isHybridized: false },
+          { name: "TopSecret", isHybridized: true },
+        ],
+        true,
+      ),
     ])
 
     // create master keys
@@ -501,8 +527,17 @@ test(
       return
     }
 
-    const policy = new Policy([
-      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
+    let { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = Policy.generate(100, [
+      new PolicyAxis(
+        "Security",
+        [
+          { name: "Simple", isHybridized: false },
+          { name: "TopSecret", isHybridized: true },
+        ],
+        true,
+      ),
     ])
 
     const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =

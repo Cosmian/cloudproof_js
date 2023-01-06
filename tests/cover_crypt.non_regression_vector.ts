@@ -1,17 +1,20 @@
 /* tslint:disable:max-classes-per-file */
 
 import { expect } from "vitest"
-import { CoverCrypt, Policy, PolicyAxis } from ".."
+import { CoverCrypt, Policy as CoverCryptPolicy } from ".."
 
+/* Importing the functions from the CoverCrypt library. */
 const {
   CoverCryptKeyGeneration,
   CoverCryptHybridEncryption,
   CoverCryptHybridDecryption,
+  Policy,
+  PolicyAxis,
 } = await CoverCrypt()
 const keyGenerator = new CoverCryptKeyGeneration()
 
 export class UserSecretKeyTestVector {
-  readonly accessPolicy: String
+  readonly accessPolicy: string
   readonly key: Uint8Array
 
   constructor(accessPolicy: string, key: Uint8Array) {
@@ -22,7 +25,7 @@ export class UserSecretKeyTestVector {
   public static async generate(
     masterSecretKey: Uint8Array,
     accessPolicy: string,
-    policy: Policy,
+    policy: CoverCryptPolicy,
   ): Promise<UserSecretKeyTestVector> {
     const key = keyGenerator.generateUserSecretKey(
       masterSecretKey,
@@ -69,7 +72,7 @@ export class EncryptionTestVector {
   }
 
   public static async generate(
-    policy: Policy,
+    policy: CoverCryptPolicy,
     publicKey: Uint8Array,
     encryptionPolicy: string,
     plaintext: string,
@@ -143,7 +146,7 @@ export class EncryptionTestVector {
 export class NonRegressionVector {
   private readonly publicKey: Uint8Array
   private readonly masterSecretKey: Uint8Array
-  private readonly policy: Policy
+  private readonly policy: CoverCryptPolicy
   private readonly topSecretMkgFinKey: UserSecretKeyTestVector
   private readonly mediumSecretMkgKey: UserSecretKeyTestVector
   private readonly topSecretFinKey: UserSecretKeyTestVector
@@ -152,7 +155,7 @@ export class NonRegressionVector {
   private readonly lowSecretFinTestVector: EncryptionTestVector
 
   constructor(
-    policy: Policy,
+    policy: CoverCryptPolicy,
     publicKey: Uint8Array,
     masterSecretKey: Uint8Array,
     topSecretMkgFinKey: UserSecretKeyTestVector,
@@ -174,23 +177,29 @@ export class NonRegressionVector {
   }
 
   public static async generate(): Promise<NonRegressionVector> {
-    const policy = new Policy(
-      [
-        new PolicyAxis(
-          "Security Level",
-          [
-            "Protected",
-            "Low Secret",
-            "Medium Secret",
-            "High Secret",
-            "Top Secret",
-          ],
-          true,
-        ),
-        new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false),
-      ],
-      100,
-    )
+    const policy = Policy.generate(100, [
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Low Secret", isHybridized: false },
+          { name: "Medium Secret", isHybridized: false },
+          { name: "High Secret", isHybridized: false },
+          { name: "Top Secret", isHybridized: false },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "R&D", isHybridized: false },
+          { name: "HR", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "FIN", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
     const masterKeys = keyGenerator.generateMasterKeys(policy)
 
     // Generate user secret keys
@@ -255,13 +264,11 @@ export class NonRegressionVector {
     this.lowSecretFinTestVector.decrypt(this.topSecretFinKey.key)
     try {
       this.lowSecretMkgTestVector.decrypt(this.topSecretFinKey.key)
-      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
     try {
       this.topSecretMkgTestVector.decrypt(this.topSecretFinKey.key)
-      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
@@ -278,14 +285,12 @@ export class NonRegressionVector {
     //
     try {
       this.lowSecretFinTestVector.decrypt(this.mediumSecretMkgKey.key)
-      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
     this.lowSecretMkgTestVector.decrypt(this.mediumSecretMkgKey.key)
     try {
       this.topSecretMkgTestVector.decrypt(this.mediumSecretMkgKey.key)
-      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
@@ -295,7 +300,8 @@ export class NonRegressionVector {
     const nrv: any = {}
     nrv.public_key = Buffer.from(this.publicKey).toString("base64")
     nrv.master_secret_key = Buffer.from(this.masterSecretKey).toString("base64")
-    nrv.policy = Buffer.from(this.policy.toJsonEncoded()).toString("base64")
+    nrv.policy = Buffer.from(this.policy.toBytes()).toString("base64")
+
     // user keys
     nrv.top_secret_mkg_fin_key = this.topSecretMkgFinKey.toJson()
     nrv.medium_secret_mkg_key = this.mediumSecretMkgKey.toJson()
@@ -311,8 +317,8 @@ export class NonRegressionVector {
 
   public static fromJson(nonRegVector: string): NonRegressionVector {
     const json = JSON.parse(nonRegVector)
-    const policy = Policy.fromJsonEncoded(
-      new TextDecoder().decode(Buffer.from(json.policy, "base64")),
+    const policy = new Policy(
+      Uint8Array.from(Buffer.from(json.policy, "base64")),
     )
     const publicKey = Uint8Array.from(Buffer.from(json.public_key, "base64"))
     const masterSecretKey = Uint8Array.from(

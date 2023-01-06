@@ -1,18 +1,32 @@
-import { CoverCrypt, Policy, PolicyAxis } from ".."
+import { CoverCrypt } from ".."
 import { bench, describe } from "vitest"
 import { randomBytes } from "crypto"
 
-const POLICY = new Policy(
-  [
-    new PolicyAxis(
-      "Security Level",
-      ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"],
-      true,
-    ),
-    new PolicyAxis("Department", ["R&D", "HR", "MKG", "FIN"], false),
-  ],
-  100,
-)
+let { Policy, PolicyAxis } = await CoverCrypt()
+
+const POLICY = Policy.generate(100, [
+  new PolicyAxis(
+    "Security Level",
+    [
+      { name: "Protected", isHybridized: false },
+      { name: "Low Secret", isHybridized: false },
+      { name: "Medium Secret", isHybridized: false },
+      { name: "High Secret", isHybridized: false },
+      { name: "Top Secret", isHybridized: true },
+    ],
+    true,
+  ),
+  new PolicyAxis(
+    "Department",
+    [
+      { name: "R&D", isHybridized: false },
+      { name: "HR", isHybridized: false },
+      { name: "MKG", isHybridized: false },
+      { name: "FIN", isHybridized: false },
+    ],
+    false,
+  ),
+])
 
 const SIZES = [
   32,
