@@ -481,7 +481,12 @@ test("generate non regression database", async () => {
     fs.unlinkSync(dbFilepath)
   }
   const db = new Database(dbFilepath)
-  const callbacks = callbacksExamplesBetterSqlite3(db)
+  const callbacks = callbacksExamplesBetterSqlite3(
+    db,
+    true,
+    "entry_table",
+    "chain_table",
+  )
 
   {
     const newIndexedEntries: IndexedEntry[] = []
@@ -539,7 +544,12 @@ async function verify(dbFilepath: string): Promise<void> {
   )
   const label = new Label(FINDEX_TEST_LABEL)
   const db = new Database(dbFilepath)
-  const callbacks = callbacksExamplesBetterSqlite3(db, false)
+  const callbacks = callbacksExamplesBetterSqlite3(
+    db,
+    false,
+    "entry_table",
+    "chain_table",
+  )
 
   //
   // Verifying search results
@@ -620,18 +630,9 @@ async function verify(dbFilepath: string): Promise<void> {
   }
 }
 
-/**
- * @param directory directory to list files
- * @returns array of paths
- */
-async function readDirectory(directory: string): Promise<string[]> {
-  const files = await fs.promises.readdir(directory)
-  return files
-}
-
 test("Verify Findex non-regression test", async () => {
   const testFolder = "tests/data/findex/non_regression/"
-  const files = await readDirectory(testFolder)
+  const files = await fs.promises.readdir(testFolder)
   for (const file of files) {
     const testFilepath = testFolder + file
     const newFilepath = os.tmpdir() + "/" + file
