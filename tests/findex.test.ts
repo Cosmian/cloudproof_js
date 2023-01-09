@@ -486,7 +486,6 @@ test("generate non regression database", async () => {
   const db = new Database(dbFilepath)
   const callbacks = callbacksExamplesBetterSqlite3(
     db,
-    true,
     "entry_table",
     "chain_table",
   )
@@ -549,7 +548,6 @@ async function verify(dbFilepath: string): Promise<void> {
   const db = new Database(dbFilepath)
   const callbacks = callbacksExamplesBetterSqlite3(
     db,
-    false,
     "entry_table",
     "chain_table",
   )
@@ -641,6 +639,5 @@ test("Verify Findex non-regression test", async () => {
     const newFilepath = os.tmpdir() + "/" + file
     fs.copyFileSync(testFilepath, newFilepath)
     await verify(newFilepath)
-    console.log("... OK: " + newFilepath)
   }
 })

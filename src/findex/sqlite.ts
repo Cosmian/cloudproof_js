@@ -10,14 +10,12 @@ import {
 
 /**
  * @param db the SQLite3 connection
- * @param init create indexes-tables
  * @param entriesTableName name of the entries table
  * @param chainsTableName name of the chains table
  * @returns the callbacks
  */
 export function callbacksExamplesBetterSqlite3(
   db: Database,
-  init: boolean = true,
   entriesTableName: string = "entries",
   chainsTableName: string = "chains",
 ): {
@@ -26,14 +24,12 @@ export function callbacksExamplesBetterSqlite3(
   upsertEntries: UpsertEntries
   insertChains: InsertChains
 } {
-  if (init) {
-    db.prepare(
-      `CREATE TABLE ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
-    ).run()
-    db.prepare(
-      `CREATE TABLE ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
-    ).run()
-  }
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+  ).run()
+  db.prepare(
+    `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+  ).run()
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
