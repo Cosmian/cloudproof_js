@@ -15,7 +15,7 @@ import {
  */
 export function callbacksExamplesBetterSqlite3(
   db: Database,
-  init?: boolean,
+  init: boolean = true,
 ): {
   fetchEntries: FetchEntries
   fetchChains: FetchChains
