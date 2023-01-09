@@ -469,6 +469,9 @@ test("upsert and search memory", async () => {
   expect(results2.total()).toEqual(2)
 })
 
+// The goal of this test is to produce a file database.
+// This database will be checked (search + upsert) in another step of the CI:
+// cloudproof_java, cloudproof_flutter and cloudproof_python will verify than searching and upserting the database work
 test("generate non regression database", async () => {
   const findex = await Findex()
   const masterKey = new FindexKey(
