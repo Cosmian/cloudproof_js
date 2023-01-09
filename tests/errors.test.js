@@ -182,7 +182,7 @@ test("errors", async () => {
         return uids.map((uid) => ({
           uid,
           value: Uint8Array.from([]),
-        }));
+        }))
       },
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -199,7 +199,7 @@ test("errors", async () => {
         return uids.map((uid) => ({
           uid,
           value: Uint8Array.from([1, 2, 3, 4]),
-        }));
+        }))
       },
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -217,7 +217,7 @@ test("errors", async () => {
         return uids.map((uid) => ({
           uid: uid.slice(0, 12),
           value: Uint8Array.from([1, 2, 3, 4]),
-        }));
+        }))
       },
       callbacks.upsertEntries,
       callbacks.insertChains,
