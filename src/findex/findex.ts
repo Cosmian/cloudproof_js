@@ -355,6 +355,12 @@ export async function Findex() {
       label = new Label(label)
     }
 
+    if (!Array.isArray(newIndexedEntries)) {
+      throw new Error(
+        `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
+      )
+    }
+
     const indexedValuesAndWords = newIndexedEntries.map(
       ({ indexedValue, keywords }) => {
         let indexedValueBytes
@@ -366,7 +372,17 @@ export async function Findex() {
           indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
         } else {
           throw new Error(
-            `Wrong indexedValue type ${JSON.stringify(indexedValue)}`,
+            `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
+              indexedValue,
+            )}).`,
+          )
+        }
+
+        if (!(Symbol.iterator in Object(keywords))) {
+          throw new Error(
+            `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
+              keywords,
+            )}).`,
           )
         }
 
@@ -375,8 +391,14 @@ export async function Findex() {
           keywords: [...keywords].map((keyword) => {
             if (keyword instanceof Keyword) {
               return keyword.bytes
-            } else {
+            } else if (typeof keyword === "string") {
               return Keyword.fromString(keyword).bytes
+            } else {
+              throw new Error(
+                `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
+                  keyword,
+                )}).`,
+              )
             }
           }),
         }
@@ -446,6 +468,7 @@ export async function Findex() {
       typeof options.progress === "undefined"
         ? async () => true
         : options.progress
+
     const resultsPerKeywords = await webassembly_search(
       masterKey.bytes,
       label.bytes,
