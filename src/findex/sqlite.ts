@@ -10,33 +10,38 @@ import {
 
 /**
  * @param db the SQLite3 connection
+ * @param entriesTableName name of the entries table
+ * @param chainsTableName name of the chains table
  * @returns the callbacks
  */
-export function callbacksExamplesBetterSqlite3(db: Database): {
+export function callbacksExamplesBetterSqlite3(
+  db: Database,
+  entriesTableName: string = "entries",
+  chainsTableName: string = "chains",
+): {
   fetchEntries: FetchEntries
   fetchChains: FetchChains
   upsertEntries: UpsertEntries
   insertChains: InsertChains
 } {
   db.prepare(
-    "CREATE TABLE entries (uid BLOB PRIMARY KEY, value BLOB NOT NULL)",
+    `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
   db.prepare(
-    "CREATE TABLE chains (uid BLOB PRIMARY KEY, value BLOB NOT NULL)",
+    `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
-
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
   //
   const upsertIntoChainsTableStmt = db.prepare(
-    `INSERT OR REPLACE INTO chains (uid, value) VALUES(?, ?)`,
+    `INSERT OR REPLACE INTO ${chainsTableName} (uid, value) VALUES(?, ?)`,
   )
   const upsertIntoEntriesTableStmt = db.prepare(
-    `INSERT INTO entries (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
+    `INSERT INTO ${entriesTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
   )
   const selectOneEntriesTableItemStmt = db.prepare(
-    `SELECT value FROM entries WHERE uid = ?`,
+    `SELECT value FROM ${entriesTableName} WHERE uid = ?`,
   )
 
   // Save some prepare statements inside these objects
@@ -47,11 +52,11 @@ export function callbacksExamplesBetterSqlite3(db: Database): {
   const fetchMultipleChainsTableStmt: { [id: number]: Statement } = {}
 
   const prepareFetchMultipleQuery = (
-    table: "entries" | "chains",
+    table: string,
     numberOfUids: number,
   ): Statement => {
     let cache
-    if (table === "entries") {
+    if (table === entriesTableName) {
       cache = fetchMultipleEntriesTableStmt
     } else {
       cache = fetchMultipleChainsTableStmt
@@ -72,7 +77,7 @@ export function callbacksExamplesBetterSqlite3(db: Database): {
   }
 
   const fetchCallback = async (
-    table: "entries" | "chains",
+    table: string,
     uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     return prepareFetchMultipleQuery(table, uids.length).all(
@@ -109,9 +114,9 @@ export function callbacksExamplesBetterSqlite3(db: Database): {
 
   return {
     fetchEntries: async (uids: Uint8Array[]) =>
-      await fetchCallback("entries", uids),
+      await fetchCallback(entriesTableName, uids),
     fetchChains: async (uids: Uint8Array[]) =>
-      await fetchCallback("chains", uids),
+      await fetchCallback(chainsTableName, uids),
     upsertEntries,
     insertChains,
   }
