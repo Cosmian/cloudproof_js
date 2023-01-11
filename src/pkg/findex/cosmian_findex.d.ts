@@ -18,12 +18,13 @@
 * @param {Array<Uint8Array>} keywords
 * @param {number} max_results_per_keyword
 * @param {number} max_depth
+* @param {number} fetch_chains_batch_size
 * @param {(indexedValues: Uint8Array[]) => Promise<Boolean>} progress
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_entry
 * @param {(uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>} fetch_chain
 * @returns {Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>}
 */
-export function webassembly_search(master_key: Uint8Array, label_bytes: Uint8Array, keywords: Array<Uint8Array>, max_results_per_keyword: number, max_depth: number, progress: (indexedValues: Uint8Array[]) => Promise<Boolean>, fetch_entry: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, fetch_chain: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>): Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>;
+export function webassembly_search(master_key: Uint8Array, label_bytes: Uint8Array, keywords: Array<Uint8Array>, max_results_per_keyword: number, max_depth: number, fetch_chains_batch_size: number, progress: (indexedValues: Uint8Array[]) => Promise<Boolean>, fetch_entry: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>, fetch_chain: (uids: Uint8Array[]) => Promise<{uid: Uint8Array, value: Uint8Array}[]>): Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>;
 /**
 * See [`FindexUpsert::upsert()`](crate::core::FindexUpsert::upsert).
 *
@@ -49,7 +50,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly webassembly_search: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => number;
+  readonly webassembly_search: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number) => number;
   readonly webassembly_upsert: (a: number, b: number, c: number, d: number, e: number, f: number) => number;
   readonly __wbindgen_export_0: (a: number) => number;
   readonly __wbindgen_export_1: (a: number, b: number, c: number) => number;
