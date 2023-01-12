@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Added
+
+- Add `insecureFetchChainsBatchSize` argument to `Findex.search` to reduce the number of `fetchChains` calls during searches
+
+### Changed
+
+- `fetchChains` calls are now run in async parallel
+
 ## [6.0.0] - 2022-12-22
 
 ### Added
