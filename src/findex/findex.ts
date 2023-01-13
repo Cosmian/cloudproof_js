@@ -432,6 +432,7 @@ export async function Findex() {
    * @param options Additional optional options to the search
    * @param options.maxResultsPerKeyword the maximum number of results per keyword
    * @param options.maxGraphDepth automatically follow the nextwords to find only locations
+   * @param options.insecureFetchChainsBatchSize increasing this value allows to fetch chains values by batch (less calls to the `fetchChains` callback) to improve performances but it reduces the security, change it at your own risk
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
    * @returns the search results
    */
@@ -444,6 +445,7 @@ export async function Findex() {
     options: {
       maxResultsPerKeyword?: number
       maxGraphDepth?: number
+      insecureFetchChainsBatchSize?: number
       progress?: Progress
     } = {},
   ): Promise<SearchResults> => {
@@ -479,6 +481,9 @@ export async function Findex() {
       typeof options.maxGraphDepth === "undefined"
         ? 1000
         : options.maxGraphDepth,
+      typeof options.insecureFetchChainsBatchSize === "undefined"
+        ? 0
+        : options.insecureFetchChainsBatchSize,
       async (serializedIndexedValues: Uint8Array[]) => {
         const indexedValues = serializedIndexedValues.map((bytes) => {
           return new IndexedValue(bytes)
