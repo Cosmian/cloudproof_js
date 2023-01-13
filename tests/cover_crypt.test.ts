@@ -8,7 +8,7 @@ test("Generate non-regression tests vector", async () => {
 
   // Uncomment this code to write new test vector on disk
   fs.writeFile(
-    "node_modules/non_regression_test_vector.json",
+    "node_modules/non_regression_vector.json",
     nonRegVector.toJson(),
     (err: any) => {
       if (err !== null) {
@@ -20,7 +20,7 @@ test("Generate non-regression tests vector", async () => {
 })
 
 test("Verify non-regression vector", async () => {
-  const testFolder = "tests/data/cover_crypt/"
+  const testFolder = "tests/data/cover_crypt/non_regression/"
   fs.readdirSync(testFolder).forEach((file: string) => {
     const content = fs.readFileSync(testFolder + file, "utf8")
     const nrv = NonRegressionVector.fromJson(content)

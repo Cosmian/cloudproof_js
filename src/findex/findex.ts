@@ -337,8 +337,8 @@ export async function Findex() {
    */
   const upsert = async (
     newIndexedEntries: IndexedEntry[],
-    masterKey: FindexKey | SymmetricKey,
-    label: Label,
+    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    label: Label | Uint8Array,
     fetchEntries: FetchEntries,
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
@@ -346,6 +346,19 @@ export async function Findex() {
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
+    }
+    if (masterKey instanceof Uint8Array) {
+      masterKey = new FindexKey(masterKey)
+    }
+
+    if (label instanceof Uint8Array) {
+      label = new Label(label)
+    }
+
+    if (!Array.isArray(newIndexedEntries)) {
+      throw new Error(
+        `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
+      )
     }
 
     const indexedValuesAndWords = newIndexedEntries.map(
@@ -359,7 +372,17 @@ export async function Findex() {
           indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
         } else {
           throw new Error(
-            `Wrong indexedValue type ${JSON.stringify(indexedValue)}`,
+            `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
+              indexedValue,
+            )}).`,
+          )
+        }
+
+        if (!(Symbol.iterator in Object(keywords))) {
+          throw new Error(
+            `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
+              keywords,
+            )}).`,
           )
         }
 
@@ -368,8 +391,14 @@ export async function Findex() {
           keywords: [...keywords].map((keyword) => {
             if (keyword instanceof Keyword) {
               return keyword.bytes
-            } else {
+            } else if (typeof keyword === "string") {
               return Keyword.fromString(keyword).bytes
+            } else {
+              throw new Error(
+                `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
+                  keyword,
+                )}).`,
+              )
             }
           }),
         }
@@ -403,24 +432,33 @@ export async function Findex() {
    * @param options Additional optional options to the search
    * @param options.maxResultsPerKeyword the maximum number of results per keyword
    * @param options.maxGraphDepth automatically follow the nextwords to find only locations
+   * @param options.insecureFetchChainsBatchSize increasing this value allows to fetch chains values by batch (less calls to the `fetchChains` callback) to improve performances but it reduces the security, change it at your own risk
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
    * @returns the search results
    */
   const search = async (
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
-    masterKey: FindexKey | SymmetricKey,
-    label: Label,
+    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    label: Label | Uint8Array,
     fetchEntries: FetchEntries,
     fetchChains: FetchChains,
     options: {
       maxResultsPerKeyword?: number
       maxGraphDepth?: number
+      insecureFetchChainsBatchSize?: number
       progress?: Progress
     } = {},
   ): Promise<SearchResults> => {
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
+    }
+    if (masterKey instanceof Uint8Array) {
+      masterKey = new FindexKey(masterKey)
+    }
+
+    if (label instanceof Uint8Array) {
+      label = new Label(label)
     }
 
     const kws: Uint8Array[] = []
@@ -432,6 +470,7 @@ export async function Findex() {
       typeof options.progress === "undefined"
         ? async () => true
         : options.progress
+
     const resultsPerKeywords = await webassembly_search(
       masterKey.bytes,
       label.bytes,
@@ -442,6 +481,9 @@ export async function Findex() {
       typeof options.maxGraphDepth === "undefined"
         ? 1000
         : options.maxGraphDepth,
+      typeof options.insecureFetchChainsBatchSize === "undefined"
+        ? 0
+        : options.insecureFetchChainsBatchSize,
       async (serializedIndexedValues: Uint8Array[]) => {
         const indexedValues = serializedIndexedValues.map((bytes) => {
           return new IndexedValue(bytes)

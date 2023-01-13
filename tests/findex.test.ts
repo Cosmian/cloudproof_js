@@ -17,12 +17,18 @@ import {
   generateAliases,
   callbacksExamplesBetterSqlite3,
   callbacksExamplesInMemory,
+  toBeBytes,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
 import { createClient, defineScript } from "redis"
 import { randomBytes } from "crypto"
 import Database from "better-sqlite3"
+import * as fs from "fs"
+import * as os from "os"
+
+const FINDEX_TEST_KEY = "6hb1TznoNQFvCWisGWajkA=="
+const FINDEX_TEST_LABEL = "Some Label"
 
 test("in memory", async () => {
   const callbacks = callbacksExamplesInMemory()
@@ -60,8 +66,8 @@ test("Redis", async () => {
       setIfSame: defineScript({
         NUMBER_OF_KEYS: 1,
         SCRIPT: `
-          local value = redis.call('GET', KEYS[1]) 
-          if (((value == false) and (ARGV[1] == "")) or (not(value == false) and (ARGV[1] == value))) 
+          local value = redis.call('GET', KEYS[1])
+          if (((value == false) and (ARGV[1] == "")) or (not(value == false) and (ARGV[1] == value)))
             then return redis.call('SET', KEYS[1], ARGV[2])
             else return 'NA' end`,
         transformArguments(
@@ -461,4 +467,177 @@ test("upsert and search memory", async () => {
     callbacks.fetchChains,
   )
   expect(results2.total()).toEqual(2)
+})
+
+// The goal of this test is to produce a file database.
+// This database will be checked (search + upsert) in another step of the CI:
+// cloudproof_java, cloudproof_flutter and cloudproof_python will verify than searching and upserting the database work
+test("generate non regression database", async () => {
+  const findex = await Findex()
+  const masterKey = new FindexKey(
+    Uint8Array.from(Buffer.from(FINDEX_TEST_KEY, "base64")),
+  )
+  const label = new Label(FINDEX_TEST_LABEL)
+
+  const dbFilepath = "node_modules/sqlite.db"
+  if (fs.existsSync(dbFilepath)) {
+    fs.unlinkSync(dbFilepath)
+  }
+  const db = new Database(dbFilepath)
+  const callbacks = callbacksExamplesBetterSqlite3(
+    db,
+    "entry_table",
+    "chain_table",
+  )
+
+  {
+    const newIndexedEntries: IndexedEntry[] = []
+    let count = 0
+    for (const user of USERS) {
+      count += 1
+      newIndexedEntries.push({
+        indexedValue: new Location(toBeBytes(count)),
+        keywords: [
+          user.firstName,
+          user.lastName,
+          user.region,
+          user.country,
+          user.employeeNumber,
+          user.email,
+          user.phone,
+          user.security,
+        ],
+      })
+    }
+
+    await findex.upsert(
+      newIndexedEntries,
+      masterKey,
+      label,
+      callbacks.fetchEntries,
+      callbacks.upsertEntries,
+      callbacks.insertChains,
+    )
+
+    const results = await findex.search(
+      ["France"],
+      masterKey,
+      label,
+      callbacks.fetchEntries,
+      callbacks.fetchChains,
+    )
+
+    const indexedValues = results.getAllIndexedValues("France")
+    expect(indexedValues.length).toEqual(30)
+
+    const locations = results.get("France")
+    expect(locations.length).toEqual(30)
+  }
+})
+
+/**
+ * @param dbFilepath path of sqlite database
+ * @returns nothing
+ */
+async function verify(dbFilepath: string): Promise<void> {
+  const findex = await Findex()
+  const masterKey = new FindexKey(
+    Uint8Array.from(Buffer.from(FINDEX_TEST_KEY, "base64")),
+  )
+  const label = new Label(FINDEX_TEST_LABEL)
+  const db = new Database(dbFilepath)
+  const callbacks = callbacksExamplesBetterSqlite3(
+    db,
+    "entry_table",
+    "chain_table",
+  )
+
+  //
+  // Verifying search results
+  //
+  {
+    const results = await findex.search(
+      ["France"],
+      masterKey,
+      label,
+      callbacks.fetchEntries,
+      callbacks.fetchChains,
+    )
+
+    const indexedValues = results.getAllIndexedValues("France")
+    expect(indexedValues.length).toEqual(30)
+
+    const locations = results.get("France")
+    expect(locations.length).toEqual(30)
+  }
+
+  //
+  // Upsert a single user
+  //
+  {
+    const newIndexedEntries: IndexedEntry[] = []
+    const newUser = {
+      id: 10000,
+      firstName: "another first name",
+      lastName: "another last name",
+      phone: "another phone",
+      email: "another email",
+      country: "France",
+      region: "another region",
+      employeeNumber: "another employee number",
+      security: "confidential",
+    }
+    newIndexedEntries.push({
+      indexedValue: new Location(toBeBytes(newUser.id)),
+      keywords: [
+        newUser.firstName,
+        newUser.lastName,
+        newUser.phone,
+        newUser.email,
+        newUser.country,
+        newUser.region,
+        newUser.employeeNumber,
+        newUser.security,
+      ],
+    })
+
+    await findex.upsert(
+      newIndexedEntries,
+      masterKey,
+      label,
+      callbacks.fetchEntries,
+      callbacks.upsertEntries,
+      callbacks.insertChains,
+    )
+  }
+
+  //
+  // Another search
+  //
+  {
+    const results = await findex.search(
+      ["France"],
+      masterKey,
+      label,
+      callbacks.fetchEntries,
+      callbacks.fetchChains,
+    )
+
+    const indexedValues = results.getAllIndexedValues("France")
+    expect(indexedValues.length).toEqual(31)
+
+    const locations = results.get("France")
+    expect(locations.length).toEqual(31)
+  }
+}
+
+test("Verify Findex non-regression test", async () => {
+  const testFolder = "tests/data/findex/non_regression/"
+  const files = await fs.promises.readdir(testFolder)
+  for (const file of files) {
+    const testFilepath = testFolder + file
+    const newFilepath = os.tmpdir() + "/" + file
+    fs.copyFileSync(testFilepath, newFilepath)
+    await verify(newFilepath)
+  }
 })
