@@ -255,37 +255,37 @@ export class NonRegressionVector {
     this.lowSecretFinTestVector.decrypt(this.topSecretFinKey.key)
     try {
       this.lowSecretMkgTestVector.decrypt(this.topSecretFinKey.key)
-      throw new Error("Should be able to decrypt")
+      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
     try {
       this.topSecretMkgTestVector.decrypt(this.topSecretFinKey.key)
-      throw new Error("Should be able to decrypt")
+      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
 
     //
-    // Decrypt with top secret fin key
+    // Decrypt with top secret mkg fin key
     //
     this.lowSecretFinTestVector.decrypt(this.topSecretMkgFinKey.key)
     this.lowSecretMkgTestVector.decrypt(this.topSecretMkgFinKey.key)
     this.topSecretMkgTestVector.decrypt(this.topSecretMkgFinKey.key)
 
     //
-    // Decrypt with top secret fin key
+    // Decrypt with medium secret mkg key
     //
     try {
       this.lowSecretFinTestVector.decrypt(this.mediumSecretMkgKey.key)
-      throw new Error("Should be able to decrypt")
+      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
     this.lowSecretMkgTestVector.decrypt(this.mediumSecretMkgKey.key)
     try {
       this.topSecretMkgTestVector.decrypt(this.mediumSecretMkgKey.key)
-      throw new Error("Should be able to decrypt")
+      throw new Error("Should not be able to decrypt")
     } catch (error) {
       // ... failing expected
     }
