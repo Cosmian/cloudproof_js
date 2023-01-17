@@ -22,6 +22,14 @@ You can also look the [`examples` directory](./examples) for examples with multi
 
 This library is free software and is available on NPM public repository.
 
+As a pre-requisite, the WASM binaries required for Findex and CoverCrypt must be fetched (or be manually copied from <https://package.cosmian.com> into `src/pkg` directory):
+
+```bash
+python3 scripts/download_wasm.py
+```
+
+And next:
+
 ```bash
 npm i cloudproof_js
 ```
@@ -40,4 +48,5 @@ This table shows the minimum version correspondence between the various componen
 | 3.1.0           | 6.0.7          | 0.7.0  | 2.3.0      |
 | 3.1.0, 4.\*     | 6.0.7          | 0.7.0  | 2.3.0      |
 | 5.0.0           | 7.0.0          | 0.10.0 | 3.0.0      |
-| >=6.0.0         | 8.0.0          | 1.0.0  | 4.0.0      |
+| 6.0.0           | 8.0.0          | 1.0.0  | 4.0.0      |
+| 6.0.1           | 8.0.0          | 2.0.0  | 4.0.0      |
