@@ -1,0 +1,32 @@
+---
+name: Cloudproof Javascript Library
+
+on:
+  workflow_call:
+    inputs:
+      subcommands:
+        required: true
+        type: string
+
+jobs:
+  js:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            dist
+            src/pkg
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: ${{ inputs.subcommands }}
+        env:
+          NPM_ACCESS_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
