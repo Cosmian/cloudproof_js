@@ -4,10 +4,10 @@ import shutil
 import ssl
 import zipfile
 
-from os import path, remove, system
+from os import path, remove, getenv
 
 
-def download_wasm(name: str, version: str, destination: str):
+def download_wasm(name: str, version: str, destination: str) -> bool:
     ssl._create_default_https_context = ssl._create_unverified_context
 
     to_be_copied = {
@@ -51,11 +51,15 @@ def download_wasm(name: str, version: str, destination: str):
                 remove('all.zip')
         except Exception as e:
             print(f'Cannot get {name} {version} ({e})')
-            download_wasm(name, 'last_build', destination)
+            return False
+    return True
 
 
 if __name__ == '__main__':
-    download_wasm('findex', 'v2.0.0', 'src/pkg')
-    download_wasm('findex', 'last_build', 'src/pkg')
-    download_wasm('cover_crypt', 'v8.0.2', 'src/pkg')
-    download_wasm('cover_crypt', 'last_build', 'src/pkg')
+    ret = download_wasm('findex', 'v2.0.0', 'src/pkg')
+    if ret is False and getenv('GITHUB_ACTIONS'):
+        download_wasm('findex', 'last_build', 'src/pkg')
+
+    ret = download_wasm('cover_crypt', 'v8.0.2', 'src/pkg')
+    if ret is False and getenv('GITHUB_ACTIONS'):
+        download_wasm('cover_crypt', 'last_build', 'src/pkg')
