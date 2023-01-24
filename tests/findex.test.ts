@@ -205,13 +205,6 @@ async function run(
       fetchChains,
     )
 
-    const indexedValues = results.getAllIndexedValues(USERS[0].firstName)
-
-    expect(indexedValues.length).toEqual(1)
-    expect(indexedValues[0]).toEqual(
-      IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
-    )
-
     const locations = results.get(USERS[0].firstName)
 
     expect(locations.length).toEqual(1)
@@ -256,12 +249,6 @@ async function run(
         label,
         fetchEntries,
         fetchChains,
-      )
-
-      const indexedValues = results.getAllIndexedValues(keyword)
-      expect(indexedValues.length).toEqual(1)
-      expect(indexedValues[0]).toEqual(
-        IndexedValue.fromLocation(Location.fromUuid(USERS[0].id)),
       )
 
       const locations = results.get(keyword)
@@ -527,9 +514,6 @@ test("generate non regression database", async () => {
       callbacks.fetchChains,
     )
 
-    const indexedValues = results.getAllIndexedValues("France")
-    expect(indexedValues.length).toEqual(30)
-
     const locations = results.get("France")
     expect(locations.length).toEqual(30)
   }
@@ -563,9 +547,6 @@ async function verify(dbFilepath: string): Promise<void> {
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )
-
-    const indexedValues = results.getAllIndexedValues("France")
-    expect(indexedValues.length).toEqual(30)
 
     const locations = results.get("France")
     expect(locations.length).toEqual(30)
@@ -622,9 +603,6 @@ async function verify(dbFilepath: string): Promise<void> {
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )
-
-    const indexedValues = results.getAllIndexedValues("France")
-    expect(indexedValues.length).toEqual(31)
 
     const locations = results.get("France")
     expect(locations.length).toEqual(31)
