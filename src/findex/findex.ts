@@ -508,6 +508,64 @@ export async function Findex() {
 }
 
 class SearchResults {
+  locationsPerKeywords: Array<{
+    keyword: Uint8Array
+    locations: Location[]
+  }>
+
+  constructor(
+    resultsPerKeywords: Array<{ keyword: Uint8Array; results: Uint8Array[] }>,
+  ) {
+    this.locationsPerKeywords = resultsPerKeywords.map(
+      ({ keyword, results }) => ({
+        keyword,
+        locations: results.map((bytes) => new Location(bytes)),
+      }),
+    )
+  }
+
+  get(keyword: string | Uint8Array): Location[] {
+    const keywordAsBytes =
+      typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
+
+    for (const { keyword: keywordInResults, locations } of this
+      .locationsPerKeywords) {
+      if (bytesEquals(keywordAsBytes, keywordInResults)) {
+        return locations
+      }
+    }
+
+    const keywordAsString =
+      keyword instanceof Uint8Array ? hexEncode(keyword) : keyword
+    throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
+  }
+
+  locations(): Location[] {
+    return Array.from(this)
+  }
+
+  total(): number {
+    return this.locations().length
+  }
+
+  *[Symbol.iterator](): Generator<Location, void, void> {
+    const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
+
+    for (const { locations } of this.locationsPerKeywords) {
+      for (const location of locations) {
+        const locationEncoded = hexEncode(location.bytes)
+
+        if (!alreadyYields.has(locationEncoded)) {
+          alreadyYields.add(locationEncoded)
+          yield location
+        }
+      }
+    }
+  }
+}
+
+// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
+class ProgressResults {
   indexedValuesPerKeywords: Array<{
     keyword: Uint8Array
     indexedValues: IndexedValue[]
