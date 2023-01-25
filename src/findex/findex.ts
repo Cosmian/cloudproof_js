@@ -11,6 +11,7 @@ import { fromByteArray } from "base64-js"
 
 export * from "./sqlite"
 export * from "./in_memory"
+export * from "./findex_cloud"
 
 let initialized: Promise<void> | undefined
 
