@@ -26,6 +26,7 @@ import { randomBytes } from "crypto"
 import Database from "better-sqlite3"
 import * as fs from "fs"
 import * as os from "os"
+import { fromByteArray, toByteArray } from "base64-js"
 
 const FINDEX_TEST_KEY = "6hb1TznoNQFvCWisGWajkA=="
 const FINDEX_TEST_LABEL = "Some Label"
@@ -77,8 +78,8 @@ test("Redis", async () => {
         ): string[] {
           return [
             key,
-            oldValue === null ? "" : Buffer.from(oldValue).toString("base64"),
-            Buffer.from(newValue).toString("base64"),
+            oldValue === null ? "" : fromByteArray(oldValue),
+            fromByteArray(newValue),
           ]
         },
         transformReply(reply: string): boolean {
@@ -97,7 +98,7 @@ test("Redis", async () => {
       const redisResults = await client.mGet(
         uids.map(
           (uid) =>
-            `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
+            `findex.test.ts::${prefix}.${fromByteArray(uid)}`,
         ),
       )
 
@@ -107,7 +108,7 @@ test("Redis", async () => {
           results.push({
             uid,
             value: Uint8Array.from(
-              Buffer.from(redisResults[index] as string, "base64"),
+              toByteArray(redisResults[index] as string),
             ),
           })
         }
@@ -122,9 +123,7 @@ test("Redis", async () => {
       const rejected = [] as UidsAndValues
       await Promise.all(
         uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-          const key = `findex.test.ts::${prefix}.${Buffer.from(uid).toString(
-            "base64",
-          )}`
+          const key = `findex.test.ts::${prefix}.${fromByteArray(uid)}`
 
           const updated = await client.setIfSame(key, oldValue, newValue)
 
@@ -132,7 +131,7 @@ test("Redis", async () => {
             const valueInRedis = await client.get(key)
             rejected.push({
               uid,
-              value: Buffer.from(valueInRedis as string, "base64"),
+              value: toByteArray(valueInRedis as string),
             })
           }
         }),
@@ -148,8 +147,8 @@ test("Redis", async () => {
       if (uidsAndValues.length === 0) return
 
       const toSet = uidsAndValues.map(({ uid, value }) => [
-        `findex.test.ts::${prefix}.${Buffer.from(uid).toString("base64")}`,
-        Buffer.from(value).toString("base64"),
+        `findex.test.ts::${prefix}.${fromByteArray(uid)}`,
+        fromByteArray(value),
       ])
 
       await client.mSet(toSet as any)
@@ -461,9 +460,7 @@ test("upsert and search memory", async () => {
 // cloudproof_java, cloudproof_flutter and cloudproof_python will verify than searching and upserting the database work
 test("generate non regression database", async () => {
   const findex = await Findex()
-  const masterKey = new FindexKey(
-    Uint8Array.from(Buffer.from(FINDEX_TEST_KEY, "base64")),
-  )
+  const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)
 
   const dbFilepath = "node_modules/sqlite.db"
@@ -525,9 +522,7 @@ test("generate non regression database", async () => {
  */
 async function verify(dbFilepath: string): Promise<void> {
   const findex = await Findex()
-  const masterKey = new FindexKey(
-    Uint8Array.from(Buffer.from(FINDEX_TEST_KEY, "base64")),
-  )
+  const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)
   const db = new Database(dbFilepath)
   const callbacks = callbacksExamplesBetterSqlite3(
@@ -618,4 +613,9 @@ test("Verify Findex non-regression test", async () => {
     fs.copyFileSync(testFilepath, newFilepath)
     await verify(newFilepath)
   }
+})
+
+test("Verify base64 encoding", async () => {
+  const keyword = new Keyword(randomBytes(128));
+  keyword.toBase64();
 })

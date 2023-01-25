@@ -1,19 +1,6 @@
 import { decode } from "./leb128"
 
 /**
- * Convert the binary string to base64 string and sanitize it.
- *
- * @param {Uint8Array | string} val the binary string
- * @returns {string} the base 64 value
- */
-export function toBase64(val: Uint8Array | string): string {
-  if (val instanceof Uint8Array) {
-    return Buffer.from(val).toString("base64")
-  }
-  return Buffer.from(sanitizeString(val), "binary").toString("base64")
-}
-
-/**
  * Hex encode an array of bytes
  *
  * @param {Uint8Array} array the bytes
@@ -89,7 +76,7 @@ export function toBeBytes(myNumber: number): Uint8Array {
 export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
   const items: Uint8Array[] = []
   while (serializedItems.length > 1) {
-    const { result: itemLen, tail } = decode(Buffer.from(serializedItems))
+    const { result: itemLen, tail } = decode(serializedItems)
 
     const item = tail.slice(0, itemLen)
     serializedItems = tail.slice(itemLen)

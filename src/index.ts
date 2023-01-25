@@ -23,7 +23,6 @@ export {
   hexDecode,
   hexEncode,
   sanitizeString,
-  toBase64,
   deserializeList,
   toBeBytes,
 } from "./utils/utils"
