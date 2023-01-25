@@ -1,7 +1,8 @@
 import typescript from "@rollup/plugin-typescript"
 import { wasm } from "@rollup/plugin-wasm"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
-import commonjs from '@rollup/plugin-commonjs';
+import commonjs from "@rollup/plugin-commonjs"
+import json from "@rollup/plugin-json"
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -24,6 +25,7 @@ const rolls = (fmt, env) => ({
   plugins: [
     commonjs(),
     nodeResolve(),
+    json(),
     // We want to inline our wasm bundle as base64. Not needing browser users
     // to fetch an additional asset is a boon as there's less room for errors
     env !== "slim" &&

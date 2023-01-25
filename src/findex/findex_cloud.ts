@@ -1,5 +1,7 @@
-import { randomBytes } from "crypto"
-import { toBase64, base64ToBytes } from "../utils/utils";
+import randomBytes from "randombytes"
+import { fromByteArray, toByteArray } from 'base64-js';
+import { Findex, FindexKey, IndexedEntry, Label } from "./findex";
+import { hexEncode, hexDecode } from "../utils/utils";
 
 export interface FindexCloudToken {
     publicId: string,
@@ -11,99 +13,180 @@ export interface FindexCloudToken {
     insertChainsKey: Uint8Array | null,
 }
 
+function tokenToString(token: FindexCloudToken): string {
+    const masterKeyAndPrivateKey = new Uint8Array([
+        ...token.findexMasterKey,
+        ...(token.fetchEntriesKey !== null ? [0, ...token.fetchEntriesKey] : []),
+        ...(token.fetchChainsKey !== null ? [1, ...token.fetchChainsKey] : []),
+        ...(token.upsertEntriesKey !== null ? [2, ...token.upsertEntriesKey] : []),
+        ...(token.insertChainsKey !== null ? [3, ...token.insertChainsKey] : []),
+    ]);
+
+    return token.publicId + fromByteArray(masterKeyAndPrivateKey);
+}
+
+function tokenFromString(tokenAsString: string): FindexCloudToken {
+    const publicId = tokenAsString.slice(0, 5);
+    const bytes = toByteArray(tokenAsString.slice(5));
+    const findexMasterKey = bytes.slice(0, 16);
+    let callbacksKeys = bytes.slice(16);
+
+    const token: FindexCloudToken = {
+        publicId,
+        findexMasterKey,
+
+        fetchEntriesKey: null,
+        fetchChainsKey: null,
+        upsertEntriesKey: null,
+        insertChainsKey: null,
+    }
+
+    while (callbacksKeys.length > 0) {
+        const prefix = callbacksKeys[0];
+        const value = callbacksKeys.slice(1, 16 + 1);
+        callbacksKeys = callbacksKeys.slice(16 + 1);
+        
+        if (prefix === 0) {
+            token.fetchEntriesKey = value;
+        } else if (prefix === 1) {
+            token.fetchChainsKey = value;
+        } else if (prefix === 2) {
+            token.upsertEntriesKey = value;
+        } else if (prefix === 3) {
+            token.insertChainsKey = value;
+        }
+    }
+
+    return token
+}
+
+function randomToken(publicId: string): FindexCloudToken {
+    return {
+        publicId,
+        findexMasterKey: randomBytes(16),
+        fetchEntriesKey: randomBytes(16),
+        fetchChainsKey: randomBytes(16),
+        upsertEntriesKey: randomBytes(16),
+        insertChainsKey: randomBytes(16),
+    }
+}
+
+function deriveNewToken(token: FindexCloudToken, permissions: {
+    search: boolean,
+    index: boolean,
+} = {
+    search: false,
+    index: false,
+}): FindexCloudToken {
+    const newToken: FindexCloudToken = {
+        publicId: token.publicId,
+        findexMasterKey: token.findexMasterKey,
+        fetchEntriesKey: null,
+        fetchChainsKey: null,
+        upsertEntriesKey: null,
+        insertChainsKey: null,
+    }
+
+    if (permissions.search) {
+        newToken.fetchEntriesKey = token.fetchEntriesKey
+        newToken.fetchChainsKey = token.fetchChainsKey
+    }
+
+    if (permissions.index) {
+        newToken.fetchChainsKey = token.fetchChainsKey
+        newToken.upsertEntriesKey = token.upsertEntriesKey
+        newToken.insertChainsKey = token.insertChainsKey
+    }
+
+    return newToken
+}
+
 /**
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function FindexCloud() {
+    const { upsert, search } = await Findex();
+    
     return {
-        tokenToString: (token: FindexCloudToken): string => {
-            const masterKeyAndPrivateKey = new Uint8Array([
-                ...token.findexMasterKey,
-                ...(token.fetchEntriesKey !== null ? [0, ...token.fetchEntriesKey] : []),
-                ...(token.fetchChainsKey !== null ? [1, ...token.fetchChainsKey] : []),
-                ...(token.upsertEntriesKey !== null ? [2, ...token.upsertEntriesKey] : []),
-                ...(token.insertChainsKey !== null ? [3, ...token.insertChainsKey] : []),
-            ]);
+        tokenToString,
+        tokenFromString,
+        randomToken,
+        deriveNewToken,
+
+        upsert: async (rawToken: string | FindexCloudToken, newIndexedEntries: IndexedEntry[]) => {
+            let token: FindexCloudToken;
+            if (typeof rawToken === 'string') {
+                token = tokenFromString(rawToken);
+            } else {
+                token = rawToken
+            }
+
+            return await upsert(
+                newIndexedEntries,
+                new FindexKey(token.findexMasterKey),
+                new Label("Some label"),
+                async (uids) => {
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
+                },
+                async (entriesToUpsert) => {
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/upsert_entries', 
+                        entriesToUpsert.map(({ uid, oldValue, newValue }) => ({
+                            uid: hexEncode(uid),
+                            "old_value": oldValue !== null ? hexEncode(oldValue) : null,
+                            "new_value": hexEncode(newValue),
+                        })),
+                    );
         
-            return token.publicId + toBase64(masterKeyAndPrivateKey);
+                    return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
+                },
+                async (chainsToInsert) => {
+                    await post(token, '/insert_chains', 
+                        chainsToInsert.map(({ uid, value }) => ({
+                            uid: hexEncode(uid),
+                            value: hexEncode(value),
+                        }))
+                    );
+                },
+            )
         },
 
-        tokenFromString: async (tokenAsString: string): Promise<FindexCloudToken> => {
-            const publicId = tokenAsString.slice(0, 5);
-            const bytes = await base64ToBytes(tokenAsString.slice(5));
-            const findexMasterKey = bytes.slice(0, 16);
-            let callbacksKeys = bytes.slice(16);
-
-            const token: FindexCloudToken = {
-                publicId,
-                findexMasterKey,
-
-                fetchEntriesKey: null,
-                fetchChainsKey: null,
-                upsertEntriesKey: null,
-                insertChainsKey: null,
+        search: async (rawToken: string | FindexCloudToken, keywords: Set<string | Uint8Array> | Array<string | Uint8Array>) => {
+            let token: FindexCloudToken;
+            if (typeof rawToken === 'string') {
+                token = tokenFromString(rawToken);
+            } else {
+                token = rawToken
             }
 
-            while (callbacksKeys.length > 0) {
-                const prefix = callbacksKeys[0];
-                const value = callbacksKeys.slice(1, 16 + 1);
-                callbacksKeys = callbacksKeys.slice(16 + 1);
-                
-                if (prefix === 0) {
-                    token.fetchEntriesKey = value;
-                } else if (prefix === 1) {
-                    token.fetchChainsKey = value;
-                } else if (prefix === 2) {
-                    token.upsertEntriesKey = value;
-                } else if (prefix === 3) {
-                    token.insertChainsKey = value;
-                }
-            }
-
-            return token
-        
-        },
-
-        randomToken: (publicId: string): FindexCloudToken => {
-            return {
-                publicId,
-                findexMasterKey: randomBytes(16),
-                fetchEntriesKey: randomBytes(16),
-                fetchChainsKey: randomBytes(16),
-                upsertEntriesKey: randomBytes(16),
-                insertChainsKey: randomBytes(16),
-            }
-        },
-
-        deriveNewToken: (token: FindexCloudToken, permissions: {
-            search: boolean,
-            index: boolean,
-        } = {
-            search: false,
-            index: false,
-        }) => {
-            const newToken: FindexCloudToken = {
-                publicId: token.publicId,
-                findexMasterKey: token.findexMasterKey,
-                fetchEntriesKey: null,
-                fetchChainsKey: null,
-                upsertEntriesKey: null,
-                insertChainsKey: null,
-            }
-        
-            if (permissions.search) {
-                newToken.fetchEntriesKey = token.fetchEntriesKey
-                newToken.fetchChainsKey = token.fetchChainsKey
-            }
-        
-            if (permissions.index) {
-                newToken.fetchChainsKey = token.fetchChainsKey
-                newToken.upsertEntriesKey = token.upsertEntriesKey
-                newToken.insertChainsKey = token.insertChainsKey
-            }
-
-            return newToken
+            return await search(
+                keywords,
+                new FindexKey(token.findexMasterKey),
+                new Label("Some label"),
+                async (uids) => {
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
+                },
+                async (uids) => {
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_chains', uids.map((uid) => hexEncode(uid)))
+                    return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
+                },
+            )
         }
     }
+}
 
+
+async function post<T>(token: FindexCloudToken, uri: string, data: any): Promise<T> {
+    const response = await fetch(`http://127.0.0.1:8080/indexes/${token.publicId}${uri}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+    })
+    const body = await response.text();
+
+    if (body === "") return null as T;
+    return JSON.parse(body) as T;
 }

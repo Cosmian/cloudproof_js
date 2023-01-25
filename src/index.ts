@@ -18,6 +18,7 @@ export * from "./cover_crypt/interfaces/encryption_parameters"
 export * from "./cover_crypt/interfaces/plaintext_header"
 export * from "./cover_crypt/interfaces/policy"
 export * from "./findex/findex"
+export * from "./findex/findex_cloud"
 export { logger } from "./utils/logger"
 export {
   hexDecode,

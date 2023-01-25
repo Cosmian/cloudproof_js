@@ -40,18 +40,23 @@
     "format": "npm run prettier:fix && npm run lint:fix"
   },
   "dependencies": {
+    "axios": "^1.2.4",
     "base64-js": "^1.5.1",
     "better-sqlite3": "^8.0.1",
+    "node-fetch": "^3.3.0",
     "process": "^0.11.10",
+    "randombytes": "^2.1.0",
     "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
+    "@rollup/plugin-json": "^6.0.0",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^9.0.2",
     "@rollup/plugin-wasm": "^6.0.1",
     "@types/better-sqlite3": "^7.6.3",
     "@types/node": "^18.7.18",
+    "@types/randombytes": "^2.0.0",
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.36.2",
     "eslint": "^8.23.1",
@@ -65,6 +70,7 @@
     "puppeteer": "^19.2.0",
     "redis": "^4.3.1",
     "rollup": "^3.3.0",
+    "rollup-plugin-polyfill-node": "^0.12.0",
     "typescript": "^4.9.0",
     "typescript-language-server": "^3.0.1",
     "uuid": "^9.0.0",
