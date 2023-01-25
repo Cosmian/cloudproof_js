@@ -2,6 +2,7 @@ import randomBytes from "randombytes"
 import { fromByteArray, toByteArray } from 'base64-js';
 import { Findex, FindexKey, IndexedEntry, Label } from "./findex";
 import { hexEncode, hexDecode } from "../utils/utils";
+import jsSHA from 'jssha';
 
 export interface FindexCloudToken {
     publicId: string,
@@ -126,11 +127,11 @@ export async function FindexCloud() {
                 new FindexKey(token.findexMasterKey),
                 new Label("Some label"),
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchEntriesKey, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (entriesToUpsert) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/upsert_entries', 
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.upsertEntriesKey, '/upsert_entries', 
                         entriesToUpsert.map(({ uid, oldValue, newValue }) => ({
                             uid: hexEncode(uid),
                             "old_value": oldValue !== null ? hexEncode(oldValue) : null,
@@ -141,7 +142,7 @@ export async function FindexCloud() {
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (chainsToInsert) => {
-                    await post(token, '/insert_chains', 
+                    await post(token, token.insertChainsKey, '/insert_chains', 
                         chainsToInsert.map(({ uid, value }) => ({
                             uid: hexEncode(uid),
                             value: hexEncode(value),
@@ -164,11 +165,11 @@ export async function FindexCloud() {
                 new FindexKey(token.findexMasterKey),
                 new Label("Some label"),
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchEntriesKey, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_chains', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchChainsKey, '/fetch_chains', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
             )
@@ -177,13 +178,31 @@ export async function FindexCloud() {
 }
 
 
-async function post<T>(token: FindexCloudToken, uri: string, data: any): Promise<T> {
+async function post<T>(token: FindexCloudToken, key: Uint8Array | null, uri: string, data: any): Promise<T> {
+    if (key === null) {
+        throw new Error("You key doesn't allow you to call this callback");
+    }
+
+    const requestBody = JSON.stringify(data);
+
+    // eslint-disable-next-line new-cap
+    const shaObj = new jsSHA("KMAC128", "UINT8ARRAY", {
+        kmacKey: { value: key, format: "UINT8ARRAY" },
+    });
+    shaObj.update(new TextEncoder().encode(requestBody));
+    const signature = shaObj.getHash("UINT8ARRAY", { outputLen: 256 });
+    console.log(signature);
+    console.log(hexEncode(signature));
+
+
     const response = await fetch(`http://127.0.0.1:8080/indexes/${token.publicId}${uri}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'User-Agent': 'cloudproof_client',
+            'X-Findex-Cloud-Signature': hexEncode(signature),
         },
-        body: JSON.stringify(data),
+        body: requestBody,
     })
     const body = await response.text();
 
