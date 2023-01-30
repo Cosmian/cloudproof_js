@@ -7,7 +7,7 @@ import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
 import { encode, decode } from "../utils/leb128"
 import { bytesEquals, hexEncode } from "../utils/utils"
-import { fromByteArray } from 'base64-js';
+import { fromByteArray } from "base64-js"
 
 export * from "./sqlite"
 export * from "./in_memory"
