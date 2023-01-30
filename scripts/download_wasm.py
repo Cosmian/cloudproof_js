@@ -54,8 +54,8 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
 
 
 if __name__ == '__main__':
-    ret = download_wasm('findex', 'v2.0.0', 'src/pkg')
-    if getenv('GITHUB_ACTIONS'):
+    ret = download_wasm('findex', 'v2.0.1', 'src/pkg')
+    if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('findex', 'last_build', 'src/pkg')
 
     ret = download_wasm('cover_crypt', 'v8.0.2', 'src/pkg')
