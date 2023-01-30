@@ -96,10 +96,7 @@ test("Redis", async () => {
       uids: Uint8Array[],
     ): Promise<UidsAndValues> => {
       const redisResults = await client.mGet(
-        uids.map(
-          (uid) =>
-            `findex.test.ts::${prefix}.${fromByteArray(uid)}`,
-        ),
+        uids.map((uid) => `findex.test.ts::${prefix}.${fromByteArray(uid)}`),
       )
 
       const results: UidsAndValues = []
@@ -107,9 +104,7 @@ test("Redis", async () => {
         if (redisResults[index] !== null) {
           results.push({
             uid,
-            value: Uint8Array.from(
-              toByteArray(redisResults[index] as string),
-            ),
+            value: Uint8Array.from(toByteArray(redisResults[index] as string)),
           })
         }
       })
@@ -616,6 +611,6 @@ test("Verify Findex non-regression test", async () => {
 })
 
 test("Verify base64 encoding", async () => {
-  const keyword = new Keyword(randomBytes(128));
-  keyword.toBase64();
+  const keyword = new Keyword(randomBytes(128))
+  keyword.toBase64()
 })
