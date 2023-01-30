@@ -1,4 +1,5 @@
-import randomBytes from "randombytes"
+/* eslint-disable jsdoc/require-param */
+/* eslint-disable jsdoc/require-returns */
 import { fromByteArray, toByteArray } from 'base64-js';
 import { Findex, FindexKey, IndexedEntry, Label } from "./findex";
 import { hexEncode, hexDecode } from "../utils/utils";
@@ -14,6 +15,9 @@ export interface FindexCloudToken {
     insertChainsKey: Uint8Array | null,
 }
 
+/**
+ * Transform a string to a token object
+ */
 function tokenToString(token: FindexCloudToken): string {
     const masterKeyAndPrivateKey = new Uint8Array([
         ...token.findexMasterKey,
@@ -26,6 +30,9 @@ function tokenToString(token: FindexCloudToken): string {
     return token.publicId + fromByteArray(masterKeyAndPrivateKey);
 }
 
+/**
+ * Transform a token to a string
+ */
 function tokenFromString(tokenAsString: string): FindexCloudToken {
     const publicId = tokenAsString.slice(0, 5);
     const bytes = toByteArray(tokenAsString.slice(5));
@@ -61,17 +68,9 @@ function tokenFromString(tokenAsString: string): FindexCloudToken {
     return token
 }
 
-function randomToken(publicId: string): FindexCloudToken {
-    return {
-        publicId,
-        findexMasterKey: randomBytes(16),
-        fetchEntriesKey: randomBytes(16),
-        fetchChainsKey: randomBytes(16),
-        upsertEntriesKey: randomBytes(16),
-        insertChainsKey: randomBytes(16),
-    }
-}
-
+/**
+ * Create a new token with reduced permissions
+ */
 function deriveNewToken(token: FindexCloudToken, permissions: {
     search: boolean,
     index: boolean,
@@ -111,7 +110,6 @@ export async function FindexCloud() {
     return {
         tokenToString,
         tokenFromString,
-        randomToken,
         deriveNewToken,
 
         upsert: async (rawToken: string | FindexCloudToken, newIndexedEntries: IndexedEntry[]) => {
@@ -127,11 +125,11 @@ export async function FindexCloud() {
                 new FindexKey(token.findexMasterKey),
                 new Label("Some label"),
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchEntriesKey, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (entriesToUpsert) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.upsertEntriesKey, '/upsert_entries', 
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/upsert_entries', 
                         entriesToUpsert.map(({ uid, oldValue, newValue }) => ({
                             uid: hexEncode(uid),
                             "old_value": oldValue !== null ? hexEncode(oldValue) : null,
@@ -142,7 +140,7 @@ export async function FindexCloud() {
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (chainsToInsert) => {
-                    await post(token, token.insertChainsKey, '/insert_chains', 
+                    await post(token, '/insert_chains', 
                         chainsToInsert.map(({ uid, value }) => ({
                             uid: hexEncode(uid),
                             value: hexEncode(value),
@@ -165,11 +163,11 @@ export async function FindexCloud() {
                 new FindexKey(token.findexMasterKey),
                 new Label("Some label"),
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchEntriesKey, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_entries', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
                 async (uids) => {
-                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, token.fetchChainsKey, '/fetch_chains', uids.map((uid) => hexEncode(uid)))
+                    const data = await post<Array<{ 'uid': string, 'value': string }>>(token, '/fetch_chains', uids.map((uid) => hexEncode(uid)))
                     return data.map(({ uid, value }) => ({ uid: hexDecode(uid), value: hexDecode(value) }));
                 },
             )
@@ -177,8 +175,22 @@ export async function FindexCloud() {
     }
 }
 
+/**
+ * HTTP POST request to the Findex Cloud API
+ */
+async function post<T>(token: FindexCloudToken, uri: '/fetch_entries' | '/fetch_chains' | '/upsert_entries' | '/insert_chains', data: any): Promise<T> {
+    let key: Uint8Array | null = null;
+    if (uri === '/fetch_entries') {
+        key = token.fetchEntriesKey
+    } else if (uri === '/fetch_chains') {
+        key = token.fetchChainsKey
+    } else if (uri === '/upsert_entries') {
+        key = token.upsertEntriesKey
+    } else if (uri === '/insert_chains') {
+        key = token.insertChainsKey
+    }
 
-async function post<T>(token: FindexCloudToken, key: Uint8Array | null, uri: string, data: any): Promise<T> {
+
     if (key === null) {
         throw new Error("You key doesn't allow you to call this callback");
     }
@@ -191,9 +203,6 @@ async function post<T>(token: FindexCloudToken, key: Uint8Array | null, uri: str
     });
     shaObj.update(new TextEncoder().encode(requestBody));
     const signature = shaObj.getHash("UINT8ARRAY", { outputLen: 256 });
-    console.log(signature);
-    console.log(hexEncode(signature));
-
 
     const response = await fetch(`http://127.0.0.1:8080/indexes/${token.publicId}${uri}`, {
         method: 'POST',
