@@ -489,9 +489,7 @@ export function toTTLV(kmip: Serializable, tag: string | null = null): TTLV {
     tag = kmip.tag
     if (tag === undefined) {
       throw new Error(
-        `Try to serialize a root JS object ${typeof kmip} but this object doesn't have a tag property. ${JSON.stringify(
-          kmip,
-        )}`,
+        `Try to serialize a root JS object ${typeof kmip} but this object doesn't have a tag property.`,
       )
     }
   }

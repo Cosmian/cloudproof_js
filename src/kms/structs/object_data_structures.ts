@@ -1,3 +1,4 @@
+/* tslint:disable:max-classes-per-file */
 import { Attributes, CryptographicParameters } from "./object_attributes"
 import { Policy } from "../../cover_crypt/interfaces/policy"
 

@@ -362,10 +362,19 @@ test(
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     const policyMsk = Policy.fromKey(msk)
-    expect(policyMsk.toBytes() === policy.toBytes()).toBeTruthy()
+
+    // Policies are compared under JSON format but comparison will become a raw bytes comparison since JSON format will be removed
+    const policyJson = JSON.parse(new TextDecoder().decode(policy.toBytes()))
+    const policyMskJson = JSON.parse(
+      new TextDecoder().decode(policyMsk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMskJson)
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policyMpk = Policy.fromKey(mpk)
-    expect(policyMpk.toBytes() === policy.toBytes()).toBeTruthy()
+    const policyMpkJson = JSON.parse(
+      new TextDecoder().decode(policyMpk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMpkJson)
 
     // create user decryption Key
     const apb =
