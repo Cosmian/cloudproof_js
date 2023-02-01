@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - Download wasm on specific versions only (except for github release)
-- Use kms version to 4.2.0
+- Use KMS version to 4.2.0
 
 ### Features
 

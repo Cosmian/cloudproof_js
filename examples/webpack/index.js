@@ -9,16 +9,31 @@ const assert = (x, y) => {
 // Creating a policy
 //
 const policy = new Policy([
-  new PolicyAxis("Department", ["R&D", "HR", "FIN", "MKG"], false),
   new PolicyAxis(
     "Security Level",
-    ["Protected", "Low Secret", "Medium Secret", "High Secret", "Top Secret"],
+    [
+      { name: "Protected", isHybridized: false },
+      { name: "Low Secret", isHybridized: false },
+      { name: "Medium Secret", isHybridized: false },
+      { name: "High Secret", isHybridized: false },
+      { name: "Top Secret", isHybridized: false },
+    ],
     true,
   ),
-])
-
-;(async () => {
-  const client = new KmsClient(new URL(`http://${process.env.KMS_HOST || 'localhost'}:9998/kmip/2_1`))
+  new PolicyAxis(
+    "Department",
+    [
+      { name: "R&D", isHybridized: false },
+      { name: "HR", isHybridized: false },
+      { name: "MKG", isHybridized: false },
+      { name: "FIN", isHybridized: false },
+    ],
+    false,
+  ),
+])(async () => {
+  const client = new KmsClient(
+    new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+  )
 
   //
   // Generating the master keys
@@ -73,25 +88,25 @@ const policy = new Policy([
   // the medium secret marketing user
   const mediumSecretMkgAccess =
     "Department::MKG && Security Level::Medium Secret"
-  const mediumSecretMkgUserKeyUid = await client.createCoverCryptUserDecryptionKey(
-    mediumSecretMkgAccess,
-    privateMasterKeyUID,
-  )
-  const mediumSecretMkgUserKey = await client.retrieveCoverCryptUserDecryptionKey(
-    mediumSecretMkgUserKeyUid,
-  )
+  const mediumSecretMkgUserKeyUid =
+    await client.createCoverCryptUserDecryptionKey(
+      mediumSecretMkgAccess,
+      privateMasterKeyUID,
+    )
+  const mediumSecretMkgUserKey =
+    await client.retrieveCoverCryptUserDecryptionKey(mediumSecretMkgUserKeyUid)
   const mediumSecretMkgUserKeyBytes = mediumSecretMkgUserKey.bytes()
 
   // the top secret marketing financial user
   const topSecretMkgFinAccess =
     "(Department::MKG || Department::FIN) && Security Level::Top Secret"
-  const topSecretMkgFinUserKeyUid = await client.createCoverCryptUserDecryptionKey(
-    topSecretMkgFinAccess,
-    privateMasterKeyUID,
-  )
-  const topSecretMkgFinUserKey = await client.retrieveCoverCryptUserDecryptionKey(
-    topSecretMkgFinUserKeyUid,
-  )
+  const topSecretMkgFinUserKeyUid =
+    await client.createCoverCryptUserDecryptionKey(
+      topSecretMkgFinAccess,
+      privateMasterKeyUID,
+    )
+  const topSecretMkgFinUserKey =
+    await client.retrieveCoverCryptUserDecryptionKey(topSecretMkgFinUserKeyUid)
   const topSecretMkgFinUserKeyBytes = topSecretMkgFinUserKey.bytes()
 
   // the top secret financial user
@@ -164,7 +179,9 @@ const policy = new Policy([
   client.rotateCoverCryptAttributes(privateMasterKeyUID, ["Department::MKG"])
 
   // retrieve the rekeyed public key
-  const rekeyedPublicKey = await client.retrieveCoverCryptPublicMasterKey(publicKeyUID)
+  const rekeyedPublicKey = await client.retrieveCoverCryptPublicMasterKey(
+    publicKeyUID,
+  )
   // retrieve the rekeyed user decryption key
   const rekeyedMediumSecretMkgUserKey =
     await client.retrieveCoverCryptUserDecryptionKey(mediumSecretMkgUserKeyUid)

@@ -177,29 +177,32 @@ export class NonRegressionVector {
   }
 
   public static async generate(): Promise<NonRegressionVector> {
-    const policy = Policy.generate(100, [
-      new PolicyAxis(
-        "Security Level",
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Low Secret", isHybridized: false },
-          { name: "Medium Secret", isHybridized: false },
-          { name: "High Secret", isHybridized: false },
-          { name: "Top Secret", isHybridized: false },
-        ],
-        true,
-      ),
-      new PolicyAxis(
-        "Department",
-        [
-          { name: "R&D", isHybridized: false },
-          { name: "HR", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "FIN", isHybridized: false },
-        ],
-        false,
-      ),
-    ])
+    const policy = new Policy(
+      [
+        new PolicyAxis(
+          "Security Level",
+          [
+            { name: "Protected", isHybridized: false },
+            { name: "Low Secret", isHybridized: false },
+            { name: "Medium Secret", isHybridized: false },
+            { name: "High Secret", isHybridized: false },
+            { name: "Top Secret", isHybridized: false },
+          ],
+          true,
+        ),
+        new PolicyAxis(
+          "Department",
+          [
+            { name: "R&D", isHybridized: false },
+            { name: "HR", isHybridized: false },
+            { name: "MKG", isHybridized: false },
+            { name: "FIN", isHybridized: false },
+          ],
+          false,
+        ),
+      ],
+      100,
+    )
     const masterKeys = keyGenerator.generateMasterKeys(policy)
 
     // Generate user secret keys
@@ -317,7 +320,7 @@ export class NonRegressionVector {
 
   public static fromJson(nonRegVector: string): NonRegressionVector {
     const json = JSON.parse(nonRegVector)
-    const policy = new Policy(
+    const policy = Policy.fromBytes(
       Uint8Array.from(Buffer.from(json.policy, "base64")),
     )
     const publicKey = Uint8Array.from(Buffer.from(json.public_key, "base64"))

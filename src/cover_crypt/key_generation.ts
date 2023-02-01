@@ -130,10 +130,10 @@ export function generateUserSecretKey(
  * @returns {Policy} the updated policy
  */
 export function rotateAttributes(attributes: string[], policy: Policy): Policy {
-  const newPolicyString = webassembly_rotate_attributes(
+  const newPolicyBytes = webassembly_rotate_attributes(
     attributes,
     policy.toBytes(),
   )
 
-  return new Policy(newPolicyString)
+  return Policy.fromBytes(newPolicyBytes)
 }

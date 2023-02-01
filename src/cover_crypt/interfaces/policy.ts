@@ -11,14 +11,14 @@ import {
 
 /* tslint:disable:max-classes-per-file */
 export class PolicyAxis {
-  private readonly _data: string
+  private readonly _policyAxisJson: string
 
   constructor(
     name: string,
     attributeProperties: Array<{ name: string; isHybridized: boolean }>,
     isHierarchical: boolean,
   ) {
-    this._data = webassembly_policy_axis(
+    this._policyAxisJson = webassembly_policy_axis(
       name,
       attributeProperties,
       isHierarchical,
@@ -26,24 +26,19 @@ export class PolicyAxis {
   }
 
   public toString(): string {
-    return this._data
+    return this._policyAxisJson
   }
 }
 
 export class Policy {
-  private readonly _data: Uint8Array
+  private _policyBytes: Uint8Array
 
-  constructor(data: Uint8Array) {
-    this._data = data
-  }
-
-  public static generate(nbCreations: number, axes: PolicyAxis[]): Policy {
-    let policy = webassembly_policy(nbCreations)
+  constructor(axes: PolicyAxis[], nbCreations?: number) {
+    let policy = webassembly_policy(nbCreations ?? (2 ^ 32) - 1)
     for (const axis of axes) {
       policy = webassembly_add_axis(policy, axis.toString())
     }
-
-    return new Policy(policy)
+    this._policyBytes = policy
   }
 
   /**
@@ -55,7 +50,7 @@ export class Policy {
     return new VendorAttributes(
       VendorAttributes.VENDOR_ID_COSMIAN,
       VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
-      this._data,
+      this._policyBytes,
     )
   }
 
@@ -74,7 +69,7 @@ export class Policy {
       if (
         att.attributeName === VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY
       ) {
-        return new Policy(att.attributeValue)
+        return Policy.fromBytes(att.attributeValue)
       }
     }
     throw new Error("No policy available in the vendor attributes")
@@ -97,6 +92,12 @@ export class Policy {
    * @returns {Uint8Array} the string
    */
   public toBytes(): Uint8Array {
-    return this._data
+    return this._policyBytes
+  }
+
+  static fromBytes(policyBytes: Uint8Array): Policy {
+    const policy = new Policy([], 0)
+    policy._policyBytes = policyBytes
+    return policy
   }
 }

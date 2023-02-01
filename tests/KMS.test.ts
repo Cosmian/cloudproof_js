@@ -115,7 +115,8 @@ const CREATE_SYMMETRIC_KEY = `{
 test(
   "KMS Import Master Keys",
   async () => {
-    await CoverCrypt()
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
     const client = new KmsClient(
       new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
     )
@@ -124,9 +125,7 @@ test(
       return
     }
 
-    let { Policy, PolicyAxis } = await CoverCrypt()
-
-    const policy = Policy.generate(100, [
+    const policy = new Policy([
       new PolicyAxis(
         "Department",
         [
@@ -238,28 +237,31 @@ test(
 )
 
 test("Policy", async () => {
-  let { Policy, PolicyAxis } = await CoverCrypt()
+  const { Policy, PolicyAxis } = await CoverCrypt()
 
-  const policy = Policy.generate(100, [
-    new PolicyAxis(
-      "Security Level",
-      [
-        { name: "Protected", isHybridized: false },
-        { name: "Confidential", isHybridized: false },
-        { name: "Top Secret", isHybridized: true },
-      ],
-      true,
-    ),
-    new PolicyAxis(
-      "Department",
-      [
-        { name: "FIN", isHybridized: false },
-        { name: "MKG", isHybridized: false },
-        { name: "HR", isHybridized: false },
-      ],
-      false,
-    ),
-  ])
+  const policy = new Policy(
+    [
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ],
+    20,
+  )
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
@@ -330,9 +332,10 @@ test(
       return
     }
 
-    let { Policy, PolicyAxis } = await CoverCrypt()
+    const { CoverCryptHybridDecryption, Policy, PolicyAxis } =
+      await CoverCrypt()
 
-    const policy = Policy.generate(100, [
+    const policy = new Policy([
       new PolicyAxis(
         "Security Level",
         [
@@ -359,10 +362,10 @@ test(
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     const policyMsk = Policy.fromKey(msk)
-    expect(policyMsk.toString() === policy.toString()).toBeTruthy()
+    expect(policyMsk.toBytes() === policy.toBytes()).toBeTruthy()
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policyMpk = Policy.fromKey(mpk)
-    expect(policyMpk.toString() === policy.toString()).toBeTruthy()
+    expect(policyMpk.toBytes() === policy.toBytes()).toBeTruthy()
 
     // create user decryption Key
     const apb =
@@ -405,7 +408,6 @@ test(
     )
 
     // decryption
-    const { CoverCryptHybridDecryption } = await CoverCrypt()
     {
       // Previous local key should not work anymore.
       const decrypter2 = new CoverCryptHybridDecryption(udk)
@@ -442,9 +444,9 @@ test(
       return
     }
 
-    let { Policy, PolicyAxis } = await CoverCrypt()
+    const { Policy, PolicyAxis } = await CoverCrypt()
 
-    const policy = Policy.generate(100, [
+    const policy = new Policy([
       new PolicyAxis(
         "Security",
         [
@@ -527,9 +529,14 @@ test(
       return
     }
 
-    let { Policy, PolicyAxis } = await CoverCrypt()
+    const {
+      CoverCryptHybridEncryption,
+      CoverCryptHybridDecryption,
+      Policy,
+      PolicyAxis,
+    } = await CoverCrypt()
 
-    const policy = Policy.generate(100, [
+    const policy = new Policy([
       new PolicyAxis(
         "Security",
         [
@@ -539,9 +546,6 @@ test(
         true,
       ),
     ])
-
-    const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
-      await CoverCrypt()
 
     // create master keys
     const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
