@@ -2,7 +2,7 @@
 
 import { expect } from "vitest"
 import { CoverCrypt, Policy as CoverCryptPolicy } from ".."
-import { fromByteArray, toByteArray } from 'base64-js';
+import { fromByteArray, toByteArray } from "base64-js"
 
 /* Importing the functions from the CoverCrypt library. */
 const {
@@ -314,7 +314,7 @@ export class NonRegressionVector {
   public static fromJson(nonRegVector: string): NonRegressionVector {
     const json = JSON.parse(nonRegVector)
     const policy = Policy.fromBytes(toByteArray(json.policy))
-    const publicKey = Uint8Array.from(Buffer.from(json.public_key, "base64"))
+    const publicKey = toByteArray(json.public_key)
     const masterSecretKey = toByteArray(json.master_secret_key)
 
     const topSecretMkgFinKey = UserSecretKeyTestVector.fromJson(
