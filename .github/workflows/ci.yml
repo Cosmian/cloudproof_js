@@ -140,5 +140,4 @@ jobs:
       - publish
       - release
     uses: Cosmian/reusable_workflows/.github/workflows/cleanup_cache.yml@main
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     secrets: inherit
