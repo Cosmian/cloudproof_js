@@ -23,9 +23,9 @@ jobs:
             node_modules
             dist
             src/pkg
-          key: ${{ runner.os }}-node-${{ github.ref_name }}
+          key: ${{ runner.os }}-node-${{ github.ref_name }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-${{ github.ref_name }}
+            ${{ runner.os }}-node-${{ github.ref_name }}-${{ hashFiles('package.json') }}
 
       - run: ${{ inputs.subcommands }}
         env:
