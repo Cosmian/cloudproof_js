@@ -61,7 +61,7 @@ export class CoverCryptHybridEncryption {
         : options.authenticationData
 
     const encryptedHeaderBytes = webassembly_encrypt_hybrid_header(
-      this.policy.toJsonEncoded(),
+      this.policy.toBytes(),
       accessPolicy,
       this.publicKey,
       headerMetadata,
@@ -163,7 +163,7 @@ export function encrypt(
       : options.authenticationData
 
   return webassembly_hybrid_encrypt(
-    policy.toJsonEncoded(),
+    policy.toBytes(),
     accessPolicy,
     publicKey,
     plaintext,

@@ -6,11 +6,29 @@ The library provides a Typescript-friendly API to the **Cloudproof Encryption** 
 
 <!-- toc -->
 
+- [Licensing](#licensing)
+- [Cryptographic primitives](#cryptographic-primitives)
 - [Getting started](#getting-started)
 - [Using in Javascript projects](#using-in-javascript-projects)
 - [Versions Correspondence](#versions-correspondence)
 
 <!-- tocstop -->
+
+## Licensing
+
+The library is available under a dual licensing scheme Affero GPL/v3 and commercial. See [LICENSE.md](LICENSE.md) for details.
+
+## Cryptographic primitives
+
+The library is based on:
+
+- [CoverCrypt](https://github.com/Cosmian/cover_crypt) algorithm which allows
+creating ciphertexts for a set of attributes and issuing user keys with access
+policies over these attributes. `CoverCrypt` offers Post-Quantum resistance.
+
+- [Findex](https://github.com/Cosmian/findex) which is a cryptographic protocol designed to securely make search queries on
+an untrusted cloud server. Thanks to its encrypted indexes, large databases can
+securely be outsourced without compromising usability.
 
 ## Getting started
 
@@ -50,3 +68,4 @@ This table shows the minimum version correspondence between the various componen
 | 5.0.0           | 7.0.0          | 0.10.0 | 3.0.0      |
 | 6.0.0           | 8.0.0          | 1.0.0  | 4.0.0      |
 | 6.0.1           | 8.0.0          | 2.0.0  | 4.0.0      |
+| 7.0.0           | 10.0.0         | 2.0.1  | 4.2.0      |

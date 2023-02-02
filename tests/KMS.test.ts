@@ -4,14 +4,11 @@ import {
   CoverCrypt,
   AccessPolicy,
   VendorAttributes,
-  Policy,
-  PolicyAxis,
   Attributes,
   CryptographicAlgorithm,
   KeyFormatType,
   SymmetricKey,
   TransparentSymmetricKey,
-  hexEncode,
   TTLV,
   KeyValue,
   toTTLV,
@@ -24,6 +21,7 @@ import {
   fromTTLV,
   CryptographicUsageMask,
   serialize,
+  hexEncode,
 } from ".."
 
 import { expect, test } from "vitest"
@@ -117,7 +115,8 @@ const CREATE_SYMMETRIC_KEY = `{
 test(
   "KMS Import Master Keys",
   async () => {
-    await CoverCrypt()
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
     const client = new KmsClient(
       new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
     )
@@ -127,8 +126,17 @@ test(
     }
 
     const policy = new Policy([
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
     ])
+
     const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
       await client.createCoverCryptMasterKeyPair(policy)
 
@@ -229,28 +237,31 @@ test(
 )
 
 test("Policy", async () => {
-  await CoverCrypt()
+  const { Policy, PolicyAxis } = await CoverCrypt()
 
   const policy = new Policy(
     [
       new PolicyAxis(
         "Security Level",
-        ["Protected", "Confidential", "Top Secret"],
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
         true,
       ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
     ],
     20,
   )
-  // JSON encoding test
-  const json = JSON.parse(new TextDecoder().decode(policy.toJsonEncoded()))
-  expect(json.last_attribute_value).toEqual(6)
-  expect(json.max_attribute_creations).toEqual(20)
-  expect(json.attribute_to_int["Department::FIN"]).toEqual([4])
-  expect(json.axes["Security Level"]).toEqual([
-    ["Protected", "Confidential", "Top Secret"],
-    true,
-  ])
   // TTLV Test
   const ttlv = toTTLV(policy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
@@ -258,7 +269,7 @@ test("Policy", async () => {
   expect(children[1].value).toEqual(
     VendorAttributes.VENDOR_ATTR_COVER_CRYPT_POLICY,
   )
-  expect(children[2].value).toEqual(hexEncode(policy.toJsonEncoded()))
+  expect(children[2].value).toEqual(hexEncode(policy.toBytes()))
   // Vendor Attributes test
   const va = policy.toVendorAttribute()
   const att = new Attributes("PrivateKey")
@@ -303,12 +314,6 @@ test("KMS CoverCrypt Access Policy", async () => {
   const apb = new AccessPolicy(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
-  const apj = await apb.toKmipJson()
-  expect(apj).toEqual(
-    '{"And":[{"Or":[{"Attr":"Department::MKG"},{"Attr":"Department::FIN"}]},{"Attr":"Security Level::Confidential"}]}',
-  )
-  const apb_ = AccessPolicy.fromKmipJson(apj)
-  expect(apb_).toEqual(apb)
   // vendor attributes
   const va = await apb.toVendorAttribute()
   const attributes = new Attributes("PrivateKey")
@@ -327,13 +332,28 @@ test(
       return
     }
 
+    const { CoverCryptHybridDecryption, Policy, PolicyAxis } =
+      await CoverCrypt()
+
     const policy = new Policy([
       new PolicyAxis(
         "Security Level",
-        ["Protected", "Confidential", "Top Secret"],
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
         true,
       ),
-      new PolicyAxis("Department", ["FIN", "MKG", "HR"], false),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
     ])
 
     // create master keys
@@ -342,10 +362,19 @@ test(
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     const policyMsk = Policy.fromKey(msk)
-    expect(policyMsk.equals(policy)).toBeTruthy()
+
+    // Policies are compared under JSON format but comparison will become a raw bytes comparison since JSON format will be removed
+    const policyJson = JSON.parse(new TextDecoder().decode(policy.toBytes()))
+    const policyMskJson = JSON.parse(
+      new TextDecoder().decode(policyMsk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMskJson)
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const policyMpk = Policy.fromKey(mpk)
-    expect(policyMpk.equals(policy)).toBeTruthy()
+    const policyMpkJson = JSON.parse(
+      new TextDecoder().decode(policyMpk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMpkJson)
 
     // create user decryption Key
     const apb =
@@ -377,7 +406,7 @@ test(
     expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
     const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
-    expect(policy.toString()).not.toEqual(rotatedPolicy.toString())
+    expect(policy.toBytes()).not.toEqual(rotatedPolicy.toBytes())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")
@@ -388,7 +417,6 @@ test(
     )
 
     // decryption
-    const { CoverCryptHybridDecryption } = await CoverCrypt()
     {
       // Previous local key should not work anymore.
       const decrypter2 = new CoverCryptHybridDecryption(udk)
@@ -425,8 +453,17 @@ test(
       return
     }
 
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
     const policy = new Policy([
-      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
+      new PolicyAxis(
+        "Security",
+        [
+          { name: "Simple", isHybridized: false },
+          { name: "TopSecret", isHybridized: true },
+        ],
+        true,
+      ),
     ])
 
     // create master keys
@@ -501,12 +538,23 @@ test(
       return
     }
 
-    const policy = new Policy([
-      new PolicyAxis("Security", ["Simple", "TopSecret"], true),
-    ])
+    const {
+      CoverCryptHybridEncryption,
+      CoverCryptHybridDecryption,
+      Policy,
+      PolicyAxis,
+    } = await CoverCrypt()
 
-    const { CoverCryptHybridDecryption, CoverCryptHybridEncryption } =
-      await CoverCrypt()
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security",
+        [
+          { name: "Simple", isHybridized: false },
+          { name: "TopSecret", isHybridized: true },
+        ],
+        true,
+      ),
+    ])
 
     // create master keys
     const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)

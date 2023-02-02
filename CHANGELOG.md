@@ -2,11 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [7.0.0] - 2023-02-01
 
-### Changed
+### Bug Fixes
 
-- `Findex.search` core function only returns `Location`s
+- Download wasm on specific versions only (except for github release)
+- Use KMS version to 4.2.0
+
+### Features
+
+- Update `SearchResult` to use `Location` only
+- Support CoverCrypt v10.0
+
+### Miscellaneous Tasks
+
+- Download wasm from package.cosmian.com
+- Prepare next versions of findex and cover_crypt
 
 ---
 
