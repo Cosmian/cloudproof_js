@@ -1,3 +1,4 @@
+/* tslint:disable:max-classes-per-file */
 import { KeyBlock } from "./object_data_structures"
 import { Policy } from "../../cover_crypt/interfaces/policy"
 

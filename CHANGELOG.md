@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.0.0] - 2023-02-03
+
+### Bug Fixes
+
+- Download wasm on specific versions only (except for github release)
+- Use KMS version to 4.2.0
+
+### Features
+
+- Update `SearchResult` to use `Location` only
+- Support CoverCrypt v10.0
+
+### Miscellaneous Tasks
+
+- Download wasm from package.cosmian.com
+- Prepare next versions of findex and cover_crypt
+
+---
+
 ## [6.0.1] - 2023-01-13
 
 ### Added
