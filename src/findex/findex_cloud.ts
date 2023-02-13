@@ -1,9 +1,18 @@
 /* eslint-disable jsdoc/require-param */
 /* eslint-disable jsdoc/require-returns */
 import { fromByteArray, toByteArray } from "base64-js"
-import { Findex, FindexKey, IndexedEntry, Label } from "./findex"
-import { hexEncode, hexDecode } from "../utils/utils"
-import jsSHA from "jssha"
+import {
+  Findex,
+  IndexedEntry,
+  Label,
+  SearchResults,
+  newIndexedEntriesToIndexedValuesToKeywords,
+} from "./findex"
+
+import {
+  webassembly_search_cloud,
+  webassembly_upsert_cloud,
+} from "../pkg/findex/cosmian_findex"
 
 export interface FindexCloudToken {
   publicId: string
@@ -108,7 +117,7 @@ function deriveNewToken(
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function FindexCloud() {
-  const { upsert, search } = await Findex()
+  await Findex()
 
   return {
     tokenToString,
@@ -116,152 +125,61 @@ export async function FindexCloud() {
     deriveNewToken,
 
     upsert: async (
-      rawToken: string | FindexCloudToken,
+      token: string,
+      label: Uint8Array | Label,
       newIndexedEntries: IndexedEntry[],
     ) => {
-      let token: FindexCloudToken
-      if (typeof rawToken === "string") {
-        token = tokenFromString(rawToken)
-      } else {
-        token = rawToken
+      if (label instanceof Uint8Array) {
+        label = new Label(label)
       }
 
-      return await upsert(
-        newIndexedEntries,
-        new FindexKey(token.findexMasterKey),
-        new Label("Some label"),
-        async (uids) => {
-          const data = await post<Array<{ uid: string; value: string }>>(
-            token,
-            "/fetch_entries",
-            uids.map((uid) => hexEncode(uid)),
-          )
-          return data.map(({ uid, value }) => ({
-            uid: hexDecode(uid),
-            value: hexDecode(value),
-          }))
-        },
-        async (entriesToUpsert) => {
-          const data = await post<Array<{ uid: string; value: string }>>(
-            token,
-            "/upsert_entries",
-            entriesToUpsert.map(({ uid, oldValue, newValue }) => ({
-              uid: hexEncode(uid),
-              old_value: oldValue !== null ? hexEncode(oldValue) : null,
-              new_value: hexEncode(newValue),
-            })),
-          )
+      const indexedValuesAndWords =
+        newIndexedEntriesToIndexedValuesToKeywords(newIndexedEntries)
 
-          return data.map(({ uid, value }) => ({
-            uid: hexDecode(uid),
-            value: hexDecode(value),
-          }))
-        },
-        async (chainsToInsert) => {
-          await post(
-            token,
-            "/insert_chains",
-            chainsToInsert.map(({ uid, value }) => ({
-              uid: hexEncode(uid),
-              value: hexEncode(value),
-            })),
-          )
-        },
+      return await webassembly_upsert_cloud(
+        token,
+        label.bytes,
+        indexedValuesAndWords,
       )
     },
 
     search: async (
-      rawToken: string | FindexCloudToken,
+      token: string,
+      label: Uint8Array | Label,
       keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
+      options: {
+        maxResultsPerKeyword?: number
+        maxGraphDepth?: number
+        insecureFetchChainsBatchSize?: number
+        baseUrl?: string
+      } = {},
     ) => {
-      let token: FindexCloudToken
-      if (typeof rawToken === "string") {
-        token = tokenFromString(rawToken)
-      } else {
-        token = rawToken
+      if (label instanceof Uint8Array) {
+        label = new Label(label)
       }
 
-      return await search(
-        keywords,
-        new FindexKey(token.findexMasterKey),
-        new Label("Some label"),
-        async (uids) => {
-          const data = await post<Array<{ uid: string; value: string }>>(
-            token,
-            "/fetch_entries",
-            uids.map((uid) => hexEncode(uid)),
-          )
-          return data.map(({ uid, value }) => ({
-            uid: hexDecode(uid),
-            value: hexDecode(value),
-          }))
-        },
-        async (uids) => {
-          const data = await post<Array<{ uid: string; value: string }>>(
-            token,
-            "/fetch_chains",
-            uids.map((uid) => hexEncode(uid)),
-          )
-          return data.map(({ uid, value }) => ({
-            uid: hexDecode(uid),
-            value: hexDecode(value),
-          }))
-        },
+      const kws: Uint8Array[] = []
+      for (const k of keywords) {
+        kws.push(k instanceof Uint8Array ? k : new TextEncoder().encode(k))
+      }
+
+      const resultsPerKeywords = await webassembly_search_cloud(
+        token,
+        label.bytes,
+        kws,
+        typeof options.maxResultsPerKeyword === "undefined"
+          ? 1000 * 1000
+          : options.maxResultsPerKeyword,
+        typeof options.maxGraphDepth === "undefined"
+          ? 1000
+          : options.maxGraphDepth,
+        typeof options.insecureFetchChainsBatchSize === "undefined"
+          ? 0
+          : options.insecureFetchChainsBatchSize,
+        options.baseUrl,
       )
+
+      return new SearchResults(resultsPerKeywords)
     },
   }
-}
-
-/**
- * HTTP POST request to the Findex Cloud API
- */
-async function post<T>(
-  token: FindexCloudToken,
-  uri:
-    | "/fetch_entries"
-    | "/fetch_chains"
-    | "/upsert_entries"
-    | "/insert_chains",
-  data: any,
-): Promise<T> {
-  let key: Uint8Array | null = null
-  if (uri === "/fetch_entries") {
-    key = token.fetchEntriesKey
-  } else if (uri === "/fetch_chains") {
-    key = token.fetchChainsKey
-  } else if (uri === "/upsert_entries") {
-    key = token.upsertEntriesKey
-  } else if (uri === "/insert_chains") {
-    key = token.insertChainsKey
-  }
-
-  if (key === null) {
-    throw new Error("You key doesn't allow you to call this callback")
-  }
-
-  const requestBody = JSON.stringify(data)
-
-  // eslint-disable-next-line new-cap
-  const shaObj = new jsSHA("KMAC128", "UINT8ARRAY", {
-    kmacKey: { value: key, format: "UINT8ARRAY" },
-  })
-  shaObj.update(new TextEncoder().encode(requestBody))
-  const signature = shaObj.getHash("UINT8ARRAY", { outputLen: 256 })
-
-  const response = await fetch(
-    `http://127.0.0.1:8080/indexes/${token.publicId}${uri}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent": "cloudproof_client",
-        "X-Findex-Cloud-Signature": hexEncode(signature),
-      },
-      body: requestBody,
-    },
-  )
-  const body = await response.text()
-
-  if (body === "") return null as T
-  return JSON.parse(body) as T
 }

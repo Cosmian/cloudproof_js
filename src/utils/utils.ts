@@ -140,18 +140,3 @@ export function bytesEquals(
 
   return true
 }
-
-/**
- * Convert base64 string to bytes
- *
- * @param base64 string
- * @returns bytes
- */
-export async function base64ToBytes(base64: string): Promise<Uint8Array> {
-  const dataUrl = `data:application/octet-binary;base64,${base64}`
-
-  const response = await fetch(dataUrl)
-  const buffer = await response.arrayBuffer()
-
-  return new Uint8Array(buffer)
-}
