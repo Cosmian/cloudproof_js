@@ -40,10 +40,12 @@ export async function FindexCloud() {
 
     deriveNewToken: (
       token: string,
-      search: boolean,
-      index: boolean,
+      permissions: {
+        search: boolean,
+        index: boolean,
+      },
     ): string => {
-      return webassembly_derive_new_token(token, search, index)
+      return webassembly_derive_new_token(token, permissions.search, permissions.index)
     },
 
     upsert: async (
