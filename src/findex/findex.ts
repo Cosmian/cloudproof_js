@@ -508,7 +508,7 @@ export async function Findex() {
   }
 }
 
-class SearchResults {
+export class SearchResults {
   locationsPerKeywords: Array<{
     keyword: Uint8Array
     locations: Location[]
@@ -543,6 +543,18 @@ class SearchResults {
 
   locations(): Location[] {
     return Array.from(this)
+  }
+
+  toNumbers(): number[] {
+    return this.locations().map((location) => location.toNumber())
+  }
+
+  toStrings(): string[] {
+    return this.locations().map((location) => location.toString())
+  }
+
+  toUuidStrings(): string[] {
+    return this.locations().map((location) => location.toUuidString())
   }
 
   total(): number {

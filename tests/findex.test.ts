@@ -4,6 +4,7 @@ import {
   IndexedEntry,
   IndexedValue,
   FindexKey,
+  SearchResults,
   Keyword,
   Label,
   Location,
@@ -344,6 +345,58 @@ test("generateAliases", async () => {
     checkAlias(aliases[0], "Thi", "Thib")
     checkAlias(aliases[1], "Thib", "Thiba")
     checkAlias(aliases[2], "Thiba", "Thibaud")
+  }
+})
+
+test("SearchResults", async () => {
+  {
+    const results = new SearchResults([
+      {
+        keyword: Keyword.fromString("A").bytes,
+        results: [Location.fromNumber(1).bytes],
+      },
+      {
+        keyword: Keyword.fromString("B").bytes,
+        results: [Location.fromNumber(2).bytes],
+      },
+    ])
+
+    expect(results.toNumbers()).toEqual([1, 2])
+  }
+  {
+    const results = new SearchResults([
+      {
+        keyword: Keyword.fromString("A").bytes,
+        results: [Location.fromString("XXX").bytes],
+      },
+      {
+        keyword: Keyword.fromString("B").bytes,
+        results: [Location.fromString("YYY").bytes],
+      },
+    ])
+
+    expect(results.toStrings()).toEqual(["XXX", "YYY"])
+  }
+  {
+    const results = new SearchResults([
+      {
+        keyword: Keyword.fromString("A").bytes,
+        results: [
+          Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes,
+        ],
+      },
+      {
+        keyword: Keyword.fromString("B").bytes,
+        results: [
+          Location.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes,
+        ],
+      },
+    ])
+
+    expect(results.toUuidStrings()).toEqual([
+      "933f6cee-5e0f-4cad-b5b3-56de0fe003d0",
+      "8e36df4c-8b06-4271-872f-1b076fec552e",
+    ])
   }
 })
 
