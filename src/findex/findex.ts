@@ -7,6 +7,7 @@ import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
 import { encode, decode } from "../utils/leb128"
 import { bytesEquals, hexEncode } from "../utils/utils"
+import { fromByteArray } from "base64-js"
 
 export * from "./sqlite"
 export * from "./in_memory"
@@ -59,7 +60,7 @@ export class IndexedValue {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return fromByteArray(this.bytes)
   }
 
   getLocation(): Location | null {
@@ -133,7 +134,7 @@ export class Keyword {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return fromByteArray(this.bytes)
   }
 
   toString(): string {
@@ -147,7 +148,7 @@ export class FindexKey {
   }
 
   toBase64(): string {
-    return Buffer.from(this.bytes).toString("base64")
+    return fromByteArray(this.bytes)
   }
 
   public get bytes(): Uint8Array {
@@ -507,7 +508,7 @@ export async function Findex() {
   }
 }
 
-class SearchResults {
+export class SearchResults {
   locationsPerKeywords: Array<{
     keyword: Uint8Array
     locations: Location[]
@@ -542,6 +543,18 @@ class SearchResults {
 
   locations(): Location[] {
     return Array.from(this)
+  }
+
+  toNumbers(): number[] {
+    return this.locations().map((location) => location.toNumber())
+  }
+
+  toStrings(): string[] {
+    return this.locations().map((location) => location.toString())
+  }
+
+  toUuidStrings(): string[] {
+    return this.locations().map((location) => location.toUuidString())
   }
 
   total(): number {

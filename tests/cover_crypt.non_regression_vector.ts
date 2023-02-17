@@ -2,6 +2,7 @@
 
 import { expect } from "vitest"
 import { CoverCrypt, Policy as CoverCryptPolicy } from ".."
+import { fromByteArray, toByteArray } from "base64-js"
 
 /* Importing the functions from the CoverCrypt library. */
 const {
@@ -37,7 +38,7 @@ export class UserSecretKeyTestVector {
 
   public toJson(): string {
     const usk: any = {}
-    usk.key = Buffer.from(this.key).toString("base64")
+    usk.key = fromByteArray(this.key)
     usk.access_policy = this.accessPolicy
     return usk
   }
@@ -45,7 +46,7 @@ export class UserSecretKeyTestVector {
   public static fromJson(usk: string): UserSecretKeyTestVector {
     const json = JSON.parse(JSON.stringify(usk))
     const accessPolicy = json.access_policy
-    const key = Uint8Array.from(Buffer.from(json.key, "base64"))
+    const key = toByteArray(json.key)
     return new UserSecretKeyTestVector(accessPolicy, key)
   }
 }
@@ -113,26 +114,20 @@ export class EncryptionTestVector {
   public toJson(): string {
     const etv: any = {}
     etv.encryption_policy = this.encryptionPolicy
-    etv.plaintext = Buffer.from(this.plaintext).toString("base64")
-    etv.ciphertext = Buffer.from(this.ciphertext).toString("base64")
-    etv.header_metadata = Buffer.from(this.headerMetadata).toString("base64")
-    etv.authentication_data = Buffer.from(this.authenticationData).toString(
-      "base64",
-    )
+    etv.plaintext = fromByteArray(this.plaintext)
+    etv.ciphertext = fromByteArray(this.ciphertext)
+    etv.header_metadata = fromByteArray(this.headerMetadata)
+    etv.authentication_data = fromByteArray(this.authenticationData)
     return etv
   }
 
   public static fromJson(etv: string): EncryptionTestVector {
     const json = JSON.parse(JSON.stringify(etv))
     const encryptionPolicy = json.encryption_policy
-    const plaintext = Uint8Array.from(Buffer.from(json.plaintext, "base64"))
-    const ciphertext = Uint8Array.from(Buffer.from(json.ciphertext, "base64"))
-    const headerMetadata = Uint8Array.from(
-      Buffer.from(json.header_metadata, "base64"),
-    )
-    const authenticationData = Uint8Array.from(
-      Buffer.from(json.authentication_data, "base64"),
-    )
+    const plaintext = toByteArray(json.plaintext)
+    const ciphertext = toByteArray(json.ciphertext)
+    const headerMetadata = toByteArray(json.header_metadata)
+    const authenticationData = toByteArray(json.authentication_data)
 
     return new EncryptionTestVector(
       encryptionPolicy,
@@ -301,11 +296,9 @@ export class NonRegressionVector {
 
   public toJson(): string {
     const nrv: any = {}
-    nrv.public_key = Buffer.from(this.publicKey).toString("base64")
-    nrv.master_secret_key = Buffer.from(this.masterSecretKey).toString("base64")
-    nrv.policy = Buffer.from(this.policy.toBytes()).toString("base64")
-
-    // user keys
+    nrv.public_key = fromByteArray(this.publicKey)
+    nrv.master_secret_key = fromByteArray(this.masterSecretKey)
+    nrv.policy = fromByteArray(this.policy.toBytes())
     nrv.top_secret_mkg_fin_key = this.topSecretMkgFinKey.toJson()
     nrv.medium_secret_mkg_key = this.mediumSecretMkgKey.toJson()
     nrv.top_secret_fin_key = this.topSecretFinKey.toJson()
@@ -320,13 +313,9 @@ export class NonRegressionVector {
 
   public static fromJson(nonRegVector: string): NonRegressionVector {
     const json = JSON.parse(nonRegVector)
-    const policy = Policy.fromBytes(
-      Uint8Array.from(Buffer.from(json.policy, "base64")),
-    )
-    const publicKey = Uint8Array.from(Buffer.from(json.public_key, "base64"))
-    const masterSecretKey = Uint8Array.from(
-      Buffer.from(json.master_secret_key, "base64"),
-    )
+    const policy = Policy.fromBytes(toByteArray(json.policy))
+    const publicKey = toByteArray(json.public_key)
+    const masterSecretKey = toByteArray(json.master_secret_key)
 
     const topSecretMkgFinKey = UserSecretKeyTestVector.fromJson(
       json.top_secret_mkg_fin_key,
