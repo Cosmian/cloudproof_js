@@ -584,13 +584,13 @@ export class ProgressResults {
     )
   }
 
-  get_locations(keyword: string | Uint8Array): Location[] {
+  getLocations(keyword: string | Uint8Array): Location[] {
     return this.getAllIndexedValues(keyword)
       .map((result) => result.getLocation())
       .filter((location) => location !== null) as Location[]
   }
 
-  get_keywords(keyword: string | Uint8Array): Keyword[] {
+  getKeywords(keyword: string | Uint8Array): Keyword[] {
     return this.getAllIndexedValues(keyword)
       .map((result) => result.getNextWord())
       .filter((kw) => kw !== null) as Keyword[]
@@ -612,12 +612,12 @@ export class ProgressResults {
     throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
   }
 
-  indexed_values(): IndexedValue[] {
+  indexedValues(): IndexedValue[] {
     return Array.from(this)
   }
 
   total(): number {
-    return this.indexed_values().length
+    return this.indexedValues().length
   }
 
   *[Symbol.iterator](): Generator<IndexedValue, void, void> {

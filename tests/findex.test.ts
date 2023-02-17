@@ -202,7 +202,7 @@ async function run(
       fetchChains,
       {
         progress: async (progressResults: ProgressResults) => {
-          const locations = progressResults.get_locations(USERS[0].firstName)
+          const locations = progressResults.getLocations(USERS[0].firstName)
           expect(locations.length).toEqual(1)
           expect(locations[0].toUuidString()).toEqual(USERS[0].id)
           return true
@@ -462,7 +462,7 @@ test("upsert and search memory", async () => {
 
   // Test progress callback
 
-  const results_early_stop = await findex.search(
+  const resultsEarlyStop = await findex.search(
     new Set(["BOB"]),
     masterKey,
     label,
@@ -471,14 +471,14 @@ test("upsert and search memory", async () => {
     {
       progress: async (progressResults: ProgressResults) => {
         expect(progressResults.total()).toEqual(1)
-        expect(progressResults.get_keywords("BOB")[0].toString()).toEqual(
+        expect(progressResults.getKeywords("BOB")[0].toString()).toEqual(
           "ROBERT",
         )
         return false
       },
     },
   )
-  expect(results_early_stop.total()).toEqual(0)
+  expect(resultsEarlyStop.total()).toEqual(0)
 })
 
 // The goal of this test is to produce a file database.
