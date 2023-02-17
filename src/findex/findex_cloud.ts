@@ -52,6 +52,9 @@ export async function FindexCloud() {
       token: string,
       label: Uint8Array | Label,
       newIndexedEntries: IndexedEntry[],
+      options: {
+        baseUrl?: string
+      } = {},
     ) => {
       if (label instanceof Uint8Array) {
         label = new Label(label)
@@ -64,6 +67,7 @@ export async function FindexCloud() {
         token,
         label.bytes,
         indexedValuesAndWords,
+        options.baseUrl,
       )
     },
 

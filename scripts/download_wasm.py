@@ -58,6 +58,6 @@ if __name__ == '__main__':
     if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('findex', 'last_build', 'src/pkg')
 
-    ret = download_wasm('cover_crypt', 'v10.0.0', 'src/pkg')
+    ret = download_wasm('cover_crypt', 'last_build', 'src/pkg')
     if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('cover_crypt', 'last_build', 'src/pkg')
