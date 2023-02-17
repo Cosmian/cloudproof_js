@@ -32,7 +32,7 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
         try:
             r = urllib.request.urlopen(url)
             if r.getcode() != 200:
-                print(f'Cannot get {name} {version} ({r.getcode()})')
+                print(f'Cannot get {name} {version} at {url} ({r.getcode()})')
             else:
                 if path.exists('tmp'):
                     shutil.rmtree('tmp')
@@ -58,6 +58,6 @@ if __name__ == '__main__':
     if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('findex', 'last_build', 'src/pkg')
 
-    ret = download_wasm('cover_crypt', 'last_build', 'src/pkg')
+    ret = download_wasm('cover_crypt', 'v10.0.0', 'src/pkg')
     if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('cover_crypt', 'last_build', 'src/pkg')
