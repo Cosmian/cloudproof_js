@@ -26,9 +26,7 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
             break
 
     if missing_files:
-        print(
-            f'Missing {name} WASM. Copy {name} {version} to {destination}...'
-        )
+        print(f'Missing {name} WASM. Copy {name} {version} to {destination}...')
 
         url = f'https://package.cosmian.com/{name}/{version}/all.zip'
         try:
@@ -56,7 +54,7 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
 
 
 if __name__ == '__main__':
-    ret = download_wasm('findex', 'v2.0.1', 'src/pkg')
+    ret = download_wasm('findex', 'v2.0.2', 'src/pkg')
     if ret is False and getenv('GITHUB_ACTIONS'):
         download_wasm('findex', 'last_build', 'src/pkg')
 

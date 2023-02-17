@@ -308,7 +308,7 @@ export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  * Called with results found at every node while the search walks the search graph.
  * Returning false, stops the walk.
  */
-export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
+export type Progress = (indexedValues: ProgressResults) => Promise<boolean>
 
 /**
  *
@@ -485,11 +485,13 @@ export async function Findex() {
       typeof options.insecureFetchChainsBatchSize === "undefined"
         ? 0
         : options.insecureFetchChainsBatchSize,
-      async (serializedIndexedValues: Uint8Array[]) => {
-        const indexedValues = serializedIndexedValues.map((bytes) => {
-          return new IndexedValue(bytes)
-        })
-        return await progress_(indexedValues)
+      async (
+        indexedValuesPerKeywords: Array<{
+          keyword: Uint8Array
+          results: Uint8Array[]
+        }>,
+      ) => {
+        return await progress_(new ProgressResults(indexedValuesPerKeywords))
       },
       async (uids: Uint8Array[]) => {
         return await fetchEntries(uids)
@@ -577,8 +579,7 @@ export class SearchResults {
   }
 }
 
-// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-class ProgressResults {
+export class ProgressResults {
   indexedValuesPerKeywords: Array<{
     keyword: Uint8Array
     indexedValues: IndexedValue[]
@@ -595,10 +596,16 @@ class ProgressResults {
     )
   }
 
-  get(keyword: string | Uint8Array): Location[] {
+  getLocations(keyword: string | Uint8Array): Location[] {
     return this.getAllIndexedValues(keyword)
       .map((result) => result.getLocation())
       .filter((location) => location !== null) as Location[]
+  }
+
+  getKeywords(keyword: string | Uint8Array): Keyword[] {
+    return this.getAllIndexedValues(keyword)
+      .map((result) => result.getNextWord())
+      .filter((kw) => kw !== null) as Keyword[]
   }
 
   getAllIndexedValues(keyword: string | Uint8Array): IndexedValue[] {
@@ -617,28 +624,24 @@ class ProgressResults {
     throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
   }
 
-  locations(): Location[] {
+  indexedValues(): IndexedValue[] {
     return Array.from(this)
   }
 
   total(): number {
-    return this.locations().length
+    return this.indexedValues().length
   }
 
-  *[Symbol.iterator](): Generator<Location, void, void> {
+  *[Symbol.iterator](): Generator<IndexedValue, void, void> {
     const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
 
     for (const { indexedValues } of this.indexedValuesPerKeywords) {
       for (const indexedValue of indexedValues) {
-        const location = indexedValue.getLocation()
+        const ivEncoded = hexEncode(indexedValue.bytes)
 
-        if (location !== null) {
-          const locationEncoded = hexEncode(location.bytes)
-
-          if (!alreadyYields.has(locationEncoded)) {
-            alreadyYields.add(locationEncoded)
-            yield location
-          }
+        if (!alreadyYields.has(ivEncoded)) {
+          alreadyYields.add(ivEncoded)
+          yield indexedValue
         }
       }
     }
