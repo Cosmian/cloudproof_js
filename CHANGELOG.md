@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+---
+
+## [7.0.1] - 2023-02-17
+
+### Testing
+
+- Add source code of public_doc
+
+---
+
 ## [7.0.0] - 2023-02-03
 
 ### Bug Fixes
@@ -30,6 +40,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - `fetchChains` calls are now run in async parallel
+
+---
 
 ## [6.0.0] - 2022-12-22
 
