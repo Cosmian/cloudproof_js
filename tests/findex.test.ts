@@ -410,6 +410,17 @@ test("SearchResults", async () => {
     ])
   }
 })
+test("Location conversions", async () => {
+  expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
+  expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
+  expect(
+    Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
+  ).toEqual("933f6cee-5e0f-4cad-b5b3-56de0fe003d0")
+
+  expect(Location.fromNumber(1337).bytes).toEqual(
+    Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57]),
+  ) // check that the format is the same as Java
+})
 
 test.skip("upsert and search cycle", async () => {
   const findex = await Findex()

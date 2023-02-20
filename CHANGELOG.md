@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Findex Cloud beta
 
+### Changed
+
+- `Location` conversions for numbers don't use LEB128 anymore but big-endian 8 bytes
+
 ---
 
 ## [7.0.1] - 2023-02-17
