@@ -1,7 +1,7 @@
 import typescript from "@rollup/plugin-typescript"
 import { wasm } from "@rollup/plugin-wasm"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
-import commonjs from '@rollup/plugin-commonjs';
+import commonjs from "@rollup/plugin-commonjs"
 
 const production = !process.env.ROLLUP_WATCH
 

@@ -356,55 +356,8 @@ export async function Findex() {
       label = new Label(label)
     }
 
-    if (!Array.isArray(newIndexedEntries)) {
-      throw new Error(
-        `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
-      )
-    }
-
-    const indexedValuesAndWords = newIndexedEntries.map(
-      ({ indexedValue, keywords }) => {
-        let indexedValueBytes
-        if (indexedValue instanceof IndexedValue) {
-          indexedValueBytes = indexedValue.bytes
-        } else if (indexedValue instanceof Location) {
-          indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
-        } else if (indexedValue instanceof Keyword) {
-          indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
-        } else {
-          throw new Error(
-            `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
-              indexedValue,
-            )}).`,
-          )
-        }
-
-        if (!(Symbol.iterator in Object(keywords))) {
-          throw new Error(
-            `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
-              keywords,
-            )}).`,
-          )
-        }
-
-        return {
-          indexedValue: indexedValueBytes,
-          keywords: [...keywords].map((keyword) => {
-            if (keyword instanceof Keyword) {
-              return keyword.bytes
-            } else if (typeof keyword === "string") {
-              return Keyword.fromString(keyword).bytes
-            } else {
-              throw new Error(
-                `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
-                  keyword,
-                )}).`,
-              )
-            }
-          }),
-        }
-      },
-    )
+    const indexedValuesAndWords =
+      newIndexedEntriesToIndexedValuesToKeywords(newIndexedEntries)
 
     return await webassembly_upsert(
       masterKey.bytes,
@@ -646,4 +599,64 @@ export class ProgressResults {
       }
     }
   }
+}
+
+/**
+ *
+ * @param newIndexedEntries JS new indexed entries
+ * @returns wasm formatted indexed values to keywords
+ */
+export function newIndexedEntriesToIndexedValuesToKeywords(
+  newIndexedEntries: IndexedEntry[],
+): Array<{
+  indexedValue: Uint8Array
+  keywords: Uint8Array[]
+}> {
+  if (!Array.isArray(newIndexedEntries)) {
+    throw new Error(
+      `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
+    )
+  }
+
+  return newIndexedEntries.map(({ indexedValue, keywords }) => {
+    let indexedValueBytes
+    if (indexedValue instanceof IndexedValue) {
+      indexedValueBytes = indexedValue.bytes
+    } else if (indexedValue instanceof Location) {
+      indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
+    } else if (indexedValue instanceof Keyword) {
+      indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
+    } else {
+      throw new Error(
+        `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
+          indexedValue,
+        )}).`,
+      )
+    }
+
+    if (!(Symbol.iterator in Object(keywords))) {
+      throw new Error(
+        `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
+          keywords,
+        )}).`,
+      )
+    }
+
+    return {
+      indexedValue: indexedValueBytes,
+      keywords: [...keywords].map((keyword) => {
+        if (keyword instanceof Keyword) {
+          return keyword.bytes
+        } else if (typeof keyword === "string") {
+          return Keyword.fromString(keyword).bytes
+        } else {
+          throw new Error(
+            `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
+              keyword,
+            )}).`,
+          )
+        }
+      }),
+    }
+  })
 }
