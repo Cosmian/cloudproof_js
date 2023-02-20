@@ -32,7 +32,7 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
         try:
             r = urllib.request.urlopen(url)
             if r.getcode() != 200:
-                print(f'Cannot get {name} {version} at {url} ({r.getcode()})')
+                print(f'Cannot get {name} {version} ({r.getcode()})')
             else:
                 if path.exists('tmp'):
                     shutil.rmtree('tmp')
