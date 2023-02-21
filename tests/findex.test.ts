@@ -19,7 +19,6 @@ import {
   generateAliases,
   callbacksExamplesBetterSqlite3,
   callbacksExamplesInMemory,
-  toBeBytes,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
@@ -592,7 +591,7 @@ test("generate non regression database", async () => {
     for (const user of USERS) {
       count += 1
       newIndexedEntries.push({
-        indexedValue: new Location(toBeBytes(count)),
+        indexedValue: Location.fromNumber(count),
         keywords: [
           user.firstName,
           user.lastName,
@@ -676,7 +675,7 @@ async function verify(dbFilepath: string): Promise<void> {
       security: "confidential",
     }
     newIndexedEntries.push({
-      indexedValue: new Location(toBeBytes(newUser.id)),
+      indexedValue: Location.fromNumber(newUser.id),
       keywords: [
         newUser.firstName,
         newUser.lastName,
