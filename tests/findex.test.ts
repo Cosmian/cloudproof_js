@@ -19,7 +19,6 @@ import {
   generateAliases,
   callbacksExamplesBetterSqlite3,
   callbacksExamplesInMemory,
-  toBeBytes,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
@@ -410,6 +409,39 @@ test("SearchResults", async () => {
     ])
   }
 })
+test("Location conversions", async () => {
+  expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
+  expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
+  expect(
+    Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
+  ).toEqual("933f6cee-5e0f-4cad-b5b3-56de0fe003d0")
+
+  //
+  // check that the formats are the same as Java
+  //
+  expect(Location.fromNumber(1337).bytes).toEqual(
+    Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57]),
+  )
+  expect(
+    new Location(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
+  ).toEqual(1337)
+
+  expect(
+    Location.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
+  ).toEqual(
+    Uint8Array.from([
+      -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100, 17,
+    ]),
+  )
+  expect(
+    new Location(
+      Uint8Array.from([
+        -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100,
+        17,
+      ]),
+    ).toUuidString(),
+  ).toEqual("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11")
+})
 
 test.skip("upsert and search cycle", async () => {
   const findex = await Findex()
@@ -559,7 +591,7 @@ test("generate non regression database", async () => {
     for (const user of USERS) {
       count += 1
       newIndexedEntries.push({
-        indexedValue: new Location(toBeBytes(count)),
+        indexedValue: Location.fromNumber(count),
         keywords: [
           user.firstName,
           user.lastName,
@@ -643,7 +675,7 @@ async function verify(dbFilepath: string): Promise<void> {
       security: "confidential",
     }
     newIndexedEntries.push({
-      indexedValue: new Location(toBeBytes(newUser.id)),
+      indexedValue: Location.fromNumber(newUser.id),
       keywords: [
         newUser.firstName,
         newUser.lastName,

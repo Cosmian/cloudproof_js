@@ -5,7 +5,6 @@ import init, {
 
 import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
-import { encode, decode } from "../utils/leb128"
 import { bytesEquals, hexEncode } from "../utils/utils"
 import { fromByteArray } from "base64-js"
 
@@ -90,12 +89,31 @@ export class Location {
     return new Location(new TextEncoder().encode(value))
   }
 
+  /**
+   * Numbers are encoded in big-endian 8 bytes.
+   * JS `number` type cannot encode the all 64 bits numbers because it uses floating point representation
+   * that's why we use `BigInt` internaly but we convert to `number` (it's theoretically wrong) because `number`
+   * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for exemple, JS will
+   * not be able to read it.
+   *
+   * @param value number
+   * @returns location
+   */
   static fromNumber(value: number): Location {
-    return new Location(encode(value))
+    const buffer = new ArrayBuffer(8)
+    new DataView(buffer).setBigInt64(0, BigInt(value), false)
+
+    return new Location(new Uint8Array(buffer))
   }
 
-  static fromUuid(value: string): Location {
-    return new Location(Uint8Array.from(parseUuid(value)))
+  /**
+   * Convert UUIDv4 only because they are more common.
+   *
+   * @param uuidv4 uuid
+   * @returns location
+   */
+  static fromUuid(uuidv4: string): Location {
+    return new Location(Uint8Array.from(parseUuid(uuidv4)))
   }
 
   toString(): string {
@@ -103,16 +121,13 @@ export class Location {
   }
 
   toNumber(): number {
-    const { result, tail } = decode(this.bytes)
-    if (tail.length !== 0) {
+    if (this.bytes.length !== 8) {
       throw new Error(
-        `The value encoded inside this location is not a LEB128 number created with the \`Location.fromNumber()\`. Here is the hex encoded value: ${hexEncode(
-          this.bytes,
-        )}`,
+        `The location is of length ${this.bytes.length}, 8 bytes expected for a number.`,
       )
     }
 
-    return result
+    return Number(new DataView(this.bytes.buffer).getBigInt64(0, false))
   }
 
   toUuidString(): string {
