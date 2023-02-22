@@ -29,7 +29,7 @@ describe("Findex Upsert", async () => {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS.slice(0, 10)) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
+        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -53,7 +53,7 @@ describe("Findex Upsert", async () => {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
+        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -78,7 +78,7 @@ describe("Findex Search", async () => {
   const newIndexedEntries: IndexedEntry[] = []
   for (const user of USERS) {
     newIndexedEntries.push({
-      indexedValue: IndexedValue.fromLocation(Location.fromUuid(user.id)),
+      indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
       keywords: new Set([
         Keyword.fromString(user.firstName),
         Keyword.fromString(user.country),
