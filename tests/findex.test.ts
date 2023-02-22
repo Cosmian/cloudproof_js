@@ -178,7 +178,7 @@ async function run(
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromUuid(user.id),
+        indexedValue: Location.fromNumber(user.id),
         keywords: [user.firstName, user.country],
       })
     }
@@ -204,7 +204,7 @@ async function run(
         progress: async (progressResults: ProgressResults) => {
           const locations = progressResults.getLocations(USERS[0].firstName)
           expect(locations.length).toEqual(1)
-          expect(locations[0].toUuidString()).toEqual(USERS[0].id)
+          expect(locations[0].toNumber()).toEqual(USERS[0].id)
           return true
         },
       },
@@ -213,7 +213,7 @@ async function run(
     const locations = results.get(USERS[0].firstName)
 
     expect(locations.length).toEqual(1)
-    expect(locations[0].toUuidString()).toEqual(USERS[0].id)
+    expect(locations[0].toNumber()).toEqual(USERS[0].id)
   }
 
   {
@@ -258,7 +258,7 @@ async function run(
 
       const locations = results.get(keyword)
       expect(locations.length).toEqual(1)
-      expect(locations[0].toUuidString()).toEqual(USERS[0].id)
+      expect(locations[0].toNumber()).toEqual(USERS[0].id)
     }
 
     await searchAndCheck("Som")
@@ -587,11 +587,9 @@ test("generate non regression database", async () => {
 
   {
     const newIndexedEntries: IndexedEntry[] = []
-    let count = 0
     for (const user of USERS) {
-      count += 1
       newIndexedEntries.push({
-        indexedValue: Location.fromNumber(count),
+        indexedValue: Location.fromNumber(user.id),
         keywords: [
           user.firstName,
           user.lastName,
