@@ -7,7 +7,7 @@ import {
   webassembly_policy,
   webassembly_add_axis,
   webassembly_policy_axis,
-} from "../../pkg/cover_crypt/cosmian_cover_crypt"
+} from "../../pkg/cover_crypt/cloudproof_cover_crypt"
 
 /* tslint:disable:max-classes-per-file */
 export class PolicyAxis {

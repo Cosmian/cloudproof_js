@@ -13,7 +13,7 @@ import {
   webassembly_upsert_cloud,
   webassembly_derive_new_token,
   webassembly_generate_new_token,
-} from "../pkg/findex/cosmian_findex"
+} from "../pkg/findex/cloudproof_findex"
 
 /**
  */

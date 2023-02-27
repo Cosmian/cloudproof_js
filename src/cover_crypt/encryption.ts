@@ -2,7 +2,7 @@ import {
   webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
   webassembly_hybrid_encrypt,
-} from "../pkg/cover_crypt/cosmian_cover_crypt"
+} from "../pkg/cover_crypt/cloudproof_cover_crypt"
 import { Policy } from "./interfaces/policy"
 import { PublicKey } from "../kms/structs/objects"
 import { logger } from "../utils/logger"

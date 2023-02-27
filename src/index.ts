@@ -1,7 +1,7 @@
-import cover_crypt_wasm from "./pkg/cover_crypt/cosmian_cover_crypt_bg.wasm"
+import cover_crypt_wasm from "./pkg/cover_crypt/cloudproof_cover_crypt_bg.wasm"
 import { setCoverCryptInit } from "./cover_crypt/cover_crypt"
 
-import findex_wasm from "./pkg/findex/cosmian_findex_bg.wasm"
+import findex_wasm from "./pkg/findex/cloudproof_findex_bg.wasm"
 import { setFindexInit } from "./findex/findex"
 
 export * from "./findex/findex"

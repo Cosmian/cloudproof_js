@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["cosmian_findex", "cosmian_cover_crypt"],
+    exclude: ["cloudproof_findex", "cloudproof_cover_crypt"],
   },
   server: {
     fs: {
