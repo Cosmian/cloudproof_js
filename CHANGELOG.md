@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.1.0] - 2023-03-01
+
+### Features
+
+- Create `ProgressResult` object and add tests
+- Findex Cloud beta
+
+### Miscellaneous Tasks
+
+- `Location` conversions for numbers don't use LEB128 anymore but big-endian 8 bytes
+
+### Testing
+
+- Uniformize findex dataset
+
+### Ci
+
+- Add cross tests
+
 ---
 
 ## [7.0.1] - 2023-02-17

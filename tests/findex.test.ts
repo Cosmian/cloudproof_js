@@ -8,6 +8,7 @@ import {
   Keyword,
   Label,
   Location,
+  ProgressResults,
   Findex,
   UidsAndValues,
   UidsAndValuesToUpsert,
@@ -18,7 +19,6 @@ import {
   generateAliases,
   callbacksExamplesBetterSqlite3,
   callbacksExamplesInMemory,
-  toBeBytes,
 } from ".."
 import { USERS } from "./data/users"
 import { expect, test } from "vitest"
@@ -178,7 +178,7 @@ async function run(
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromUuid(user.id),
+        indexedValue: Location.fromNumber(user.id),
         keywords: [user.firstName, user.country],
       })
     }
@@ -192,18 +192,28 @@ async function run(
       insertChains,
     )
 
+    // Test with progress callback
+
     const results = await findex.search(
       [USERS[0].firstName],
       masterKey,
       label,
       fetchEntries,
       fetchChains,
+      {
+        progress: async (progressResults: ProgressResults) => {
+          const locations = progressResults.getLocations(USERS[0].firstName)
+          expect(locations.length).toEqual(1)
+          expect(locations[0].toNumber()).toEqual(USERS[0].id)
+          return true
+        },
+      },
     )
 
     const locations = results.get(USERS[0].firstName)
 
     expect(locations.length).toEqual(1)
-    expect(locations[0].toUuidString()).toEqual(USERS[0].id)
+    expect(locations[0].toNumber()).toEqual(USERS[0].id)
   }
 
   {
@@ -248,7 +258,7 @@ async function run(
 
       const locations = results.get(keyword)
       expect(locations.length).toEqual(1)
-      expect(locations[0].toUuidString()).toEqual(USERS[0].id)
+      expect(locations[0].toNumber()).toEqual(USERS[0].id)
     }
 
     await searchAndCheck("Som")
@@ -399,6 +409,39 @@ test("SearchResults", async () => {
     ])
   }
 })
+test("Location conversions", async () => {
+  expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
+  expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
+  expect(
+    Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
+  ).toEqual("933f6cee-5e0f-4cad-b5b3-56de0fe003d0")
+
+  //
+  // check that the formats are the same as Java
+  //
+  expect(Location.fromNumber(1337).bytes).toEqual(
+    Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57]),
+  )
+  expect(
+    new Location(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
+  ).toEqual(1337)
+
+  expect(
+    Location.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
+  ).toEqual(
+    Uint8Array.from([
+      -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100, 17,
+    ]),
+  )
+  expect(
+    new Location(
+      Uint8Array.from([
+        -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100,
+        17,
+      ]),
+    ).toUuidString(),
+  ).toEqual("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11")
+})
 
 test.skip("upsert and search cycle", async () => {
   const findex = await Findex()
@@ -501,6 +544,26 @@ test("upsert and search memory", async () => {
     callbacks.fetchChains,
   )
   expect(results2.total()).toEqual(2)
+
+  // Test progress callback
+
+  const resultsEarlyStop = await findex.search(
+    new Set(["BOB"]),
+    masterKey,
+    label,
+    callbacks.fetchEntries,
+    callbacks.fetchChains,
+    {
+      progress: async (progressResults: ProgressResults) => {
+        expect(progressResults.total()).toEqual(1)
+        expect(progressResults.getKeywords("BOB")[0].toString()).toEqual(
+          "ROBERT",
+        )
+        return false
+      },
+    },
+  )
+  expect(resultsEarlyStop.total()).toEqual(0)
 })
 
 // The goal of this test is to produce a file database.
@@ -524,11 +587,9 @@ test("generate non regression database", async () => {
 
   {
     const newIndexedEntries: IndexedEntry[] = []
-    let count = 0
     for (const user of USERS) {
-      count += 1
       newIndexedEntries.push({
-        indexedValue: new Location(toBeBytes(count)),
+        indexedValue: Location.fromNumber(user.id),
         keywords: [
           user.firstName,
           user.lastName,
@@ -612,7 +673,7 @@ async function verify(dbFilepath: string): Promise<void> {
       security: "confidential",
     }
     newIndexedEntries.push({
-      indexedValue: new Location(toBeBytes(newUser.id)),
+      indexedValue: Location.fromNumber(newUser.id),
       keywords: [
         newUser.firstName,
         newUser.lastName,

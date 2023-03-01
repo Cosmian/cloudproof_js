@@ -5,7 +5,6 @@ import init, {
 
 import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
-import { encode, decode } from "../utils/leb128"
 import { bytesEquals, hexEncode } from "../utils/utils"
 import { fromByteArray } from "base64-js"
 
@@ -90,12 +89,31 @@ export class Location {
     return new Location(new TextEncoder().encode(value))
   }
 
+  /**
+   * Numbers are encoded in big-endian 8 bytes.
+   * JS `number` type cannot encode the all 64 bits numbers because it uses floating point representation
+   * that's why we use `BigInt` internaly but we convert to `number` (it's theoretically wrong) because `number`
+   * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for exemple, JS will
+   * not be able to read it.
+   *
+   * @param value number
+   * @returns location
+   */
   static fromNumber(value: number): Location {
-    return new Location(encode(value))
+    const buffer = new ArrayBuffer(8)
+    new DataView(buffer).setBigInt64(0, BigInt(value), false)
+
+    return new Location(new Uint8Array(buffer))
   }
 
-  static fromUuid(value: string): Location {
-    return new Location(Uint8Array.from(parseUuid(value)))
+  /**
+   * Convert UUIDv4 only because they are more common.
+   *
+   * @param uuidv4 uuid
+   * @returns location
+   */
+  static fromUuid(uuidv4: string): Location {
+    return new Location(Uint8Array.from(parseUuid(uuidv4)))
   }
 
   toString(): string {
@@ -103,16 +121,13 @@ export class Location {
   }
 
   toNumber(): number {
-    const { result, tail } = decode(this.bytes)
-    if (tail.length !== 0) {
+    if (this.bytes.length !== 8) {
       throw new Error(
-        `The value encoded inside this location is not a LEB128 number created with the \`Location.fromNumber()\`. Here is the hex encoded value: ${hexEncode(
-          this.bytes,
-        )}`,
+        `The location is of length ${this.bytes.length}, 8 bytes expected for a number.`,
       )
     }
 
-    return result
+    return Number(new DataView(this.bytes.buffer).getBigInt64(0, false))
   }
 
   toUuidString(): string {
@@ -308,7 +323,7 @@ export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  * Called with results found at every node while the search walks the search graph.
  * Returning false, stops the walk.
  */
-export type Progress = (indexedValues: IndexedValue[]) => Promise<boolean>
+export type Progress = (indexedValues: ProgressResults) => Promise<boolean>
 
 /**
  *
@@ -356,55 +371,8 @@ export async function Findex() {
       label = new Label(label)
     }
 
-    if (!Array.isArray(newIndexedEntries)) {
-      throw new Error(
-        `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
-      )
-    }
-
-    const indexedValuesAndWords = newIndexedEntries.map(
-      ({ indexedValue, keywords }) => {
-        let indexedValueBytes
-        if (indexedValue instanceof IndexedValue) {
-          indexedValueBytes = indexedValue.bytes
-        } else if (indexedValue instanceof Location) {
-          indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
-        } else if (indexedValue instanceof Keyword) {
-          indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
-        } else {
-          throw new Error(
-            `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
-              indexedValue,
-            )}).`,
-          )
-        }
-
-        if (!(Symbol.iterator in Object(keywords))) {
-          throw new Error(
-            `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
-              keywords,
-            )}).`,
-          )
-        }
-
-        return {
-          indexedValue: indexedValueBytes,
-          keywords: [...keywords].map((keyword) => {
-            if (keyword instanceof Keyword) {
-              return keyword.bytes
-            } else if (typeof keyword === "string") {
-              return Keyword.fromString(keyword).bytes
-            } else {
-              throw new Error(
-                `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
-                  keyword,
-                )}).`,
-              )
-            }
-          }),
-        }
-      },
-    )
+    const indexedValuesAndWords =
+      newIndexedEntriesToIndexedValuesToKeywords(newIndexedEntries)
 
     return await webassembly_upsert(
       masterKey.bytes,
@@ -485,11 +453,13 @@ export async function Findex() {
       typeof options.insecureFetchChainsBatchSize === "undefined"
         ? 0
         : options.insecureFetchChainsBatchSize,
-      async (serializedIndexedValues: Uint8Array[]) => {
-        const indexedValues = serializedIndexedValues.map((bytes) => {
-          return new IndexedValue(bytes)
-        })
-        return await progress_(indexedValues)
+      async (
+        indexedValuesPerKeywords: Array<{
+          keyword: Uint8Array
+          results: Uint8Array[]
+        }>,
+      ) => {
+        return await progress_(new ProgressResults(indexedValuesPerKeywords))
       },
       async (uids: Uint8Array[]) => {
         return await fetchEntries(uids)
@@ -577,8 +547,7 @@ export class SearchResults {
   }
 }
 
-// eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
-class ProgressResults {
+export class ProgressResults {
   indexedValuesPerKeywords: Array<{
     keyword: Uint8Array
     indexedValues: IndexedValue[]
@@ -595,10 +564,16 @@ class ProgressResults {
     )
   }
 
-  get(keyword: string | Uint8Array): Location[] {
+  getLocations(keyword: string | Uint8Array): Location[] {
     return this.getAllIndexedValues(keyword)
       .map((result) => result.getLocation())
       .filter((location) => location !== null) as Location[]
+  }
+
+  getKeywords(keyword: string | Uint8Array): Keyword[] {
+    return this.getAllIndexedValues(keyword)
+      .map((result) => result.getNextWord())
+      .filter((kw) => kw !== null) as Keyword[]
   }
 
   getAllIndexedValues(keyword: string | Uint8Array): IndexedValue[] {
@@ -617,30 +592,86 @@ class ProgressResults {
     throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
   }
 
-  locations(): Location[] {
+  indexedValues(): IndexedValue[] {
     return Array.from(this)
   }
 
   total(): number {
-    return this.locations().length
+    return this.indexedValues().length
   }
 
-  *[Symbol.iterator](): Generator<Location, void, void> {
+  *[Symbol.iterator](): Generator<IndexedValue, void, void> {
     const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
 
     for (const { indexedValues } of this.indexedValuesPerKeywords) {
       for (const indexedValue of indexedValues) {
-        const location = indexedValue.getLocation()
+        const ivEncoded = hexEncode(indexedValue.bytes)
 
-        if (location !== null) {
-          const locationEncoded = hexEncode(location.bytes)
-
-          if (!alreadyYields.has(locationEncoded)) {
-            alreadyYields.add(locationEncoded)
-            yield location
-          }
+        if (!alreadyYields.has(ivEncoded)) {
+          alreadyYields.add(ivEncoded)
+          yield indexedValue
         }
       }
     }
   }
+}
+
+/**
+ *
+ * @param newIndexedEntries JS new indexed entries
+ * @returns wasm formatted indexed values to keywords
+ */
+export function newIndexedEntriesToIndexedValuesToKeywords(
+  newIndexedEntries: IndexedEntry[],
+): Array<{
+  indexedValue: Uint8Array
+  keywords: Uint8Array[]
+}> {
+  if (!Array.isArray(newIndexedEntries)) {
+    throw new Error(
+      `During Findex upsert: \`newIndexedEntries\` should be an array, ${typeof newIndexedEntries} received.`,
+    )
+  }
+
+  return newIndexedEntries.map(({ indexedValue, keywords }) => {
+    let indexedValueBytes
+    if (indexedValue instanceof IndexedValue) {
+      indexedValueBytes = indexedValue.bytes
+    } else if (indexedValue instanceof Location) {
+      indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
+    } else if (indexedValue instanceof Keyword) {
+      indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
+    } else {
+      throw new Error(
+        `During Findex upsert: all the \`indexedValue\` inside the \`newIndexedEntries\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
+          indexedValue,
+        )}).`,
+      )
+    }
+
+    if (!(Symbol.iterator in Object(keywords))) {
+      throw new Error(
+        `During Findex upsert: all the elements inside the \`newIndexedEntries\` array should have an iterable property \`keywords\`, ${typeof keywords} received (${JSON.stringify(
+          keywords,
+        )}).`,
+      )
+    }
+
+    return {
+      indexedValue: indexedValueBytes,
+      keywords: [...keywords].map((keyword) => {
+        if (keyword instanceof Keyword) {
+          return keyword.bytes
+        } else if (typeof keyword === "string") {
+          return Keyword.fromString(keyword).bytes
+        } else {
+          throw new Error(
+            `During Findex upsert: all the \`keywords\` inside the \`newIndexedEntries\` array should be of type \`Keyword\` or string, ${typeof keyword} received (${JSON.stringify(
+              keyword,
+            )}).`,
+          )
+        }
+      }),
+    }
+  })
 }

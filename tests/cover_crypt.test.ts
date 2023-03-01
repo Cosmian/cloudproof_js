@@ -179,6 +179,11 @@ test("Demo using KMS", async () => {
     new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
   )
 
+  if (!(await client.up())) {
+    console.error("No KMIP server. Skipping test")
+    return
+  }
+
   const masterKeys = await client.createCoverCryptMasterKeyPair(policy)
   const masterSecretKeyUID = masterKeys[0]
   const masterPublicKeyUID = masterKeys[1]
