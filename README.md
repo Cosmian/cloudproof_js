@@ -69,4 +69,9 @@ This table shows the minimum version correspondence between the various componen
 | 6.0.0           | 8.0.0          | 1.0.0  | 4.0.0      |
 | 6.0.1           | 8.0.0          | 2.0.0  | 4.0.0      |
 | 7.0.0, 7.0.1    | 10.0.0         | 2.0.1  | 4.2.0      |
-| 7.1.0           | 10.0.0         | 2.1.0  | 4.2.0      |
+
+From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://github.com/Cosmian/cloudproof_rust) which wraps the interfaces of `CoverCrypt` and `Findex`.
+
+| `cloudproof_js` | Cloudproof Rust lib |
+|-----------------|---------------------|
+| 8.0.0           | 1.0.0               |

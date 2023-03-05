@@ -7,17 +7,22 @@ import zipfile
 from os import path, remove, getenv
 
 
-def download_wasm(name: str, version: str, destination: str) -> bool:
+def files_to_be_copied(name: str):
+    source_dir = f'tmp/wasm32-unknown-unknown/{name}'
+    return {
+        f'{source_dir}/cloudproof_{name}.d.ts': f'src/pkg/{name}/cloudproof_{name}.d.ts',
+        f'{source_dir}/cloudproof_{name}_bg.wasm': f'src/pkg/{name}/cloudproof_{name}_bg.wasm',
+        f'{source_dir}/cloudproof_{name}.js': f'src/pkg/{name}/cloudproof_{name}.js',
+        f'{source_dir}/cloudproof_{name}_bg.wasm.d.ts': f'src/pkg/{name}/cloudproof_{name}_bg.wasm.d.ts',
+    }
+
+
+def download_wasm(version: str) -> bool:
     ssl._create_default_https_context = ssl._create_unverified_context
 
-    to_be_copied = {
-        f'tmp/wasm32-unknown-unknown/cosmian_{name}.d.ts': f'{destination}/{name}/cosmian_{name}.d.ts',
-        f'tmp/wasm32-unknown-unknown/cosmian_{name}_bg.wasm': f'{destination}/{name}/cosmian_{name}_bg.wasm',
-        'tmp/wasm32-unknown-unknown/LICENSE.md': f'{destination}/{name}/LICENSE.md',
-        'tmp/wasm32-unknown-unknown/README.md': f'{destination}/{name}/README.md',
-        f'tmp/wasm32-unknown-unknown/cosmian_{name}.js': f'{destination}/{name}/cosmian_{name}.js',
-        f'tmp/wasm32-unknown-unknown/cosmian_{name}_bg.wasm.d.ts': f'{destination}/{name}/cosmian_{name}_bg.wasm.d.ts',
-    }
+    to_be_copied = files_to_be_copied('findex')
+    cover_crypt_files = files_to_be_copied('cover_crypt')
+    to_be_copied.update(cover_crypt_files)
 
     missing_files = False
     for key in to_be_copied:
@@ -26,13 +31,16 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
             break
 
     if missing_files:
-        print(f'Missing {name} WASM. Copy {name} {version} to {destination}...')
+        print(
+            f'Missing cloudproof_rust WASM. \
+                Copy cloudproof_rust {version} to src/pkg...'
+        )
 
-        url = f'https://package.cosmian.com/{name}/{version}/all.zip'
+        url = f'https://package.cosmian.com/cloudproof_rust/{version}/all.zip'
         try:
             r = urllib.request.urlopen(url)
             if r.getcode() != 200:
-                print(f'Cannot get {name} {version} ({r.getcode()})')
+                print(f'Cannot get cloudproof_rust {version} ({r.getcode()})')
             else:
                 if path.exists('tmp'):
                     shutil.rmtree('tmp')
@@ -48,16 +56,12 @@ def download_wasm(name: str, version: str, destination: str) -> bool:
                     shutil.rmtree('tmp')
                 remove('all.zip')
         except Exception as e:
-            print(f'Cannot get {name} {version} ({e})')
+            print(f'Cannot get cloudproof_rust {version} ({e})')
             return False
     return True
 
 
 if __name__ == '__main__':
-    ret = download_wasm('findex', 'v2.1.0', 'src/pkg')
+    ret = download_wasm('v1.0.0')
     if ret is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('findex', 'last_build', 'src/pkg')
-
-    ret = download_wasm('cover_crypt', 'v10.0.0', 'src/pkg')
-    if ret is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('cover_crypt', 'last_build', 'src/pkg')
+        download_wasm('last_build')
