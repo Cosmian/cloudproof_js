@@ -1,7 +1,7 @@
 import init, {
   webassembly_search,
   webassembly_upsert,
-} from "../pkg/findex/cosmian_findex"
+} from "../pkg/findex/cloudproof_findex"
 
 import { SymmetricKey } from "../kms/structs/objects"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
