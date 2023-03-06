@@ -8,6 +8,7 @@ from os import path, remove, getenv
 
 
 def files_to_be_copied(name: str):
+    """ List of files to be copied """
     source_dir = f'tmp/wasm32-unknown-unknown/{name}'
     return {
         f'{source_dir}/cloudproof_{name}.d.ts': f'src/pkg/{name}/cloudproof_{name}.d.ts',
@@ -32,11 +33,6 @@ def download_wasm(version: str) -> bool:
             break
 
     if missing_files:
-        print(
-            f'Missing cloudproof_rust WASM. \
-                Copy cloudproof_rust {version} to src/pkg...'
-        )
-
         url = f'https://package.cosmian.com/cloudproof_rust/{version}/wasm.zip'
         try:
             r = urllib.request.urlopen(url)
@@ -52,6 +48,8 @@ def download_wasm(version: str) -> bool:
                 with zipfile.ZipFile('wasm.zip', 'r') as zip_ref:
                     zip_ref.extractall('tmp')
                     for key, value in to_be_copied.items():
+                        print(f'OK: copy {key} to {value}...')
+
                         shutil.copyfile(key, value)
 
                     shutil.rmtree('tmp')
