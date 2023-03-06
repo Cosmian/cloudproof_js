@@ -8,7 +8,7 @@ from os import path, remove, getenv
 
 
 def files_to_be_copied(name: str):
-    """ List of files to be copied """
+    """List of files to be copied"""
     source_dir = f'tmp/wasm32-unknown-unknown/{name}'
     return {
         f'{source_dir}/cloudproof_{name}.d.ts': f'src/pkg/{name}/cloudproof_{name}.d.ts',
@@ -64,4 +64,4 @@ def download_wasm(version: str) -> bool:
 if __name__ == '__main__':
     ret = download_wasm('v1.0.0')
     if ret is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('last_build')
+        download_wasm('last_build/feature/add_findex')
