@@ -18,6 +18,7 @@ def files_to_be_copied(name: str):
 
 
 def download_wasm(version: str) -> bool:
+    """Download and extract wasm"""
     ssl._create_default_https_context = ssl._create_unverified_context
 
     to_be_copied = files_to_be_copied('findex')
@@ -25,8 +26,8 @@ def download_wasm(version: str) -> bool:
     to_be_copied.update(cover_crypt_files)
 
     missing_files = False
-    for key in to_be_copied:
-        if not path.exists(to_be_copied[key]):
+    for key, value in to_be_copied.items():
+        if not path.exists(value):
             missing_files = True
             break
 
@@ -36,7 +37,7 @@ def download_wasm(version: str) -> bool:
                 Copy cloudproof_rust {version} to src/pkg...'
         )
 
-        url = f'https://package.cosmian.com/cloudproof_rust/{version}/all.zip'
+        url = f'https://package.cosmian.com/cloudproof_rust/{version}/wasm.zip'
         try:
             r = urllib.request.urlopen(url)
             if r.getcode() != 200:
@@ -44,19 +45,20 @@ def download_wasm(version: str) -> bool:
             else:
                 if path.exists('tmp'):
                     shutil.rmtree('tmp')
-                if path.exists('all.zip'):
-                    remove('all.zip')
+                if path.exists('wasm.zip'):
+                    remove('wasm.zip')
 
-                open('all.zip', 'wb').write(r.read())
-                with zipfile.ZipFile('all.zip', 'r') as zip_ref:
+                open('wasm.zip', 'wb').write(r.read())
+                with zipfile.ZipFile('wasm.zip', 'r') as zip_ref:
                     zip_ref.extractall('tmp')
-                    for key in to_be_copied:
-                        shutil.copyfile(key, to_be_copied[key])
+                    for key, value in to_be_copied.items():
+                        shutil.copyfile(key, value)
 
                     shutil.rmtree('tmp')
-                remove('all.zip')
-        except Exception as e:
-            print(f'Cannot get cloudproof_rust {version} ({e})')
+                remove('wasm.zip')
+        # pylint: disable=broad-except
+        except Exception as exception:
+            print(f'Cannot get cloudproof_rust {version} ({exception})')
             return False
     return True
 
