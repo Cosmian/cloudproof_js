@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.0] - 2023-03-08
+
+### Features
+
+- Support of CoverCrypt 11.0 and Findex 3.0 (#106)
+
 ## [7.1.0] - 2023-03-01
 
 ### Features
