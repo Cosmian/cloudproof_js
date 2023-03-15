@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CloudproofJS in browser</title>
+    <link rel="icon" href="data:,">
 </head>
 <body>
     <p>This demo should work without any JS build.</p>
@@ -39,7 +40,7 @@
             const masterKeys = generateMasterKeys(policy);
 
             const highSecretAllDepartementsDecryptionKey = generateUserSecretKey(masterKeys.secretKey, "Security Level::High && Department::R&D && Department::HR", policy)
-            const lowSecretHRDepartmentDecryptionKey = generateUserSecretKey(masterKeys.secretKey, "Security Level::High && Department::R&D && Department::HR", policy)
+            const lowSecretHRDepartmentDecryptionKey = generateUserSecretKey(masterKeys.secretKey, "Security Level::Low && Department::HR", policy)
 
             const secret = encrypt(policy, masterKeys.publicKey, "Security Level::High && Department::HR", new TextEncoder().encode("My secret!"));
             const decrypted = decrypt(highSecretAllDepartementsDecryptionKey, secret);
@@ -54,6 +55,10 @@
             } catch {
                 // should fail
             }
+
+            const element = document.createElement('div')
+            element.id = "done"
+            document.body.appendChild(element)
         })();
 
     </script>

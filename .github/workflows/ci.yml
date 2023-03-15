@@ -106,6 +106,18 @@ jobs:
         node chrome.mjs http://localhost:8090 http://kms:9998
       kms-version: 4.3.3
 
+  example_browser:
+    needs: build_in_docker
+    uses: ./.github/workflows/js_in_docker.yml
+    with:
+      subcommands: |
+        cd examples/browser
+        npm install
+        python3 -m http.server &
+        sleep 3
+        node test.mjs
+      kms-version: 4.3.3
+
   example_webpack:
     needs: build
     uses: ./.github/workflows/js.yml
