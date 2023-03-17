@@ -38,14 +38,18 @@
             ]);
 
             const masterKeys = generateMasterKeys(policy);
+            console.log(masterKeys);
 
             const highSecretAllDepartmentsDecryptionKey = generateUserSecretKey(masterKeys.secretKey, "Security Level::High && Department::R&D && Department::HR", policy)
             const lowSecretHRDepartmentDecryptionKey = generateUserSecretKey(masterKeys.secretKey, "Security Level::Low && Department::HR", policy)
 
             const secret = encrypt(policy, masterKeys.publicKey, "Security Level::High && Department::HR", new TextEncoder().encode("My secret!"));
+            console.log(secret);
+            
             const decrypted = decrypt(highSecretAllDepartmentsDecryptionKey, secret);
-
             const decryptedMessage = new TextDecoder().decode(decrypted.plaintext);
+            console.log(decryptedMessage);
+            
             if (decryptedMessage !== "My secret!") {
                 throw new Error("Incorrect decrypted message");
             }
