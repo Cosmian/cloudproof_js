@@ -21,7 +21,6 @@
       "import": "./dist/es-slim/index_slim.js",
       "default": "./dist/cjs-slim/index_slim.cjs"
     },
-    "./jomini.wasm": "./dist/jomini.wasm",
     "./package.json": "./package.json"
   },
   "files": [
