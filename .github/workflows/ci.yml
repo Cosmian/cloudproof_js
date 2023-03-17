@@ -17,6 +17,7 @@ jobs:
         python3 scripts/download_wasm.py
         npm install
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
 
   lint:
     needs: build
@@ -33,6 +34,7 @@ jobs:
       subcommands: |
         npm test
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
       regression_files: |
         ./node_modules/non_regression_vector.json
         ./node_modules/sqlite.db
@@ -91,6 +93,7 @@ jobs:
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
 
   example_reactjs:
     needs: build_in_docker
@@ -105,6 +108,7 @@ jobs:
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
 
   example_browser:
     needs: build_in_docker
@@ -136,6 +140,7 @@ jobs:
         npm install
         node test.mjs 10
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
 
   example_imdb:
     needs: build
