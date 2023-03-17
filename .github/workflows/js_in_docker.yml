@@ -10,10 +10,13 @@ on:
       kms-version:
         required: true
         type: string
+      findex-cloud-version:
+        required: true
+        type: string
       regression_files:
         required: false
         type: string
-        default: ''
+        default: ""
 
 jobs:
   js-in-docker:
@@ -28,6 +31,9 @@ jobs:
           KMS_PUBLIC_PATH: /tmp
           KMS_PRIVATE_PATH: /tmp
           KMS_SHARED_PATH: /tmp
+
+      findex_cloud:
+        image: ghcr.io/cosmian/findex_cloud:${{ inputs.findex-cloud-version }}
 
       redis:
         image: redis
