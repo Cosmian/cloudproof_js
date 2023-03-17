@@ -121,6 +121,7 @@ jobs:
         sleep 3
         node test.mjs
       kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
 
   example_webpack:
     needs: build
