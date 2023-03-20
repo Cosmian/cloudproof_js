@@ -7,6 +7,12 @@ test("Findex Cloud", async () => {
   }`
   const label = Label.fromString("Some label!")
 
+  // We put the base URL inside an env variable to avoid polluting
+  // the examples below (the examples are used inside the docs).
+  // If you want to specify the base URL, it's better to use the `options.baseUrl`
+  // parameter.
+  process.env.FINDEX_CLOUD_BASE_URL = baseUrl
+
   let response
   try {
     response = await fetch(`${baseUrl}/indexes`, {
@@ -19,8 +25,6 @@ test("Findex Cloud", async () => {
       }),
     })
   } catch (e) {
-    console.log(e)
-
     if (
       e instanceof TypeError &&
       // @ts-expect-error
@@ -34,7 +38,7 @@ test("Findex Cloud", async () => {
 
   const data = await response.json()
 
-  const { generateNewToken, upsert, search } = await FindexCloud()
+  const { generateNewToken } = await FindexCloud()
 
   const token = generateNewToken(
     data.public_id,
@@ -44,26 +48,25 @@ test("Findex Cloud", async () => {
     Uint8Array.from(data.insert_chains_key),
   )
 
-  await upsert(
-    token,
-    label,
-    [
-      {
-        indexedValue: Location.fromNumber(42),
-        keywords: ["John", "Doe"],
-      },
-      {
-        indexedValue: Location.fromNumber(38),
-        keywords: ["Alice", "Doe"],
-      },
-    ],
+  const { upsert } = await FindexCloud()
+
+  await upsert(token, label, [
     {
-      baseUrl: "http://127.0.0.1:8080",
+      indexedValue: Location.fromNumber(42),
+      keywords: ["John", "Doe"],
     },
-  )
+    {
+      indexedValue: Location.fromNumber(38),
+      keywords: ["Alice", "Doe"],
+    },
+  ])
 
-  const results = (await search(token, label, ["Doe"], { baseUrl })).toNumbers()
-  results.sort((a, b) => a - b)
+  const { search } = await FindexCloud()
 
-  expect(results).toEqual([38, 42])
+  const results = await search(token, label, ["Doe"])
+
+  const ids = results.toNumbers()
+  ids.sort((a, b) => a - b)
+
+  expect(ids).toEqual([38, 42])
 })

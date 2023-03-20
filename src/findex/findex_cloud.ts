@@ -71,7 +71,9 @@ export async function FindexCloud() {
         token,
         label.bytes,
         indexedValuesAndWords,
-        options.baseUrl,
+        options.baseUrl === undefined
+          ? process.env.FINDEX_CLOUD_BASE_URL
+          : options.baseUrl,
       )
     },
 
@@ -108,7 +110,9 @@ export async function FindexCloud() {
         typeof options.insecureFetchChainsBatchSize === "undefined"
           ? 0
           : options.insecureFetchChainsBatchSize,
-        options.baseUrl,
+        options.baseUrl === undefined
+          ? process.env.FINDEX_CLOUD_BASE_URL
+          : options.baseUrl,
       )
 
       return new SearchResults(resultsPerKeywords)
