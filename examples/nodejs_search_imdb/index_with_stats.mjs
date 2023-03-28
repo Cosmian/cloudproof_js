@@ -246,9 +246,11 @@ for await (const line of rl) {
         )
 
         findexResults = new Set(
-          results.map((indexedLocation) =>
-            new TextDecoder().decode(indexedLocation.bytes.slice(1)),
-          ),
+          results
+            .locations()
+            .map((indexedLocation) =>
+              new TextDecoder().decode(indexedLocation.bytes),
+            ),
         )
 
         console.log(
