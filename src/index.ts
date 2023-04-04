@@ -4,7 +4,9 @@ import { setCoverCryptInit } from "./cover_crypt/cover_crypt"
 import findex_wasm from "./pkg/findex/cloudproof_findex_bg.wasm"
 import { setFindexInit } from "./findex/findex"
 
-export * from "./findex/findex"
+import fpe_wasm from "./pkg/fpe/cloudproof_fpe_bg.wasm"
+import { setFpeInit } from "./fpe/fpe"
+
 export {
   CoverCryptMasterKey,
   type CoverCryptKeyGeneration,
@@ -19,6 +21,7 @@ export * from "./cover_crypt/interfaces/plaintext_header"
 export * from "./cover_crypt/interfaces/policy"
 export * from "./findex/findex"
 export * from "./findex/findex_cloud"
+export * from "./fpe/fpe"
 export { logger } from "./utils/logger"
 export {
   hexDecode,
@@ -50,3 +53,6 @@ setCoverCryptInit(() => cover_crypt_wasm())
 
 // @ts-expect-error @ts-ignore-error
 setFindexInit(() => findex_wasm())
+
+// @ts-expect-error @ts-ignore-error
+setFpeInit(() => fpe_wasm())

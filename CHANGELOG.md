@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.0] - 2023-04-06
+
+### Features
+
+- Add Format-Preserving-Encryption FPE to encrypt text, integer and float
+
 ## [8.0.0] - 2023-03-08
 
 ### Features

@@ -23,8 +23,8 @@ def download_wasm(version: str) -> bool:
     ssl._create_default_https_context = ssl._create_unverified_context
 
     to_be_copied = files_to_be_copied('findex')
-    cover_crypt_files = files_to_be_copied('cover_crypt')
-    to_be_copied.update(cover_crypt_files)
+    to_be_copied.update(files_to_be_copied('cover_crypt'))
+    to_be_copied.update(files_to_be_copied('fpe'))
 
     missing_files = False
     for key, value in to_be_copied.items():
@@ -62,6 +62,6 @@ def download_wasm(version: str) -> bool:
 
 
 if __name__ == '__main__':
-    ret = download_wasm('v1.0.0')
+    ret = download_wasm('v1.1.0')
     if ret is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('last_build/feature/add_findex')
+        download_wasm('last_build/feature/expose_fpe_in_interfaces')

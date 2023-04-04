@@ -92,8 +92,8 @@ export class Location {
   /**
    * Numbers are encoded in big-endian 8 bytes.
    * JS `number` type cannot encode the all 64 bits numbers because it uses floating point representation
-   * that's why we use `BigInt` internaly but we convert to `number` (it's theoretically wrong) because `number`
-   * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for exemple, JS will
+   * that's why we use `BigInt` internally but we convert to `number` (it's theoretically wrong) because `number`
+   * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for example, JS will
    * not be able to read it.
    *
    * @param value number
