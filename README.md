@@ -30,6 +30,8 @@ policies over these attributes. `CoverCrypt` offers Post-Quantum resistance.
 an untrusted cloud server. Thanks to its encrypted indexes, large databases can
 securely be outsourced without compromising usability.
 
+- [FPE](https://github.com/Cosmian/cloudproof_rust/tree/main/crates/fpe) provides `Format Preserving Encryption` (FPE) techniques for use in a zero-trust environment. These techniques are based on FPE-FF1 which is described in [NIST:800-38G](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-38g.pdf).
+
 ## Getting started
 
 Please [check the online documentation](https://docs.cosmian.com/cloudproof_encryption/use_cases_benefits/) for details on using the CloudProof APIs.
@@ -75,3 +77,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 | `cloudproof_js` | Cloudproof Rust lib |
 |-----------------|---------------------|
 | 8.0.0           | 1.0.0               |
+| 8.1.0           | 1.1.0               |

@@ -1,0 +1,5 @@
+*.wasm*
+*.js
+*.json
+*.ts
+*.md

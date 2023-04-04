@@ -29,7 +29,7 @@ repos:
     rev: v0.32.2
     hooks:
       - id: markdownlint-fix
-        args: [--disable=MD013, --disable=MD024, --disable=MD041]
+        args: [--disable=MD004, --disable=MD013, --disable=MD024, --disable=MD041]
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks-nodejs
     rev: v1.1.2
@@ -37,7 +37,6 @@ repos:
       - id: htmlhint
       - id: dockerfile_lint
       - id: markdown-toc
-        args: [--bullets="-"]
 
   - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
     rev: 0.2.2

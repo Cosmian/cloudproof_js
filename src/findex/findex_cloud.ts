@@ -26,14 +26,14 @@ export async function FindexCloud() {
       indexId: string,
       fetchEntriesKey: Uint8Array,
       fetchChainsKey: Uint8Array,
-      upsertEntiesKey: Uint8Array,
+      upsertEntriesKey: Uint8Array,
       insertChainsKey: Uint8Array,
     ): string => {
       return webassembly_generate_new_token(
         indexId,
         fetchEntriesKey,
         fetchChainsKey,
-        upsertEntiesKey,
+        upsertEntriesKey,
         insertChainsKey,
       )
     },
