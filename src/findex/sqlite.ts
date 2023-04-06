@@ -2,6 +2,7 @@ import { Database, Statement } from "better-sqlite3"
 import {
   FetchChains,
   FetchEntries,
+  Index,
   InsertChains,
   UidsAndValues,
   UidsAndValuesToUpsert,
@@ -98,7 +99,8 @@ export function callbacksExamplesBetterSqlite3(
       )
 
       if (result.changes === 0) {
-        const valueInSqlite = selectOneEntriesTableItemStmt.get(uid).value
+        const entryTableItem = selectOneEntriesTableItemStmt.get(uid) as Index
+        const valueInSqlite = entryTableItem.value
         rejected.push({ uid, value: valueInSqlite })
       }
     }
