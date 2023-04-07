@@ -19,7 +19,7 @@ const rolls = (fmt, env) => ({
     dir: outdir(fmt, env),
     format: fmt,
     entryFileNames: `[name].${fmt === "cjs" ? "cjs" : "js"}`,
-    name: "jomini",
+    name: "cloudproof_js",
   },
   plugins: [
     commonjs(),

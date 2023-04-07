@@ -1,6 +1,6 @@
 {
   "name": "cloudproof_js",
-  "version": "8.0.0",
+  "version": "8.1.0",
   "license": "MIT",
   "description": "Cosmian Cloudproof javascript client library",
   "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>, Emmanuel Coste<emmanuel.coste@cosmian.com>, Thibaud Dauce<thibaud.dauce@cosmian.com>",
@@ -21,7 +21,6 @@
       "import": "./dist/es-slim/index_slim.js",
       "default": "./dist/cjs-slim/index_slim.cjs"
     },
-    "./jomini.wasm": "./dist/jomini.wasm",
     "./package.json": "./package.json"
   },
   "files": [
