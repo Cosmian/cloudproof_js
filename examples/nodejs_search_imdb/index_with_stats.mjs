@@ -5,6 +5,7 @@ import {
   Location,
   Keyword,
   Findex,
+  FindexCloud,
   FindexKey,
   Label,
   generateAliases,
@@ -14,6 +15,12 @@ import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
 import Database from "better-sqlite3"
+import fetch, { Headers, Request, Response } from "node-fetch"
+
+globalThis.fetch = fetch
+globalThis.Headers = Headers
+globalThis.Request = Request
+globalThis.Response = Response
 
 // Check the IMDB file, create a stream to parse line by line.
 const NUMBER_OF_MOVIES_INSIDE_TSV = 9427158 - 1 // Number of line of the .tsv (useful to show percentage completion)
@@ -39,8 +46,11 @@ const csvStats = fs.createWriteStream("stats.csv", { flags: "a+" })
 
 // Init Findex with random key and random label
 const { upsert, search } = await Findex()
+const { upsert: upsertCloud, search: searchCloud } = await FindexCloud()
 const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
+const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
+const baseUrl = "http://127.0.0.1:8080"
 
 // Init databases
 const dbClear = new Database(":memory:")
@@ -91,7 +101,7 @@ let insertChainTableCallbackCount = 0
 let upsertEntryTableCallbackCount = 0
 
 // Number of movies to index (stop after this count)
-const NUMBER_OF_MOVIES = 100 * 1000
+const NUMBER_OF_MOVIES = 1000 * 1000
 
 const USE_GRAPHS = true
 
@@ -106,6 +116,8 @@ let latestPercentageShown
 
 let timeFindexSoFar = 0
 let timeFindexSinceLastStatsPrint = 0
+let timeFindexCloudSoFar = 0
+let timeFindexCloudSinceLastStatsPrint = 0
 let timeSqliteIndexSoFar = 0
 let timeSqliteIndexSinceLastStatsPrint = 0
 
@@ -178,6 +190,13 @@ for await (const line of rl) {
     )
     timeFindexSinceLastStatsPrint += performance.now() - insertFindexStart
 
+    if (findexCloudToken) {
+      const insertFindexCloudStart = performance.now()
+      await upsertCloud(findexCloudToken, label, toUpsert, { baseUrl })
+      timeFindexCloudSinceLastStatsPrint +=
+        performance.now() - insertFindexCloudStart
+    }
+
     toUpsert = []
 
     if (percentageToShow !== latestPercentageShown) {
@@ -193,6 +212,7 @@ for await (const line of rl) {
 
     if (Math.floor(percentage * 100) > percentageDuringLastStatsPrint || end) {
       timeFindexSoFar += timeFindexSinceLastStatsPrint
+      timeFindexCloudSoFar += timeFindexCloudSinceLastStatsPrint
       timeSqliteIndexSoFar += timeSqliteIndexSinceLastStatsPrint
 
       percentageDuringLastStatsPrint = Math.floor(percentage * 100)
@@ -242,6 +262,7 @@ for await (const line of rl) {
           },
           {
             maxResultsPerKeyword: 1000,
+            insecureFetchChainsBatchSize: 1000,
           },
         )
 
@@ -281,6 +302,39 @@ for await (const line of rl) {
           )}ms.`,
         )
       }
+      if (findexCloudToken) {
+        let findexCloudResults
+        {
+          const searchNow = performance.now()
+
+          const results = await searchCloud(
+            findexCloudToken,
+            label,
+            new Set(["Documentary"]),
+            {
+              baseUrl,
+              maxResultsPerKeyword: 1000,
+              insecureFetchChainsBatchSize: 1000,
+            },
+          )
+
+          findexCloudResults = new Set(
+            results
+              .locations()
+              .map((indexedLocation) =>
+                new TextDecoder().decode(indexedLocation.bytes),
+              ),
+          )
+
+          console.log(
+            `${formatNumber(
+              findexCloudResults.size,
+            )} documentaries found with Findex Cloud in ${formatNumber(
+              performance.now() - searchNow,
+            )}ms.`,
+          )
+        }
+      }
 
       await dbClear.backup("database_clear.sqlite")
       const moviesSizeOnDisk = fs.statSync("database_clear.sqlite").size
@@ -306,6 +360,8 @@ for await (const line of rl) {
         )
       }
 
+      const testNow = performance.now()
+
       await dbClearWithIndexes.backup("database_clear_with_indexes.sqlite")
       const clearIndexSizeOnDisk = fs.statSync(
         "database_clear_with_indexes.sqlite",
@@ -313,6 +369,8 @@ for await (const line of rl) {
 
       await dbIndex.backup("findex_indexes.sqlite")
       const encryptedIndexSizeOnDisk = fs.statSync("findex_indexes.sqlite").size
+
+      console.log(`${formatNumber(performance.now() - testNow)}ms.`)
 
       console.log()
 
@@ -339,6 +397,8 @@ for await (const line of rl) {
           timeSqliteIndexSinceLastStatsPrint / 1000,
         )}s\n\tFindex index in ${formatNumber(
           timeFindexSinceLastStatsPrint / 1000,
+        )}s\n\tFindex Cloud index in ${formatNumber(
+          timeFindexCloudSinceLastStatsPrint / 1000,
         )}s`,
       )
       console.log(
@@ -348,7 +408,11 @@ for await (const line of rl) {
           moviesSizeOnDisk / 1024 / 1024,
         )}MB on disk)\n\tSQLite index in ${formatNumber(
           timeSqliteIndexSoFar / 1000,
-        )}s \n\tFindex index in ${formatNumber(timeFindexSoFar / 1000)}s`,
+        )}s \n\tFindex index in ${formatNumber(
+          timeFindexSoFar / 1000,
+        )}s\n\tFindex Cloud index in ${formatNumber(
+          timeFindexCloudSoFar / 1000,
+        )}s`,
       )
       console.log()
 
@@ -378,6 +442,20 @@ for await (const line of rl) {
             clearIndexSizeOnDisk,
         )})`,
       )
+
+      if (findexCloudToken) {
+        const response = await fetch(
+          `${baseUrl}/indexes/${findexCloudToken.slice(0, 5)}`,
+        )
+        const cloudIndex = await response.json()
+        console.log(
+          `Encrypted indexes in cloud are ${formatNumber(
+            cloudIndex.size / 1024 / 1024,
+          )}MB (x${formatNumber(
+            (cloudIndex.size - clearIndexSizeOnDisk) / clearIndexSizeOnDisk,
+          )})`,
+        )
+      }
 
       console.log()
       console.log()
