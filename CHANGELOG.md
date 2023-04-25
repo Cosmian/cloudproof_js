@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.2] - 2023-04-25
+
+### Features
+
+- Update findex to 2.0.2 for batching keywords together when calling the fetch chains callback (prevent doing one fetch chains request by keyword)
+
 ## [6.0.1] - 2023-01-13
 
 ### Added
