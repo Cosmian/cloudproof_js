@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.3] - 2023-04-26
+
+### Miscellaneous Tasks
+
+- Remove all wasm from repository. Downloadable with `scripts/download_wasm.py`.
+
 ## [6.0.2] - 2023-04-25
 
 ### Features
