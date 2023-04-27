@@ -43,7 +43,7 @@ jobs:
     needs: test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_java_in_docker.yml@develop
     with:
-      branch: develop
+      branch: update_findex_4
       target: x86_64-unknown-linux-gnu
       extension: so
       destination: linux-x86-64

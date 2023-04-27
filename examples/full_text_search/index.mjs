@@ -84,9 +84,10 @@ for (const [name, content] of Object.entries(contents)) {
   }
 
   await upsert(
-    toUpsert,
     masterKey,
     label,
+    toUpsert,
+    [],
     callbacks.fetchEntries,
     callbacks.upsertEntries,
     callbacks.insertChains,
@@ -97,6 +98,8 @@ console.log("---")
 console.log(`Add aliases from word's stem to word…`)
 console.log("---")
 await upsert(
+  masterKey,
+  label,
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
     .filter(({ word, stem }) => word !== stem)
@@ -104,8 +107,7 @@ await upsert(
       indexedValue: Keyword.fromString(word),
       keywords: [stem],
     })),
-  masterKey,
-  label,
+  [],
   callbacks.fetchEntries,
   callbacks.upsertEntries,
   callbacks.insertChains,
@@ -118,12 +120,13 @@ console.log("---")
 // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
 // which will make searching for it highly unlikely. We'll use this prefix in our search below.
 await upsert(
+  masterKey,
+  label,
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)],
   })),
-  masterKey,
-  label,
+  [],
   callbacks.fetchEntries,
   callbacks.upsertEntries,
   callbacks.insertChains,
@@ -133,6 +136,8 @@ console.log("---")
 console.log(`Add aliases from word's synonyms to word…`)
 console.log("---")
 await upsert(
+  masterKey,
+  label,
   Array.from(uniqueWords)
     .map((word) => {
       const wordSynonyms = synonyms(word)
@@ -146,8 +151,7 @@ await upsert(
       }
     })
     .filter((synonymsToUpsert) => synonymsToUpsert !== null),
-  masterKey,
-  label,
+  [],
   callbacks.fetchEntries,
   callbacks.upsertEntries,
   callbacks.insertChains,
@@ -168,9 +172,9 @@ while (true) {
   const phonetic = natural.Metaphone.process(query)
 
   const rawResults = await search(
-    [query, stem, "phonetic_prefix_" + phonetic],
     masterKey,
     label,
+    [query, stem, "phonetic_prefix_" + phonetic],
     callbacks.fetchEntries,
     callbacks.fetchChains,
     {

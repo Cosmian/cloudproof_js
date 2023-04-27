@@ -62,6 +62,6 @@ def download_wasm(version: str) -> bool:
 
 
 if __name__ == '__main__':
-    ret = download_wasm('v1.1.0')
+    ret = download_wasm('v2.0.0')
     if ret is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('last_build/feature/expose_fpe_in_interfaces')
+        download_wasm('last_build/fix/update_findex')
