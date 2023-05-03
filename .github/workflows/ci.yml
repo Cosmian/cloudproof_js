@@ -59,7 +59,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: develop
+      branch: update_findex_4
       target: x86_64-unknown-linux-gnu
       kms-version: 4.3.3
       copy_fresh_build: false
@@ -72,7 +72,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_flutter.yml@develop
     with:
-      branch: develop
+      branch: update_findex_4
       target: x86_64-unknown-linux-gnu
       extension: so
       copy_fresh_build: false
