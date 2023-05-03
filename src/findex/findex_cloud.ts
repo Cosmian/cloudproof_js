@@ -82,7 +82,6 @@ export async function FindexCloud() {
       label: Uint8Array | Label,
       keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
       options: {
-        maxResultsPerKeyword?: number
         baseUrl?: string
       } = {},
     ) => {
@@ -99,9 +98,6 @@ export async function FindexCloud() {
         token,
         label.bytes,
         kws,
-        typeof options.maxResultsPerKeyword === "undefined"
-          ? 1000 * 1000
-          : options.maxResultsPerKeyword,
         options.baseUrl,
       )
 

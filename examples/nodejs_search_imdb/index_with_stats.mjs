@@ -261,9 +261,6 @@ for await (const line of rl) {
             fetchChainTableCallbackCount++
             return await callbacks.fetchChains(uids)
           },
-          {
-            maxResultsPerKeyword: 1000,
-          },
         )
 
         findexResults = new Set(
@@ -313,7 +310,6 @@ for await (const line of rl) {
             new Set(["Documentary"]),
             {
               baseUrl,
-              maxResultsPerKeyword: 1000,
             },
           )
 

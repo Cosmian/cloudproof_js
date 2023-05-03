@@ -402,7 +402,6 @@ export async function Findex() {
    * @param {FetchEntries} fetchEntries callback to fetch the entries table
    * @param {FetchChains} fetchChains callback to fetch the chains table
    * @param options Additional optional options to the search
-   * @param options.maxResultsPerKeyword the maximum number of results per keyword
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
    * @returns the search results
    */
@@ -413,7 +412,6 @@ export async function Findex() {
     fetchEntries: FetchEntries,
     fetchChains: FetchChains,
     options: {
-      maxResultsPerKeyword?: number
       progress?: Progress
     } = {},
   ): Promise<SearchResults> => {
@@ -443,9 +441,6 @@ export async function Findex() {
       masterKey.bytes,
       label.bytes,
       kws,
-      typeof options.maxResultsPerKeyword === "undefined"
-        ? 1000 * 1000
-        : options.maxResultsPerKeyword,
       async (
         indexedValuesPerKeywords: Array<{
           keyword: Uint8Array

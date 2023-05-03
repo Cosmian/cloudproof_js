@@ -177,9 +177,6 @@ while (true) {
     [query, stem, "phonetic_prefix_" + phonetic],
     callbacks.fetchEntries,
     callbacks.fetchChains,
-    {
-      maxResultsPerKeyword: 10,
-    },
   )
 
   console.log(

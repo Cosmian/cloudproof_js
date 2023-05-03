@@ -126,9 +126,6 @@ for await (const query of queries) {
     [query],
     callbacks.fetchEntries,
     callbacks.fetchChains,
-    {
-      maxResultsPerKeyword: 1000,
-    },
   )
 
   console.log(`Searching for ${query} returned ${results.total()} results:`)
