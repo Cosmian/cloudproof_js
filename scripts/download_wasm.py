@@ -20,6 +20,8 @@ def files_to_be_copied(name: str):
 
 def download_wasm(version: str) -> bool:
     """Download and extract wasm"""
+    print(f"Download WASM {version}")
+
     ssl._create_default_https_context = ssl._create_unverified_context
 
     to_be_copied = files_to_be_copied('findex')
@@ -32,34 +34,37 @@ def download_wasm(version: str) -> bool:
             missing_files = True
             break
 
-    if missing_files:
-        url = f'https://package.cosmian.com/cloudproof_rust/{version}/wasm.zip'
-        try:
-            r = urllib.request.urlopen(url)
-            if r.getcode() != 200:
-                print(f'Cannot get cloudproof_rust {version} ({r.getcode()})')
-            else:
-                if path.exists('tmp'):
-                    shutil.rmtree('tmp')
-                if path.exists('wasm.zip'):
-                    remove('wasm.zip')
+    if not missing_files:
+        print("Files are present, skip.")
+        return True
 
-                open('wasm.zip', 'wb').write(r.read())
-                with zipfile.ZipFile('wasm.zip', 'r') as zip_ref:
-                    zip_ref.extractall('tmp')
-                    for key, value in to_be_copied.items():
-                        print(f'OK: copy {key} to {value}...')
-
-                        shutil.copyfile(key, value)
-
-                    shutil.rmtree('tmp')
+    url = f'https://package.cosmian.com/cloudproof_rust/{version}/wasm.zip'
+    try:
+        r = urllib.request.urlopen(url)
+        if r.getcode() != 200:
+            print(f'Cannot get cloudproof_rust {version} ({r.getcode()})')
+        else:
+            if path.exists('tmp'):
+                shutil.rmtree('tmp')
+            if path.exists('wasm.zip'):
                 remove('wasm.zip')
-        # pylint: disable=broad-except
-        except Exception as exception:
-            print(f'Cannot get cloudproof_rust {version} ({exception})')
-            return False
-    return True
 
+            open('wasm.zip', 'wb').write(r.read())
+            with zipfile.ZipFile('wasm.zip', 'r') as zip_ref:
+                zip_ref.extractall('tmp')
+                for key, value in to_be_copied.items():
+                    print(f'OK: copy {key} to {value}...')
+
+                    shutil.copyfile(key, value)
+
+                shutil.rmtree('tmp')
+            remove('wasm.zip')
+
+        return True
+    # pylint: disable=broad-except
+    except Exception as exception:
+        print(f'Cannot get cloudproof_rust {version} ({exception})')
+        return False
 
 if __name__ == '__main__':
     ret = download_wasm('v2.0.0')
