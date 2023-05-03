@@ -200,7 +200,7 @@ test("errors", async () => {
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was empty\)/,
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was empty/,
   )
   expect(async () => {
     await findex.upsert(
@@ -218,7 +218,7 @@ test("errors", async () => {
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was '\[([0-9]+(, )?)+\]'\)/,
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was '\[([0-9]+(, )?)+\]'/,
   )
 
   expect(async () => {
