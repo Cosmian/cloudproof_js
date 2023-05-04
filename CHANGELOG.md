@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [9.0.0] - 2023-06-01
 
 ### Features
 
@@ -19,6 +19,11 @@ All notable changes to this project will be documented in this file.
   - change upsert interface:
     - change parameter order
     - add deletions
+- add data anonymization methods such as:
+  - noise methods
+  - hash methods
+  - number methods
+  - word methods
 
 ## [8.1.0] - 2023-04-06
 

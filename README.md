@@ -32,6 +32,8 @@ securely be outsourced without compromising usability.
 
 - [FPE](https://github.com/Cosmian/cloudproof_rust/tree/main/crates/fpe) provides `Format Preserving Encryption` (FPE) techniques for use in a zero-trust environment. These techniques are based on FPE-FF1 which is described in [NIST:800-38G](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-38g.pdf).
 
+- [Anonymization](https://github.com/Cosmian/cloudproof_rust/tree/main/crates/anonymization): `Data anonymization` is the process of transforming data in such a way that it can no longer be used to identify individuals without the use of additional information. This is often done to protect the privacy of individuals whose data is being collected or processed.
+
 ## Getting started
 
 Please [check the online documentation](https://docs.cosmian.com/cloudproof_encryption/use_cases_benefits/) for details on using the CloudProof APIs.
@@ -78,3 +80,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 |-----------------|---------------------|
 | 8.0.0           | 1.0.0               |
 | 8.1.0           | 1.1.0               |
+| 9.0.0           | 2.0.1               |
