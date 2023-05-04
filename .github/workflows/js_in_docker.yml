@@ -16,7 +16,7 @@ on:
       regression_files:
         required: false
         type: string
-        default: ""
+        default: ''
 
 jobs:
   js-in-docker:
@@ -55,9 +55,9 @@ jobs:
             node_modules
             dist
             src/pkg
-          key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ hashFiles('package.json') }}
+          key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
           restore-keys: |
-            ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ hashFiles('package.json') }}
+            ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
 
       - name: Test
         run: ${{ inputs.subcommands }}

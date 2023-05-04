@@ -2,7 +2,7 @@ import { CoverCrypt } from ".."
 import { bench, describe } from "vitest"
 import { randomBytes } from "crypto"
 
-let { Policy, PolicyAxis } = await CoverCrypt()
+const { Policy, PolicyAxis } = await CoverCrypt()
 
 const POLICY = new Policy(
   [
