@@ -21,13 +21,15 @@
       "import": "./dist/es-slim/index_slim.js",
       "default": "./dist/cjs-slim/index_slim.cjs"
     },
-    "./package.json": "./package.json"
+    "./cover_crypt.wasm": "./dist/cover_crypt.wasm",
+    "./findex.wasm": "./dist/findex.wasm",
+    "./fpe.wasm": "./dist/fpe.wasm"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc --version && rollup --version && rollup -c && tsc",
+    "build": "tsc --version && rollup --version && mkdir -p dist && cp src/pkg/cover_crypt/cloudproof_cover_crypt_bg.wasm dist/cover_crypt.wasm && cp src/pkg/findex/cloudproof_findex_bg.wasm dist/findex.wasm && cp src/pkg/fpe/cloudproof_fpe_bg.wasm dist/fpe.wasm && rollup -c && tsc",
     "watch": "rollup --watch -c",
     "prepare": "npm run build",
     "test": "vitest --run",

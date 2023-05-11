@@ -14,7 +14,7 @@ const outdir = (fmt, env) => {
 }
 
 const rolls = (fmt, env) => ({
-  input: env !== "slim" ? "src/index.ts" : "src/index_slim.ts",
+  input: env !== "slim" ? "src/index.ts" : "src/slim.ts",
   output: {
     dir: outdir(fmt, env),
     format: fmt,
@@ -57,6 +57,6 @@ export default [
   rolls("es", "fat"),
   rolls("cjs", "fat"),
   rolls("cjs", "node"),
-  //   rolls("es", "slim"),
-  //   rolls("cjs", "slim"),
+  rolls("es", "slim"),
+  rolls("cjs", "slim"),
 ]
