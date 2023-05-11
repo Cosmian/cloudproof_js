@@ -67,3 +67,12 @@ jobs:
           path: ${{ inputs.regression_files }}
           retention-days: 1
           if-no-files-found: error
+
+      - name: Upload dist and source
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v3
+        with:
+          name: cloudproof_js_${{ github.ref_name }}
+          path: .
+          retention-days: 1
+          if-no-files-found: error
