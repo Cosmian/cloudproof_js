@@ -90,9 +90,10 @@ for await (const line of readline.createInterface({ input })) {
 
   if (toUpsert.length >= MAX_UPSERT_LINES || end) {
     await upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -120,14 +121,11 @@ for await (const query of queries) {
   console.log(query)
 
   const results = await search(
-    [query],
     masterKey,
     label,
+    [query],
     callbacks.fetchEntries,
     callbacks.fetchChains,
-    {
-      maxResultsPerKeyword: 1000,
-    },
   )
 
   console.log(`Searching for ${query} returned ${results.total()} results:`)

@@ -172,9 +172,10 @@ for await (const line of rl) {
   ) {
     const insertFindexStart = performance.now()
     await upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       async (uids) => {
         fetchEntryTableCallbackCount++
         return await callbacks.fetchEntries(uids)
@@ -192,7 +193,7 @@ for await (const line of rl) {
 
     if (findexCloudToken) {
       const insertFindexCloudStart = performance.now()
-      await upsertCloud(findexCloudToken, label, toUpsert, { baseUrl })
+      await upsertCloud(findexCloudToken, label, toUpsert, [], { baseUrl })
       timeFindexCloudSinceLastStatsPrint +=
         performance.now() - insertFindexCloudStart
     }
@@ -249,9 +250,9 @@ for await (const line of rl) {
         const searchNow = performance.now()
 
         const results = await search(
-          new Set(["Documentary"]),
           masterKey,
           label,
+          new Set(["Documentary"]),
           async (uids) => {
             fetchEntryTableCallbackCount++
             return await callbacks.fetchEntries(uids)
@@ -259,10 +260,6 @@ for await (const line of rl) {
           async (uids) => {
             fetchChainTableCallbackCount++
             return await callbacks.fetchChains(uids)
-          },
-          {
-            maxResultsPerKeyword: 1000,
-            insecureFetchChainsBatchSize: 1000,
           },
         )
 
@@ -313,8 +310,6 @@ for await (const line of rl) {
             new Set(["Documentary"]),
             {
               baseUrl,
-              maxResultsPerKeyword: 1000,
-              insecureFetchChainsBatchSize: 1000,
             },
           )
 

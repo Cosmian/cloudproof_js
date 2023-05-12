@@ -185,18 +185,18 @@ async function runWithFindexCallbacks(
   await run(
     async (label, input) => {
       return await findex.search(
-        input,
         masterKey,
         label,
+        input,
         fetchEntries,
         fetchChains,
       )
     },
     async (label, input) => {
       return await findex.search(
-        input,
         masterKey,
         label,
+        input,
         fetchEntries,
         fetchChains,
         {
@@ -211,9 +211,10 @@ async function runWithFindexCallbacks(
     },
     async (label, input) => {
       return await findex.upsert(
-        input,
         masterKey,
         label,
+        input,
+        [],
         fetchEntries,
         upsertEntries,
         insertChains,
@@ -271,7 +272,7 @@ async function runInFindexCloud(): Promise<void> {
       return await search(token, label, input, { baseUrl })
     },
     async (label, input) => {
-      return await upsert(token, label, input, { baseUrl })
+      return await upsert(token, label, input, [], { baseUrl })
     },
   )
 }
@@ -318,16 +319,16 @@ test("generateAliases", async () => {
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function run(
   search: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[0],
+    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[1],
+    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
   ) => ReturnType<Awaited<ReturnType<typeof Findex>>["search"]>,
   searchWithProgress: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[0],
+    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[1],
+    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
   ) => ReturnType<Awaited<ReturnType<typeof Findex>>["search"]>,
   upsert: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[2],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[0],
+    label: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[1],
+    input: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[2],
   ) => ReturnType<Awaited<ReturnType<typeof Findex>>["upsert"]>,
 ): Promise<void> {
   const label = new Label(randomBytes(10))
@@ -503,6 +504,7 @@ test("SearchResults", async () => {
     ])
   }
 })
+
 test("Location conversions", async () => {
   expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
   expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
@@ -537,13 +539,15 @@ test("Location conversions", async () => {
   ).toEqual("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11")
 })
 
-test.skip("upsert and search cycle", async () => {
+test("upsert and search cycle", async () => {
   const findex = await Findex()
   const masterKey = new FindexKey(randomBytes(16))
   const label = new Label(randomBytes(10))
   const callbacks = callbacksExamplesInMemory()
 
   await findex.upsert(
+    masterKey,
+    label,
     [
       {
         indexedValue: Keyword.fromString("B"),
@@ -554,17 +558,16 @@ test.skip("upsert and search cycle", async () => {
         keywords: ["B"],
       },
     ],
-    masterKey,
-    label,
+    [],
     callbacks.fetchEntries,
     callbacks.upsertEntries,
     callbacks.insertChains,
   )
 
   await findex.search(
-    ["A"],
     masterKey,
     label,
+    ["A"],
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
@@ -604,36 +607,37 @@ test("upsert and search memory", async () => {
   const callbacks = callbacksExamplesInMemory()
 
   await findex.upsert(
-    [entryLocation, entryKeyword, arrayLocation],
     masterKey,
     label,
+    [entryLocation, entryKeyword, arrayLocation],
+    [],
     callbacks.fetchEntries,
     callbacks.upsertEntries,
     callbacks.insertChains,
   )
 
   const results0 = await findex.search(
-    new Set(["ROBERT"]),
     masterKey,
     label,
+    new Set(["ROBERT"]),
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
   expect(results0.total()).toEqual(2)
 
   const results1 = await findex.search(
-    new Set([new TextEncoder().encode("ROBERT")]),
     masterKey,
     label,
+    new Set([new TextEncoder().encode("ROBERT")]),
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
   expect(results1.total()).toEqual(2)
 
   const results2 = await findex.search(
-    new Set(["BOB"]),
     masterKey,
     label,
+    new Set(["BOB"]),
     callbacks.fetchEntries,
     callbacks.fetchChains,
   )
@@ -642,9 +646,9 @@ test("upsert and search memory", async () => {
   // Test progress callback
 
   const resultsEarlyStop = await findex.search(
-    new Set(["BOB"]),
     masterKey,
     label,
+    new Set(["BOB"]),
     callbacks.fetchEntries,
     callbacks.fetchChains,
     {
@@ -698,18 +702,19 @@ test("generate non regression database", async () => {
     }
 
     await findex.upsert(
-      newIndexedEntries,
       masterKey,
       label,
+      newIndexedEntries,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
     )
 
     const results = await findex.search(
-      ["France"],
       masterKey,
       label,
+      ["France"],
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )
@@ -739,9 +744,9 @@ async function verify(dbFilepath: string): Promise<void> {
   //
   {
     const results = await findex.search(
-      ["France"],
       masterKey,
       label,
+      ["France"],
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )
@@ -781,9 +786,10 @@ async function verify(dbFilepath: string): Promise<void> {
     })
 
     await findex.upsert(
-      newIndexedEntries,
       masterKey,
       label,
+      newIndexedEntries,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -795,9 +801,9 @@ async function verify(dbFilepath: string): Promise<void> {
   //
   {
     const results = await findex.search(
-      ["France"],
       masterKey,
       label,
+      ["France"],
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )

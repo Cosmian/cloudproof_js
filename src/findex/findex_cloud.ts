@@ -5,7 +5,7 @@ import {
   IndexedEntry,
   Label,
   SearchResults,
-  newIndexedEntriesToIndexedValuesToKeywords,
+  indexedEntriesToBytes,
 } from "./findex"
 
 import {
@@ -55,7 +55,8 @@ export async function FindexCloud() {
     upsert: async (
       token: string,
       label: Uint8Array | Label,
-      newIndexedEntries: IndexedEntry[],
+      additions: IndexedEntry[],
+      deletions: IndexedEntry[],
       options: {
         baseUrl?: string
       } = {},
@@ -64,13 +65,14 @@ export async function FindexCloud() {
         label = new Label(label)
       }
 
-      const indexedValuesAndWords =
-        newIndexedEntriesToIndexedValuesToKeywords(newIndexedEntries)
+      const additionsBytes = indexedEntriesToBytes(additions, "additions")
+      const deletionsBytes = indexedEntriesToBytes(deletions, "deletions")
 
       return await webassembly_upsert_cloud(
         token,
         label.bytes,
-        indexedValuesAndWords,
+        additionsBytes,
+        deletionsBytes,
         options.baseUrl,
       )
     },
@@ -80,9 +82,6 @@ export async function FindexCloud() {
       label: Uint8Array | Label,
       keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
       options: {
-        maxResultsPerKeyword?: number
-        maxGraphDepth?: number
-        insecureFetchChainsBatchSize?: number
         baseUrl?: string
       } = {},
     ) => {
@@ -99,15 +98,6 @@ export async function FindexCloud() {
         token,
         label.bytes,
         kws,
-        typeof options.maxResultsPerKeyword === "undefined"
-          ? 1000 * 1000
-          : options.maxResultsPerKeyword,
-        typeof options.maxGraphDepth === "undefined"
-          ? 1000
-          : options.maxGraphDepth,
-        typeof options.insecureFetchChainsBatchSize === "undefined"
-          ? 0
-          : options.insecureFetchChainsBatchSize,
         options.baseUrl,
       )
 

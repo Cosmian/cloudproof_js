@@ -408,6 +408,8 @@ function App() {
     const { upsert } = await Findex()
 
     await upsert(
+      localMasterKey,
+      FINDEX_LABEL,
       users.flatMap((user) => {
         return [
           {
@@ -430,8 +432,7 @@ function App() {
             : []),
         ]
       }),
-      localMasterKey,
-      FINDEX_LABEL,
+      [],
       async (uids) => await fetchCallback("entries", uids),
       async (uidsAndValues) => await upsertCallback("entries", uidsAndValues),
       async (uidsAndValues) => await insertCallback("chains", uidsAndValues),
@@ -636,9 +637,9 @@ function App() {
     if (doOr) {
       locations = (
         await search(
-          new Set(keywords),
           masterKey,
           FINDEX_LABEL,
+          new Set(keywords),
           async (uids) => await fetchCallback("entries", uids),
           async (uids) => await fetchCallback("chains", uids),
         )
@@ -647,9 +648,9 @@ function App() {
       for (const keyword of keywords) {
         const newLocations = (
           await search(
-            new Set([keyword]),
             masterKey,
             FINDEX_LABEL,
+            new Set([keyword]),
             async (uids) => await fetchCallback("entries", uids),
             async (uids) => await fetchCallback("chains", uids),
           )
