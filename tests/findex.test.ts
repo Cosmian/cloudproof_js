@@ -41,6 +41,86 @@ test("in memory", async () => {
   )
 })
 
+test("multi databases", async () => {
+  const db1 = callbacksExamplesInMemory()
+  const db2 = callbacksExamplesInMemory()
+
+  const findex = await Findex()
+  const masterKey = new FindexKey(randomBytes(16))
+  const label = new Label(randomBytes(10))
+
+  {
+    await findex.upsert(
+      [
+        {
+          indexedValue: Location.fromNumber(1),
+          keywords: ["John"],
+        },
+      ],
+      masterKey,
+      label,
+      db1.fetchEntries,
+      db1.upsertEntries,
+      db1.insertChains,
+    )
+
+    const results = await findex.search(
+      ["John"],
+      masterKey,
+      label,
+      db1.fetchEntries,
+      db1.fetchChains,
+    )
+
+    expect(results.get("John")[0].toNumber()).toEqual(1)
+  }
+
+  {
+    await findex.upsert(
+      [
+        {
+          indexedValue: Location.fromNumber(2),
+          keywords: ["John"],
+        },
+      ],
+      masterKey,
+      label,
+      db2.fetchEntries,
+      db2.upsertEntries,
+      db2.insertChains,
+    )
+
+    const results = await findex.search(
+      ["John"],
+      masterKey,
+      label,
+      db2.fetchEntries,
+      db2.fetchChains,
+    )
+
+    expect(results.get("John")[0].toNumber()).toEqual(2)
+  }
+
+  {
+    const results = await findex.search(
+      ["John"],
+      masterKey,
+      label,
+      async (uids) =>
+        (await db1.fetchEntries(uids)).concat(await db2.fetchEntries(uids)),
+      async (uids) =>
+        (await db1.fetchChains(uids)).concat(await db2.fetchChains(uids)),
+    )
+
+    expect(
+      results
+        .get("John")
+        .map((result) => result.toNumber())
+        .sort(),
+    ).toEqual([1, 2])
+  }
+})
+
 test("SQLite", async () => {
   const db = new Database(":memory:")
 
