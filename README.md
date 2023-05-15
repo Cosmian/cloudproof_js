@@ -42,3 +42,4 @@ This table shows the minimum version correspondence between the various componen
 | 5.0.0           | 7.0.0          | 0.10.0 | 3.0.0      |
 | 6.0.0, 6.0.1    | 8.0.0          | 1.0.0  | 4.0.0      |
 | 6.0.3           | 8.0.2          | 2.0.2  | 4.0.1      |
+| 6.0.4           | 8.0.2          | 2.0.3  | 4.0.1      |
