@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [6.0.4] - 2023-05-16
+
+### Features
+
+- Update Findex 2.0.2 -> 2.0.3 to support fetching multiple entry table values
+
 ## [6.0.3] - 2023-04-26
 
 ### Miscellaneous Tasks
