@@ -359,7 +359,57 @@ async function run(
 
     const results = await search(label, ["Spain"])
 
-    expect(results.total()).toEqual(30)
+    expect(
+      results
+        .get("Spain")
+        .map((location) => location.toNumber())
+        .sort((a, b) => a - b),
+    ).toEqual(
+      USERS.filter((user) => user.country === "Spain")
+        .map((user) => user.id)
+        .sort((a, b) => a - b),
+    )
+  }
+
+  {
+    // Test with multiple keywords.
+
+    const results = await search(label, ["Spain", "France"])
+
+    expect(
+      results
+        .get("Spain")
+        .map((location) => location.toNumber())
+        .sort((a, b) => a - b),
+    ).toEqual(
+      USERS.filter((user) => user.country === "Spain")
+        .map((user) => user.id)
+        .sort((a, b) => a - b),
+    )
+
+    expect(
+      results
+        .get("France")
+        .map((location) => location.toNumber())
+        .sort((a, b) => a - b),
+    ).toEqual(
+      USERS.filter((user) => user.country === "France")
+        .map((user) => user.id)
+        .sort((a, b) => a - b),
+    )
+
+    expect(
+      results
+        .locations()
+        .map((location) => location.toNumber())
+        .sort((a, b) => a - b),
+    ).toEqual(
+      USERS.filter(
+        (user) => user.country === "France" || user.country === "Spain",
+      )
+        .map((user) => user.id)
+        .sort((a, b) => a - b),
+    )
   }
 
   {
