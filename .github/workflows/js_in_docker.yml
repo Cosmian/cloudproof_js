@@ -73,6 +73,10 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: cloudproof_js_${{ github.ref_name }}
-          path: .
+          path: |
+            .
+            !node_modules
+            !.mypy_cache
+            !.git
           retention-days: 1
           if-no-files-found: error
