@@ -17,6 +17,7 @@ jobs:
         python3 scripts/download_wasm.py
         npm install
       kms-version: 4.0.1
+      additional_artifact: true
 
   lint:
     needs: build
