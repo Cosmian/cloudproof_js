@@ -123,6 +123,24 @@ jobs:
       kms-version: 4.3.3
       findex-cloud-version: 0.1.0
 
+  example_slim_wasm:
+    needs: build_in_docker
+    uses: ./.github/workflows/js_in_docker.yml
+    with:
+      subcommands: |
+        npm install http-server -g
+        cd src/pkg
+        http-server -p 3000 --cors &
+        sleep 3
+        cd ../../examples/slim_wasm
+        npm install
+        npm run build
+        npm run serve -- --port 8090 &
+        sleep 3
+        node test.mjs http://localhost:8090
+      kms-version: 4.3.3
+      findex-cloud-version: 0.1.0
+
   example_webpack:
     needs: build
     uses: ./.github/workflows/js.yml

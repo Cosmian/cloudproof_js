@@ -16,10 +16,10 @@
       "default": "./dist/cjs/index.cjs"
     },
     "./slim": {
-      "types": "./dist/cjs-slim/index_slim.d.ts",
+      "types": "./dist/cjs-slim/slim.d.ts",
       "node": "./dist/node/index.cjs",
-      "import": "./dist/es-slim/index_slim.js",
-      "default": "./dist/cjs-slim/index_slim.cjs"
+      "import": "./dist/es-slim/slim.js",
+      "default": "./dist/cjs-slim/slim.cjs"
     },
     "./cover_crypt.wasm": "./dist/cover_crypt.wasm",
     "./findex.wasm": "./dist/findex.wasm",

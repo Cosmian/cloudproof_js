@@ -16,15 +16,11 @@ export const setCoverCryptInit = (arg: () => any): void => {
   wasmInit = arg
 }
 
-/**
- *
- */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function CoverCrypt() {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, jsdoc/require-jsdoc
+export async function CoverCrypt(wasm: string | null = null) {
   if (initialized === undefined) {
     // @ts-expect-error @ts-ignore-error
-    const loadModule = wasmInit()
-    initialized = init(loadModule).then(() => undefined)
+    initialized = init(wasm !== null ? wasm : wasmInit()).then(() => undefined)
   }
 
   await initialized
