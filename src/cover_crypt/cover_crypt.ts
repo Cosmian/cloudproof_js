@@ -19,6 +19,12 @@ export const setCoverCryptInit = (arg: () => any): void => {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, jsdoc/require-jsdoc
 export async function CoverCrypt(wasm: string | null = null) {
   if (initialized === undefined) {
+    if (wasmInit === undefined && wasm === null) {
+      throw new Error(
+        "Please provide an URL pointing to the Cover Crypt WASM file",
+      )
+    }
+
     // @ts-expect-error @ts-ignore-error
     initialized = init(wasm !== null ? wasm : wasmInit()).then(() => undefined)
   }

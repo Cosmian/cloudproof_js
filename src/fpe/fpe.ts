@@ -24,16 +24,18 @@ interface FpeOptions {
 
 /**
  * This Format Preserving Encryption (FPE) function provides FPE-techniques for use in a zero-trust environment. These techniques are based on FPE-FF1 which is described in [NIST:800-38G](https://nvlpubs.nist.gov/nistpubs/specialpublications/nist.sp.800-38g.pdf).
+ *
+ * @param wasm
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function Fpe() {
+export async function Fpe(wasm: string | null = null) {
   if (initialized === undefined) {
-    if (wasmInit === undefined) {
-      throw new Error("Please provide a WASM init function")
+    if (wasmInit === undefined && wasm === null) {
+      throw new Error("Please provide an URL pointing to the FPE WASM file")
     }
 
-    const loadModule = wasmInit()
-    initialized = init(loadModule).then(() => undefined)
+    // @ts-expect-error @ts-ignore-error
+    initialized = init(wasm !== null ? wasm : wasmInit()).then(() => undefined)
   }
 
   await initialized

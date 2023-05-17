@@ -325,18 +325,15 @@ export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
  */
 export type Progress = (indexedValues: ProgressResults) => Promise<boolean>
 
-/**
- *
- */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function Findex() {
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type, jsdoc/require-jsdoc
+export async function Findex(wasm: string | null = null) {
   if (initialized === undefined) {
-    if (wasmInit === undefined) {
-      throw new Error("Please provide a WASM init function")
+    if (wasmInit === undefined && wasm === null) {
+      throw new Error("Please provide an URL pointing to the Findex WASM file")
     }
 
-    const loadModule = wasmInit()
-    initialized = init(loadModule).then(() => undefined)
+    // @ts-expect-error @ts-ignore-error
+    initialized = init(wasm !== null ? wasm : wasmInit()).then(() => undefined)
   }
 
   await initialized
