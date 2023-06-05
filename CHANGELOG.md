@@ -2,13 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0] - 2023-06-01
+
+### Features
+
+- upgrade Findex (v3.0.0 -> v4.0.0):
+  - change indexed values size (require a reset of the index database)
+  - change search interface
+    - change parameter order
+    - remove `maxResultsPerKeyword`
+    - remove `maxGraphDepth`
+    - remove `insecureFetchChainsBatchSize`
+    - searching for a non indexed keyword leads to an empty array for this
+      keyword in the search results instead of this keyword being missing from
+      the results.
+  - change upsert interface:
+    - change parameter order
+    - add deletions
+- add data anonymization methods such as:
+  - noise methods
+  - hash methods
+  - number methods
+  - word methods
+
 ## [8.1.0] - 2023-04-06
 
 ### Features
 
 - Add Format-Preserving-Encryption (FPE):
-  * add integer and big integers encryption (as string with radix and digits)
-  * add string encryption according to given alphabet
+  - add integer and big integers encryption (as string with radix and digits)
+  - add string encryption according to given alphabet
     - "numeric": 0123456789
     - "hexa_decimal": 0123456789abcdef
     - "alpha_lower": abcdefghijklmnopqrstuvwxyz
@@ -19,7 +42,7 @@ All notable changes to this project will be documented in this file.
     - "chinese": creates an Alphabet with the Chinese characters
     - "latin1sup": creates an Alphabet with the latin-1 and latin1-supplement characters (supports French)
     - "latin1sup_alphanum": creates an Alphabet with the latin-1 and latin1-supplement characters but without the non alphanumeric characters (supports French)
-  * add float encryption
+  - add float encryption
 
 ## [8.0.0] - 2023-03-08
 

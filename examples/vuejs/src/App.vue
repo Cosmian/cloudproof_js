@@ -373,6 +373,8 @@ export default defineComponent({
       let { upsert } = await Findex()
 
       await upsert(
+        masterKey,
+        FINDEX_LABEL,
         this.users.flatMap((user, index) => {
           return [
             {
@@ -395,8 +397,7 @@ export default defineComponent({
               : []),
           ]
         }),
-        masterKey,
-        FINDEX_LABEL,
+        [],
         async (uids) => await this.fetchCallback("entries", uids),
         async (uidsAndValues) =>
           await this.upsertCallback("entries", uidsAndValues),
@@ -516,9 +517,9 @@ export default defineComponent({
       if (this.doOr) {
         locations = (
           await search(
-            keywords,
             this.masterKey,
             FINDEX_LABEL,
+            keywords,
             async (uids) => await this.fetchCallback("entries", uids),
             async (uids) => await this.fetchCallback("chains", uids),
           )
@@ -527,9 +528,9 @@ export default defineComponent({
         for (const keyword of keywords) {
           const newLocations = (
             await search(
-              [keyword],
               this.masterKey,
               FINDEX_LABEL,
+              [keyword],
               async (uids) => await this.fetchCallback("entries", uids),
               async (uids) => await this.fetchCallback("chains", uids),
             )

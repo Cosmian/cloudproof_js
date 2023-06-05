@@ -18,9 +18,10 @@ test("errors", async () => {
   const label = new Label(randomBytes(32))
 
   await findex.upsert(
-    toUpsert,
     masterKey,
     label,
+    toUpsert,
+    [],
     callbacks.fetchEntries,
     callbacks.upsertEntries,
     callbacks.insertChains,
@@ -29,9 +30,10 @@ test("errors", async () => {
   // Master key size
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       new FindexKey(randomBytes(72)),
       label,
+      toUpsert,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -41,9 +43,9 @@ test("errors", async () => {
   )
   expect(async () => {
     await findex.search(
-      "Answer",
       new FindexKey(randomBytes(13)),
       label,
+      "Answer",
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )
@@ -54,64 +56,69 @@ test("errors", async () => {
   // toUpsert argument
   expect(async () => {
     await findex.upsert(
+      masterKey,
+      label,
       undefined,
-      masterKey,
-      label,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    "During Findex upsert: `newIndexedEntries` should be an array, undefined received",
+    "During Findex upsert: `additions` should be an array, undefined received",
   )
   expect(async () => {
     await findex.upsert(
+      masterKey,
+      label,
       [{}],
-      masterKey,
-      label,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    "During Findex upsert: all the `indexedValue` inside the `newIndexedEntries` array should be of type IndexedValue, Location or Keyword, undefined received (undefined).",
+    "During Findex upsert: all the `indexedValue` inside the `additions` array should be of type IndexedValue, Location or Keyword, undefined received (undefined).",
   )
   expect(async () => {
     await findex.upsert(
+      masterKey,
+      label,
       [{ indexedValue: Location.fromNumber(42) }],
-      masterKey,
-      label,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    "During Findex upsert: all the elements inside the `newIndexedEntries` array should have an iterable property `keywords`, undefined received (undefined).",
+    "During Findex upsert: all the elements inside the `additions` array should have an iterable property `keywords`, undefined received (undefined).",
   )
   expect(async () => {
     await findex.upsert(
+      masterKey,
+      label,
       [
         {
           indexedValue: Location.fromNumber(42),
           keywords: [{ name: "Thibaud" }],
         },
       ],
-      masterKey,
-      label,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    'During Findex upsert: all the `keywords` inside the `newIndexedEntries` array should be of type `Keyword` or string, object received ({"name":"Thibaud"}).',
+    'During Findex upsert: all the `keywords` inside the `additions` array should be of type `Keyword` or string, object received ({"name":"Thibaud"}).',
   )
 
   // Callbacks are not functions
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       null,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -121,9 +128,10 @@ test("errors", async () => {
   )
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       [1, 2, 3],
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -135,9 +143,10 @@ test("errors", async () => {
   // Callbacks return
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       () => {},
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -147,9 +156,10 @@ test("errors", async () => {
   )
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       callbacks.fetchEntries,
       () => {
         return [undefined]
@@ -161,9 +171,10 @@ test("errors", async () => {
   )
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       callbacks.fetchEntries,
       () => {
         return [{}]
@@ -175,9 +186,10 @@ test("errors", async () => {
   )
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       (uids) => {
         return uids.map((uid) => ({
           uid,
@@ -188,13 +200,14 @@ test("errors", async () => {
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was empty\)/,
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was empty/,
   )
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       (uids) => {
         return uids.map((uid) => ({
           uid,
@@ -205,14 +218,15 @@ test("errors", async () => {
       callbacks.insertChains,
     )
   }).rejects.toThrow(
-    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was '\[([0-9]+(, )?)+\]'\)/,
+    /During Findex upsert: fail to decrypt one of the `value` returned by the fetch entries callback \(uid was 'Uid\(\[([0-9]+(, )?)+\]\)', value was '\[([0-9]+(, )?)+\]'/,
   )
 
   expect(async () => {
     await findex.upsert(
-      toUpsert,
       masterKey,
       label,
+      toUpsert,
+      [],
       (uids) => {
         return uids.map((uid) => ({
           uid: uid.slice(0, 12),

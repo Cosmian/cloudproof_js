@@ -38,9 +38,10 @@ describe("Findex Upsert", async () => {
     }
 
     await findex.upsert(
-      newIndexedEntries,
       masterKey,
       label,
+      newIndexedEntries,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -62,9 +63,10 @@ describe("Findex Upsert", async () => {
     }
 
     await findex.upsert(
-      newIndexedEntries,
       masterKey,
       label,
+      newIndexedEntries,
+      [],
       callbacks.fetchEntries,
       callbacks.upsertEntries,
       callbacks.insertChains,
@@ -87,9 +89,10 @@ describe("Findex Search", async () => {
   }
 
   await findex.upsert(
-    newIndexedEntries,
     masterKey,
     label,
+    newIndexedEntries,
+    [],
     callbacks.fetchEntries,
     callbacks.upsertEntries,
     callbacks.insertChains,
@@ -97,9 +100,9 @@ describe("Findex Search", async () => {
 
   bench("Search", async () => {
     await findex.search(
-      new Set([USERS[0].firstName]),
       masterKey,
       label,
+      new Set([USERS[0].firstName]),
       callbacks.fetchEntries,
       callbacks.fetchChains,
     )

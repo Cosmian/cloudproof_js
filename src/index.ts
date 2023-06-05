@@ -7,12 +7,15 @@ import { setFindexInit } from "./findex/findex"
 import fpe_wasm from "./pkg/fpe/cloudproof_fpe_bg.wasm"
 import { setFpeInit } from "./fpe/fpe"
 
+import anonymization_wasm from "./pkg/anonymization/cloudproof_anonymization_bg.wasm"
+import { setAnonymizationInit } from "./anonymization/anonymization"
+
 export {
   CoverCryptMasterKey,
   type CoverCryptKeyGeneration,
 } from "./cover_crypt/key_generation"
-export { type CoverCryptHybridDecryption } from "./cover_crypt/decryption"
-export { type CoverCryptHybridEncryption } from "./cover_crypt/encryption"
+export { type CoverCryptHybridDecryption } from "./cover_crypt/decryption" // to remove?
+export { type CoverCryptHybridEncryption } from "./cover_crypt/encryption" // to remove?
 export * from "./cover_crypt/cover_crypt"
 export * from "./cover_crypt/interfaces/access_policy"
 export * from "./cover_crypt/interfaces/encrypted_header"
@@ -22,6 +25,7 @@ export * from "./cover_crypt/interfaces/policy"
 export * from "./findex/findex"
 export * from "./findex/findex_cloud"
 export * from "./fpe/fpe"
+export * from "./anonymization/anonymization"
 export { logger } from "./utils/logger"
 export {
   hexDecode,
@@ -56,3 +60,6 @@ setFindexInit(() => findex_wasm())
 
 // @ts-expect-error @ts-ignore-error
 setFpeInit(() => fpe_wasm())
+
+// @ts-expect-error @ts-ignore-error
+setAnonymizationInit(() => anonymization_wasm())
