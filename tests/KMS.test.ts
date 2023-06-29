@@ -24,6 +24,7 @@ import {
   hexEncode,
 } from ".."
 
+import * as jose from "jose"
 import { expect, test } from "vitest"
 
 test("serialize/deserialize Create", async () => {
@@ -164,6 +165,47 @@ test(
     await client.retrieveCoverCryptSecretMasterKey(
       importedPrivateKeyUniqueIdentifier,
     )
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS With JWE encryption",
+  async () => {
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const client = new KmsClient(
+      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+
+    client.setEncryption({
+      kty: "OKP",
+      use: "enc",
+      crv: "X25519",
+      kid: "DX3GC+Fx3etxfRJValQNbqaB0gs=",
+      x: "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY",
+      alg: "ECDH-ES",
+    })
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    await client.createCoverCryptMasterKeyPair(policy)
   },
   {
     timeout: 30 * 1000,

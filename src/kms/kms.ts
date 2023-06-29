@@ -34,6 +34,7 @@ import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
 import { Decrypt } from "./requests/Decrypt"
 import { decode, encode } from "../utils/leb128"
+import * as jose from "jose"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -47,6 +48,7 @@ export interface KmsRequest<TResponse> {
 export class KmsClient {
   private readonly url: string
   private readonly headers: HeadersInit
+  private publicKey: jose.JWK | null = null
 
   /**
    * Instantiate a KMS Client
@@ -63,6 +65,10 @@ export class KmsClient {
     }
   }
 
+  setEncryption(publicKey: jose.JWK): void {
+    this.publicKey = publicKey
+  }
+
   /**
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
@@ -73,9 +79,21 @@ export class KmsClient {
     request: KmsRequest<TResponse> & { tag: string },
   ): Promise<TResponse> {
     const kmipUrl = new URL("kmip/2_1", this.url)
+    let body = serialize(request);
+
+    if (this.publicKey !== null) {
+      body = await new jose.CompactEncrypt(new TextEncoder().encode(body))
+        .setProtectedHeader({
+          alg: "ECDH-ES",
+          enc: "A256GCM",
+          kid: this.publicKey.kid,
+        })
+        .encrypt(await jose.importJWK(this.publicKey))
+    }
+
     const response = await fetch(kmipUrl, {
       method: "POST",
-      body: serialize(request),
+      body,
       headers: this.headers,
     })
 
