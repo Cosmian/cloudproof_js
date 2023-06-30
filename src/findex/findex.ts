@@ -1,4 +1,5 @@
 import init, {
+  webassembly_logger_init,
   webassembly_search,
   webassembly_upsert,
 } from "../pkg/findex/cloudproof_findex"
@@ -12,6 +13,7 @@ export * from "./sqlite"
 export * from "./in_memory"
 
 let initialized: Promise<void> | undefined
+let loggerInit = false
 
 let wasmInit: (() => any) | undefined
 export const setFindexInit = (arg: () => any): void => {
@@ -351,6 +353,8 @@ export async function Findex() {
    * @param {FetchEntries} fetchEntries callback to fetch the entries table
    * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
    * @param {InsertChains} insertChains callback to upsert inside chains table
+   * @param options Additional optional options to the upsert
+   * @param options.verbose the optional verbose bool parameter
    */
   const upsert = async (
     masterKey: FindexKey | SymmetricKey | Uint8Array,
@@ -360,7 +364,13 @@ export async function Findex() {
     fetchEntries: FetchEntries,
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
+    options: { verbose?: false } = {},
   ): Promise<void> => {
+    const verbose = options.verbose === undefined ? false : options.verbose
+    if (verbose && !loggerInit) {
+      await webassembly_logger_init()
+      loggerInit = true
+    }
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
@@ -403,6 +413,7 @@ export async function Findex() {
    * @param {FetchChains} fetchChains callback to fetch the chains table
    * @param options Additional optional options to the search
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
+   * @param options.verbose the optional verbose bool parameter
    * @returns the search results
    */
   const search = async (
@@ -413,8 +424,15 @@ export async function Findex() {
     fetchChains: FetchChains,
     options: {
       progress?: Progress
+      verbose?: false
     } = {},
   ): Promise<SearchResults> => {
+    const verbose = options.verbose === undefined ? false : options.verbose
+    if (verbose && !loggerInit) {
+      await webassembly_logger_init()
+      loggerInit = true
+    }
+
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
