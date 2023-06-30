@@ -69,6 +69,6 @@ def download_wasm(version: str) -> bool:
         return False
 
 if __name__ == '__main__':
-    RET = download_wasm('v2.0.1')
+    RET = download_wasm('v2.1.0')
     if RET is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('last_build/release/v2.0.1')
+        download_wasm('last_build/add_logs_on_findex_callbacks')
