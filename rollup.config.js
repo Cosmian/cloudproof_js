@@ -21,9 +21,10 @@ const rolls = (fmt, env) => ({
     entryFileNames: `[name].${fmt === "cjs" ? "cjs" : "js"}`,
     name: "cloudproof_js",
   },
+  external: ["jose", "uuid", "base64-js"],
   plugins: [
     commonjs(),
-    nodeResolve(),
+    // nodeResolve(),
     // We want to inline our wasm bundle as base64. Not needing browser users
     // to fetch an additional asset is a boon as there's less room for errors
     env !== "slim" &&

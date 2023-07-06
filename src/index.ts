@@ -63,3 +63,25 @@ setFpeInit(() => fpe_wasm())
 
 // @ts-expect-error @ts-ignore-error
 setAnonymizationInit(() => anonymization_wasm())
+
+import * as jose from 'jose'
+
+export async function testJwe()
+{
+  const key = await jose.importJWK({
+    "kty": "EC",
+    "use": "enc",
+    "crv": "P-256",
+    "kid": "RVrMP7kJ6NwwHxC/6irKbpipcHc=",
+    "x": "5i1c_QWeZ1Llq7cdzUJo2wvFauLKiJtQYi5m7GEcwlE",
+    "y": "WwqqQEOVNVwN3CXZ18IKp7UBiynXfviuhGFutwy7yc4",
+    "alg": "ECDH-ES+A256KW"
+  },
+  )
+
+  const jwe = await new jose.CompactEncrypt(
+    new TextEncoder().encode('It’s a dangerous business, Frodo, going out your door.'),
+  )
+    .setProtectedHeader({ alg: 'ECDH-ES', enc: 'A256GCM' })
+    .encrypt(key)
+}
