@@ -140,3 +140,15 @@ export function bytesEquals(
 
   return true
 }
+
+export function toBytes(value: string | Uint8Array): Uint8Array {
+  if (typeof value === "string") {
+    return new TextEncoder().encode(value)
+  } else if (value instanceof Uint8Array) {
+    return value
+  } else {
+    throw new Error(
+      `Conversion problem: toBytes: Type of ${typeof value} not supported.`,
+    )
+  }
+}
