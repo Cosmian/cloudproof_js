@@ -28,6 +28,7 @@ def download_wasm(version: str) -> bool:
     to_be_copied.update(files_to_be_copied('cover_crypt'))
     to_be_copied.update(files_to_be_copied('fpe'))
     to_be_copied.update(files_to_be_copied('anonymization'))
+    to_be_copied.update(files_to_be_copied('ecies'))
 
     missing_files = False
     for key, value in to_be_copied.items():
@@ -41,9 +42,11 @@ def download_wasm(version: str) -> bool:
 
     url = f'https://package.cosmian.com/cloudproof_rust/{version}/wasm.zip'
     try:
-        r = urllib.request.urlopen(url)
-        if r.getcode() != 200:
-            print(f'Cannot get cloudproof_rust {version} ({r.getcode()})')
+        response = urllib.request.urlopen(url)
+        if response.getcode() != 200:
+            print(
+                f'Cannot get cloudproof_rust {version} ({response.getcode()})'
+            )
         else:
             print(f'Copying new files from cloudproof_rust {version}')
             if path.exists('tmp'):
@@ -51,7 +54,7 @@ def download_wasm(version: str) -> bool:
             if path.exists('wasm.zip'):
                 remove('wasm.zip')
 
-            open('wasm.zip', 'wb').write(r.read())
+            open('wasm.zip', 'wb').write(response.read())
             with zipfile.ZipFile('wasm.zip', 'r') as zip_ref:
                 zip_ref.extractall('tmp')
                 for key, value in to_be_copied.items():
@@ -68,7 +71,8 @@ def download_wasm(version: str) -> bool:
         print(f'Cannot get cloudproof_rust {version} ({exception})')
         return False
 
+
 if __name__ == '__main__':
     RET = download_wasm('v2.1.0')
     if RET is False and getenv('GITHUB_ACTIONS'):
-        download_wasm('last_build/add_logs_on_findex_callbacks')
+        download_wasm('last_build/update_cover_crypt_12')

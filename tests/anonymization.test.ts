@@ -1,5 +1,3 @@
-// import { Anonymization, logger } from ".."
-
 import { expect, test } from "vitest"
 import { Anonymization } from ".."
 
