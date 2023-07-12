@@ -10,27 +10,28 @@ import {
  *
  */
 export class EciesSalsaSealBox {
+  X25519_PRIVATE_KEY_LENGTH: number = 32
+
   public static generateKeyPair(): [Uint8Array, Uint8Array] {
-    const pk_sk = webassembly_x25519_generate_key_pair()
-    return [pk_sk.slice(0, 32), pk_sk.slice(32)]
+    const publicKeyPrivateKey = webassembly_x25519_generate_key_pair()
+    return [publicKeyPrivateKey.slice(0, 32), publicKeyPrivateKey.slice(32)]
   }
 
   /**
-   * The function encrypts a plaintext message using ECIES salsa seal box
-   * @param {Uint8Array} plaintext - The `plaintext` parameter is the data that you
-   * want to encrypt. It should be provided as a `Uint8Array`, which is an
-   * array-like object that represents an array of 8-bit unsigned integers.
-   * @param {Uint8Array} publicKey - The publicKey parameter is a Uint8Array that
-   * represents the public key used for encryption. It is typically a binary
-   * representation of the public key, which can be generated using a cryptographic
-   * library or algorithm.
-   * @param {Uint8Array} authenticatedData - The authenticatedData parameter is
-   * additional data that you want to include in the encryption process. This data
-   * is not encrypted but is authenticated, meaning it is included in the
-   * encryption process to ensure its integrity and authenticity. It can be any
-   * arbitrary data that you want to associate with the encrypted message.
-   * @returns a Uint8Array, which is an array-like object that represents an array
-   * of 8-bit unsigned integers.
+   * The function encrypts a plaintext message using the ECIES-Salsa20 encryption
+   * algorithm with a given public key and authenticated data.
+   * @param {string | Uint8Array} plaintext - The `plaintext` parameter is the
+   * message that you want to encrypt. It can be either a string or a Uint8Array
+   * (an array of bytes).
+   * @param {Uint8Array} publicKey - The `publicKey` parameter is a Uint8Array that
+   * represents the public key used for encryption. It is typically generated using
+   * a cryptographic algorithm and is used to encrypt the plaintext data.
+   * @param {string | Uint8Array} authenticatedData - The `authenticatedData`
+   * parameter is additional data that is included in the encryption process but is
+   * not encrypted. It is used to provide integrity and authenticity to the
+   * encrypted message. This data can be any string or binary data that you want to
+   * include with the encrypted message.
+   * @returns a Uint8Array.
    */
   public static encrypt(
     plaintext: string | Uint8Array,
@@ -44,6 +45,21 @@ export class EciesSalsaSealBox {
     )
   }
 
+  /**
+   * The function decrypts a ciphertext using a private key and authenticated data.
+   * @param {string | Uint8Array} ciphertext - The `ciphertext` parameter is the
+   * encrypted data that you want to decrypt. It can be either a string or a
+   * Uint8Array, which represents the encrypted data in either text or binary
+   * format.
+   * @param {Uint8Array} privateKey - The `privateKey` parameter is a Uint8Array
+   * that represents the private key used for decryption. It is a binary
+   * representation of the private key.
+   * @param {string | Uint8Array} authenticatedData - The `authenticatedData`
+   * parameter is additional data that is used for authentication but is not
+   * encrypted. It can be any string or binary data that you want to include for
+   * authentication purposes.
+   * @returns a Uint8Array.
+   */
   public static decrypt(
     ciphertext: string | Uint8Array,
     privateKey: Uint8Array,

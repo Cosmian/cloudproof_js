@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.0] - 2023-07-12
+
+### Features
+
+- Add verbosity on Findex callbacks
+- Add ECIES Salsa seal box bindings
+- Add AES256GCM bindings
+
 ## [9.0.0] - 2023-06-01
 
 ### Features
