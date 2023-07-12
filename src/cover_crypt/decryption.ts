@@ -29,7 +29,6 @@ export class CoverCryptHybridDecryption {
 
   /**
    * Decrypts a CoverCrypt ciphertext header using the given user decryption key
-   *
    * @param {Uint8Array} encryptedHeader CoverCrypt encrypted header
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
@@ -57,7 +56,6 @@ export class CoverCryptHybridDecryption {
 
   /**
    * Decrypts a AES256-GCM block
-   *
    * @param {Uint8Array} symmetricKey AES key
    * @param {Uint8Array} encryptedBytes Encrypted block
    * @param {object} options Additional optional options to the encryption
@@ -85,7 +83,6 @@ export class CoverCryptHybridDecryption {
 
   /**
    * Hybrid decrypt wrapper: CoverCrypt decrypt then AES decrypt
-   *
    * @param  {Uint8Array} ciphertext the encrypted data
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during
@@ -103,7 +100,6 @@ export class CoverCryptHybridDecryption {
 
 /**
  * Hybrid decrypt wrapper: CoverCrypt decrypt then AES decrypt
- *
  * @param decryptionKey the user key to decrypt
  * @param {Uint8Array} ciphertext the encrypted data
  * @param {object} options Additional optional options to the encryption

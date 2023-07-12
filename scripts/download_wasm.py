@@ -24,10 +24,11 @@ def download_wasm(version: str) -> bool:
 
     ssl._create_default_https_context = ssl._create_unverified_context
 
-    to_be_copied = files_to_be_copied('findex')
+    to_be_copied = files_to_be_copied('aesgcm')
+    to_be_copied.update(files_to_be_copied('anonymization'))
     to_be_copied.update(files_to_be_copied('cover_crypt'))
     to_be_copied.update(files_to_be_copied('fpe'))
-    to_be_copied.update(files_to_be_copied('anonymization'))
+    to_be_copied.update(files_to_be_copied('findex'))
     to_be_copied.update(files_to_be_copied('ecies'))
 
     missing_files = False

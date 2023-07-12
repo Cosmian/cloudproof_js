@@ -1,6 +1,9 @@
 import anonymization_wasm from "./pkg/anonymization/cloudproof_anonymization_bg.wasm"
 import { setAnonymizationInit } from "./anonymization/anonymization"
 
+import aesgcm_wasm from "./pkg/aesgcm/cloudproof_aesgcm_bg.wasm"
+import { setAesGcmInit } from "./aesgcm/init"
+
 import ecies_wasm from "./pkg/ecies/cloudproof_ecies_bg.wasm"
 import { setEciesInit } from "./ecies/ecies"
 
@@ -13,6 +16,7 @@ import { setFindexInit } from "./findex/findex"
 import fpe_wasm from "./pkg/fpe/cloudproof_fpe_bg.wasm"
 import { setFpeInit } from "./fpe/fpe"
 
+export * from "./aesgcm/init"
 export * from "./anonymization/anonymization"
 export * from "./ecies/ecies"
 export {
@@ -55,6 +59,9 @@ export * from "./kms/structs/object_attributes"
 export * from "./kms/structs/types"
 export * from "./kms/structs/object_data_structures"
 export * from "./kms/structs/objects"
+
+// @ts-expect-error @ts-ignore-error
+setAesGcmInit(() => aesgcm_wasm())
 
 // @ts-expect-error @ts-ignore-error
 setAnonymizationInit(() => anonymization_wasm())
