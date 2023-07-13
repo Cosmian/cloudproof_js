@@ -6,7 +6,7 @@ import {
   UidsAndValues,
   UidsAndValuesToUpsert,
   UpsertEntries,
-} from "./findex"
+} from "./init"
 
 /**
  * @returns the callbacks

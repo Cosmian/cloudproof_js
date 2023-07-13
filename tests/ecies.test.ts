@@ -10,18 +10,24 @@ test("Ecies SalsaSealBox", async () => {
   const keyPair = EciesSalsaSealBox.generateKeyPair()
 
   for (let plaintextSize = 1; plaintextSize <= 100; plaintextSize++) {
-    const plaintext = randomBytes(plaintextSize)
-    const authenticatedData = "authenticatedData"
-    const ciphertext = EciesSalsaSealBox.encrypt(
-      plaintext,
-      keyPair[0],
-      authenticatedData,
-    )
-    const cleartext = EciesSalsaSealBox.decrypt(
-      ciphertext,
-      keyPair[1],
-      authenticatedData,
-    )
-    expect(bytesEquals(plaintext, cleartext))
+    for (
+      let authenticatedDataSize = 0;
+      authenticatedDataSize <= 20;
+      authenticatedDataSize += 5
+    ) {
+      const plaintext = randomBytes(plaintextSize)
+      const authenticatedData = randomBytes(authenticatedDataSize)
+      const ciphertext = EciesSalsaSealBox.encrypt(
+        plaintext,
+        keyPair[0],
+        authenticatedData,
+      )
+      const cleartext = EciesSalsaSealBox.decrypt(
+        ciphertext,
+        keyPair[1],
+        authenticatedData,
+      )
+      expect(bytesEquals(plaintext, cleartext))
+    }
   }
 })

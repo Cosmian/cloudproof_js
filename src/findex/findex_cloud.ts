@@ -6,13 +6,13 @@ import {
   Label,
   SearchResults,
   indexedEntriesToBytes,
-} from "./findex"
+} from "./init"
 
 import {
-  webassembly_search_cloud,
-  webassembly_upsert_cloud,
   webassembly_derive_new_token,
   webassembly_generate_new_token,
+  webassembly_search_cloud,
+  webassembly_upsert_cloud,
 } from "../pkg/findex/cloudproof_findex"
 
 /**
