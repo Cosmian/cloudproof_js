@@ -60,7 +60,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: v4.0.0
+      branch: v4.0.1
       target: x86_64-unknown-linux-gnu
       kms-version: 4.4.2
       copy_fresh_build: false
