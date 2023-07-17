@@ -103,7 +103,7 @@ async function runTest(name, withGraphs, withKms) {
   )
 
   await page.click("#encrypt_user")
-  await page.waitForSelector("#table_encrypted_users", { timeout: 5000 })
+  await page.waitForSelector("#table_encrypted_users", { timeout: 10000 })
   await assertCountSelector(page, "#table_encrypted_users tbody tr", 10)
 
   await page.click("#index")

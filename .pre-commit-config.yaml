@@ -10,14 +10,14 @@
 exclude: dist|tests/data|tests/findex.test.ts|src/pkg|examples/full_text_search/data
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
-    rev: v2.1.1
+    rev: v2.3.0
     hooks:
       - id: conventional-pre-commit
         stages: [commit-msg]
         args: [] # optional: list of Conventional Commits types to allow e.g. [feat, fix, ci, chore, test]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.0.0-alpha.4
+    rev: v3.0.0
     hooks:
       - id: prettier
         stages: [commit]
@@ -26,7 +26,7 @@ repos:
           - markdown
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.32.2
+    rev: v0.35.0
     hooks:
       - id: markdownlint-fix
         args: [--disable=MD004, --disable=MD013, --disable=MD024, --disable=MD041]
@@ -39,24 +39,24 @@ repos:
       - id: markdown-toc
 
   - repo: https://github.com/jumanjihouse/pre-commit-hook-yamlfmt
-    rev: 0.2.2
+    rev: 0.2.3
     hooks:
       - id: yamlfmt
         args: [--mapping, '2', --sequence, '4', --offset, '2']
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.12.14
+    rev: v1.16.1
     hooks:
       - id: typos
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.27.0
+    rev: v8.40.0
     hooks:
       - id: eslint
         args: [src, --fix]
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.3.1
+    rev: v1.5.1
     hooks:
       - id: forbid-crlf
       - id: remove-crlf
@@ -64,7 +64,7 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/sirosen/texthooks
-    rev: 0.4.0
+    rev: 0.5.0
     hooks:
       - id: fix-smartquotes
       - id: fix-ligatures
@@ -79,12 +79,12 @@ repos:
       - id: shellcheck
 
   - repo: https://github.com/Cretezy/flutter-format-pre-commit
-    rev: 4a1df675bb74dea371c17934933e257e46f8dd98
+    rev: 35be2187259c39889e2ac1936399b8a1ae6a5a00
     hooks:
       - id: flutter-format
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v4.4.0
     hooks:
       - id: check-added-large-files
       - id: check-ast
