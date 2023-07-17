@@ -5,7 +5,6 @@ import {
 } from "../pkg/anonymization/cloudproof_anonymization"
 
 /**
-
 The NumberAggregator is a data anonymization technique used to round sensitive measurements
 to the desired power of ten.
  */
