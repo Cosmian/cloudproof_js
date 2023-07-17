@@ -81,3 +81,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 | 8.0.0           | 1.0.0               |
 | 8.1.0           | 1.1.0               |
 | 9.0.0           | 2.0.1               |
+| 9.1.0           | 2.1.0               |

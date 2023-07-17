@@ -7,7 +7,7 @@ import {
   UidsAndValues,
   UidsAndValuesToUpsert,
   UpsertEntries,
-} from "./findex"
+} from "./init"
 
 /**
  * @param db the SQLite3 connection

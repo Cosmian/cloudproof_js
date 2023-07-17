@@ -1,4 +1,5 @@
 import init, {
+  webassembly_logger_init,
   webassembly_search,
   webassembly_upsert,
 } from "../pkg/findex/cloudproof_findex"
@@ -12,6 +13,7 @@ export * from "./sqlite"
 export * from "./in_memory"
 
 let initialized: Promise<void> | undefined
+let loggerInit = false
 
 let wasmInit: (() => any) | undefined
 export const setFindexInit = (arg: () => any): void => {
@@ -95,7 +97,6 @@ export class Location {
    * that's why we use `BigInt` internally but we convert to `number` (it's theoretically wrong) because `number`
    * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for example, JS will
    * not be able to read it.
-   *
    * @param value number
    * @returns location
    */
@@ -108,7 +109,6 @@ export class Location {
 
   /**
    * Convert UUIDv4 only because they are more common.
-   *
    * @param uuidv4 uuid
    * @returns location
    */
@@ -198,7 +198,6 @@ export interface IndexedEntry {
 /**
  * Generates aliases for a keyword to use in upsert
  * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thib", "Thib" => "Thiba", "Thiba" => "Thibau", "Thibau" => "Thibaud"]
- *
  * @param keyword Generate aliases to this keyword
  * @param minChars Start at this number of characters
  * @param maxChars Do not generate alias of greater length than maxChars, last alias will target the original keyword
@@ -343,7 +342,6 @@ export async function Findex() {
 
   /**
    * Insert or update existing (a.k.a upsert) entries in the index
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
@@ -351,6 +349,8 @@ export async function Findex() {
    * @param {FetchEntries} fetchEntries callback to fetch the entries table
    * @param {UpsertEntries} upsertEntries callback to upsert inside entries table
    * @param {InsertChains} insertChains callback to upsert inside chains table
+   * @param options Additional optional options to the upsert
+   * @param options.verbose the optional verbose bool parameter
    */
   const upsert = async (
     masterKey: FindexKey | SymmetricKey | Uint8Array,
@@ -360,7 +360,13 @@ export async function Findex() {
     fetchEntries: FetchEntries,
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
+    options: { verbose?: false } = {},
   ): Promise<void> => {
+    const verbose = options.verbose === undefined ? false : options.verbose
+    if (verbose && !loggerInit) {
+      await webassembly_logger_init()
+      loggerInit = true
+    }
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())
@@ -395,7 +401,6 @@ export async function Findex() {
 
   /**
    * Search indexed keywords and return the corresponding IndexedValues
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param keywords keywords to search inside the indexes
@@ -403,6 +408,7 @@ export async function Findex() {
    * @param {FetchChains} fetchChains callback to fetch the chains table
    * @param options Additional optional options to the search
    * @param options.progress the optional callback of found values as the search graph is walked. Returning false stops the walk
+   * @param options.verbose the optional verbose bool parameter
    * @returns the search results
    */
   const search = async (
@@ -413,8 +419,15 @@ export async function Findex() {
     fetchChains: FetchChains,
     options: {
       progress?: Progress
+      verbose?: false
     } = {},
   ): Promise<SearchResults> => {
+    const verbose = options.verbose === undefined ? false : options.verbose
+    if (verbose && !loggerInit) {
+      await webassembly_logger_init()
+      loggerInit = true
+    }
+
     // convert key to a single representation
     if (masterKey instanceof SymmetricKey) {
       masterKey = new FindexKey(masterKey.bytes())

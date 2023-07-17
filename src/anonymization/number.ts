@@ -5,7 +5,6 @@ import {
 } from "../pkg/anonymization/cloudproof_anonymization"
 
 /**
-
 The NumberAggregator is a data anonymization technique used to round sensitive measurements
 to the desired power of ten.
  */
@@ -13,7 +12,6 @@ export class NumberAggregator {
   private readonly _numberAggregator: WebAssemblyNumberAggregator
   /**
    * Creates an instance of NumberAggregator.
-   *
    * @param powerOfTen The desired power of ten to round the measurements to.
    */
   constructor(powerOfTen: number) {
@@ -22,7 +20,6 @@ export class NumberAggregator {
 
   /**
    * Applies the number aggregator on the provided data.
-   *
    * @param data The number or bigint to apply the number aggregator on.
    * @returns The rounded value of the data.
    * @throws An error if the type of data is not supported.
@@ -39,7 +36,6 @@ export class NumberAggregator {
 }
 /**
  * A data anonymization technique to round dates to the unit of time specified.
- *
  * @class
  */
 export class DateAggregator {
@@ -47,7 +43,6 @@ export class DateAggregator {
 
   /**
    * Creates a new instance of the `DateAggregator`.
-   *
    * @param {string} timeUnit - The unit of time to round the date to.
    */
   constructor(timeUnit: string) {
@@ -56,7 +51,6 @@ export class DateAggregator {
 
   /**
    * Applies the `DateAggregator` to the given date.
-   *
    * @param {string} data - The date to apply the `DateAggregator` to.
    * @returns {string} - The rounded date string.
    * @throws {Error} - If the input data is not a valid date string.

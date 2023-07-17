@@ -37,7 +37,6 @@ export class CoverCryptHybridEncryption {
 
   /**
    * Generate and encrypt a symmetric key using the public key and policy.
-   *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.headerMetadata Data encrypted in the header
@@ -77,7 +76,6 @@ export class CoverCryptHybridEncryption {
 
   /**
    * Encrypts a AES256-GCM block
-   *
    * @param {Uint8Array} symmetricKey Symmetric key to use to encrypt
    * @param {Uint8Array} plaintext Stuff to encrypt
    * @param {object} options Additional optional options to the encryption
@@ -105,7 +103,6 @@ export class CoverCryptHybridEncryption {
 
   /**
    * Hybrid encrypt wrapper: CoverCrypt encrypt then AES encrypt
-   *
    * @param {string} accessPolicy Encrypt with this access policy
    * @param {Uint8Array} plaintext Stuff to encrypt
    * @param {object} options Additional optional options to the encryption
@@ -133,7 +130,6 @@ export class CoverCryptHybridEncryption {
 
 /**
  * Hybrid encrypt wrapper: CoverCrypt encrypt then AES encrypt
- *
  * @param {Policy} policy CoverCrypt global policy
  * @param {Uint8Array} publicKey Master public key
  * @param {string} accessPolicy Encrypt with this access policy

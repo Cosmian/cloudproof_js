@@ -9,7 +9,6 @@ export class Hasher {
 
   /**
    * Creates a Hasher instance with the specified hash function and salt.
-   *
    * @param {string} hasherMethod - The name of the hash function to use.
    * @param {Iterable<number>|undefined} [salt] - The optional salt to use in the hash function.
    */
@@ -37,7 +36,6 @@ export class Hasher {
 
   /**
    * Applies the hash function to the specified elements and returns the resulting hash value.
-   *
    * @param {string|Iterable<number>} data - The elements to apply the hash function to.
    * @returns {string} The resulting hash value as a string.
    */

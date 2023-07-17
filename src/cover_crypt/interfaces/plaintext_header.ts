@@ -30,7 +30,6 @@ export class PlaintextHeader {
 
   /**
    * Deserialize a clear text header.
-   *
    * @param plaintextHeader a raw header
    * @returns the object deserialized
    */

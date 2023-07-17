@@ -38,7 +38,7 @@ test(
   async () => {
     await runInFindexCloud()
   },
-  { timeout: 30000 },
+  { timeout: 60000 },
 )
 
 test("in memory", async () => {
