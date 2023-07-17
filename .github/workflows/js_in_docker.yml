@@ -16,7 +16,7 @@ on:
       regression_files:
         required: false
         type: string
-        default: ''
+        default: ""
 
 jobs:
   js-in-docker:
