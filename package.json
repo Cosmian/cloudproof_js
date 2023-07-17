@@ -47,7 +47,6 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
-    "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^9.0.2",
     "@rollup/plugin-wasm": "^6.0.1",
     "@types/better-sqlite3": "^7.6.3",
