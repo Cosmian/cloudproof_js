@@ -400,7 +400,6 @@ export async function Findex() {
             },
         )
         return newIds.map((value: Uint8Array) => new Keyword(value))
-
     }
 
     /**
