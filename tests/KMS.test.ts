@@ -118,7 +118,7 @@ test(
     const { Policy, PolicyAxis } = await CoverCrypt()
 
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     if (!(await client.up())) {
       console.error("No KMIP server. Skipping test")
@@ -176,7 +176,7 @@ test(
     await CoverCrypt()
 
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
 
     if (!(await client.up())) {
@@ -325,7 +325,7 @@ test(
   "KMS CoverCrypt keys",
   async () => {
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
@@ -446,12 +446,16 @@ test(
   "Key rotation security when importing with tempered access policy",
   async () => {
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
+    const ret = await client.up()
+    console.log(`server up?: ${ret}`)
+
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
       return
     }
+    console.log("KMIP server running...")
 
     const { Policy, PolicyAxis } = await CoverCrypt()
 
@@ -531,7 +535,7 @@ test(
   "Decrypt old ciphertext after rotation",
   async () => {
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")

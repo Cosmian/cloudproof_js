@@ -187,7 +187,7 @@ export default defineComponent({
       )
 
       if (this.kmsServerUrl) {
-        const client = new KmsClient(new URL(this.kmsServerUrl))
+        const client = new KmsClient(this.kmsServerUrl)
         const [privateMasterKeyUID, publicKeyUID] =
           await client.createCoverCryptMasterKeyPair(policy)
 
@@ -733,12 +733,12 @@ export default defineComponent({
               class="form-control"
               id="kmsServerUrl"
               v-model="kmsServerUrl"
-              placeholder="http://localhost:9998/kmip/2_1"
+              placeholder="http://localhost:9998"
             />
             <button
               class="btn btn-outline-secondary"
               type="button"
-              @click="kmsServerUrl = 'http://localhost:9998/kmip/2_1'"
+              @click="kmsServerUrl = 'http://localhost:9998'"
             >
               Localhost
             </button>
@@ -747,7 +747,7 @@ export default defineComponent({
               type="button"
               @click="
                 kmsServerUrl =
-                  'https://demo-cloudproof.cosmian.com/kms/kmip/2_1'
+                  'https://demo-cloudproof.cosmian.com/kms'
               "
             >
               Demo

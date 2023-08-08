@@ -6,11 +6,6 @@ services:
   kms:
     container_name: kms
     image: ghcr.io/cosmian/kms:4.4.3
-    environment:
-      - KMS_HOSTNAME=0.0.0.0
-      - KMS_PUBLIC_PATH=/tmp
-      - KMS_PRIVATE_PATH=/tmp
-      - KMS_SHARED_PATH=/tmp
     ports:
       - 9998:9998
   findex_cloud:

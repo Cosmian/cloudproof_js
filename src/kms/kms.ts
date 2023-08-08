@@ -45,16 +45,16 @@ export interface KmsRequest<TResponse> {
 }
 
 export class KmsClient {
-  private readonly url: URL
+  private readonly url: string
   private readonly headers: HeadersInit
 
   /**
    * Instantiate a KMS Client
-   * @param {URL} url of the KMS server
+   * @param {string} url of the KMS server
    * @param {string} apiKey optional, to authenticate to the KMS server
    */
-  constructor(url: URL | string, apiKey: string | null = null) {
-    this.url = typeof url === "string" ? new URL(url) : url
+  constructor(url: string, apiKey: string | null = null) {
+    this.url = url
     this.headers = {
       "Content-Type": "application/json; charset=utf-8",
     }
@@ -72,7 +72,8 @@ export class KmsClient {
   private async post<TResponse>(
     request: KmsRequest<TResponse> & { tag: string },
   ): Promise<TResponse> {
-    const response = await fetch(this.url, {
+    const kmipUrl = new URL("kmip/2_1", this.url)
+    const response = await fetch(kmipUrl, {
       method: "POST",
       body: serialize(request),
       headers: this.headers,
@@ -89,15 +90,29 @@ export class KmsClient {
   }
 
   /**
+   * Returns KMS version
+   * @returns {Response} containing X.Y.Z version (via `text()` function)
+   */
+  public async version(): Promise<Response> {
+    const versionUrl = new URL("version", this.url)
+    const response = await fetch(versionUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`version request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
    * Tests whether the KMS server is responding
    * @returns {boolean} true if up
    */
   public async up(): Promise<boolean> {
     try {
-      await fetch(this.url, {
-        method: "GET",
-        headers: this.headers,
-      })
+      await this.version()
       return true
     } catch (error) {
       return false
@@ -259,6 +274,7 @@ export class KmsClient {
    * Mark a KMIP Symmetric Key as Revoked
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
+   * @returns nothing
    */
   public async revokeSymmetricKey(
     uniqueIdentifier: string,
