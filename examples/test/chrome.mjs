@@ -86,7 +86,7 @@ async function runTest(name, withGraphs, withKms) {
     }
 
     if (withKms) {
-      await page.type("#kmsServerUrl", `${kmsHost}/kmip/2_1`, { delay: 50 })
+      await page.type("#kmsServerUrl", `${kmsHost}`, { delay: 50 })
     }
   }
 
