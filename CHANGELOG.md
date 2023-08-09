@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.1.1] - 2023-08-09
+
+### Bug Fixes
+
+- KmsClient up() function for React use.
+
 ## [9.1.0] - 2023-07-12
 
 ### Features

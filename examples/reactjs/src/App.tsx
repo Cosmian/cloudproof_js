@@ -216,7 +216,11 @@ function App() {
     )
 
     if (kmsServerUrl) {
-      const client = new KmsClient(new URL(kmsServerUrl))
+      const client = new KmsClient(kmsServerUrl)
+      const upResponse = await client.up()
+      if (!upResponse) {
+        throw new Error("KMS server must be running")
+      }
       const [privateMasterKeyUID, publicKeyUID] =
         await client.createCoverCryptMasterKeyPair(policy)
 
@@ -805,13 +809,13 @@ function App() {
                   id="kmsServerUrl"
                   value={kmsServerUrl}
                   onChange={(e) => setKmsServerUrl(e.target.value)}
-                  placeholder="http://localhost:9998/kmip/2_1"
+                  placeholder="http://localhost:9998"
                 />
                 <button
                   className="btn btn-outline-secondary"
                   type="button"
                   onClick={() =>
-                    setKmsServerUrl("http://localhost:9998/kmip/2_1")
+                    setKmsServerUrl("http://localhost:9998")
                   }
                 >
                   Localhost
@@ -821,7 +825,7 @@ function App() {
                   type="button"
                   onClick={() =>
                     setKmsServerUrl(
-                      "https://demo-cloudproof.cosmian.com/kms/kmip/2_1",
+                      "https://demo-cloudproof.cosmian.com/kms",
                     )
                   }
                 >
