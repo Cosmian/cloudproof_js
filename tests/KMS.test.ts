@@ -1,30 +1,29 @@
 import {
-  KmsClient,
-  SymmetricKeyAlgorithm,
-  CoverCrypt,
   AccessPolicy,
-  VendorAttributes,
   Attributes,
-  CryptographicAlgorithm,
-  KeyFormatType,
-  SymmetricKey,
-  TransparentSymmetricKey,
-  TTLV,
-  KeyValue,
-  toTTLV,
-  TransparentECPublicKey,
-  RecommendedCurve,
-  deserialize,
+  CoverCrypt,
   Create,
+  CryptographicAlgorithm,
+  CryptographicUsageMask,
+  KeyFormatType,
+  KeyValue,
+  KmsClient,
   Link,
   LinkType,
+  RecommendedCurve,
+  SymmetricKey,
+  SymmetricKeyAlgorithm,
+  TTLV,
+  TransparentECPublicKey,
+  TransparentSymmetricKey,
+  VendorAttributes,
+  deserialize,
   fromTTLV,
-  CryptographicUsageMask,
-  serialize,
   hexEncode,
+  serialize,
+  toTTLV,
 } from ".."
 
-import * as jose from "jose"
 import { expect, test } from "vitest"
 
 test("serialize/deserialize Create", async () => {
@@ -206,6 +205,44 @@ test(
     ])
 
     await client.createCoverCryptMasterKeyPair(policy)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+    console.log(TAG)
+    const uniqueIdentifier = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+    const uniqueIdentifier2 = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+
+    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
+    expect(uniqueIdentifiers.length).toEqual(2)
+    expect(uniqueIdentifiers).toContain(uniqueIdentifier)
+    expect(uniqueIdentifiers).toContain(uniqueIdentifier2)
+
+    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
+    expect(notExist.length).toEqual(0)
   },
   {
     timeout: 30 * 1000,

@@ -1,65 +1,66 @@
+import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
+import { Create } from "./requests/Create"
+import { DecryptResponse } from "./responses/DecryptResponse"
+import { EncryptResponse } from "./responses/EncryptResponse"
+import { GenericKeyPairResponse } from "./responses/GenericKeyPairResponse"
+import { GenericUniqueIdentifierResponse } from "./responses/GenericUniqueIdentifierResponse"
+import { GetResponse } from "./responses/GetResponse"
+import { LocateResponse } from "./responses/LocateResponse"
 import {
+  Attributes,
+  BlockCipherMode,
+  CryptographicDomainParameters,
+  CryptographicParameters,
+  DigitalSignatureAlgorithm,
+  HashingAlgorithm,
+  KeyRoleType,
+  Link,
+  LinkType,
+  LinkedUniqueIdentifier,
+  MaskGenerator,
+  PaddingMethod,
+  VendorAttributes,
+} from "./structs/object_attributes"
+import {
+  CryptographicAlgorithm,
+  EncodingOption,
+  EncryptionKeyInformation,
   KeyBlock,
+  KeyCompressionType,
+  KeyFormatType,
   KeyValue,
   KeyWrappingData,
-  EncryptionKeyInformation,
   MacOrSignatureKeyInformation,
-  TransparentSymmetricKey,
+  RecommendedCurve,
   TransparentDHPrivateKey,
   TransparentDHPublicKey,
   TransparentECPrivateKey,
   TransparentECPublicKey,
-  KeyFormatType,
-  KeyCompressionType,
-  CryptographicAlgorithm,
+  TransparentSymmetricKey,
   WrappingMethod,
-  EncodingOption,
-  RecommendedCurve,
 } from "./structs/object_data_structures"
 import {
-  Attributes,
-  Link,
-  VendorAttributes,
-  CryptographicDomainParameters,
-  CryptographicParameters,
-  LinkType,
-  LinkedUniqueIdentifier,
-  BlockCipherMode,
-  PaddingMethod,
-  HashingAlgorithm,
-  KeyRoleType,
-  DigitalSignatureAlgorithm,
-  MaskGenerator,
-} from "./structs/object_attributes"
-import {
-  KmsObject,
   Certificate,
   CertificateRequest,
+  CertificateRequestType,
+  CertificateType,
+  KmsObject,
+  OpaqueDataType,
   OpaqueObject,
   PGPKey,
   PrivateKey,
   PublicKey,
   SecretData,
-  SplitKey,
-  SymmetricKey,
-  CertificateType,
-  CertificateRequestType,
-  OpaqueDataType,
   SecretDataType,
+  SplitKey,
   SplitKeyMethod,
+  SymmetricKey,
 } from "./structs/objects"
 import {
+  CryptographicUsageMask,
   KeyWrapType,
   RevocationReasonEnumeration,
-  CryptographicUsageMask,
 } from "./structs/types"
-import { GenericKeyPairResponse } from "./responses/GenericKeyPairResponse"
-import { GenericUniqueIdentifierResponse } from "./responses/GenericUniqueIdentifierResponse"
-import { GetResponse } from "./responses/GetResponse"
-import { EncryptResponse } from "./responses/EncryptResponse"
-import { DecryptResponse } from "./responses/DecryptResponse"
-import { capitalize, hexDecode, hexEncode, uncapitalize } from "../utils/utils"
-import { Create } from "./requests/Create"
 
 // To serialize/deserialize we need to know at runtime all the KMIP types.
 // We save them inside some constants below:
@@ -109,7 +110,7 @@ const STRUCTS = {
   // 'GetAttributesResponse': GenericUniqueIdentifierResponse,
   GetResponse,
   ImportResponse: GenericUniqueIdentifierResponse,
-  // 'LocateResponse': GenericUniqueIdentifierResponse,
+  LocateResponse,
   ReKeyKeyPairResponse: GenericKeyPairResponse,
   RevokeResponse: GenericUniqueIdentifierResponse,
 

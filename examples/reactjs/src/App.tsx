@@ -201,19 +201,6 @@ function App() {
     }>,
   )
 
-  const createSymKeys = async () => {
-    const client = new KmsClient(kmsServerUrl)
-    const uniqueIdentifier = await client.createSymmetricKey(
-      undefined,
-      undefined,
-      undefined,
-      ["TAG1", "TAG2"],
-    )
-    const retrived = await client.retrieveSymmetricKey(uniqueIdentifier)
-    const obj = await client.getObject(uniqueIdentifier)
-    console.log(obj)
-  }
-
   const getEncrypterAndDecrypter = async (): Promise<EncrypterAndDecrypter> => {
     if (encrypterAndDecrypter) {
       return encrypterAndDecrypter
@@ -858,8 +845,6 @@ function App() {
 
             <hr />
           </details>
-
-          <button onClick={createSymKeys}>TESSST</button>
 
           <div className="fs-5 mb-4">
             <p>

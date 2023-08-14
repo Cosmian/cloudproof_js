@@ -10,6 +10,7 @@ import { Destroy } from "./requests/Destroy"
 import { Encrypt } from "./requests/Encrypt"
 import { Get } from "./requests/Get"
 import { Import } from "./requests/Import"
+import { Locate } from "./requests/Locate"
 import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Revoke } from "./requests/Revoke"
 import {
@@ -148,6 +149,36 @@ export class KmsClient {
   }
 
   /**
+   * Retrieve a list of KMIP Object from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {KmsObject[]} list of KMIP Objects
+   */
+  public async getObjectsByTags(tags: string[]): Promise<KmsObject[]> {
+    const uniqueIdentifiers = await this.getUniqueIdentifiersByTags(tags)
+    return await Promise.all(
+      uniqueIdentifiers.map(async (uniqueId) => await this.getObject(uniqueId)),
+    )
+  }
+
+  /**
+   * Retrieve a list of unique identifiers from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {string[]} list of unique identifiers in the KMS
+   */
+  public async getUniqueIdentifiersByTags(tags: string[]): Promise<string[]> {
+    const attributes = new Attributes("SymmetricKey")
+    const enc = new TextEncoder()
+    const vendor = new VendorAttributes(
+      "cosmian",
+      "tag",
+      enc.encode(JSON.stringify(tags)),
+    )
+    attributes.vendorAttributes.push(vendor)
+    const response = await this.post(new Locate(attributes))
+    return response.uniqueIdentifier
+  }
+
+  /**
    * Import a KMIP Object inside the KMS
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
@@ -199,14 +230,14 @@ export class KmsClient {
    * @param {SymmetricKeyAlgorithm} algorithm defaults to AES
    * @param {number} bits number of bits of the key, defaults to 256
    * @param {Link[]} links potential links to other keys
-   * @param {string[]} tag potential list of tags
+   * @param {string[]} tags potential list of tags
    * @returns {string} the unique identifier of the created key
    */
   public async createSymmetricKey(
     algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
     bits: number | null = null,
     links: Link[] = [],
-    tag: string[] | null = null,
+    tags: string[] = [],
   ): Promise<string> {
     const algo =
       algorithm === SymmetricKeyAlgorithm.ChaCha20
@@ -218,28 +249,15 @@ export class KmsClient {
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-    if (tag != null) {
+    if (tags.length > 0) {
       const enc = new TextEncoder()
       const vendor = new VendorAttributes(
         "cosmian",
         "tag",
-        enc.encode(tag.toString()),
+        enc.encode(JSON.stringify(tags)),
       )
-      attributes.vendorAttributes = [vendor]
+      attributes.vendorAttributes.push(vendor)
     }
-    // TODO: for debug only
-    if (
-      attributes?.vendorAttributes?.length !== 0 &&
-      attributes.vendorAttributes[0].attributeValue != null
-    ) {
-      const decoded = new TextDecoder().decode(
-        attributes.vendorAttributes[0].attributeValue,
-      )
-      console.log(decoded)
-    }
-    // TODO: for debug only
-    console.log(new Create(attributes.objectType, attributes))
-
     const response = await this.post(
       new Create(attributes.objectType, attributes),
     )
