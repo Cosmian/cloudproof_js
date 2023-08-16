@@ -20,7 +20,7 @@ on:
       regression_files:
         required: false
         type: string
-        default: ""
+        default: ''
 
 jobs:
   js-in-docker:
@@ -52,17 +52,17 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      # - name: Cache build
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       /github/home/.cache/puppeteer
-      #       node_modules
-      #       dist
-      #       src/pkg
-      #     key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: |
+            /github/home/.cache/puppeteer
+            node_modules
+            dist
+            src/pkg
+          key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
 
       - name: Test
         run: ${{ inputs.subcommands }}
