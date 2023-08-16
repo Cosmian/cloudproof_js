@@ -222,7 +222,6 @@ test(
       return
     }
     const TAG = (Math.random() * 100000000).toString()
-    console.log(TAG)
     const uniqueIdentifier = await client.createSymmetricKey(
       SymmetricKeyAlgorithm.AES,
       256,
