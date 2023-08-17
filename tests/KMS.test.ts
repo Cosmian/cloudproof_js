@@ -29,7 +29,8 @@ import { expect, test } from "vitest"
 test("serialize/deserialize Create", async () => {
   await CoverCrypt()
 
-  const attributes = new Attributes("SymmetricKey")
+  const attributes = new Attributes()
+  attributes.objectType = "SymmetricKey"
   attributes.link = [new Link(LinkType.ParentLink, "SK")]
   attributes.cryptographicAlgorithm = CryptographicAlgorithm.AES
   attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
@@ -527,7 +528,7 @@ test(
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     const ret = await client.up()
-    console.log(`server up?: ${ret}`)
+    console.log(`server up?: ${ret.toString()}`)
 
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")

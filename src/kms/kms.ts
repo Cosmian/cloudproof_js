@@ -28,6 +28,7 @@ import {
 } from "./structs/object_data_structures"
 import {
   KmsObject,
+  ObjectType,
   PrivateKey,
   PublicKey,
   SymmetricKey,
@@ -166,11 +167,11 @@ export class KmsClient {
    * @returns {string[]} list of unique identifiers in the KMS
    */
   public async getUniqueIdentifiersByTags(tags: string[]): Promise<string[]> {
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
     const enc = new TextEncoder()
     const vendor = new VendorAttributes(
-      "cosmian",
-      "tag",
+      VendorAttributes.VENDOR_ID_COSMIAN,
+      VendorAttributes.TAGS,
       enc.encode(JSON.stringify(tags)),
     )
     attributes.vendorAttributes.push(vendor)
@@ -182,6 +183,7 @@ export class KmsClient {
    * Import a KMIP Object inside the KMS
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
+   * @param {ObjectType} objectType the objectType of the Object
    * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string} the unique identifier
@@ -189,13 +191,14 @@ export class KmsClient {
   public async importObject(
     uniqueIdentifier: string,
     attributes: Attributes,
+    objectType: ObjectType,
     object: KmsObject,
     replaceExisting: boolean = false,
   ): Promise<string> {
     const response = await this.post(
       new Import(
         uniqueIdentifier,
-        attributes.objectType,
+        objectType,
         object,
         attributes,
         replaceExisting,
@@ -244,22 +247,14 @@ export class KmsClient {
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-    if (tags.length > 0) {
-      const enc = new TextEncoder()
-      const vendor = new VendorAttributes(
-        "cosmian",
-        "tag",
-        enc.encode(JSON.stringify(tags)),
-      )
-      attributes.vendorAttributes.push(vendor)
-    }
     const response = await this.post(
-      new Create(attributes.objectType, attributes),
+      new Create(attributes.objectType, attributes, null, tags),
     )
     return response.uniqueIdentifier
   }
@@ -285,7 +280,8 @@ export class KmsClient {
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = keyBytes.length * 8
@@ -304,6 +300,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       attributes,
+      attributes.objectType,
       { type: "SymmetricKey", value: symmetricKey },
       replaceExisting,
     )
@@ -325,7 +322,6 @@ export class KmsClient {
         `The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`,
       )
     }
-    console.log(object)
     return object.value
   }
 
@@ -543,6 +539,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
+      type,
       { type, value: key },
       options.replaceExisting,
     )
@@ -587,7 +584,8 @@ export class KmsClient {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
 
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.link = [new Link(LinkType.ParentLink, secretMasterKeyIdentifier)]
     attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt

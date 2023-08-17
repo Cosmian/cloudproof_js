@@ -1,14 +1,14 @@
-import { ObjectType } from "./objects"
 import {
   CryptographicAlgorithm,
   KeyFormatType,
   RecommendedCurve,
 } from "./object_data_structures"
+import { ObjectType } from "./objects"
 
 export class Attributes {
   tag = "Attributes"
 
-  objectType: ObjectType
+  objectType: ObjectType | null = null
   link: Link[] = []
   vendorAttributes: VendorAttributes[] = []
   activationDate: number | null = null // epoch milliseconds
@@ -20,7 +20,7 @@ export class Attributes {
   keyFormatType: KeyFormatType | null = null
 
   constructor(
-    objectType: ObjectType,
+    objectType: ObjectType | null = null,
     link: Link[] = [],
     vendorAttributes: VendorAttributes[] = [],
     activationDate: number | null = null,
@@ -140,6 +140,8 @@ export class VendorAttributes {
 
   public static VENDOR_ATTR_COVER_CRYPT_ACCESS_POLICY =
     "cover_crypt_access_policy"
+
+  public static TAGS = "tags"
 
   vendorIdentification: string
   attributeName: string
