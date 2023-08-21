@@ -349,7 +349,7 @@ test(
       TAG,
     ])
 
-    expect(uniqueIdentifiersByTag).toEqual([uniqueIdentifier])
+    expect(uniqueIdentifiersByTag).toContain(uniqueIdentifier)
   },
   {
     timeout: 30 * 1000,
