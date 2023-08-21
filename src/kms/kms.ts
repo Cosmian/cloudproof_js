@@ -366,7 +366,6 @@ export class KmsClient {
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
     attributes.vendorAttributes = [policy.toVendorAttribute()]
-
     if (tags.length > 0) {
       const enc = new TextEncoder()
       const vendor = new VendorAttributes(
@@ -376,6 +375,7 @@ export class KmsClient {
       )
       attributes.vendorAttributes.push(vendor)
     }
+
     const response = await this.post(new CreateKeyPair(attributes))
     return [
       response.privateKeyUniqueIdentifier,
@@ -595,11 +595,13 @@ export class KmsClient {
    * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
    * @param {string} secretMasterKeyIdentifier the secret master key identifier which will derive this key
+   * @param {string[]} tags a list of tags
    * @returns {string} the unique identifier of the user decryption key
    */
   public async createCoverCryptUserDecryptionKey(
     accessPolicy: AccessPolicy | string,
     secretMasterKeyIdentifier: string,
+    tags: string[] = [],
   ): Promise<string> {
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
@@ -612,6 +614,15 @@ export class KmsClient {
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const response = await this.post(
       new Create(attributes.objectType, attributes),

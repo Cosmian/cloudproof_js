@@ -284,16 +284,72 @@ test(
       ),
     ])
 
-    const [privateKeyId, publicKeyId] =
-      await client.createCoverCryptMasterKeyPair(policy, [TAG])
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
+      TAG,
+    ])
 
     const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
     expect(uniqueIdentifiers.length).toEqual(2)
-    expect(uniqueIdentifiers).toContain(privateKeyId)
-    expect(uniqueIdentifiers).toContain(publicKeyId)
+    expect(uniqueIdentifiers).toContain(mskID)
+    expect(uniqueIdentifiers).toContain(mpkID)
 
     const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
     expect(notExist.length).toEqual(0)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate Covercrypt user decryption key",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    // create user decryption Key
+    const [mskID] = await client.createCoverCryptMasterKeyPair(policy)
+    const uniqueIdentifier = await client.createCoverCryptUserDecryptionKey(
+      "(Department::MKG || Department::FIN) && Security Level::Confidential",
+      mskID,
+      [TAG],
+    )
+
+    // Locate by tags
+    const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
+      TAG,
+    ])
+
+    expect(uniqueIdentifiersByTag).toEqual([uniqueIdentifier])
   },
   {
     timeout: 30 * 1000,
