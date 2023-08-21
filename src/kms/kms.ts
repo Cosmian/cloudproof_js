@@ -171,7 +171,7 @@ export class KmsClient {
     const enc = new TextEncoder()
     const vendor = new VendorAttributes(
       VendorAttributes.VENDOR_ID_COSMIAN,
-      VendorAttributes.TAGS,
+      VendorAttributes.TAG,
       enc.encode(JSON.stringify(tags)),
     )
     attributes.vendorAttributes.push(vendor)
@@ -253,8 +253,18 @@ export class KmsClient {
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
+
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
     const response = await this.post(
-      new Create(attributes.objectType, attributes, null, tags),
+      new Create(attributes.objectType, attributes, null),
     )
     return response.uniqueIdentifier
   }
@@ -349,12 +359,23 @@ export class KmsClient {
 
   public async createCoverCryptMasterKeyPair(
     policy: Policy,
+    tags: string[] = [],
   ): Promise<string[]> {
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
     attributes.vendorAttributes = [policy.toVendorAttribute()]
 
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
     const response = await this.post(new CreateKeyPair(attributes))
     return [
       response.privateKeyUniqueIdentifier,

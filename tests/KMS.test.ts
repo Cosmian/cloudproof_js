@@ -250,6 +250,57 @@ test(
 )
 
 test(
+  "KMS Locate CoverCrypt IUD",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    const [privateKeyId, publicKeyId] =
+      await client.createCoverCryptMasterKeyPair(policy, [TAG])
+
+    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
+    expect(uniqueIdentifiers.length).toEqual(2)
+    expect(uniqueIdentifiers).toContain(privateKeyId)
+    expect(uniqueIdentifiers).toContain(publicKeyId)
+
+    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
+    expect(notExist.length).toEqual(0)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
   "KMS Symmetric Key",
   async () => {
     await CoverCrypt()
