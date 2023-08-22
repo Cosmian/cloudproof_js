@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.2.0] - 2023-08-22
+
+### Features
+
+- Kms JWE encryption (#124)
+- Upgrade to cloudproof 2.2.1
+- Add KMS tags support (for creation and searching objects)
+
+### Testing
+
+- KMS Locate several keys with same tag
+- Locate by tags and object type
+
 ## [9.1.1] - 2023-08-09
 
 ### Bug Fixes

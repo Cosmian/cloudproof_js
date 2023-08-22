@@ -5,7 +5,7 @@ version: '3'
 services:
   kms:
     container_name: kms
-    image: ghcr.io/cosmian/kms:4.4.3
+    image: ghcr.io/cosmian/kms:optional_attributes_objecttype
     ports:
       - 9998:9998
   findex_cloud:
