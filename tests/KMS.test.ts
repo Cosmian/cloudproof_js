@@ -1,36 +1,36 @@
 import {
-  KmsClient,
-  SymmetricKeyAlgorithm,
-  CoverCrypt,
   AccessPolicy,
-  VendorAttributes,
   Attributes,
-  CryptographicAlgorithm,
-  KeyFormatType,
-  SymmetricKey,
-  TransparentSymmetricKey,
-  TTLV,
-  KeyValue,
-  toTTLV,
-  TransparentECPublicKey,
-  RecommendedCurve,
-  deserialize,
+  CoverCrypt,
   Create,
+  CryptographicAlgorithm,
+  CryptographicUsageMask,
+  KeyFormatType,
+  KeyValue,
+  KmsClient,
   Link,
   LinkType,
+  RecommendedCurve,
+  SymmetricKey,
+  SymmetricKeyAlgorithm,
+  TTLV,
+  TransparentECPublicKey,
+  TransparentSymmetricKey,
+  VendorAttributes,
+  deserialize,
   fromTTLV,
-  CryptographicUsageMask,
-  serialize,
   hexEncode,
+  serialize,
+  toTTLV,
 } from ".."
 
-import * as jose from "jose"
 import { expect, test } from "vitest"
 
 test("serialize/deserialize Create", async () => {
   await CoverCrypt()
 
-  const attributes = new Attributes("SymmetricKey")
+  const attributes = new Attributes()
+  attributes.objectType = "SymmetricKey"
   attributes.link = [new Link(LinkType.ParentLink, "SK")]
   attributes.cryptographicAlgorithm = CryptographicAlgorithm.AES
   attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
@@ -206,6 +206,217 @@ test(
     ])
 
     await client.createCoverCryptMasterKeyPair(policy)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+    const uniqueIdentifier = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+    const uniqueIdentifier2 = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+
+    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
+    expect(uniqueIdentifiers.length).toEqual(2)
+    expect(uniqueIdentifiers).toContain(uniqueIdentifier)
+    expect(uniqueIdentifiers).toContain(uniqueIdentifier2)
+
+    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
+    expect(notExist.length).toEqual(0)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate CoverCrypt IUD",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
+      TAG,
+    ])
+
+    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
+    expect(uniqueIdentifiers.length).toEqual(2)
+    expect(uniqueIdentifiers).toContain(mskID)
+    expect(uniqueIdentifiers).toContain(mpkID)
+
+    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
+    expect(notExist.length).toEqual(0)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate Covercrypt user decryption key",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    // create user decryption Key
+    const [mskID] = await client.createCoverCryptMasterKeyPair(policy)
+    const uniqueIdentifier = await client.createCoverCryptUserDecryptionKey(
+      "(Department::MKG || Department::FIN) && Security Level::Confidential",
+      mskID,
+      [TAG],
+    )
+
+    // Locate by tags
+    const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
+      TAG,
+    ])
+
+    expect(uniqueIdentifiersByTag).toContain(uniqueIdentifier)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate several keys with same tag",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    // create Covercrypt master key pair (1 & 2)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
+      TAG,
+    ])
+    // create Covercrypt user decryption key (3)
+    const decryptionKeyID = await client.createCoverCryptUserDecryptionKey(
+      "(Department::MKG || Department::FIN) && Security Level::Confidential",
+      mskID,
+      [TAG],
+    )
+    // Create symmetric key (4)
+    const symmetricKeyID = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+
+    // Locate by tags
+    const idByTag = await client.getUniqueIdentifiersByTags([TAG])
+
+    expect(idByTag.length).toEqual(4)
+    expect(idByTag).toContain(mskID)
+    expect(idByTag).toContain(mpkID)
+    expect(idByTag).toContain(decryptionKeyID)
+    expect(idByTag).toContain(symmetricKeyID)
   },
   {
     timeout: 30 * 1000,
@@ -491,7 +702,7 @@ test(
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     const ret = await client.up()
-    console.log(`server up?: ${ret}`)
+    console.log(`server up?: ${ret.toString()}`)
 
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")

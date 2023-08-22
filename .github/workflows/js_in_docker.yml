@@ -13,14 +13,14 @@ on:
       kms-jwe-key:
         required: false
         type: string
-        default: null
+        default: ''
       findex-cloud-version:
         required: true
         type: string
       regression_files:
         required: false
         type: string
-        default: ""
+        default: ''
 
 jobs:
   js-in-docker:

@@ -1,5 +1,18 @@
-import { serialize, deserialize } from "./kmip"
+import * as jose from "jose"
+import { AccessPolicy } from "../cover_crypt/interfaces/access_policy"
+import { Policy } from "../cover_crypt/interfaces/policy"
+import { decode, encode } from "../utils/leb128"
+import { deserialize, serialize } from "./kmip"
+import { Create } from "./requests/Create"
+import { CreateKeyPair } from "./requests/CreateKeyPair"
+import { Decrypt } from "./requests/Decrypt"
+import { Destroy } from "./requests/Destroy"
+import { Encrypt } from "./requests/Encrypt"
 import { Get } from "./requests/Get"
+import { Import } from "./requests/Import"
+import { Locate } from "./requests/Locate"
+import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
+import { Revoke } from "./requests/Revoke"
 import {
   Attributes,
   Link,
@@ -7,34 +20,23 @@ import {
   VendorAttributes,
 } from "./structs/object_attributes"
 import {
-  KmsObject,
-  PrivateKey,
-  PublicKey,
-  SymmetricKey,
-} from "./structs/objects"
-import { Import } from "./requests/Import"
-import { Revoke } from "./requests/Revoke"
-import { Create } from "./requests/Create"
-import {
-  CryptographicUsageMask,
-  RevocationReasonEnumeration,
-} from "./structs/types"
-import { Destroy } from "./requests/Destroy"
-import {
   CryptographicAlgorithm,
   KeyBlock,
   KeyFormatType,
   KeyValue,
   TransparentSymmetricKey,
 } from "./structs/object_data_structures"
-import { Policy } from "../cover_crypt/interfaces/policy"
-import { CreateKeyPair } from "./requests/CreateKeyPair"
-import { AccessPolicy } from "../cover_crypt/interfaces/access_policy"
-import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
-import { Encrypt } from "./requests/Encrypt"
-import { Decrypt } from "./requests/Decrypt"
-import { decode, encode } from "../utils/leb128"
-import * as jose from "jose"
+import {
+  KmsObject,
+  ObjectType,
+  PrivateKey,
+  PublicKey,
+  SymmetricKey,
+} from "./structs/objects"
+import {
+  CryptographicUsageMask,
+  RevocationReasonEnumeration,
+} from "./structs/types"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -52,7 +54,6 @@ export class KmsClient {
 
   /**
    * Instantiate a KMS Client
-   *
    * @param {string} url of the KMS server
    * @param {string} apiKey optional, to authenticate to the KMS server
    */
@@ -73,7 +74,6 @@ export class KmsClient {
   /**
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
-   *
    * @param request a valid KMIP operation
    * @returns an instance of the KMIP response
    */
@@ -111,7 +111,6 @@ export class KmsClient {
 
   /**
    * Returns KMS version
-   *
    * @returns {Response} containing X.Y.Z version (via `text()` function)
    */
   public async version(): Promise<Response> {
@@ -129,7 +128,6 @@ export class KmsClient {
 
   /**
    * Tests whether the KMS server is responding
-   *
    * @returns {boolean} true if up
    */
   public async up(): Promise<boolean> {
@@ -143,7 +141,6 @@ export class KmsClient {
 
   /**
    * Retrieve a KMIP Object from the KMS
-   *
    * @param uniqueIdentifier the unique identifier of the object
    * @returns an instance of the KMIP Object
    */
@@ -153,10 +150,40 @@ export class KmsClient {
   }
 
   /**
+   * Retrieve a list of KMIP Object from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {KmsObject[]} list of KMIP Objects
+   */
+  public async getObjectsByTags(tags: string[]): Promise<KmsObject[]> {
+    const uniqueIdentifiers = await this.getUniqueIdentifiersByTags(tags)
+    return await Promise.all(
+      uniqueIdentifiers.map(async (uniqueId) => await this.getObject(uniqueId)),
+    )
+  }
+
+  /**
+   * Retrieve a list of unique identifiers from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {string[]} list of unique identifiers in the KMS
+   */
+  public async getUniqueIdentifiersByTags(tags: string[]): Promise<string[]> {
+    const attributes = new Attributes()
+    const enc = new TextEncoder()
+    const vendor = new VendorAttributes(
+      VendorAttributes.VENDOR_ID_COSMIAN,
+      VendorAttributes.TAG,
+      enc.encode(JSON.stringify(tags)),
+    )
+    attributes.vendorAttributes.push(vendor)
+    const response = await this.post(new Locate(attributes))
+    return response.uniqueIdentifier
+  }
+
+  /**
    * Import a KMIP Object inside the KMS
-   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
+   * @param {ObjectType} objectType the objectType of the Object
    * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string} the unique identifier
@@ -164,13 +191,14 @@ export class KmsClient {
   public async importObject(
     uniqueIdentifier: string,
     attributes: Attributes,
+    objectType: ObjectType,
     object: KmsObject,
     replaceExisting: boolean = false,
   ): Promise<string> {
     const response = await this.post(
       new Import(
         uniqueIdentifier,
-        attributes.objectType,
+        objectType,
         object,
         attributes,
         replaceExisting,
@@ -182,7 +210,6 @@ export class KmsClient {
 
   /**
    * Revoke a KMIP Object in the KMS
-   *
    * @param {string} uniqueIdentifier the unique identifier of the object
    * @param {string} reason the explanation of the revocation
    */
@@ -195,7 +222,6 @@ export class KmsClient {
 
   /**
    * Destroy a KMIP Object in the KMS
-   *
    * @param {string} uniqueIdentifier the unique identifier of the object
    */
   public async destroyObject(uniqueIdentifier: string): Promise<void> {
@@ -204,37 +230,47 @@ export class KmsClient {
 
   /**
    * Create a symmetric key
-   *
    * @param {SymmetricKeyAlgorithm} algorithm defaults to AES
    * @param {number} bits number of bits of the key, defaults to 256
    * @param {Link[]} links potential links to other keys
+   * @param {string[]} tags potential list of tags
    * @returns {string} the unique identifier of the created key
    */
   public async createSymmetricKey(
     algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
     bits: number | null = null,
     links: Link[] = [],
+    tags: string[] = [],
   ): Promise<string> {
     const algo =
       algorithm === SymmetricKeyAlgorithm.ChaCha20
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
 
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
     const response = await this.post(
-      new Create(attributes.objectType, attributes),
+      new Create(attributes.objectType, attributes, null),
     )
     return response.uniqueIdentifier
   }
 
   /**
    * Import a symmetric key into the KMS
-   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {Uint8Array} keyBytes the bytes of the key
    * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
@@ -254,7 +290,8 @@ export class KmsClient {
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = keyBytes.length * 8
@@ -273,6 +310,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       attributes,
+      attributes.objectType,
       { type: "SymmetricKey", value: symmetricKey },
       replaceExisting,
     )
@@ -282,7 +320,6 @@ export class KmsClient {
    *  Retrieve a symmetric key
    *
    *  Use SymmetricKey.bytes() to recover the bytes
-   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @returns {SymmetricKey} the KMIP symmetric Key
    */
@@ -295,13 +332,11 @@ export class KmsClient {
         `The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`,
       )
     }
-
     return object.value
   }
 
   /**
    * Mark a KMIP Symmetric Key as Revoked
-   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    * @returns nothing
@@ -315,7 +350,6 @@ export class KmsClient {
 
   /**
    *  Mark a symmetric key as destroyed
-   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @returns {string} the unique identifier of the symmetric Key
    */
@@ -325,11 +359,22 @@ export class KmsClient {
 
   public async createCoverCryptMasterKeyPair(
     policy: Policy,
+    tags: string[] = [],
   ): Promise<string[]> {
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
     attributes.vendorAttributes = [policy.toVendorAttribute()]
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const response = await this.post(new CreateKeyPair(attributes))
     return [
@@ -343,7 +388,6 @@ export class KmsClient {
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
-   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
@@ -374,7 +418,6 @@ export class KmsClient {
    *
    *  Use PublicKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
-   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PublicKey} the KMIP symmetric Key
    */
@@ -402,7 +445,6 @@ export class KmsClient {
 
   /**
    * Import a Private Master Key key into the KMS
-   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the Private Master Key
    * @param options some additional optional options
@@ -428,7 +470,6 @@ export class KmsClient {
 
   /**
    * Import a Public Master Key key into the KMS
-   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PublicKey} key the Public Master Key
    * @param options some additional optional options
@@ -454,7 +495,6 @@ export class KmsClient {
 
   /**
    * Import a Public or Private Master Key key into the KMS
-   *
    * @param uniqueIdentifier  the unique identifier of the key
    * @param type  PublicKey or PrivateKey. PrivateKey could be a master key or a user key
    * @param key the object key or bytes with a policy (Policy for master keys, AccessPolicy for user keys)
@@ -520,6 +560,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
+      type,
       { type, value: key },
       options.replaceExisting,
     )
@@ -527,7 +568,6 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt Secret Master Key as Revoked
-   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -540,7 +580,6 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt Public Master Key as Revoked
-   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -553,26 +592,37 @@ export class KmsClient {
 
   /**
    * Create a CoverCrypt User Decryption Key with a given access policy
-   *
    * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
    * @param {string} secretMasterKeyIdentifier the secret master key identifier which will derive this key
+   * @param {string[]} tags a list of tags
    * @returns {string} the unique identifier of the user decryption key
    */
   public async createCoverCryptUserDecryptionKey(
     accessPolicy: AccessPolicy | string,
     secretMasterKeyIdentifier: string,
+    tags: string[] = [],
   ): Promise<string> {
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
 
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.link = [new Link(LinkType.ParentLink, secretMasterKeyIdentifier)]
     attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const response = await this.post(
       new Create(attributes.objectType, attributes),
@@ -585,7 +635,6 @@ export class KmsClient {
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use AccessPolicy.fromKey() to recover the Policy
-   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
@@ -597,7 +646,6 @@ export class KmsClient {
 
   /**
    * Import a CoverCrypt User Decryption Key key into the KMS
-   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the CoverCrypt User Decryption Key
    * @param options some additional optional options
@@ -627,7 +675,6 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt User Decryption Key as Revoked
-   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -640,7 +687,6 @@ export class KmsClient {
 
   /**
    * Encrypt some data
-   *
    * @param uniqueIdentifier the unique identifier of the public key
    * @param accessPolicy the access policy to use for encryption
    * @param data to encrypt
@@ -685,7 +731,6 @@ export class KmsClient {
 
   /**
    * Decrypt some data
-   *
    * @param uniqueIdentifier the unique identifier of the private key
    * @param data to decrypt
    * @param {object} options Additional optional options to the encryption
@@ -723,7 +768,6 @@ export class KmsClient {
    * the rekeyed one.
    * Note: there is a limit on the number of revocations that can be performed which is set in the {@link Policy} when
    * Master Keys are created
-   *
    * @param {string} privateMasterKeyUniqueIdentifier the unique identifier of the Private Master Key
    * @param {string[]} attributes to rotate e.g. ["Department::MKG", "Department::FIN"]
    * @returns {Policy} returns the new Policy to use for new encryption
