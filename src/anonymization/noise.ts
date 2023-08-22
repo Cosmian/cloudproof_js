@@ -9,6 +9,7 @@ import {
 interface NoiseGenerator {
   /**
    * Apply noise to a floating point number.
+   *
    * @param data - The input number to apply noise to.
    * @returns The result of applying noise to the input number.
    */
@@ -16,6 +17,7 @@ interface NoiseGenerator {
 
   /**
    * Apply noise to a BigInt.
+   *
    * @param data - The input BigInt to apply noise to.
    * @returns The result of applying noise to the input BigInt.
    */
@@ -23,6 +25,7 @@ interface NoiseGenerator {
 
   /**
    * Apply noise to a date string.
+   *
    * @param data - The input date string to apply noise to.
    * @returns The result of applying noise to the input date string.
    */
@@ -30,6 +33,7 @@ interface NoiseGenerator {
 
   /**
    * Apply correlated noise to an array of floating point numbers.
+   *
    * @param data - The input array of floating point numbers to apply correlated noise to.
    * @param factors - The array of correlation factors to use.
    * @returns The result of applying correlated noise to the input array of floating point numbers.
@@ -41,6 +45,7 @@ interface NoiseGenerator {
 
   /**
    * Apply correlated noise to an array of BigInts.
+   *
    * @param data - The input array of BigInts to apply correlated noise to.
    * @param factors - The array of correlation factors to use.
    * @returns The result of applying correlated noise to the input array of BigInts.
@@ -52,6 +57,7 @@ interface NoiseGenerator {
 
   /**
    * Apply correlated noise to an array of date strings.
+   *
    * @param data - The input array of date strings to apply correlated noise to.
    * @param factors - The array of correlation factors to use.
    * @returns The result of applying correlated noise to the input array of date strings.
@@ -73,6 +79,7 @@ class Noise {
 
   /**
    * Creates a new instance of `Noise`.
+   *
    * @param noise - The noise generator to use.
    */
   constructor(noise: NoiseGenerator) {
@@ -81,6 +88,7 @@ class Noise {
 
   /**
    * Applies noise to the input data.
+   *
    * @param data - The input data to apply noise to.
    * @returns The input data with noise applied.
    * @throws An error if the type of `data` is not supported.
@@ -99,6 +107,7 @@ class Noise {
 
   /**
    * Applies correlated noise to the input data.
+   *
    * @param data - The input data to apply noise to.
    * @param factors - The factors to use for applying noise.
    * @returns The input data with noise applied.
@@ -152,11 +161,13 @@ class Noise {
 
 /**
  * A class representing a noise generator with parameters.
+ *
  * @augments Noise
  */
 export class NoiseWithParameters extends Noise {
   /**
    * Creates a new instance of `NoiseWithParameters`.
+   *
    * @param methodName - the noise distribution to use ("Gaussian" or "Laplace")
    * @param mean - The mean value for generating noise.
    * @param stdDev - The standard deviation value for generating noise.
@@ -168,11 +179,13 @@ export class NoiseWithParameters extends Noise {
 
 /**
  * A class representing a noise generator with bounds.
+ *
  * @augments Noise
  */
 export class NoiseWithBounds extends Noise {
   /**
    * Creates a new instance of `NoiseWithBounds`.
+   *
    * @param methodName - the noise distribution to use ("Gaussian", "Laplace" or "Uniform")
    * @param minBound - The minimum bound for generating noise.
    * @param maxBound - The maximum bound for generating noise.

@@ -2,6 +2,7 @@ import { decode } from "./leb128"
 
 /**
  * Hex encode an array of bytes
+ *
  * @param {Uint8Array} array the bytes
  * @returns {string}the hex encoded string
  */
@@ -13,6 +14,7 @@ export function hexEncode(array: Uint8Array): string {
 
 /**
  * Hex decode to an array of bytes
+ *
  * @param {string} hexString the hex encoded string
  * @returns {Uint8Array} the decoded array of bytes
  */
@@ -32,6 +34,7 @@ export function hexDecode(hexString: string): Uint8Array {
 
 /**
  * Convert a u32 represented as a 4-bytes value in big endian to a u32 value
+ *
  * @param {Uint8Array} bytes this a 4-bytes value representing an u32 in big endian
  * @returns {number} the u32 value
  */
@@ -52,6 +55,7 @@ export function fromBeBytes(bytes: Uint8Array): number {
 
 /**
  * Convert a u32 value to a u32 represented as a 4-bytes value in big endian
+ *
  * @param {number} myNumber a u32 value
  * @returns {Uint8Array} the u32 represented as a 4-bytes value in big endian
  */
@@ -65,6 +69,7 @@ export function toBeBytes(myNumber: number): Uint8Array {
 
 /**
  * Deserialize Uint8Array as a list of Uint8Array
+ *
  * @param {Uint8Array} serializedItems Uint8Array of serialized data
  * @returns {Uint8Array[]} an array of deserialized items
  */
@@ -82,6 +87,7 @@ export function deserializeList(serializedItems: Uint8Array): Uint8Array[] {
 
 /**
  * Remove accents and uppercase to query word
+ *
  * @param {string} str string to sanitize
  * @returns {string} string initial string without accents and uppercase
  */
@@ -95,6 +101,7 @@ export function sanitizeString(str: string): string {
 
 /**
  * Lowercase the first letter of a string
+ *
  * @param value the string
  * @returns the string with the first letter lowercased
  */
@@ -104,6 +111,7 @@ export function uncapitalize(value: string): string {
 
 /**
  * Uppercase the first letter of a string
+ *
  * @param value the string
  * @returns the string with the first letter in uppercase
  */

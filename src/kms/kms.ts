@@ -34,6 +34,7 @@ import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Encrypt } from "./requests/Encrypt"
 import { Decrypt } from "./requests/Decrypt"
 import { decode, encode } from "../utils/leb128"
+import * as jose from "jose"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -47,9 +48,11 @@ export interface KmsRequest<TResponse> {
 export class KmsClient {
   private readonly url: string
   private readonly headers: HeadersInit
+  private publicKey: jose.JWK | null = null
 
   /**
    * Instantiate a KMS Client
+   *
    * @param {string} url of the KMS server
    * @param {string} apiKey optional, to authenticate to the KMS server
    */
@@ -63,9 +66,14 @@ export class KmsClient {
     }
   }
 
+  setEncryption(publicKey: jose.JWK): void {
+    this.publicKey = publicKey
+  }
+
   /**
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
+   *
    * @param request a valid KMIP operation
    * @returns an instance of the KMIP response
    */
@@ -73,9 +81,21 @@ export class KmsClient {
     request: KmsRequest<TResponse> & { tag: string },
   ): Promise<TResponse> {
     const kmipUrl = new URL("kmip/2_1", this.url)
+    let body = serialize(request)
+
+    if (this.publicKey !== null) {
+      body = await new jose.CompactEncrypt(new TextEncoder().encode(body))
+        .setProtectedHeader({
+          alg: "ECDH-ES",
+          enc: "A256GCM",
+          kid: this.publicKey.kid,
+        })
+        .encrypt(await jose.importJWK(this.publicKey))
+    }
+
     const response = await fetch(kmipUrl, {
       method: "POST",
-      body: serialize(request),
+      body,
       headers: this.headers,
     })
 
@@ -91,6 +111,7 @@ export class KmsClient {
 
   /**
    * Returns KMS version
+   *
    * @returns {Response} containing X.Y.Z version (via `text()` function)
    */
   public async version(): Promise<Response> {
@@ -108,6 +129,7 @@ export class KmsClient {
 
   /**
    * Tests whether the KMS server is responding
+   *
    * @returns {boolean} true if up
    */
   public async up(): Promise<boolean> {
@@ -121,6 +143,7 @@ export class KmsClient {
 
   /**
    * Retrieve a KMIP Object from the KMS
+   *
    * @param uniqueIdentifier the unique identifier of the object
    * @returns an instance of the KMIP Object
    */
@@ -131,6 +154,7 @@ export class KmsClient {
 
   /**
    * Import a KMIP Object inside the KMS
+   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
    * @param {KmsObject} object the KMIP Object instance
@@ -158,6 +182,7 @@ export class KmsClient {
 
   /**
    * Revoke a KMIP Object in the KMS
+   *
    * @param {string} uniqueIdentifier the unique identifier of the object
    * @param {string} reason the explanation of the revocation
    */
@@ -170,6 +195,7 @@ export class KmsClient {
 
   /**
    * Destroy a KMIP Object in the KMS
+   *
    * @param {string} uniqueIdentifier the unique identifier of the object
    */
   public async destroyObject(uniqueIdentifier: string): Promise<void> {
@@ -178,6 +204,7 @@ export class KmsClient {
 
   /**
    * Create a symmetric key
+   *
    * @param {SymmetricKeyAlgorithm} algorithm defaults to AES
    * @param {number} bits number of bits of the key, defaults to 256
    * @param {Link[]} links potential links to other keys
@@ -207,6 +234,7 @@ export class KmsClient {
 
   /**
    * Import a symmetric key into the KMS
+   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {Uint8Array} keyBytes the bytes of the key
    * @param {boolean} replaceExisting set to true to replace an existing key with the same identifier
@@ -254,6 +282,7 @@ export class KmsClient {
    *  Retrieve a symmetric key
    *
    *  Use SymmetricKey.bytes() to recover the bytes
+   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @returns {SymmetricKey} the KMIP symmetric Key
    */
@@ -272,6 +301,7 @@ export class KmsClient {
 
   /**
    * Mark a KMIP Symmetric Key as Revoked
+   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    * @returns nothing
@@ -285,6 +315,7 @@ export class KmsClient {
 
   /**
    *  Mark a symmetric key as destroyed
+   *
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @returns {string} the unique identifier of the symmetric Key
    */
@@ -312,6 +343,7 @@ export class KmsClient {
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
+   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
@@ -342,6 +374,7 @@ export class KmsClient {
    *
    *  Use PublicKey.bytes() to recover the bytes
    *  Use Policy.fromKey() to recover the Policy
+   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PublicKey} the KMIP symmetric Key
    */
@@ -369,6 +402,7 @@ export class KmsClient {
 
   /**
    * Import a Private Master Key key into the KMS
+   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the Private Master Key
    * @param options some additional optional options
@@ -394,6 +428,7 @@ export class KmsClient {
 
   /**
    * Import a Public Master Key key into the KMS
+   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PublicKey} key the Public Master Key
    * @param options some additional optional options
@@ -419,6 +454,7 @@ export class KmsClient {
 
   /**
    * Import a Public or Private Master Key key into the KMS
+   *
    * @param uniqueIdentifier  the unique identifier of the key
    * @param type  PublicKey or PrivateKey. PrivateKey could be a master key or a user key
    * @param key the object key or bytes with a policy (Policy for master keys, AccessPolicy for user keys)
@@ -491,6 +527,7 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt Secret Master Key as Revoked
+   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -503,6 +540,7 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt Public Master Key as Revoked
+   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -515,6 +553,7 @@ export class KmsClient {
 
   /**
    * Create a CoverCrypt User Decryption Key with a given access policy
+   *
    * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
    * @param {string} secretMasterKeyIdentifier the secret master key identifier which will derive this key
@@ -546,6 +585,7 @@ export class KmsClient {
    *
    *  Use PrivateKey.bytes() to recover the bytes
    *  Use AccessPolicy.fromKey() to recover the Policy
+   *
    * @param {string} uniqueIdentifier the key unique identifier in the KMS
    * @returns {PrivateKey} the KMIP symmetric Key
    */
@@ -557,6 +597,7 @@ export class KmsClient {
 
   /**
    * Import a CoverCrypt User Decryption Key key into the KMS
+   *
    * @param {string} uniqueIdentifier  the unique identifier of the key
    * @param {PrivateKey} key the CoverCrypt User Decryption Key
    * @param options some additional optional options
@@ -586,6 +627,7 @@ export class KmsClient {
 
   /**
    * Mark a CoverCrypt User Decryption Key as Revoked
+   *
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
    */
@@ -598,6 +640,7 @@ export class KmsClient {
 
   /**
    * Encrypt some data
+   *
    * @param uniqueIdentifier the unique identifier of the public key
    * @param accessPolicy the access policy to use for encryption
    * @param data to encrypt
@@ -642,6 +685,7 @@ export class KmsClient {
 
   /**
    * Decrypt some data
+   *
    * @param uniqueIdentifier the unique identifier of the private key
    * @param data to decrypt
    * @param {object} options Additional optional options to the encryption
@@ -679,6 +723,7 @@ export class KmsClient {
    * the rekeyed one.
    * Note: there is a limit on the number of revocations that can be performed which is set in the {@link Policy} when
    * Master Keys are created
+   *
    * @param {string} privateMasterKeyUniqueIdentifier the unique identifier of the Private Master Key
    * @param {string[]} attributes to rotate e.g. ["Department::MKG", "Department::FIN"]
    * @returns {Policy} returns the new Policy to use for new encryption

@@ -2,6 +2,7 @@
 
 /**
  * decodes a LEB128 encoded unsigned integer
+ *
  * @param buffer the buffer of bytes to read
  * @returns the decoded number
  */
@@ -27,6 +28,7 @@ export function decode(buffer: Uint8Array): {
 
 /**
  * encodes an unsigned integer to LEB128
+ *
  * @param value the unsigned integer
  * @returns the LEB128 bytes
  */
