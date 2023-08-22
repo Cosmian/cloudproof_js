@@ -301,7 +301,7 @@ test(
   },
 )
 
-test.only(
+test(
   "KMS Locate Covercrypt user decryption key",
   async () => {
     const client = new KmsClient(
@@ -348,9 +348,6 @@ test.only(
     const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
       TAG,
     ])
-
-    console.log("uniqueIdentifier", uniqueIdentifier)
-    console.log("uniqueIdentifiersByTag", uniqueIdentifiersByTag)
 
     expect(uniqueIdentifiersByTag).toContain(uniqueIdentifier)
   },
@@ -413,15 +410,20 @@ test(
     )
 
     // Locate by tags
-    const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
-      TAG,
-    ])
+    const idByTag = await client.getUniqueIdentifiersByTags([TAG])
+    const idByTagAndObjectType = await client.getUniqueIdentifiersByTags(
+      [TAG],
+      "SymmetricKey",
+    )
 
-    expect(uniqueIdentifiersByTag.length).toEqual(4)
-    expect(uniqueIdentifiersByTag).toContain(mskID)
-    expect(uniqueIdentifiersByTag).toContain(mpkID)
-    expect(uniqueIdentifiersByTag).toContain(decryptionKeyID)
-    expect(uniqueIdentifiersByTag).toContain(symmetricKeyID)
+    expect(idByTag.length).toEqual(4)
+    expect(idByTag).toContain(mskID)
+    expect(idByTag).toContain(mpkID)
+    expect(idByTag).toContain(decryptionKeyID)
+    expect(idByTag).toContain(symmetricKeyID)
+
+    expect(idByTagAndObjectType.length).toEqual(1)
+    expect(idByTagAndObjectType).toContain(symmetricKeyID)
   },
   {
     timeout: 30 * 1000,

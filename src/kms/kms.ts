@@ -164,16 +164,21 @@ export class KmsClient {
   /**
    * Retrieve a list of unique identifiers from the KMS
    * @param {string[]} tags list of tags
+   * @param {ObjectType | null} objectType optional type of object
    * @returns {string[]} list of unique identifiers in the KMS
    */
-  public async getUniqueIdentifiersByTags(tags: string[]): Promise<string[]> {
-    const attributes = new Attributes()
+  public async getUniqueIdentifiersByTags(
+    tags: string[],
+    objectType: ObjectType | null = null,
+  ): Promise<string[]> {
+    const attributes = new Attributes(objectType)
     const enc = new TextEncoder()
     const vendor = new VendorAttributes(
       VendorAttributes.VENDOR_ID_COSMIAN,
       VendorAttributes.TAG,
       enc.encode(JSON.stringify(tags)),
     )
+    if (objectType != null) attributes.objectType = objectType
     attributes.vendorAttributes.push(vendor)
     const response = await this.post(new Locate(attributes))
     return response.uniqueIdentifier
