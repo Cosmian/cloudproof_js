@@ -301,7 +301,7 @@ test(
   },
 )
 
-test(
+test.only(
   "KMS Locate Covercrypt user decryption key",
   async () => {
     const client = new KmsClient(
@@ -349,7 +349,79 @@ test(
       TAG,
     ])
 
+    console.log("uniqueIdentifier", uniqueIdentifier)
+    console.log("uniqueIdentifiersByTag", uniqueIdentifiersByTag)
+
     expect(uniqueIdentifiersByTag).toContain(uniqueIdentifier)
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Locate several keys with same tag",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+    const TAG = (Math.random() * 100000000).toString()
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    // create Covercrypt master key pair (1 & 2)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
+      TAG,
+    ])
+    // create Covercrypt user decryption key (3)
+    const decryptionKeyID = await client.createCoverCryptUserDecryptionKey(
+      "(Department::MKG || Department::FIN) && Security Level::Confidential",
+      mskID,
+      [TAG],
+    )
+    // Create symmetric key (4)
+    const symmetricKeyID = await client.createSymmetricKey(
+      SymmetricKeyAlgorithm.AES,
+      256,
+      undefined,
+      [TAG],
+    )
+
+    // Locate by tags
+    const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
+      TAG,
+    ])
+
+    expect(uniqueIdentifiersByTag.length).toEqual(4)
+    expect(uniqueIdentifiersByTag).toContain(mskID)
+    expect(uniqueIdentifiersByTag).toContain(mpkID)
+    expect(uniqueIdentifiersByTag).toContain(decryptionKeyID)
+    expect(uniqueIdentifiersByTag).toContain(symmetricKeyID)
   },
   {
     timeout: 30 * 1000,
