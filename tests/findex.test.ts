@@ -225,8 +225,8 @@ async function runWithFindexCallbacks(
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function runInFindexCloud(): Promise<void> {
-  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST || "127.0.0.1"}:${
-    process.env.FINDEX_CLOUD_PORT || "8080"
+  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
+    process.env.FINDEX_CLOUD_PORT ?? "8080"
   }`
 
   let response

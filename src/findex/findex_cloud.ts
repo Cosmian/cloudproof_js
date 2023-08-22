@@ -3,6 +3,7 @@
 import {
   Findex,
   IndexedEntry,
+  Keyword,
   Label,
   SearchResults,
   indexedEntriesToBytes,
@@ -68,13 +69,15 @@ export async function FindexCloud() {
       const additionsBytes = indexedEntriesToBytes(additions, "additions")
       const deletionsBytes = indexedEntriesToBytes(deletions, "deletions")
 
-      return await webassembly_upsert_cloud(
-        token,
-        label.bytes,
-        additionsBytes,
-        deletionsBytes,
-        options.baseUrl,
-      )
+      return (
+        await webassembly_upsert_cloud(
+          token,
+          label.bytes,
+          additionsBytes,
+          deletionsBytes,
+          options.baseUrl,
+        )
+      ).map((value: Uint8Array) => new Keyword(value))
     },
 
     search: async (

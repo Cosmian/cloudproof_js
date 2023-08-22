@@ -328,7 +328,8 @@ export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 export type Progress = (indexedValues: ProgressResults) => Promise<boolean>
 
 /**
- *
+ * Findex definition
+ * @returns {Promise<Findex>} results found at every node while the search walks the search graph
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
@@ -355,6 +356,7 @@ export async function Findex() {
    * @param {InsertChains} insertChains callback to upsert inside chains table
    * @param options Additional optional options to the upsert
    * @param options.verbose the optional verbose bool parameter
+   * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
   const upsert = async (
     masterKey: FindexKey | SymmetricKey | Uint8Array,
@@ -365,7 +367,7 @@ export async function Findex() {
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
     options: { verbose?: false } = {},
-  ): Promise<void> => {
+  ): Promise<Keyword[]> => {
     const verbose = options.verbose === undefined ? false : options.verbose
     if (verbose && !loggerInit) {
       await webassembly_logger_init()
@@ -386,7 +388,7 @@ export async function Findex() {
     const additionsBytes = indexedEntriesToBytes(additions, "additions")
     const deletionsBytes = indexedEntriesToBytes(deletions, "deletions")
 
-    return await webassembly_upsert(
+    const newIds: Uint8Array[] = await webassembly_upsert(
       masterKey.bytes,
       label.bytes,
       additionsBytes,
@@ -401,6 +403,7 @@ export async function Findex() {
         return await insertChains(uidsAndValues)
       },
     )
+    return newIds.map((value: Uint8Array) => new Keyword(value))
   }
 
   /**
