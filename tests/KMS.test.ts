@@ -177,7 +177,7 @@ test(
     const { Policy, PolicyAxis } = await CoverCrypt()
 
     const client = new KmsClient(
-      new URL(`http://${process.env.KMS_HOST || "localhost"}:9998/kmip/2_1`),
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     if (!(await client.up())) {
       console.error("No KMIP server. Skipping test")
