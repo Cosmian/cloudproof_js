@@ -43,6 +43,7 @@ export class Policy {
 
   /**
    * Packages the policy into a vendor attribute to include in a key
+   *
    * @returns {VendorAttributes} the Policy as a VendorAttributes
    */
   public toVendorAttribute(): VendorAttributes {
@@ -55,6 +56,7 @@ export class Policy {
 
   /**
    * Recover the Policy from the key attributes, throws otherwise
+   *
    * @param {Attributes} attributes the key attributes to parse
    * @returns {Policy} the Policy
    */
@@ -76,6 +78,7 @@ export class Policy {
   /**
    * Attempt to extract the Policy from a CoverCrypt public or private key
    * Throws if not found
+   *
    * @param {PrivateKey | PublicKey} key the CoverCrypt key
    * @returns {Policy} the recovered Policy
    */
@@ -85,6 +88,7 @@ export class Policy {
 
   /**
    * Returns the policy bytes.
+   *
    * @returns {Uint8Array} the string
    */
   public toBytes(): Uint8Array {
