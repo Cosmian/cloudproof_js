@@ -13,7 +13,7 @@ on:
       kms-jwe-key:
         required: false
         type: string
-        default: null
+        default: ''
       findex-cloud-version:
         required: true
         type: string
