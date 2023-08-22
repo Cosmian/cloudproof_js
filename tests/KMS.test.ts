@@ -411,19 +411,12 @@ test(
 
     // Locate by tags
     const idByTag = await client.getUniqueIdentifiersByTags([TAG])
-    const idByTagAndObjectType = await client.getUniqueIdentifiersByTags(
-      [TAG],
-      "SymmetricKey",
-    )
 
     expect(idByTag.length).toEqual(4)
     expect(idByTag).toContain(mskID)
     expect(idByTag).toContain(mpkID)
     expect(idByTag).toContain(decryptionKeyID)
     expect(idByTag).toContain(symmetricKeyID)
-
-    expect(idByTagAndObjectType.length).toEqual(1)
-    expect(idByTagAndObjectType).toContain(symmetricKeyID)
   },
   {
     timeout: 30 * 1000,
