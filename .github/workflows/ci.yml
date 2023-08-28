@@ -16,7 +16,7 @@ jobs:
       subcommands: |
         python3 scripts/download_wasm.py
         npm install
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
 
   lint:
@@ -33,8 +33,9 @@ jobs:
     with:
       subcommands: |
         npm test
-      kms-version: develop
-      kms-jwe-key: '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x": "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
+      kms-version: 4.5.0
+      kms-jwe-key: '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
+        "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
       findex-cloud-version: 0.3.1
       regression_files: |
         ./node_modules/non_regression_vector.json
@@ -49,7 +50,7 @@ jobs:
       extension: so
       destination: linux-x86-64
       os: ubuntu-20.04
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
       copy_fresh_build: false
       copy_regression_files: |
@@ -61,9 +62,9 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: v4.0.2
+      branch: develop
       target: x86_64-unknown-linux-gnu
-      kms-version: develop
+      kms-version: 4.5.0
       copy_fresh_build: false
       copy_regression_files: |
         cp ./cloudproof_js/non_regression_vector.json tests/data/cover_crypt/non_regression/js_non_regression_vector.json
@@ -94,7 +95,7 @@ jobs:
         sleep 5
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
 
   example_reactjs:
@@ -109,7 +110,7 @@ jobs:
         sleep 5
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
 
   example_browser:
@@ -122,7 +123,7 @@ jobs:
         python3 -m http.server &
         sleep 3
         node test.mjs
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
 
   example_webpack:
@@ -142,7 +143,7 @@ jobs:
         cd examples/nodejs
         npm install
         node test.mjs 10
-      kms-version: develop
+      kms-version: 4.5.0
       findex-cloud-version: 0.3.1
 
   example_imdb:
