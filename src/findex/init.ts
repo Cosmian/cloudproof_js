@@ -97,6 +97,7 @@ export class Location {
    * that's why we use `BigInt` internally but we convert to `number` (it's theoretically wrong) because `number`
    * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for example, JS will
    * not be able to read it.
+   *
    * @param value number
    * @returns location
    */
@@ -109,6 +110,7 @@ export class Location {
 
   /**
    * Convert UUIDv4 only because they are more common.
+   *
    * @param uuidv4 uuid
    * @returns location
    */
@@ -198,6 +200,7 @@ export interface IndexedEntry {
 /**
  * Generates aliases for a keyword to use in upsert
  * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thib", "Thib" => "Thiba", "Thiba" => "Thibau", "Thibau" => "Thibaud"]
+ *
  * @param keyword Generate aliases to this keyword
  * @param minChars Start at this number of characters
  * @param maxChars Do not generate alias of greater length than maxChars, last alias will target the original keyword
@@ -325,7 +328,8 @@ export type InsertChains = (uidsAndValues: UidsAndValues) => Promise<void>
 export type Progress = (indexedValues: ProgressResults) => Promise<boolean>
 
 /**
- *
+ * Findex definition
+ * @returns {Promise<Findex>} results found at every node while the search walks the search graph
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Findex() {
@@ -342,6 +346,7 @@ export async function Findex() {
 
   /**
    * Insert or update existing (a.k.a upsert) entries in the index
+   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
@@ -351,6 +356,7 @@ export async function Findex() {
    * @param {InsertChains} insertChains callback to upsert inside chains table
    * @param options Additional optional options to the upsert
    * @param options.verbose the optional verbose bool parameter
+   * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
   const upsert = async (
     masterKey: FindexKey | SymmetricKey | Uint8Array,
@@ -361,7 +367,7 @@ export async function Findex() {
     upsertEntries: UpsertEntries,
     insertChains: InsertChains,
     options: { verbose?: false } = {},
-  ): Promise<void> => {
+  ): Promise<Keyword[]> => {
     const verbose = options.verbose === undefined ? false : options.verbose
     if (verbose && !loggerInit) {
       await webassembly_logger_init()
@@ -382,7 +388,7 @@ export async function Findex() {
     const additionsBytes = indexedEntriesToBytes(additions, "additions")
     const deletionsBytes = indexedEntriesToBytes(deletions, "deletions")
 
-    return await webassembly_upsert(
+    const newIds: Uint8Array[] = await webassembly_upsert(
       masterKey.bytes,
       label.bytes,
       additionsBytes,
@@ -397,10 +403,12 @@ export async function Findex() {
         return await insertChains(uidsAndValues)
       },
     )
+    return newIds.map((value: Uint8Array) => new Keyword(value))
   }
 
   /**
    * Search indexed keywords and return the corresponding IndexedValues
+   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param keywords keywords to search inside the indexes

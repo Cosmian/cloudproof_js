@@ -1,13 +1,13 @@
 import {
+  CoverCrypt,
   Findex,
   FindexKey,
-  type UidsAndValues,
+  KmsClient,
   Label,
   Location,
-  CoverCrypt,
-  KmsClient,
   UidsAndValuesToUpsert,
   generateAliases,
+  type UidsAndValues,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -814,9 +814,7 @@ function App() {
                 <button
                   className="btn btn-outline-secondary"
                   type="button"
-                  onClick={() =>
-                    setKmsServerUrl("http://localhost:9998")
-                  }
+                  onClick={() => setKmsServerUrl("http://localhost:9998")}
                 >
                   Localhost
                 </button>
@@ -824,9 +822,7 @@ function App() {
                   className="btn btn-outline-secondary"
                   type="button"
                   onClick={() =>
-                    setKmsServerUrl(
-                      "https://demo-cloudproof.cosmian.com/kms",
-                    )
+                    setKmsServerUrl("https://demo-cloudproof.cosmian.com/kms")
                   }
                 >
                   Demo

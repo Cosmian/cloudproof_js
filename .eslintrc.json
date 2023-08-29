@@ -16,6 +16,8 @@
   },
   "plugins": ["jsdoc"],
   "rules": {
+    "@typescript-eslint/strict-boolean-expressions": "warn",
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
     "@typescript-eslint/no-empty-interface": 0,
     "no-labels": 0,
     "no-unused-vars": [

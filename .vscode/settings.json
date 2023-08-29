@@ -1,0 +1,12 @@
+{
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8"
+  },
+  "python.formatting.provider": "none",
+  "cSpell.words": ["Findex", "uids", "Uids"],
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#02342B",
+    "titleBar.activeBackground": "#03493C",
+    "titleBar.activeForeground": "#E9FEFA"
+  }
+}

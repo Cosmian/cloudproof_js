@@ -1,5 +1,18 @@
-import { serialize, deserialize } from "./kmip"
+import * as jose from "jose"
+import { AccessPolicy } from "../cover_crypt/interfaces/access_policy"
+import { Policy } from "../cover_crypt/interfaces/policy"
+import { decode, encode } from "../utils/leb128"
+import { deserialize, serialize } from "./kmip"
+import { Create } from "./requests/Create"
+import { CreateKeyPair } from "./requests/CreateKeyPair"
+import { Decrypt } from "./requests/Decrypt"
+import { Destroy } from "./requests/Destroy"
+import { Encrypt } from "./requests/Encrypt"
 import { Get } from "./requests/Get"
+import { Import } from "./requests/Import"
+import { Locate } from "./requests/Locate"
+import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
+import { Revoke } from "./requests/Revoke"
 import {
   Attributes,
   Link,
@@ -7,33 +20,23 @@ import {
   VendorAttributes,
 } from "./structs/object_attributes"
 import {
-  KmsObject,
-  PrivateKey,
-  PublicKey,
-  SymmetricKey,
-} from "./structs/objects"
-import { Import } from "./requests/Import"
-import { Revoke } from "./requests/Revoke"
-import { Create } from "./requests/Create"
-import {
-  CryptographicUsageMask,
-  RevocationReasonEnumeration,
-} from "./structs/types"
-import { Destroy } from "./requests/Destroy"
-import {
   CryptographicAlgorithm,
   KeyBlock,
   KeyFormatType,
   KeyValue,
   TransparentSymmetricKey,
 } from "./structs/object_data_structures"
-import { Policy } from "../cover_crypt/interfaces/policy"
-import { CreateKeyPair } from "./requests/CreateKeyPair"
-import { AccessPolicy } from "../cover_crypt/interfaces/access_policy"
-import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
-import { Encrypt } from "./requests/Encrypt"
-import { Decrypt } from "./requests/Decrypt"
-import { decode, encode } from "../utils/leb128"
+import {
+  KmsObject,
+  ObjectType,
+  PrivateKey,
+  PublicKey,
+  SymmetricKey,
+} from "./structs/objects"
+import {
+  CryptographicUsageMask,
+  RevocationReasonEnumeration,
+} from "./structs/types"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -47,6 +50,7 @@ export interface KmsRequest<TResponse> {
 export class KmsClient {
   private readonly url: string
   private readonly headers: HeadersInit
+  private publicKey: jose.JWK | null = null
 
   /**
    * Instantiate a KMS Client
@@ -63,6 +67,10 @@ export class KmsClient {
     }
   }
 
+  setEncryption(publicKey: jose.JWK): void {
+    this.publicKey = publicKey
+  }
+
   /**
    * Execute a KMIP request and get a response
    * It is easier and safer to use the specialized methods of this class, for each crypto system
@@ -73,9 +81,21 @@ export class KmsClient {
     request: KmsRequest<TResponse> & { tag: string },
   ): Promise<TResponse> {
     const kmipUrl = new URL("kmip/2_1", this.url)
+    let body = serialize(request)
+
+    if (this.publicKey !== null) {
+      body = await new jose.CompactEncrypt(new TextEncoder().encode(body))
+        .setProtectedHeader({
+          alg: "ECDH-ES",
+          enc: "A256GCM",
+          kid: this.publicKey.kid,
+        })
+        .encrypt(await jose.importJWK(this.publicKey))
+    }
+
     const response = await fetch(kmipUrl, {
       method: "POST",
-      body: serialize(request),
+      body,
       headers: this.headers,
     })
 
@@ -130,9 +150,40 @@ export class KmsClient {
   }
 
   /**
+   * Retrieve a list of KMIP Object from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {KmsObject[]} list of KMIP Objects
+   */
+  public async getObjectsByTags(tags: string[]): Promise<KmsObject[]> {
+    const uniqueIdentifiers = await this.getUniqueIdentifiersByTags(tags)
+    return await Promise.all(
+      uniqueIdentifiers.map(async (uniqueId) => await this.getObject(uniqueId)),
+    )
+  }
+
+  /**
+   * Retrieve a list of unique identifiers from the KMS
+   * @param {string[]} tags list of tags
+   * @returns {string[]} list of unique identifiers in the KMS
+   */
+  public async getUniqueIdentifiersByTags(tags: string[]): Promise<string[]> {
+    const attributes = new Attributes()
+    const enc = new TextEncoder()
+    const vendor = new VendorAttributes(
+      VendorAttributes.VENDOR_ID_COSMIAN,
+      VendorAttributes.TAG,
+      enc.encode(JSON.stringify(tags)),
+    )
+    attributes.vendorAttributes.push(vendor)
+    const response = await this.post(new Locate(attributes))
+    return response.uniqueIdentifier
+  }
+
+  /**
    * Import a KMIP Object inside the KMS
    * @param {string} uniqueIdentifier the Object unique identifier in the KMS
    * @param {Attributes} attributes the indexed attributes of the Object
+   * @param {ObjectType} objectType the objectType of the Object
    * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string} the unique identifier
@@ -140,13 +191,14 @@ export class KmsClient {
   public async importObject(
     uniqueIdentifier: string,
     attributes: Attributes,
+    objectType: ObjectType,
     object: KmsObject,
     replaceExisting: boolean = false,
   ): Promise<string> {
     const response = await this.post(
       new Import(
         uniqueIdentifier,
-        attributes.objectType,
+        objectType,
         object,
         attributes,
         replaceExisting,
@@ -181,26 +233,38 @@ export class KmsClient {
    * @param {SymmetricKeyAlgorithm} algorithm defaults to AES
    * @param {number} bits number of bits of the key, defaults to 256
    * @param {Link[]} links potential links to other keys
+   * @param {string[]} tags potential list of tags
    * @returns {string} the unique identifier of the created key
    */
   public async createSymmetricKey(
     algorithm: SymmetricKeyAlgorithm = SymmetricKeyAlgorithm.AES,
     bits: number | null = null,
     links: Link[] = [],
+    tags: string[] = [],
   ): Promise<string> {
     const algo =
       algorithm === SymmetricKeyAlgorithm.ChaCha20
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = bits
     attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
 
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
     const response = await this.post(
-      new Create(attributes.objectType, attributes),
+      new Create(attributes.objectType, attributes, null),
     )
     return response.uniqueIdentifier
   }
@@ -226,7 +290,8 @@ export class KmsClient {
         ? CryptographicAlgorithm.ChaCha20
         : CryptographicAlgorithm.AES
 
-    const attributes = new Attributes("SymmetricKey")
+    const attributes = new Attributes()
+    attributes.objectType = "SymmetricKey"
     attributes.link = links
     attributes.cryptographicAlgorithm = algo
     attributes.cryptographicLength = keyBytes.length * 8
@@ -245,6 +310,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       attributes,
+      attributes.objectType,
       { type: "SymmetricKey", value: symmetricKey },
       replaceExisting,
     )
@@ -266,7 +332,6 @@ export class KmsClient {
         `The KMS server returned a ${object.type} instead of a SymmetricKey for the identifier ${uniqueIdentifier}`,
       )
     }
-
     return object.value
   }
 
@@ -294,11 +359,22 @@ export class KmsClient {
 
   public async createCoverCryptMasterKeyPair(
     policy: Policy,
+    tags: string[] = [],
   ): Promise<string[]> {
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
     attributes.vendorAttributes = [policy.toVendorAttribute()]
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const response = await this.post(new CreateKeyPair(attributes))
     return [
@@ -484,6 +560,7 @@ export class KmsClient {
     return await this.importObject(
       uniqueIdentifier,
       key.keyBlock.keyValue.attributes,
+      type,
       { type, value: key },
       options.replaceExisting,
     )
@@ -518,22 +595,34 @@ export class KmsClient {
    * @param {string | AccessPolicy} accessPolicy the access policy expressed as a boolean expression e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
    * @param {string} secretMasterKeyIdentifier the secret master key identifier which will derive this key
+   * @param {string[]} tags a list of tags
    * @returns {string} the unique identifier of the user decryption key
    */
   public async createCoverCryptUserDecryptionKey(
     accessPolicy: AccessPolicy | string,
     secretMasterKeyIdentifier: string,
+    tags: string[] = [],
   ): Promise<string> {
     if (typeof accessPolicy === "string") {
       accessPolicy = new AccessPolicy(accessPolicy)
     }
 
-    const attributes = new Attributes("PrivateKey")
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
     attributes.link = [new Link(LinkType.ParentLink, secretMasterKeyIdentifier)]
     attributes.vendorAttributes = [await accessPolicy.toVendorAttribute()]
     attributes.cryptographicAlgorithm = CryptographicAlgorithm.CoverCrypt
     attributes.cryptographicUsageMask = CryptographicUsageMask.Decrypt
     attributes.keyFormatType = KeyFormatType.CoverCryptSecretKey
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const response = await this.post(
       new Create(attributes.objectType, attributes),

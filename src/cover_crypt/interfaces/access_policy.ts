@@ -10,6 +10,7 @@ export class AccessPolicy {
   /**
    * Create an Access Policy from a boolean expression over the attributes e.g.
    * (Department::MKG || Department::FIN) && Security Level::Confidential
+   *
    * @param {string} booleanAccessPolicy the boolean expression
    */
   constructor(booleanAccessPolicy: string) {
@@ -22,6 +23,7 @@ export class AccessPolicy {
 
   /**
    * Packages the access policy into a vendor attribute to include in a user decryption key
+   *
    * @returns {VendorAttributes} the Access Policy as a VendorAttributes
    */
   public async toVendorAttribute(): Promise<VendorAttributes> {
@@ -34,6 +36,7 @@ export class AccessPolicy {
 
   /**
    * Recover the Access Policy from the key attributes, throws otherwise
+   *
    * @param {Attributes} attributes the key attributes to parse
    * @returns {AccessPolicy} the Access Policy
    */
@@ -57,6 +60,7 @@ export class AccessPolicy {
   /**
    * Attempt to extract the Access Policy from a CoverCrypt User Decryption Key
    * Throws if not found
+   *
    * @param {PrivateKey} key the CoverCrypt User Decryption Key
    * @returns {AccessPolicy} the recovered Access Policy
    */
@@ -75,6 +79,7 @@ export class AccessPolicy {
 }
 /**
  * Convert a JSON KMIP access policy into a boolean access policy
+ *
  * @param {string} jsonAccessPolicy the KMIP JSON access policy
  * @returns {string} the boolean access policy
  */

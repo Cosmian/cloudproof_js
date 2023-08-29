@@ -38,6 +38,7 @@ export class Metadata {
 
   /**
    * This function convert Metadata to JSON Metadata and returns the corresponding bytes
+   *
    * @returns {Uint8Array} a byte array of the JSON encoding Metadata
    */
   public toJsonEncoded(): Uint8Array {

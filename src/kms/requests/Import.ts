@@ -1,8 +1,8 @@
-import { KmsObject, ObjectType } from "../structs/objects"
-import { Attributes } from "../structs/object_attributes"
-import { KeyWrapType } from "../structs/types"
 import { KmsRequest } from "../kms"
 import { GenericUniqueIdentifierResponse } from "../responses/GenericUniqueIdentifierResponse"
+import { Attributes } from "../structs/object_attributes"
+import { KmsObject, ObjectType } from "../structs/objects"
+import { KeyWrapType } from "../structs/types"
 
 export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {
   __response: GenericUniqueIdentifierResponse | undefined
@@ -24,7 +24,10 @@ export class Import implements KmsRequest<GenericUniqueIdentifierResponse> {
     replaceExisting: boolean = false,
     keyWrapType: KeyWrapType | null = null,
   ) {
-    if (attributes !== undefined && attributes.objectType !== object.type) {
+    if (
+      attributes?.objectType != null &&
+      attributes.objectType !== object.type
+    ) {
       throw new Error(
         `Import: invalid object type ${attributes.objectType} for object of type ${object.type}`,
       )

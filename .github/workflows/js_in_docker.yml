@@ -10,6 +10,10 @@ on:
       kms-version:
         required: true
         type: string
+      kms-jwe-key:
+        required: false
+        type: string
+        default: ''
       findex-cloud-version:
         required: true
         type: string
@@ -31,6 +35,7 @@ jobs:
           KMS_PUBLIC_PATH: /tmp
           KMS_PRIVATE_PATH: /tmp
           KMS_SHARED_PATH: /tmp
+          JWK_PRIVATE_KEY: ${{ inputs.kms-jwe-key }}
 
       findex_cloud:
         image: ghcr.io/cosmian/findex_cloud:${{ inputs.findex-cloud-version }}
