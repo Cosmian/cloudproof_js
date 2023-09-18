@@ -103,7 +103,7 @@ export enum CryptographicAlgorithm {
   TFHE = 0x8880_0002,
   ABE = 0x8880_0003,
   CoverCrypt = 0x8880_0004,
-  FPEFF1 = 0x8880_0005,
+  CoverCryptBulk = 0x8880_0005,
 }
 
 export class KeyBlock {

@@ -351,7 +351,7 @@ test("Demo using KMS", async () => {
   )
   expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
 
-  //   However, the old, non-rekeyed `confidential marketing` user key can still decrypt the old `protected marketing` message
+  // However, the old, non-rekeyed `confidential marketing` user key can still decrypt the old `protected marketing` message
   // but **not** the new `confidential marketing` message:
 
   // protectedMkgCiphertext

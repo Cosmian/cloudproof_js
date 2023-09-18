@@ -676,6 +676,93 @@ test(
 )
 
 test(
+  "KMS CoverCrypt keys with bulk encryption/decryption",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.log("No KMIP server. Skipping test")
+      return
+    }
+
+    const { CoverCryptHybridDecryption, Policy, PolicyAxis } =
+      await CoverCrypt()
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    // create master keys
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+
+    // recover keys and policies
+    const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
+    const policyMsk = Policy.fromKey(msk)
+
+    // Policies are compared under JSON format but comparison will become a raw bytes comparison since JSON format will be removed
+    const policyJson = JSON.parse(new TextDecoder().decode(policy.toBytes()))
+    const policyMskJson = JSON.parse(
+      new TextDecoder().decode(policyMsk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMskJson)
+    const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    const policyMpk = Policy.fromKey(mpk)
+    const policyMpkJson = JSON.parse(
+      new TextDecoder().decode(policyMpk.toBytes()),
+    )
+    expect(policyJson).toEqual(policyMpkJson)
+
+    // create user decryption Key
+    const apb =
+      "(Department::MKG || Department::FIN) && Security Level::Confidential"
+    const udkID = await client.createCoverCryptUserDecryptionKey(apb, mskID)
+    const udk = await client.retrieveCoverCryptUserDecryptionKey(udkID)
+    expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
+
+    // encryption
+    const plaintext = []
+    plaintext.push(new TextEncoder().encode("abcdefgh"))
+    plaintext.push(new TextEncoder().encode("azertyui"))
+    plaintext.push(new TextEncoder().encode("qsdfghjk"))
+
+    const ciphertext = await client.coverCryptBulkEncrypt(
+      mpkID,
+      "Department::FIN && Security Level::Confidential",
+      plaintext,
+    )
+
+    {
+      const { plaintext } = await client.coverCryptBulkDecrypt(
+        udkID,
+        ciphertext,
+      )
+      expect(plaintext).toEqual(plaintext)
+    }
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
   "Key rotation security when importing with tempered access policy",
   async () => {
     if (client !== undefined) {
