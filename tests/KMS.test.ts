@@ -24,7 +24,12 @@ import {
   toTTLV,
 } from ".."
 
+import { v4 as uuidv4 } from "uuid"
 import { expect, test } from "vitest"
+import {
+  NIST_P256_CERTIFICATE,
+  NIST_P256_PRIVATE_KEY,
+} from "./data/certificates"
 
 test("serialize/deserialize Create", async () => {
   await CoverCrypt()
@@ -164,6 +169,29 @@ test(
     )
     await client.retrieveCoverCryptSecretMasterKey(
       importedPrivateKeyUniqueIdentifier,
+    )
+  },
+  {
+    timeout: 30 * 1000,
+  },
+)
+
+test(
+  "KMS Import Certificate",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+
+    const importedCertificateUniqueIdentifier = await client.importCertificate(
+      uuidv4(),
+      new TextEncoder().encode(NIST_P256_CERTIFICATE),
+    )
+
+    const importedPrivateKeyUniqueIdentifier = await client.importPrivateKey(
+      uuidv4(),
+      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+      RecommendedCurve.P256,
     )
   },
   {
@@ -702,13 +730,11 @@ test(
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
     const ret = await client.up()
-    console.log(`server up?: ${ret.toString()}`)
 
     if (!(await client.up())) {
       console.log("No KMIP server. Skipping test")
       return
     }
-    console.log("KMIP server running...")
 
     const { Policy, PolicyAxis } = await CoverCrypt()
 

@@ -15,6 +15,7 @@ import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Revoke } from "./requests/Revoke"
 import {
   Attributes,
+  CryptographicDomainParameters,
   Link,
   LinkType,
   VendorAttributes,
@@ -24,9 +25,12 @@ import {
   KeyBlock,
   KeyFormatType,
   KeyValue,
+  RecommendedCurve,
   TransparentSymmetricKey,
 } from "./structs/object_data_structures"
 import {
+  Certificate,
+  CertificateType,
   KmsObject,
   ObjectType,
   PrivateKey,
@@ -312,6 +316,60 @@ export class KmsClient {
       attributes,
       attributes.objectType,
       { type: "SymmetricKey", value: symmetricKey },
+      replaceExisting,
+    )
+  }
+
+  public async importCertificate(
+    uniqueIdentifier: string,
+    certificateBytes: Uint8Array,
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    const attributes = new Attributes()
+    attributes.objectType = "Certificate"
+
+    const certificate = new Certificate(CertificateType.X509, certificateBytes)
+
+    return await this.importObject(
+      uniqueIdentifier,
+      attributes,
+      attributes.objectType,
+      { type: "Certificate", value: certificate },
+      replaceExisting,
+    )
+  }
+
+  public async importPrivateKey(
+    uniqueIdentifier: string,
+    privateKeyBytes: Uint8Array,
+    recommendedCurve: RecommendedCurve,
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    const qLengthBits = privateKeyBytes.length * 8
+    const attributes = new Attributes()
+    attributes.objectType = "PrivateKey"
+    attributes.cryptographicAlgorithm = CryptographicAlgorithm.ECDH
+    attributes.cryptographicLength = qLengthBits
+    attributes.cryptographicDomainParameters =
+      new CryptographicDomainParameters(qLengthBits, recommendedCurve)
+    attributes.keyFormatType = KeyFormatType.TransparentECPrivateKey
+    attributes.cryptographicUsageMask =
+      CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+
+    const privateKey = new PrivateKey(
+      new KeyBlock(
+        KeyFormatType.TransparentECPrivateKey,
+        new KeyValue(new TransparentSymmetricKey(privateKeyBytes), attributes),
+        CryptographicAlgorithm.ECDH,
+        qLengthBits,
+      ),
+    )
+
+    return await this.importObject(
+      uniqueIdentifier,
+      attributes,
+      attributes.objectType,
+      { type: "PrivateKey", value: privateKey },
       replaceExisting,
     )
   }
