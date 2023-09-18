@@ -320,15 +320,33 @@ export class KmsClient {
     )
   }
 
-  public async importCertificate(
+  /**
+   * Import a X509 certificate as PEM encoded
+   * @param {string} uniqueIdentifier  the unique identifier of the key
+   * @param {Uint8Array} certificateBytes the certificate as bytes
+   * @param {string[]} tags potential list of tags
+   * @param {boolean} replaceExisting replace the existing object
+   * @returns {string}  the unique identifier of the key
+   */
+  public async importX509Certificate(
     uniqueIdentifier: string,
     certificateBytes: Uint8Array,
+    tags: string[] = [],
     replaceExisting: boolean = false,
   ): Promise<string> {
     const attributes = new Attributes()
     attributes.objectType = "Certificate"
 
     const certificate = new Certificate(CertificateType.X509, certificateBytes)
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     return await this.importObject(
       uniqueIdentifier,
@@ -339,10 +357,20 @@ export class KmsClient {
     )
   }
 
+  /**
+   * Import a private key
+   * @param {string} uniqueIdentifier  the unique identifier of the key
+   * @param {Uint8Array} privateKeyBytes the certificate as bytes
+   * @param {RecommendedCurve} recommendedCurve the elliptic curve name
+   * @param {string[]} tags potential list of tags
+   * @param {boolean} replaceExisting replace the existing object
+   * @returns {string}  the unique identifier of the key
+   */
   public async importPrivateKey(
     uniqueIdentifier: string,
     privateKeyBytes: Uint8Array,
     recommendedCurve: RecommendedCurve,
+    tags: string[] = [],
     replaceExisting: boolean = false,
   ): Promise<string> {
     const qLengthBits = privateKeyBytes.length * 8
@@ -355,6 +383,16 @@ export class KmsClient {
     attributes.keyFormatType = KeyFormatType.TransparentECPrivateKey
     attributes.cryptographicUsageMask =
       CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
+
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
 
     const privateKey = new PrivateKey(
       new KeyBlock(
