@@ -328,7 +328,7 @@ export class KmsClient {
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string}  the unique identifier of the key
    */
-  public async importX509Certificate(
+  public async importPem(
     uniqueIdentifier: string,
     certificateBytes: Uint8Array,
     tags: string[] = [],
@@ -353,61 +353,6 @@ export class KmsClient {
       attributes,
       attributes.objectType,
       { type: "Certificate", value: certificate },
-      replaceExisting,
-    )
-  }
-
-  /**
-   * Import a private key
-   * @param {string} uniqueIdentifier  the unique identifier of the key
-   * @param {Uint8Array} privateKeyBytes the certificate as bytes
-   * @param {RecommendedCurve} recommendedCurve the elliptic curve name
-   * @param {string[]} tags potential list of tags
-   * @param {boolean} replaceExisting replace the existing object
-   * @returns {string}  the unique identifier of the key
-   */
-  public async importPrivateKey(
-    uniqueIdentifier: string,
-    privateKeyBytes: Uint8Array,
-    recommendedCurve: RecommendedCurve,
-    tags: string[] = [],
-    replaceExisting: boolean = false,
-  ): Promise<string> {
-    const qLengthBits = privateKeyBytes.length * 8
-    const attributes = new Attributes()
-    attributes.objectType = "PrivateKey"
-    attributes.cryptographicAlgorithm = CryptographicAlgorithm.ECDH
-    attributes.cryptographicLength = qLengthBits
-    attributes.cryptographicDomainParameters =
-      new CryptographicDomainParameters(qLengthBits, recommendedCurve)
-    attributes.keyFormatType = KeyFormatType.TransparentECPrivateKey
-    attributes.cryptographicUsageMask =
-      CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
-
-    if (tags.length > 0) {
-      const enc = new TextEncoder()
-      const vendor = new VendorAttributes(
-        VendorAttributes.VENDOR_ID_COSMIAN,
-        VendorAttributes.TAG,
-        enc.encode(JSON.stringify(tags)),
-      )
-      attributes.vendorAttributes.push(vendor)
-    }
-
-    const privateKey = new PrivateKey(
-      new KeyBlock(
-        KeyFormatType.TransparentECPrivateKey,
-        new KeyValue(new TransparentSymmetricKey(privateKeyBytes), attributes),
-        CryptographicAlgorithm.ECDH,
-        qLengthBits,
-      ),
-    )
-
-    return await this.importObject(
-      uniqueIdentifier,
-      attributes,
-      attributes.objectType,
-      { type: "PrivateKey", value: privateKey },
       replaceExisting,
     )
   }
@@ -773,6 +718,7 @@ export class KmsClient {
    * Mark a CoverCrypt User Decryption Key as Revoked
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
+   * @returns nothing
    */
   public async revokeCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
@@ -789,6 +735,7 @@ export class KmsClient {
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.headerMetadata Data encrypted in the header
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @returns the ciphertext
    */
   public async coverCryptEncrypt(
     uniqueIdentifier: string,
@@ -831,6 +778,7 @@ export class KmsClient {
    * @param data to decrypt
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should have been use during encryption)
+   * @returns the plaintext
    */
   public async coverCryptDecrypt(
     uniqueIdentifier: string,

@@ -183,17 +183,15 @@ test(
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
     )
 
-    const importedCertificateUniqueIdentifier =
-      await client.importX509Certificate(
-        uuidv4(),
-        new TextEncoder().encode(NIST_P256_CERTIFICATE),
-        ["certificate", "x509"],
-      )
+    const importedCertificateUniqueIdentifier = await client.importPem(
+      uuidv4(),
+      new TextEncoder().encode(NIST_P256_CERTIFICATE),
+      ["certificate", "x509"],
+    )
 
-    const importedPrivateKeyUniqueIdentifier = await client.importPrivateKey(
+    const importedPrivateKeyUniqueIdentifier = await client.importPem(
       uuidv4(),
       new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
-      RecommendedCurve.P256,
       ["private key", "x509"],
     )
   },
