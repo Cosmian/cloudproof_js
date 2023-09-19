@@ -15,18 +15,19 @@ import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Revoke } from "./requests/Revoke"
 import {
   Attributes,
-  CryptographicDomainParameters,
   Link,
   LinkType,
   VendorAttributes,
 } from "./structs/object_attributes"
 import {
   CryptographicAlgorithm,
+  EncryptionKeyInformation,
   KeyBlock,
   KeyFormatType,
   KeyValue,
-  RecommendedCurve,
+  KeyWrappingSpecification,
   TransparentSymmetricKey,
+  WrappingMethod,
 } from "./structs/object_data_structures"
 import {
   Certificate,
@@ -39,6 +40,7 @@ import {
 } from "./structs/objects"
 import {
   CryptographicUsageMask,
+  KeyWrapType,
   RevocationReasonEnumeration,
 } from "./structs/types"
 
@@ -146,10 +148,16 @@ export class KmsClient {
   /**
    * Retrieve a KMIP Object from the KMS
    * @param uniqueIdentifier the unique identifier of the object
+   * @param keyWrappingSpecification specifies keys and other information for wrapping the returned object
    * @returns an instance of the KMIP Object
    */
-  public async getObject(uniqueIdentifier: string): Promise<KmsObject> {
-    const response = await this.post(new Get(uniqueIdentifier))
+  public async getObject(
+    uniqueIdentifier: string,
+    keyWrappingSpecification?: KeyWrappingSpecification,
+  ): Promise<KmsObject> {
+    const response = await this.post(
+      new Get(uniqueIdentifier, keyWrappingSpecification),
+    )
     return response.object
   }
 
@@ -190,6 +198,7 @@ export class KmsClient {
    * @param {ObjectType} objectType the objectType of the Object
    * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
+   * @param {KeyWrapType} keyWrapType
    * @returns {string} the unique identifier
    */
   public async importObject(
@@ -198,6 +207,7 @@ export class KmsClient {
     objectType: ObjectType,
     object: KmsObject,
     replaceExisting: boolean = false,
+    keyWrapType?: KeyWrapType,
   ): Promise<string> {
     const response = await this.post(
       new Import(
@@ -206,6 +216,7 @@ export class KmsClient {
         object,
         attributes,
         replaceExisting,
+        keyWrapType,
       ),
     )
 
@@ -844,6 +855,65 @@ export class KmsClient {
       response.publicKeyUniqueIdentifier,
     )
     return publicMasterKey.policy()
+  }
+
+  /**
+   * Get and wrap
+   * @param uniqueIdentifier the unique identifier of the object to get and wrap
+   * @param encryptionKeyUniqueIdentifier the unique identifier to use to wrap the fetched key
+   * @returns wrapped object
+   */
+  public async getWrappedKey(
+    uniqueIdentifier: string,
+    encryptionKeyUniqueIdentifier: string,
+  ): Promise<KmsObject> {
+    const wrappedObject = new KeyWrappingSpecification(
+      WrappingMethod.Encrypt,
+      new EncryptionKeyInformation(encryptionKeyUniqueIdentifier),
+    )
+    const object = await this.getObject(uniqueIdentifier, wrappedObject)
+    return object
+  }
+
+  /**
+   * Import key - with or without unwrapping
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param wrappedObject wrapped objectto import
+   * @param unwrap boolean true if object must be unwrapped before importing
+   * @param replaceExisting boolean replacing if existing object
+   * @returns imported object identifier
+   */
+  public async importKey(
+    uniqueIdentifier: string,
+    wrappedObject: KmsObject,
+    unwrap: boolean,
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    if (
+      wrappedObject.type === "Certificate" ||
+      wrappedObject.type === "CertificateRequest" ||
+      wrappedObject.type === "OpaqueObject"
+    ) {
+      throw new Error(`The KmsObject ${wrappedObject.type} is not a key.`)
+    }
+    if (
+      !(wrappedObject.value.keyBlock.keyValue instanceof KeyValue) ||
+      wrappedObject.value.keyBlock.keyValue.attributes == null
+    ) {
+      throw new Error(`KmsObject is missing the attributes property.`)
+    }
+    const attributes = wrappedObject.value.keyBlock.keyValue?.attributes
+    const keyWrapType = unwrap
+      ? KeyWrapType.NotWrapped
+      : KeyWrapType.AsRegistered
+    return await this.importObject(
+      uniqueIdentifier,
+      attributes,
+      wrappedObject.type,
+      wrappedObject,
+      replaceExisting,
+      keyWrapType,
+    )
   }
 }
 

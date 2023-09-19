@@ -24,7 +24,6 @@ import {
   toTTLV,
 } from ".."
 
-import { v4 as uuidv4 } from "uuid"
 import { expect, test } from "vitest"
 import {
   NIST_P256_CERTIFICATE,
@@ -176,29 +175,29 @@ test(
   },
 )
 
-test(
-  "KMS Import Certificate",
-  async () => {
-    const client = new KmsClient(
-      `http://${process.env.KMS_HOST || "localhost"}:9998`,
-    )
+// test(
+//   "KMS Import Certificate",
+//   async () => {
+//     const client = new KmsClient(
+//       `http://${process.env.KMS_HOST || "localhost"}:9998`,
+//     )
 
-    const importedCertificateUniqueIdentifier = await client.importPem(
-      uuidv4(),
-      new TextEncoder().encode(NIST_P256_CERTIFICATE),
-      ["certificate", "x509"],
-    )
+//     const importedCertificateUniqueIdentifier = await client.importPem(
+//       uuidv4(),
+//       new TextEncoder().encode(NIST_P256_CERTIFICATE),
+//       ["certificate", "x509"],
+//     )
 
-    const importedPrivateKeyUniqueIdentifier = await client.importPem(
-      uuidv4(),
-      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
-      ["private key", "x509"],
-    )
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
+//     const importedPrivateKeyUniqueIdentifier = await client.importPem(
+//       uuidv4(),
+//       new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+//       ["private key", "x509"],
+//     )
+//   },
+//   {
+//     timeout: 30 * 1000,
+//   },
+// )
 
 test(
   "KMS With JWE encryption",
@@ -949,5 +948,212 @@ test(
   },
   {
     timeout: 10 * 1000,
+  },
+)
+
+test(
+  "KMS Export wrapped key and Import unwrapping key",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const importedCertificateUniqueIdentifier = await client.importPem(
+      "my_cert_id",
+      new TextEncoder().encode(NIST_P256_CERTIFICATE),
+      ["certificate", "x509"],
+      true,
+    )
+
+    await client.importPem(
+      "my_private_key_id",
+      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+      ["private key", "x509"],
+      true,
+    )
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    const [privateKeyUniqueIdentifier, _publicKeyUniqueIdentifier] =
+      await client.createCoverCryptMasterKeyPair(policy)
+
+    const decryptionKeyUniqueIdentifier =
+      await client.createCoverCryptUserDecryptionKey(
+        "(Department::MKG || Department::FIN) && Security Level::Confidential",
+        privateKeyUniqueIdentifier,
+      )
+
+    const wrappedUserDecryptionKey = await client.getWrappedKey(
+      decryptionKeyUniqueIdentifier,
+      importedCertificateUniqueIdentifier,
+    )
+
+    const unwrappedKeyIdentifier = await client.importKey(
+      "unwrappedUserDecryptionKey",
+      wrappedUserDecryptionKey,
+      true,
+      true,
+    )
+
+    const initialKey = await client.getObject(decryptionKeyUniqueIdentifier)
+    const unwrappedKey = await client.getObject(unwrappedKeyIdentifier)
+
+    if (
+      initialKey.type === "Certificate" ||
+      initialKey.type === "CertificateRequest" ||
+      initialKey.type === "OpaqueObject"
+    ) {
+      throw new Error(`The KmsObject ${initialKey.type} cannot be unwrapped.`)
+    }
+    if (
+      !(initialKey.value.keyBlock.keyValue instanceof KeyValue) ||
+      initialKey.value.keyBlock.keyValue.attributes == null
+    ) {
+      throw new Error(`KmsObject is missing the attributes property.`)
+    }
+    if (
+      unwrappedKey.type === "Certificate" ||
+      unwrappedKey.type === "CertificateRequest" ||
+      unwrappedKey.type === "OpaqueObject"
+    ) {
+      throw new Error(`The KmsObject ${initialKey.type} cannot be unwrapped.`)
+    }
+    if (
+      !(unwrappedKey.value.keyBlock.keyValue instanceof KeyValue) ||
+      unwrappedKey.value.keyBlock.keyValue.attributes == null
+    ) {
+      throw new Error(`KmsObject is missing the attributes property.`)
+    }
+
+    expect(initialKey.value.keyBlock.keyValue.keyMaterial).toEqual(
+      unwrappedKey.value.keyBlock.keyValue.keyMaterial,
+    )
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)
+
+test(
+  "KMS distribute userDecryptionKey between two users",
+  async () => {
+    const client = new KmsClient(
+      `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    )
+    if (!(await client.up())) {
+      console.error("No KMIP server. Skipping test")
+      return
+    }
+
+    const { Policy, PolicyAxis } = await CoverCrypt()
+
+    const importedCertificateUniqueIdentifier = await client.importPem(
+      "my_cert_id",
+      new TextEncoder().encode(NIST_P256_CERTIFICATE),
+      ["certificate", "x509"],
+      true,
+    )
+
+    await client.importPem(
+      "my_private_key_id",
+      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+      ["private key", "x509"],
+      true,
+    )
+
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Confidential", isHybridized: false },
+          { name: "Top Secret", isHybridized: true },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "FIN", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "HR", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
+
+    const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
+      await client.createCoverCryptMasterKeyPair(policy)
+
+    const decryptionKeyUniqueIdentifier =
+      await client.createCoverCryptUserDecryptionKey(
+        "(Department::MKG || Department::FIN) && Security Level::Confidential",
+        privateKeyUniqueIdentifier,
+      )
+
+    const wrappedUserDecryptionKey1 = await client.getWrappedKey(
+      decryptionKeyUniqueIdentifier,
+      importedCertificateUniqueIdentifier,
+    )
+
+    const wrappedUserDecryptionKeyCentral = await client.importKey(
+      "wrappedUserDecryptionKeyCentral",
+      wrappedUserDecryptionKey1,
+      false,
+      true,
+    )
+
+    const fetchedWrappedUserDecryptionKey = await client.getObject(
+      wrappedUserDecryptionKeyCentral,
+    )
+
+    const unwrappedKeyIdentifier = await client.importKey(
+      "unwrappedUserDecryptionKey2",
+      fetchedWrappedUserDecryptionKey,
+      true,
+      true,
+    )
+
+    const clearText = new TextEncoder().encode("abcdefgh")
+    const ciphertext = await client.coverCryptEncrypt(
+      publicKeyUniqueIdentifier,
+      "Department::FIN && Security Level::Confidential",
+      clearText,
+    )
+
+    const { plaintext } = await client.coverCryptDecrypt(
+      unwrappedKeyIdentifier,
+      ciphertext,
+    )
+
+    expect(clearText).toEqual(plaintext)
+  },
+  {
+    timeout: 30 * 1000,
   },
 )

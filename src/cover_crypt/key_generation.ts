@@ -41,7 +41,6 @@ export class CoverCryptMasterKey {
 export class CoverCryptKeyGeneration {
   /**
    * Generate the Master Key Par
-   *
    * @param {Policy} policy the policy to use
    * @returns {CoverCryptMasterKey} the master keys
    */
@@ -51,7 +50,6 @@ export class CoverCryptKeyGeneration {
 
   /**
    * Generate a User Decryption Key
-   *
    * @param {Uint8Array} masterSecretKeyBytes The Master Private Key Bytes
    * @param {string} accessPolicy the access policy as a boolean expression
    *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
@@ -70,7 +68,6 @@ export class CoverCryptKeyGeneration {
    * Rotate attributes in the given policy
    *
    * Note: this does NOT refresh the keys
-   *
    * @param {string[]} attributes to rotate
    * e.g. ["Department::MKG" , "Department::FIN"]
    * @param {Policy} policy the policy
@@ -83,7 +80,6 @@ export class CoverCryptKeyGeneration {
 
 /**
  * Generate the Master Key Par
- *
  * @param {Policy} policy the policy to use
  * @returns {CoverCryptMasterKey} the master keys
  */
@@ -98,7 +94,6 @@ export function generateMasterKeys(policy: Policy): CoverCryptMasterKey {
 
 /**
  * Generate a User Decryption Key
- *
  * @param {Uint8Array} masterSecretKeyBytes The Master Private Key Bytes
  * @param {string} accessPolicy the access policy as a boolean expression
  *  e.g. (Department::MKG || Department::FIN) && Security Level::Medium Secret
@@ -123,7 +118,6 @@ export function generateUserSecretKey(
  * Rotate attributes in the given policy
  *
  * Note: this does NOT refresh the keys
- *
  * @param {string[]} attributes to rotate
  * e.g. ["Department::MKG" , "Department::FIN"]
  * @param {Policy} policy the policy

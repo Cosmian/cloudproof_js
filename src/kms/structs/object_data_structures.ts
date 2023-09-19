@@ -1,6 +1,6 @@
 /* tslint:disable:max-classes-per-file */
-import { Attributes, CryptographicParameters } from "./object_attributes"
 import { Policy } from "../../cover_crypt/interfaces/policy"
+import { Attributes, CryptographicParameters } from "./object_attributes"
 
 export enum KeyFormatType {
   Raw = 0x01,
@@ -191,6 +191,25 @@ export enum WrappingMethod {
   Encrypt_then_MAC_sign = 0x0000_0003,
   MAC_sign_then_encrypt = 0x0000_0004,
   TR_31 = 0x0000_0005,
+}
+
+export class KeyWrappingSpecification {
+  wrappingMethod: WrappingMethod
+  encryptionKeyInformation: EncryptionKeyInformation | null = null
+  macOrSignatureKeyInformation: MacOrSignatureKeyInformation | null = null
+  encodingOption: EncodingOption | null = null
+
+  constructor(
+    wrappingMethod: WrappingMethod,
+    encryptionKeyInformation: EncryptionKeyInformation | null = null,
+    macOrSignatureKeyInformation: MacOrSignatureKeyInformation | null = null,
+    encodingOption: EncodingOption | null = null,
+  ) {
+    this.wrappingMethod = wrappingMethod
+    this.encryptionKeyInformation = encryptionKeyInformation
+    this.macOrSignatureKeyInformation = macOrSignatureKeyInformation
+    this.encodingOption = encodingOption
+  }
 }
 
 export enum EncodingOption {

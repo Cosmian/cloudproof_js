@@ -20,7 +20,6 @@ export class EciesSalsaSealBox {
   /**
    * The function encrypts a plaintext message using the ECIES-Salsa20 encryption
    * algorithm with a given public key and authenticated data.
-   *
    * @param {string | Uint8Array} plaintext - The `plaintext` parameter is the
    * message that you want to encrypt. It can be either a string or a Uint8Array
    * (an array of bytes).
@@ -48,7 +47,6 @@ export class EciesSalsaSealBox {
 
   /**
    * The function decrypts a ciphertext using a private key and authenticated data.
-   *
    * @param {string | Uint8Array} ciphertext - The `ciphertext` parameter is the
    * encrypted data that you want to decrypt. It can be either a string or a
    * Uint8Array, which represents the encrypted data in either text or binary
