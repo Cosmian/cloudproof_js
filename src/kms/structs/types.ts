@@ -1,6 +1,6 @@
 export enum KeyWrapType {
-  Not_Wrapped = 0x0000_0001,
-  As_Registered = 0x0000_0002,
+  NotWrapped = 0x0000_0001,
+  AsRegistered = 0x0000_0002,
 }
 
 export enum RevocationReasonEnumeration {
