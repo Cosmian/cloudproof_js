@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.3.0] - 2023-09-22
+
+### Features
+
+- Support import of Certificate and PrivateKey (with tags)
+- Export object wrapped
+- Import of a wrapped key
+- Use 4.6.0 KMS version
+
 ## [9.2.0] - 2023-08-22
 
 ### Features
