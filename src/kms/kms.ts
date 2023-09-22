@@ -332,23 +332,24 @@ export class KmsClient {
   }
 
   /**
-   * Import a X509 certificate as PEM encoded
+   * Import a X509 certificate or a private key (both as PEM encoded)
    * @param {string} uniqueIdentifier  the unique identifier of the key
-   * @param {Uint8Array} certificateBytes the certificate as bytes
+   * @param {Uint8Array} pemBytes the PEM certificate/private key as bytes
+   * @param certificateBytes
    * @param {string[]} tags potential list of tags
    * @param {boolean} replaceExisting replace the existing object
    * @returns {string}  the unique identifier of the key
    */
   public async importPem(
     uniqueIdentifier: string,
-    certificateBytes: Uint8Array,
+    pemBytes: Uint8Array,
     tags: string[] = [],
     replaceExisting: boolean = false,
   ): Promise<string> {
     const attributes = new Attributes()
     attributes.objectType = "Certificate"
 
-    const certificate = new Certificate(CertificateType.X509, certificateBytes)
+    const pem = new Certificate(CertificateType.X509, pemBytes)
     if (tags.length > 0) {
       const enc = new TextEncoder()
       const vendor = new VendorAttributes(
@@ -363,7 +364,7 @@ export class KmsClient {
       uniqueIdentifier,
       attributes,
       attributes.objectType,
-      { type: "Certificate", value: certificate },
+      { type: "Certificate", value: pem },
       replaceExisting,
     )
   }
@@ -867,11 +868,14 @@ export class KmsClient {
     uniqueIdentifier: string,
     encryptionKeyUniqueIdentifier: string,
   ): Promise<KmsObject> {
-    const wrappedObject = new KeyWrappingSpecification(
+    const keyWrappingSpecification = new KeyWrappingSpecification(
       WrappingMethod.Encrypt,
       new EncryptionKeyInformation(encryptionKeyUniqueIdentifier),
     )
-    const object = await this.getObject(uniqueIdentifier, wrappedObject)
+    const object = await this.getObject(
+      uniqueIdentifier,
+      keyWrappingSpecification,
+    )
     return object
   }
 

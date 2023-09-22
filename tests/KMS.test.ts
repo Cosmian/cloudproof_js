@@ -175,30 +175,6 @@ test(
   },
 )
 
-// test(
-//   "KMS Import Certificate",
-//   async () => {
-//     const client = new KmsClient(
-//       `http://${process.env.KMS_HOST || "localhost"}:9998`,
-//     )
-
-//     const importedCertificateUniqueIdentifier = await client.importPem(
-//       uuidv4(),
-//       new TextEncoder().encode(NIST_P256_CERTIFICATE),
-//       ["certificate", "x509"],
-//     )
-
-//     const importedPrivateKeyUniqueIdentifier = await client.importPem(
-//       uuidv4(),
-//       new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
-//       ["private key", "x509"],
-//     )
-//   },
-//   {
-//     timeout: 30 * 1000,
-//   },
-// )
-
 test(
   "KMS With JWE encryption",
   async () => {
