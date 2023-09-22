@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import urllib.request
 import shutil
 import ssl
+import urllib.request
 import zipfile
-
-from os import path, remove, getenv
+from os import getenv, path, remove
 
 
 def files_to_be_copied(name: str):
@@ -74,6 +73,6 @@ def download_wasm(version: str) -> bool:
 
 
 if __name__ == '__main__':
-    RET = download_wasm('v2.2.1')
+    RET = download_wasm('v2.2.3')
     if RET is False and getenv('GITHUB_ACTIONS'):
         download_wasm('last_build/feature/findex_5_0_0')

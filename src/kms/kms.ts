@@ -21,12 +21,17 @@ import {
 } from "./structs/object_attributes"
 import {
   CryptographicAlgorithm,
+  EncryptionKeyInformation,
   KeyBlock,
   KeyFormatType,
   KeyValue,
+  KeyWrappingSpecification,
   TransparentSymmetricKey,
+  WrappingMethod,
 } from "./structs/object_data_structures"
 import {
+  Certificate,
+  CertificateType,
   KmsObject,
   ObjectType,
   PrivateKey,
@@ -35,6 +40,7 @@ import {
 } from "./structs/objects"
 import {
   CryptographicUsageMask,
+  KeyWrapType,
   RevocationReasonEnumeration,
 } from "./structs/types"
 
@@ -142,10 +148,16 @@ export class KmsClient {
   /**
    * Retrieve a KMIP Object from the KMS
    * @param uniqueIdentifier the unique identifier of the object
+   * @param keyWrappingSpecification specifies keys and other information for wrapping the returned object
    * @returns an instance of the KMIP Object
    */
-  public async getObject(uniqueIdentifier: string): Promise<KmsObject> {
-    const response = await this.post(new Get(uniqueIdentifier))
+  public async getObject(
+    uniqueIdentifier: string,
+    keyWrappingSpecification?: KeyWrappingSpecification,
+  ): Promise<KmsObject> {
+    const response = await this.post(
+      new Get(uniqueIdentifier, keyWrappingSpecification),
+    )
     return response.object
   }
 
@@ -186,6 +198,7 @@ export class KmsClient {
    * @param {ObjectType} objectType the objectType of the Object
    * @param {KmsObject} object the KMIP Object instance
    * @param {boolean} replaceExisting replace the existing object
+   * @param {KeyWrapType} keyWrapType
    * @returns {string} the unique identifier
    */
   public async importObject(
@@ -194,6 +207,7 @@ export class KmsClient {
     objectType: ObjectType,
     object: KmsObject,
     replaceExisting: boolean = false,
+    keyWrapType?: KeyWrapType,
   ): Promise<string> {
     const response = await this.post(
       new Import(
@@ -202,6 +216,7 @@ export class KmsClient {
         object,
         attributes,
         replaceExisting,
+        keyWrapType,
       ),
     )
 
@@ -312,6 +327,44 @@ export class KmsClient {
       attributes,
       attributes.objectType,
       { type: "SymmetricKey", value: symmetricKey },
+      replaceExisting,
+    )
+  }
+
+  /**
+   * Import a X509 certificate or a private key (both as PEM encoded)
+   * @param {string} uniqueIdentifier  the unique identifier of the key
+   * @param {Uint8Array} pemBytes the PEM certificate/private key as bytes
+   * @param certificateBytes
+   * @param {string[]} tags potential list of tags
+   * @param {boolean} replaceExisting replace the existing object
+   * @returns {string}  the unique identifier of the key
+   */
+  public async importPem(
+    uniqueIdentifier: string,
+    pemBytes: Uint8Array,
+    tags: string[] = [],
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    const attributes = new Attributes()
+    attributes.objectType = "Certificate"
+
+    const pem = new Certificate(CertificateType.X509, pemBytes)
+    if (tags.length > 0) {
+      const enc = new TextEncoder()
+      const vendor = new VendorAttributes(
+        VendorAttributes.VENDOR_ID_COSMIAN,
+        VendorAttributes.TAG,
+        enc.encode(JSON.stringify(tags)),
+      )
+      attributes.vendorAttributes.push(vendor)
+    }
+
+    return await this.importObject(
+      uniqueIdentifier,
+      attributes,
+      attributes.objectType,
+      { type: "Certificate", value: pem },
       replaceExisting,
     )
   }
@@ -677,6 +730,7 @@ export class KmsClient {
    * Mark a CoverCrypt User Decryption Key as Revoked
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
+   * @returns nothing
    */
   public async revokeCoverCryptUserDecryptionKey(
     uniqueIdentifier: string,
@@ -693,6 +747,7 @@ export class KmsClient {
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.headerMetadata Data encrypted in the header
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @returns the ciphertext
    */
   public async coverCryptEncrypt(
     uniqueIdentifier: string,
@@ -735,6 +790,7 @@ export class KmsClient {
    * @param data to decrypt
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should have been use during encryption)
+   * @returns the plaintext
    */
   public async coverCryptDecrypt(
     uniqueIdentifier: string,
@@ -800,6 +856,68 @@ export class KmsClient {
       response.publicKeyUniqueIdentifier,
     )
     return publicMasterKey.policy()
+  }
+
+  /**
+   * Get and wrap
+   * @param uniqueIdentifier the unique identifier of the object to get and wrap
+   * @param encryptionKeyUniqueIdentifier the unique identifier to use to wrap the fetched key
+   * @returns wrapped object
+   */
+  public async getWrappedKey(
+    uniqueIdentifier: string,
+    encryptionKeyUniqueIdentifier: string,
+  ): Promise<KmsObject> {
+    const keyWrappingSpecification = new KeyWrappingSpecification(
+      WrappingMethod.Encrypt,
+      new EncryptionKeyInformation(encryptionKeyUniqueIdentifier),
+    )
+    const object = await this.getObject(
+      uniqueIdentifier,
+      keyWrappingSpecification,
+    )
+    return object
+  }
+
+  /**
+   * Import key - with or without unwrapping
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param wrappedObject wrapped objectto import
+   * @param unwrap boolean true if object must be unwrapped before importing
+   * @param replaceExisting boolean replacing if existing object
+   * @returns imported object identifier
+   */
+  public async importKey(
+    uniqueIdentifier: string,
+    wrappedObject: KmsObject,
+    unwrap: boolean,
+    replaceExisting: boolean = false,
+  ): Promise<string> {
+    if (
+      wrappedObject.type === "Certificate" ||
+      wrappedObject.type === "CertificateRequest" ||
+      wrappedObject.type === "OpaqueObject"
+    ) {
+      throw new Error(`The KmsObject ${wrappedObject.type} is not a key.`)
+    }
+    if (
+      !(wrappedObject.value.keyBlock.keyValue instanceof KeyValue) ||
+      wrappedObject.value.keyBlock.keyValue.attributes == null
+    ) {
+      throw new Error(`KmsObject is missing the attributes property.`)
+    }
+    const attributes = wrappedObject.value.keyBlock.keyValue?.attributes
+    const keyWrapType = unwrap
+      ? KeyWrapType.NotWrapped
+      : KeyWrapType.AsRegistered
+    return await this.importObject(
+      uniqueIdentifier,
+      attributes,
+      wrappedObject.type,
+      wrappedObject,
+      replaceExisting,
+      keyWrapType,
+    )
   }
 }
 

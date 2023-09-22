@@ -42,7 +42,6 @@ export class EncryptedHeader {
 
   /**
    * Deserialize a encrypted header.
-   *
    * @param encryptedHeaderBytes an encrypted header
    * @returns the object deserialized
    */

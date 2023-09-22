@@ -156,7 +156,6 @@ const ENUMS_FLAGS = {
 
 /**
  * Deserialize a JSON KMIP struct to JS class
- *
  * @param {string} json JSON string of a KMIP struct
  * @returns a JS object corresponding to the KMIP struct inside the JSON
  */
@@ -166,7 +165,6 @@ export function deserialize<T>(json: string): T {
 
 /**
  * Deserialize a JSON KMIP struct to JS class
- *
  * @param {TTLV} ttlv ttlv string of a KMIP struct
  * @param tag override the TTLV tag with this one if defined. (used for some objects that require parent knowledge to know their types)
  * @param siblings list of TTLV at the same level of the current one (used for some objects that require a sibling to know their types)
@@ -367,7 +365,6 @@ export function fromTTLV<T>(
 
 /**
  * Serialize JS KMIP struct to a JSON string
- *
  * @param {Serializable} kmip JS KMIP struct
  * @returns {string} JSON string
  */
@@ -379,7 +376,6 @@ export function serialize(kmip: Serializable): string {
  * Serialize JS KMIP struct to a TTLV object
  * The tag is required for almost all serialization, except for root Serialization
  * which are objects containing a `tag` property (see `Create` for example).
- *
  * @param {Serializable} kmip JS KMIP struct
  * @param {string} tag tag to use
  * @returns {TTLV} TTLV object

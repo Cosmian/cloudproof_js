@@ -97,7 +97,6 @@ export class Location {
    * that's why we use `BigInt` internally but we convert to `number` (it's theoretically wrong) because `number`
    * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for example, JS will
    * not be able to read it.
-   *
    * @param value number
    * @returns location
    */
@@ -110,7 +109,6 @@ export class Location {
 
   /**
    * Convert UUIDv4 only because they are more common.
-   *
    * @param uuidv4 uuid
    * @returns location
    */
@@ -200,7 +198,6 @@ export interface IndexedEntry {
 /**
  * Generates aliases for a keyword to use in upsert
  * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thib", "Thib" => "Thiba", "Thiba" => "Thibau", "Thibau" => "Thibaud"]
- *
  * @param keyword Generate aliases to this keyword
  * @param minChars Start at this number of characters
  * @param maxChars Do not generate alias of greater length than maxChars, last alias will target the original keyword
@@ -346,7 +343,6 @@ export async function Findex() {
 
   /**
    * Insert or update existing (a.k.a upsert) entries in the index
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
@@ -408,7 +404,6 @@ export async function Findex() {
 
   /**
    * Search indexed keywords and return the corresponding IndexedValues
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param keywords keywords to search inside the indexes

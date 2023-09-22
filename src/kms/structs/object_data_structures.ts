@@ -1,6 +1,6 @@
 /* tslint:disable:max-classes-per-file */
-import { Attributes, CryptographicParameters } from "./object_attributes"
 import { Policy } from "../../cover_crypt/interfaces/policy"
+import { Attributes, CryptographicParameters } from "./object_attributes"
 
 export enum KeyFormatType {
   Raw = 0x01,
@@ -56,6 +56,7 @@ export enum CryptographicAlgorithm {
   HMACSHA512 = 0x0000_000b,
   HMACMD5 = 0x0000_000c,
   DH = 0x0000_000d,
+  ECDH = 0x0000_000e,
   ECMQV = 0x0000_000f,
   Blowfish = 0x0000_0010,
   Camellia = 0x0000_0011,
@@ -192,6 +193,25 @@ export enum WrappingMethod {
   TR_31 = 0x0000_0005,
 }
 
+export class KeyWrappingSpecification {
+  wrappingMethod: WrappingMethod
+  encryptionKeyInformation: EncryptionKeyInformation | null = null
+  macOrSignatureKeyInformation: MacOrSignatureKeyInformation | null = null
+  encodingOption: EncodingOption | null = null
+
+  constructor(
+    wrappingMethod: WrappingMethod,
+    encryptionKeyInformation: EncryptionKeyInformation | null = null,
+    macOrSignatureKeyInformation: MacOrSignatureKeyInformation | null = null,
+    encodingOption: EncodingOption | null = null,
+  ) {
+    this.wrappingMethod = wrappingMethod
+    this.encryptionKeyInformation = encryptionKeyInformation
+    this.macOrSignatureKeyInformation = macOrSignatureKeyInformation
+    this.encodingOption = encodingOption
+  }
+}
+
 export enum EncodingOption {
   /// the Key Value structure
   No_Encoding = 0x0000_0001,
@@ -310,21 +330,21 @@ export class TransparentDHPublicKey {
 }
 
 export enum RecommendedCurve {
-  P_192 = 0x0000_0001,
-  K_163 = 0x0000_0002,
-  B_163 = 0x0000_0003,
-  P_224 = 0x0000_0004,
-  K_233 = 0x0000_0005,
-  B_233 = 0x0000_0006,
-  P_256 = 0x0000_0007,
-  K_283 = 0x0000_0008,
-  B_283 = 0x0000_0009,
-  P_384 = 0x0000_000a,
-  K_409 = 0x0000_000b,
-  B_409 = 0x0000_000c,
-  P_521 = 0x0000_000d,
-  K_571 = 0x0000_000e,
-  B_571 = 0x0000_000f,
+  P192 = 0x0000_0001,
+  K163 = 0x0000_0002,
+  B163 = 0x0000_0003,
+  P224 = 0x0000_0004,
+  K233 = 0x0000_0005,
+  B233 = 0x0000_0006,
+  P256 = 0x0000_0007,
+  K283 = 0x0000_0008,
+  B283 = 0x0000_0009,
+  P384 = 0x0000_000a,
+  K409 = 0x0000_000b,
+  B409 = 0x0000_000c,
+  P521 = 0x0000_000d,
+  K571 = 0x0000_000e,
+  B571 = 0x0000_000f,
   SECP112R1 = 0x0000_0010,
   SECP112R2 = 0x0000_0011,
   SECP128R1 = 0x0000_0012,
