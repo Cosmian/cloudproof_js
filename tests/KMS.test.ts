@@ -624,8 +624,8 @@ test(
       )
 
       {
-        const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext)
-        expect(plaintext).toEqual(plaintext)
+        const { plaintext: cleartext } = await client.coverCryptDecrypt(udkID, ciphertext)
+        expect(cleartext).toEqual(plaintext)
       }
 
       // rotate
@@ -659,16 +659,18 @@ test(
       {
         const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
         const decrypter2 = new CoverCryptHybridDecryption(udk2)
-        const { plaintext } = decrypter2.decrypt(ciphertext2)
-        expect(plaintext).toEqual(plaintext)
+        const { plaintext: cleartext } = decrypter2.decrypt(ciphertext2)
+        expect(cleartext).toEqual(plaintext)
       }
 
       // decrypt in KMS should still work
       {
-        const { plaintext } = await client.coverCryptDecrypt(udkID, ciphertext2)
-        expect(plaintext).toEqual(plaintext)
+        const { plaintext: cleartext } = await client.coverCryptDecrypt(
+          udkID,
+          ciphertext2,
+        )
+        expect(cleartext).toEqual(plaintext)
       }
-    }
   },
   {
     timeout: 30 * 1000,
@@ -750,11 +752,11 @@ test(
     )
 
     {
-      const { plaintext } = await client.coverCryptBulkDecrypt(
+      const { plaintext: cleartext } = await client.coverCryptBulkDecrypt(
         udkID,
         ciphertext,
       )
-      expect(plaintext).toEqual(plaintext)
+      expect(cleartext).toEqual(plaintext)
     }
   },
   {
