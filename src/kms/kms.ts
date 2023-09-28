@@ -919,9 +919,131 @@ export class KmsClient {
       keyWrapType,
     )
   }
+
+  /**
+   * Grant access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to grant access to
+   * @param operationType KMIP operation type to grant access for
+   * @returns response from KMS server
+   */
+  public async grantAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    const grantAccessUrl = new URL("/access/grant", this.url)
+    const body = {
+      unique_identifier: uniqueIdentifier,
+      user_id: userIdentifier,
+      operation_type: operationType,
+    }
+    const response = await fetch(grantAccessUrl, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`grant access request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * Revoke access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to revoke access to
+   * @param operationType KMIP operation type to revoke access for
+   * @returns response from KMS server
+   */
+  public async revokeAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    const revokeAccessUrl = new URL("/access/revoke", this.url)
+    const body = {
+      unique_identifier: uniqueIdentifier,
+      user_id: userIdentifier,
+      operation_type: operationType,
+    }
+    const response = await fetch(revokeAccessUrl, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`revoke access request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * List access to a KmsObject
+   * @param uniqueIdentifier the unique identifier of the object to list access for
+   * @returns response from KMS server
+   */
+  public async listAccess(uniqueIdentifier: string): Promise<Response> {
+    const listAccessUrl = new URL(`/access/list/${uniqueIdentifier}`, this.url)
+    const response = await fetch(listAccessUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`list access request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * List owned objects for a user
+   * @returns response from KMS server
+   */
+  public async listOwnedObjects(): Promise<Response> {
+    const ownedAccessUrl = new URL("/access/owned", this.url)
+    const response = await fetch(ownedAccessUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`list owned request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * List objects a user has obtained access for
+   * @returns response from KMS server
+   */
+  public async listObtainedObjects(): Promise<Response> {
+    const obtainedAccessUrl = new URL("/access/obtained", this.url)
+    const response = await fetch(obtainedAccessUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`list obtained  request failed (${response.status})`)
+    }
+
+    return response
+  }
 }
 
 export enum SymmetricKeyAlgorithm {
   AES,
   ChaCha20,
+}
+
+export enum KMIPOperations {
+  get = "get",
+  export = "export",
+  encrypt = "encrypt",
+  decrypt = "decrypt",
+  import = "import",
+  revoke = "revoke",
+  destroy = "destroy",
 }
