@@ -920,6 +920,30 @@ export class KmsClient {
     )
   }
 
+  private async manageAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+    urlPath: string,
+  ): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const body = {
+      unique_identifier: uniqueIdentifier,
+      user_id: userIdentifier,
+      operation_type: operationType,
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
   /**
    * Grant access to a KmsObject for a specific user
    * @param uniqueIdentifier the unique identifier of the object to import
@@ -932,22 +956,12 @@ export class KmsClient {
     userIdentifier: string,
     operationType: KMIPOperations,
   ): Promise<Response> {
-    const grantAccessUrl = new URL("/access/grant", this.url)
-    const body = {
-      unique_identifier: uniqueIdentifier,
-      user_id: userIdentifier,
-      operation_type: operationType,
-    }
-    const response = await fetch(grantAccessUrl, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(body),
-    })
-    if (!response.ok || response.status >= 400) {
-      throw new Error(`grant access request failed (${response.status})`)
-    }
-
-    return response
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/grant",
+    )
   }
 
   /**
@@ -962,22 +976,12 @@ export class KmsClient {
     userIdentifier: string,
     operationType: KMIPOperations,
   ): Promise<Response> {
-    const revokeAccessUrl = new URL("/access/revoke", this.url)
-    const body = {
-      unique_identifier: uniqueIdentifier,
-      user_id: userIdentifier,
-      operation_type: operationType,
-    }
-    const response = await fetch(revokeAccessUrl, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify(body),
-    })
-    if (!response.ok || response.status >= 400) {
-      throw new Error(`revoke access request failed (${response.status})`)
-    }
-
-    return response
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/revoke",
+    )
   }
 
   /**
@@ -998,21 +1002,25 @@ export class KmsClient {
     return response
   }
 
+  private async listObjects(urlPath: string): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
   /**
    * List owned objects for a user
    * @returns response from KMS server
    */
   public async listOwnedObjects(): Promise<Response> {
-    const ownedAccessUrl = new URL("/access/owned", this.url)
-    const response = await fetch(ownedAccessUrl, {
-      method: "GET",
-      headers: this.headers,
-    })
-    if (!response.ok || response.status >= 400) {
-      throw new Error(`list owned request failed (${response.status})`)
-    }
-
-    return response
+    return await this.listObjects("/access/owned")
   }
 
   /**
@@ -1020,16 +1028,7 @@ export class KmsClient {
    * @returns response from KMS server
    */
   public async listObtainedObjects(): Promise<Response> {
-    const obtainedAccessUrl = new URL("/access/obtained", this.url)
-    const response = await fetch(obtainedAccessUrl, {
-      method: "GET",
-      headers: this.headers,
-    })
-    if (!response.ok || response.status >= 400) {
-      throw new Error(`list obtained  request failed (${response.status})`)
-    }
-
-    return response
+    return await this.listObjects("/access/obtained")
   }
 }
 
