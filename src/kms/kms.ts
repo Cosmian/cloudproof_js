@@ -919,9 +919,130 @@ export class KmsClient {
       keyWrapType,
     )
   }
+
+  private async manageAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+    urlPath: string,
+  ): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const body = {
+      unique_identifier: uniqueIdentifier,
+      user_id: userIdentifier,
+      operation_type: operationType,
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * Grant access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to grant access to
+   * @param operationType KMIP operation type to grant access for
+   * @returns response from KMS server
+   */
+  public async grantAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/grant",
+    )
+  }
+
+  /**
+   * Revoke access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to revoke access to
+   * @param operationType KMIP operation type to revoke access for
+   * @returns response from KMS server
+   */
+  public async revokeAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/revoke",
+    )
+  }
+
+  /**
+   * List access to a KmsObject
+   * @param uniqueIdentifier the unique identifier of the object to list access for
+   * @returns response from KMS server
+   */
+  public async listAccess(uniqueIdentifier: string): Promise<Response> {
+    const listAccessUrl = new URL(`/access/list/${uniqueIdentifier}`, this.url)
+    const response = await fetch(listAccessUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`list access request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  private async listObjects(urlPath: string): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * List owned objects for a user
+   * @returns response from KMS server
+   */
+  public async listOwnedObjects(): Promise<Response> {
+    return await this.listObjects("/access/owned")
+  }
+
+  /**
+   * List objects a user has obtained access for
+   * @returns response from KMS server
+   */
+  public async listObtainedObjects(): Promise<Response> {
+    return await this.listObjects("/access/obtained")
+  }
 }
 
 export enum SymmetricKeyAlgorithm {
   AES,
   ChaCha20,
+}
+
+export enum KMIPOperations {
+  get = "get",
+  export = "export",
+  encrypt = "encrypt",
+  decrypt = "decrypt",
+  import = "import",
+  revoke = "revoke",
+  destroy = "destroy",
 }
