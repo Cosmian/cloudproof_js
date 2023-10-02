@@ -624,7 +624,10 @@ test(
       )
 
       {
-        const { plaintext: cleartext } = await client.coverCryptDecrypt(udkID, ciphertext)
+        const { plaintext: cleartext } = await client.coverCryptDecrypt(
+          udkID,
+          ciphertext,
+        )
         expect(cleartext).toEqual(plaintext)
       }
 
@@ -671,6 +674,7 @@ test(
         )
         expect(cleartext).toEqual(plaintext)
       }
+    }
   },
   {
     timeout: 30 * 1000,
