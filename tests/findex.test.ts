@@ -1,34 +1,34 @@
+import { fromByteArray, toByteArray } from "base64-js"
+import Database from "better-sqlite3"
+import { randomBytes } from "crypto"
+import * as fs from "fs"
+import * as os from "os"
+import { createClient, defineScript } from "redis"
+import { expect, test } from "vitest"
 import {
   FetchChains,
   FetchEntries,
-  IndexedEntry,
-  IndexedValue,
-  FindexKey,
-  SearchResults,
-  Keyword,
-  Label,
-  Location,
-  ProgressResults,
   Findex,
   FindexCloud,
+  FindexKey,
+  IndexedEntry,
+  IndexedValue,
+  InsertChains,
+  Keyword,
+  KeywordIndexEntry,
+  Label,
+  Location,
+  LocationIndexEntry,
+  ProgressResults,
+  SearchResults,
   UidsAndValues,
   UidsAndValuesToUpsert,
-  InsertChains,
   UpsertEntries,
-  LocationIndexEntry,
-  KeywordIndexEntry,
-  generateAliases,
   callbacksExamplesBetterSqlite3,
   callbacksExamplesInMemory,
+  generateAliases,
 } from ".."
 import { USERS } from "./data/users"
-import { expect, test } from "vitest"
-import { createClient, defineScript } from "redis"
-import { randomBytes } from "crypto"
-import Database from "better-sqlite3"
-import * as fs from "fs"
-import * as os from "os"
-import { fromByteArray, toByteArray } from "base64-js"
 
 const FINDEX_TEST_KEY = "6hb1TznoNQFvCWisGWajkA=="
 const FINDEX_TEST_LABEL = "Some Label"
@@ -226,7 +226,7 @@ async function runWithFindexCallbacks(
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function runInFindexCloud(): Promise<void> {
   const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
-    process.env.FINDEX_CLOUD_PORT ?? "8080"
+    process.env.FINDEX_CLOUD_PORT ?? "9090"
   }`
 
   let response

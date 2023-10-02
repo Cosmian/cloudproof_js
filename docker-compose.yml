@@ -5,7 +5,7 @@ version: "3"
 services:
   kms:
     container_name: kms
-    image: ghcr.io/cosmian/kms:4.6.0
+    image: ghcr.io/cosmian/kms:4.7.0
     ports:
       - 9998:9998
     environment:
@@ -17,7 +17,7 @@ services:
   findex_cloud:
     image: ghcr.io/cosmian/findex_cloud:0.1.0
     ports:
-      - 8080:8080
+      - 9090:9090
   redis:
     image: redis:latest
     ports:

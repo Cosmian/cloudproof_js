@@ -7,7 +7,7 @@
 
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-exclude: dist|tests/data|tests/findex.test.ts|src/pkg|examples/full_text_search/data
+exclude: dist|tests/data|tests/findex.test.ts|src/pkg|examples/full_text_search/data/|docker-compose.yml
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v2.3.0

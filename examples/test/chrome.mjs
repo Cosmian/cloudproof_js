@@ -5,7 +5,7 @@ const host = process.argv[2] || undefined
 const kmsHost = process.argv[3] || undefined
 
 if (!host) {
-  console.error("Please provide host: chome.mjs http://localhost:8080")
+  console.error("Please provide host: chrome.mjs http://localhost:9090")
   exit(1)
 }
 

@@ -1155,18 +1155,24 @@ test(
         true,
       )
 
+      await client.importPem(
+        "my_private_key_id",
+        new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+        ["private key", "x509"],
+        true,
+      )
+
       const wrappedKey = await client.getWrappedKey(
         keyUid,
         importedCertificateUniqueIdentifier,
       )
 
-      const newUid = "new_uid"
-
-      const unwrappedKeyUid = await client.importKey(
-        "unwrappedUserDecryptionKey",
+      // Key can be unwrapped directly specifying the private key id (matching the certificate)
+      let unwrappedKeyUid = await client.importKey(
+        "unwrappedSymmetricKey",
         wrappedKey,
         true,
-        newUid,
+        "my_private_key_id",
         true,
       )
 
@@ -1181,18 +1187,17 @@ test(
           `The KmsObject ${unwrappedKey.type} cannot be unwrapped.`,
         )
       }
-      if (
-        unwrappedKey.value.keyBlock.keyWrappingData == null ||
-        unwrappedKey.value.keyBlock.keyWrappingData.encryptionKeyInformation ==
-          null
-      ) {
-        throw new Error(`KmsObject is missing keyWrappingData elements.`)
-      }
 
-      expect(
-        unwrappedKey.value.keyBlock.keyWrappingData.encryptionKeyInformation
-          .uniqueIdentifier,
-      ).toEqual(newUid)
+      expect(unwrappedKey.value.keyBlock.keyWrappingData).toEqual(null)
+
+      // Key can also be unwrapped indirectly using the certificate id. In that case, KMS will locate the private key if already imported
+      unwrappedKeyUid = await client.importKey(
+        "unwrappedSymmetricKey",
+        wrappedKey,
+        true,
+        "my_cert_id",
+        true,
+      )
     }
   },
   {
