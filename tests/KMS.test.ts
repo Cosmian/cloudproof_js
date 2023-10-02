@@ -953,6 +953,7 @@ test(
         "unwrappedUserDecryptionKey",
         wrappedUserDecryptionKey,
         true,
+        null,
         true,
       )
 
@@ -1055,6 +1056,7 @@ test(
         "wrappedUserDecryptionKeyCentral",
         wrappedUserDecryptionKey1,
         false,
+        null,
         true,
       )
 
@@ -1066,6 +1068,7 @@ test(
         "unwrappedUserDecryptionKey2",
         fetchedWrappedUserDecryptionKey,
         true,
+        null,
         true,
       )
 
@@ -1136,5 +1139,68 @@ test(
   },
   {
     timeout: 30 * 1000,
+  },
+)
+
+test(
+  "Overwrite KeyWrappingData when importing key",
+  async () => {
+    if (client !== undefined) {
+      const keyUid = await client.createSymmetricKey()
+
+      const importedCertificateUniqueIdentifier = await client.importPem(
+        "my_cert_id",
+        new TextEncoder().encode(NIST_P256_CERTIFICATE),
+        ["certificate", "x509"],
+        true,
+      )
+
+      await client.importPem(
+        "my_private_key_id",
+        new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+        ["private key", "x509"],
+        true,
+      )
+
+      const wrappedKey = await client.getWrappedKey(
+        keyUid,
+        importedCertificateUniqueIdentifier,
+      )
+
+      // Key can be unwrapped directly specifying the private key id (matching the certificate)
+      let unwrappedKeyUid = await client.importKey(
+        "unwrappedSymmetricKey",
+        wrappedKey,
+        true,
+        "my_private_key_id",
+        true,
+      )
+
+      const unwrappedKey = await client.getObject(unwrappedKeyUid)
+
+      if (
+        unwrappedKey.type === "Certificate" ||
+        unwrappedKey.type === "CertificateRequest" ||
+        unwrappedKey.type === "OpaqueObject"
+      ) {
+        throw new Error(
+          `The KmsObject ${unwrappedKey.type} cannot be unwrapped.`,
+        )
+      }
+
+      expect(unwrappedKey.value.keyBlock.keyWrappingData).toEqual(null)
+
+      // Key can also be unwrapped indirectly using the certificate id. In that case, KMS will locate the private key if already imported
+      unwrappedKeyUid = await client.importKey(
+        "unwrappedSymmetricKey",
+        wrappedKey,
+        true,
+        "my_cert_id",
+        true,
+      )
+    }
+  },
+  {
+    timeout: 10 * 1000,
   },
 )
