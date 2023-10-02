@@ -60,9 +60,9 @@ jobs:
             node_modules
             dist
             src/pkg
-          key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
+          key: ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('src/**', '!.git') }}
           restore-keys: |
-            ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('package.json') }}
+            ${{ runner.os }}-docker-node-${{ github.ref_name }}-${{ github.head_ref }}-${{ hashFiles('src/**', '!.git') }}
 
       - name: Test
         run: ${{ inputs.subcommands }}
