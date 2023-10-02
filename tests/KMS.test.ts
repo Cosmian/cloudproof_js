@@ -953,6 +953,7 @@ test(
         "unwrappedUserDecryptionKey",
         wrappedUserDecryptionKey,
         true,
+        null,
         true,
       )
 
@@ -1055,6 +1056,7 @@ test(
         "wrappedUserDecryptionKeyCentral",
         wrappedUserDecryptionKey1,
         false,
+        null,
         true,
       )
 
@@ -1066,6 +1068,7 @@ test(
         "unwrappedUserDecryptionKey2",
         fetchedWrappedUserDecryptionKey,
         true,
+        null,
         true,
       )
 

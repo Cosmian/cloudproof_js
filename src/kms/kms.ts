@@ -884,6 +884,7 @@ export class KmsClient {
    * @param uniqueIdentifier the unique identifier of the object to import
    * @param wrappedObject wrapped objectto import
    * @param unwrap boolean true if object must be unwrapped before importing
+   * @param encryptionKeyUniqueIdentifier if unwrap is true, uniqueIdentifier used to unwrap key can be overwritten with a specific one
    * @param replaceExisting boolean replacing if existing object
    * @returns imported object identifier
    */
@@ -891,6 +892,7 @@ export class KmsClient {
     uniqueIdentifier: string,
     wrappedObject: KmsObject,
     unwrap: boolean,
+    encryptionKeyUniqueIdentifier: string | null = null,
     replaceExisting: boolean = false,
   ): Promise<string> {
     if (
@@ -910,11 +912,22 @@ export class KmsClient {
     const keyWrapType = unwrap
       ? KeyWrapType.NotWrapped
       : KeyWrapType.AsRegistered
+    const updatedWrappedObject = { ...wrappedObject }
+    if (
+      unwrap &&
+      encryptionKeyUniqueIdentifier != null &&
+      updatedWrappedObject.value.keyBlock.keyWrappingData != null &&
+      updatedWrappedObject.value.keyBlock.keyWrappingData
+        .encryptionKeyInformation != null
+    ) {
+      updatedWrappedObject.value.keyBlock.keyWrappingData.encryptionKeyInformation.uniqueIdentifier =
+        encryptionKeyUniqueIdentifier
+    }
     return await this.importObject(
       uniqueIdentifier,
       attributes,
       wrappedObject.type,
-      wrappedObject,
+      updatedWrappedObject,
       replaceExisting,
       keyWrapType,
     )
