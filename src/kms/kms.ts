@@ -912,22 +912,22 @@ export class KmsClient {
     const keyWrapType = unwrap
       ? KeyWrapType.NotWrapped
       : KeyWrapType.AsRegistered
-    const updatedWrappedObject = { ...wrappedObject }
+    const overWrittenWrappedObject = { ...wrappedObject }
     if (
       unwrap &&
       encryptionKeyUniqueIdentifier != null &&
-      updatedWrappedObject.value.keyBlock.keyWrappingData != null &&
-      updatedWrappedObject.value.keyBlock.keyWrappingData
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData != null &&
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData
         .encryptionKeyInformation != null
     ) {
-      updatedWrappedObject.value.keyBlock.keyWrappingData.encryptionKeyInformation.uniqueIdentifier =
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData.encryptionKeyInformation.uniqueIdentifier =
         encryptionKeyUniqueIdentifier
     }
     return await this.importObject(
       uniqueIdentifier,
       attributes,
       wrappedObject.type,
-      updatedWrappedObject,
+      overWrittenWrappedObject,
       replaceExisting,
       keyWrapType,
     )

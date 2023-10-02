@@ -1141,3 +1141,61 @@ test(
     timeout: 30 * 1000,
   },
 )
+
+test(
+  "Overwrite KeyWrappingData when importing key",
+  async () => {
+    if (client !== undefined) {
+      const keyUid = await client.createSymmetricKey()
+
+      const importedCertificateUniqueIdentifier = await client.importPem(
+        "my_cert_id",
+        new TextEncoder().encode(NIST_P256_CERTIFICATE),
+        ["certificate", "x509"],
+        true,
+      )
+
+      const wrappedKey = await client.getWrappedKey(
+        keyUid,
+        importedCertificateUniqueIdentifier,
+      )
+
+      const newUid = "new_uid"
+
+      const unwrappedKeyUid = await client.importKey(
+        "unwrappedUserDecryptionKey",
+        wrappedKey,
+        true,
+        newUid,
+        true,
+      )
+
+      const unwrappedKey = await client.getObject(unwrappedKeyUid)
+
+      if (
+        unwrappedKey.type === "Certificate" ||
+        unwrappedKey.type === "CertificateRequest" ||
+        unwrappedKey.type === "OpaqueObject"
+      ) {
+        throw new Error(
+          `The KmsObject ${unwrappedKey.type} cannot be unwrapped.`,
+        )
+      }
+      if (
+        unwrappedKey.value.keyBlock.keyWrappingData == null ||
+        unwrappedKey.value.keyBlock.keyWrappingData.encryptionKeyInformation ==
+          null
+      ) {
+        throw new Error(`KmsObject is missing keyWrappingData elements.`)
+      }
+
+      expect(
+        unwrappedKey.value.keyBlock.keyWrappingData.encryptionKeyInformation
+          .uniqueIdentifier,
+      ).toEqual(newUid)
+    }
+  },
+  {
+    timeout: 10 * 1000,
+  },
+)
