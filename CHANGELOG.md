@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.4.1] - 2023-10-03
+
+### Bug Fixes
+
+- KMS: remove starting slashes in access rights endpoints
+
 ## [9.4.0] - 2023-10-03
 
 ### Features
