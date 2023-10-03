@@ -1115,7 +1115,7 @@ export class KmsClient {
       uniqueIdentifier,
       userIdentifier,
       operationType,
-      "/access/grant",
+      "access/grant",
     )
   }
 
@@ -1135,7 +1135,7 @@ export class KmsClient {
       uniqueIdentifier,
       userIdentifier,
       operationType,
-      "/access/revoke",
+      "access/revoke",
     )
   }
 
@@ -1145,7 +1145,7 @@ export class KmsClient {
    * @returns response from KMS server
    */
   public async listAccess(uniqueIdentifier: string): Promise<Response> {
-    const listAccessUrl = new URL(`/access/list/${uniqueIdentifier}`, this.url)
+    const listAccessUrl = new URL(`access/list/${uniqueIdentifier}`, this.url)
     const response = await fetch(listAccessUrl, {
       method: "GET",
       headers: this.headers,
@@ -1175,7 +1175,7 @@ export class KmsClient {
    * @returns response from KMS server
    */
   public async listOwnedObjects(): Promise<Response> {
-    return await this.listObjects("/access/owned")
+    return await this.listObjects("access/owned")
   }
 
   /**
@@ -1183,7 +1183,7 @@ export class KmsClient {
    * @returns response from KMS server
    */
   public async listObtainedObjects(): Promise<Response> {
-    return await this.listObjects("/access/obtained")
+    return await this.listObjects("access/obtained")
   }
 }
 
