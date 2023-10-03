@@ -1,21 +1,21 @@
-import fs from "fs"
-import readline from "readline"
+import Database from "better-sqlite3"
 import {
-  IndexedValue,
-  Location,
-  Keyword,
   Findex,
   FindexCloud,
   FindexKey,
+  IndexedValue,
+  Keyword,
   Label,
-  generateAliases,
+  Location,
   callbacksExamplesBetterSqlite3,
+  generateAliases,
 } from "cloudproof_js"
-import path from "path"
-import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
-import Database from "better-sqlite3"
+import fs from "fs"
 import fetch, { Headers, Request, Response } from "node-fetch"
+import path from "path"
+import readline from "readline"
+import { fileURLToPath } from "url"
 
 globalThis.fetch = fetch
 globalThis.Headers = Headers
@@ -50,7 +50,7 @@ const { upsert: upsertCloud, search: searchCloud } = await FindexCloud()
 const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
-const baseUrl = "http://127.0.0.1:8080"
+const baseUrl = "http://127.0.0.1:9090"
 
 // Init databases
 const dbClear = new Database(":memory:")

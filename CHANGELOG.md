@@ -2,27 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.4.0] - 2023-10-03
+
+### Features
+
+- KMS support:
+  - Grant/deny access rights
+  - Add bulk encryption/decryption for Covercrypt
+  - Import key specifying the decryption key
+
+### Ci
+
+- Rebuild GitHub cache on changes ([#137])
+
 ## [9.3.0] - 2023-09-22
 
 ### Features
 
-- Support import of Certificate and PrivateKey (with tags)
-- Export object wrapped
-- Import of a wrapped key
-- Use 4.6.0 KMS version
+- KMS support:
+  - Support import of Certificate and PrivateKey (with tags)
+  - Export object wrapped
+  - Import of a wrapped key
+  - Use 4.6.0 KMS version
 
 ## [9.2.0] - 2023-08-22
 
 ### Features
 
-- Kms JWE encryption (#124)
+- KMS support:
+  - Kms JWE encryption (#124)
+  - Add KMS tags support (for creation and searching objects)
 - Upgrade to cloudproof 2.2.1
-- Add KMS tags support (for creation and searching objects)
 
 ### Testing
 
-- KMS Locate several keys with same tag
-- Locate by tags and object type
+- KMS support:
+  - Locate several keys with same tag
+  - Locate by tags and object type
 
 ## [9.1.1] - 2023-08-09
 

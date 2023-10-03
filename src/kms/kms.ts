@@ -15,6 +15,7 @@ import { ReKeyKeyPair } from "./requests/ReKeyKeyPair"
 import { Revoke } from "./requests/Revoke"
 import {
   Attributes,
+  CryptographicParameters,
   Link,
   LinkType,
   VendorAttributes,
@@ -43,6 +44,7 @@ import {
   KeyWrapType,
   RevocationReasonEnumeration,
 } from "./structs/types"
+import { webassembly_split_encrypted_header } from "../pkg/cover_crypt/cloudproof_cover_crypt"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -623,6 +625,7 @@ export class KmsClient {
    * Mark a CoverCrypt Secret Master Key as Revoked
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
+   * @returns nothing
    */
   public async revokeCoverCryptSecretMasterKey(
     uniqueIdentifier: string,
@@ -635,6 +638,7 @@ export class KmsClient {
    * Mark a CoverCrypt Public Master Key as Revoked
    * @param {string} uniqueIdentifier the unique identifier of the key
    * @param {string} reason the explanation of the revocation
+   * @returns nothing
    */
   public async revokeCoverCryptPublicMasterKey(
     uniqueIdentifier: string,
@@ -785,12 +789,90 @@ export class KmsClient {
   }
 
   /**
+   * Encrypt multiple data at once
+   * @param uniqueIdentifier the unique identifier of the public key
+   * @param accessPolicy the access policy to use for encryption
+   * @param data multiple data to encrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.headerMetadata Data encrypted in the header
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should be use during decryption)
+   * @returns an array containing multiple ciphertexts
+   */
+  public async coverCryptBulkEncrypt(
+    uniqueIdentifier: string,
+    accessPolicy: string,
+    data: Uint8Array[],
+    options: {
+      headerMetadata?: Uint8Array
+      authenticationData?: Uint8Array
+    } = {},
+  ): Promise<Uint8Array[]> {
+    const accessPolicyBytes = new TextEncoder().encode(accessPolicy)
+    const accessPolicySize = encode(accessPolicyBytes.length)
+
+    let headerMetadataSize = encode(0)
+    let headerMetadata = Uint8Array.from([])
+    if (typeof options.headerMetadata !== "undefined") {
+      headerMetadataSize = encode(options.headerMetadata.length)
+      headerMetadata = options.headerMetadata
+    }
+
+    const cryptographicParameters = new CryptographicParameters()
+    cryptographicParameters.cryptographicAlgorithm =
+      CryptographicAlgorithm.CoverCryptBulk
+
+    let plaintext = encode(data.length)
+
+    for (const chunk of data) {
+      plaintext = Uint8Array.from([
+        ...plaintext,
+        ...encode(chunk.length),
+        ...chunk,
+      ])
+    }
+
+    const dataToEncrypt = Uint8Array.from([
+      ...accessPolicySize,
+      ...accessPolicyBytes,
+      ...headerMetadataSize,
+      ...headerMetadata,
+      ...plaintext,
+    ])
+
+    const encrypt = new Encrypt(
+      uniqueIdentifier,
+      dataToEncrypt,
+      cryptographicParameters,
+    )
+    if (typeof options.authenticationData !== "undefined") {
+      encrypt.authenticatedEncryptionAdditionalData = options.authenticationData
+    }
+
+    const encryptedData = (await this.post(encrypt)).data
+    const { encryptedHeader, ciphertext } =
+      webassembly_split_encrypted_header(encryptedData)
+
+    let { result: nbChunks, tail: tailCiphertext } = decode(ciphertext)
+
+    const encryptedChunks = []
+    for (let i = 0; i < nbChunks; i++) {
+      const { result: chunkSize, tail } = decode(tailCiphertext)
+      const chunk = tail.slice(0, chunkSize)
+      tailCiphertext = tail.slice(chunkSize)
+
+      encryptedChunks.push(new Uint8Array([...encryptedHeader, ...chunk]))
+    }
+
+    return encryptedChunks
+  }
+
+  /**
    * Decrypt some data
    * @param uniqueIdentifier the unique identifier of the private key
    * @param data to decrypt
    * @param {object} options Additional optional options to the encryption
    * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should have been use during encryption)
-   * @returns the plaintext
+   * @returns the header metadata and the plaintext
    */
   public async coverCryptDecrypt(
     uniqueIdentifier: string,
@@ -811,6 +893,66 @@ export class KmsClient {
     const plaintext = tail.slice(headerMetadataLength)
 
     return { headerMetadata, plaintext }
+  }
+
+  /**
+   * Decrypt multiple data at once
+   * @param uniqueIdentifier the unique identifier of the private key
+   * @param data multiple data to decrypt
+   * @param {object} options Additional optional options to the encryption
+   * @param {Uint8Array} options.authenticationData Data use to authenticate the encrypted value when decrypting (if use, should have been use during encryption)
+   * @returns header metadata and an array containing multiple plaintexts
+   */
+  public async coverCryptBulkDecrypt(
+    uniqueIdentifier: string,
+    data: Uint8Array[],
+    options: {
+      authenticationData?: Uint8Array
+    } = {},
+  ): Promise<{
+    headerMetadata: Uint8Array
+    plaintext: Uint8Array[]
+  }> {
+    const cryptographicParameters = new CryptographicParameters()
+    cryptographicParameters.cryptographicAlgorithm =
+      CryptographicAlgorithm.CoverCryptBulk
+
+    let ciphertext = encode(data.length)
+
+    for (const chunk of data) {
+      ciphertext = Uint8Array.from([
+        ...ciphertext,
+        ...encode(chunk.length),
+        ...chunk,
+      ])
+    }
+
+    const decrypt = new Decrypt(
+      uniqueIdentifier,
+      ciphertext,
+      cryptographicParameters,
+    )
+    if (typeof options.authenticationData !== "undefined") {
+      decrypt.authenticatedEncryptionAdditionalData = options.authenticationData
+    }
+
+    const response = await this.post(decrypt)
+
+    const { result: headerMetadataLength, tail } = decode(response.data)
+    const headerMetadata = tail.slice(0, headerMetadataLength)
+    const plaintext = tail.slice(headerMetadataLength)
+
+    let { result: nbChunks, tail: tailPlaintext } = decode(plaintext)
+    const decryptedChunks = []
+    for (let i = 0; i < nbChunks; i++) {
+      const { result: chunkSize, tail } = decode(tailPlaintext)
+      const chunk = tail.slice(0, chunkSize)
+      tailPlaintext = tail.slice(chunkSize)
+
+      decryptedChunks.push(chunk)
+    }
+
+    return { headerMetadata, plaintext: decryptedChunks }
   }
 
   /**
@@ -884,6 +1026,7 @@ export class KmsClient {
    * @param uniqueIdentifier the unique identifier of the object to import
    * @param wrappedObject wrapped objectto import
    * @param unwrap boolean true if object must be unwrapped before importing
+   * @param encryptionKeyUniqueIdentifier if unwrap is true, uniqueIdentifier used to unwrap key can be overwritten with a specific one
    * @param replaceExisting boolean replacing if existing object
    * @returns imported object identifier
    */
@@ -891,6 +1034,7 @@ export class KmsClient {
     uniqueIdentifier: string,
     wrappedObject: KmsObject,
     unwrap: boolean,
+    encryptionKeyUniqueIdentifier: string | null = null,
     replaceExisting: boolean = false,
   ): Promise<string> {
     if (
@@ -910,18 +1054,150 @@ export class KmsClient {
     const keyWrapType = unwrap
       ? KeyWrapType.NotWrapped
       : KeyWrapType.AsRegistered
+    const overWrittenWrappedObject = { ...wrappedObject }
+    if (
+      unwrap &&
+      encryptionKeyUniqueIdentifier != null &&
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData != null &&
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData
+        .encryptionKeyInformation != null
+    ) {
+      overWrittenWrappedObject.value.keyBlock.keyWrappingData.encryptionKeyInformation.uniqueIdentifier =
+        encryptionKeyUniqueIdentifier
+    }
     return await this.importObject(
       uniqueIdentifier,
       attributes,
       wrappedObject.type,
-      wrappedObject,
+      overWrittenWrappedObject,
       replaceExisting,
       keyWrapType,
     )
+  }
+
+  private async manageAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+    urlPath: string,
+  ): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const body = {
+      unique_identifier: uniqueIdentifier,
+      user_id: userIdentifier,
+      operation_type: operationType,
+    }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify(body),
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * Grant access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to grant access to
+   * @param operationType KMIP operation type to grant access for
+   * @returns response from KMS server
+   */
+  public async grantAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/grant",
+    )
+  }
+
+  /**
+   * Revoke access to a KmsObject for a specific user
+   * @param uniqueIdentifier the unique identifier of the object to import
+   * @param userIdentifier the unique identifier of the user to revoke access to
+   * @param operationType KMIP operation type to revoke access for
+   * @returns response from KMS server
+   */
+  public async revokeAccess(
+    uniqueIdentifier: string,
+    userIdentifier: string,
+    operationType: KMIPOperations,
+  ): Promise<Response> {
+    return await this.manageAccess(
+      uniqueIdentifier,
+      userIdentifier,
+      operationType,
+      "/access/revoke",
+    )
+  }
+
+  /**
+   * List access to a KmsObject
+   * @param uniqueIdentifier the unique identifier of the object to list access for
+   * @returns response from KMS server
+   */
+  public async listAccess(uniqueIdentifier: string): Promise<Response> {
+    const listAccessUrl = new URL(`/access/list/${uniqueIdentifier}`, this.url)
+    const response = await fetch(listAccessUrl, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`list access request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  private async listObjects(urlPath: string): Promise<Response> {
+    const url = new URL(urlPath, this.url)
+    const response = await fetch(url, {
+      method: "GET",
+      headers: this.headers,
+    })
+    if (!response.ok || response.status >= 400) {
+      throw new Error(`${urlPath} request failed (${response.status})`)
+    }
+
+    return response
+  }
+
+  /**
+   * List owned objects for a user
+   * @returns response from KMS server
+   */
+  public async listOwnedObjects(): Promise<Response> {
+    return await this.listObjects("/access/owned")
+  }
+
+  /**
+   * List objects a user has obtained access for
+   * @returns response from KMS server
+   */
+  public async listObtainedObjects(): Promise<Response> {
+    return await this.listObjects("/access/obtained")
   }
 }
 
 export enum SymmetricKeyAlgorithm {
   AES,
   ChaCha20,
+}
+
+export enum KMIPOperations {
+  get = "get",
+  export = "export",
+  encrypt = "encrypt",
+  decrypt = "decrypt",
+  import = "import",
+  revoke = "revoke",
+  destroy = "destroy",
 }
