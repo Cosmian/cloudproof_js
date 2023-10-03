@@ -103,7 +103,7 @@ test("Demo using Wasm only", async () => {
   const protectedMkgCleartext = new CoverCryptHybridDecryption(
     confidentialMkgUserKeyBytes,
   ).decrypt(protectedMkgCiphertext)
-  expect(protectedMkgCleartext.plaintext).toEqual(protectedMkgData)
+  expect(protectedMkgData).toEqual(protectedMkgCleartext.plaintext)
 
   try {
     // will throw
@@ -264,7 +264,7 @@ test("Demo using KMS", async () => {
     confidentialMkgUserKeyUid,
     protectedMkgCiphertext,
   )
-  expect(protectedMkgCleartext.plaintext).toEqual(protectedMkgData)
+  expect(protectedMkgData).toEqual(protectedMkgCleartext.plaintext)
 
   // .. however, it can neither decrypt a marketing message with higher security:
   try {
@@ -351,7 +351,7 @@ test("Demo using KMS", async () => {
   )
   expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
 
-  //   However, the old, non-rekeyed `confidential marketing` user key can still decrypt the old `protected marketing` message
+  // However, the old, non-rekeyed `confidential marketing` user key can still decrypt the old `protected marketing` message
   // but **not** the new `confidential marketing` message:
 
   // protectedMkgCiphertext
