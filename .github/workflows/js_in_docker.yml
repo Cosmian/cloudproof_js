@@ -69,6 +69,7 @@ jobs:
         env:
           REDIS_HOST: redis
           KMS_HOST: kms
+          FINDEX_CLOUD_HOST: findex_cloud
 
       - name: Upload non-regression test vectors
         if: inputs.regression_files != ''

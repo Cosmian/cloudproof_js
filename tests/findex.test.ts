@@ -226,31 +226,18 @@ async function runWithFindexCallbacks(
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function runInFindexCloud(): Promise<void> {
   const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
-    process.env.FINDEX_CLOUD_PORT ?? "9090"
+    process.env.FINDEX_CLOUD_PORT ?? "8080"
   }`
 
-  let response
-  try {
-    response = await fetch(`${baseUrl}/indexes`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: "Test",
-      }),
-    })
-  } catch (e) {
-    if (
-      e instanceof TypeError &&
-      // @ts-expect-error
-      (e.cause.message.includes("ECONNREFUSED") as boolean)
-    ) {
-      return
-    } else {
-      throw e
-    }
-  }
+  const response = await fetch(`${baseUrl}/indexes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      name: "Test",
+    }),
+  })
 
   const data = await response.json()
 
