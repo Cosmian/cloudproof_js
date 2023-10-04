@@ -43,23 +43,6 @@ export {
   toBeBytes,
 } from "./utils/utils"
 
-export * from "./kms/kmip"
-export * from "./kms/kms"
-export * from "./kms/requests/Create"
-export * from "./kms/requests/CreateKeyPair"
-export * from "./kms/requests/Destroy"
-export * from "./kms/requests/Get"
-export * from "./kms/requests/Import"
-export * from "./kms/requests/ReKeyKeyPair"
-export * from "./kms/requests/Revoke"
-export * from "./kms/responses/GenericKeyPairResponse"
-export * from "./kms/responses/GenericUniqueIdentifierResponse"
-export * from "./kms/responses/GetResponse"
-export * from "./kms/structs/object_attributes"
-export * from "./kms/structs/object_data_structures"
-export * from "./kms/structs/objects"
-export * from "./kms/structs/types"
-
 // @ts-expect-error @ts-ignore-error
 setAesGcmInit(() => aesgcm_wasm())
 

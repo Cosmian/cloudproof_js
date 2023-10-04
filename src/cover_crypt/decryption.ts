@@ -1,12 +1,11 @@
 /* tslint:disable:max-classes-per-file */
+import { decode } from "utils/leb128"
 import {
   webassembly_decrypt_hybrid_header,
   webassembly_decrypt_symmetric_block,
   webassembly_hybrid_decrypt,
 } from "../pkg/cover_crypt/cloudproof_cover_crypt"
-import { PrivateKey } from "../kms/structs/objects"
 import { PlaintextHeader } from "./interfaces/plaintext_header"
-import { decode } from "../utils/leb128"
 
 /**
  * This class exposes the CoverCrypt primitives.
@@ -15,12 +14,8 @@ import { decode } from "../utils/leb128"
 export class CoverCryptHybridDecryption {
   private readonly _asymmetricDecryptionKey: Uint8Array
 
-  constructor(asymmetricDecryptionKey: PrivateKey | Uint8Array) {
-    if (asymmetricDecryptionKey instanceof PrivateKey) {
-      this._asymmetricDecryptionKey = asymmetricDecryptionKey.bytes()
-    } else {
-      this._asymmetricDecryptionKey = asymmetricDecryptionKey
-    }
+  constructor(asymmetricDecryptionKey: Uint8Array) {
+    this._asymmetricDecryptionKey = asymmetricDecryptionKey
   }
 
   public get asymmetricDecryptionKey(): Uint8Array {
@@ -107,7 +102,7 @@ export class CoverCryptHybridDecryption {
  * @returns the decrypted header metadata and the the plaintext value
  */
 export function decrypt(
-  decryptionKey: PrivateKey | Uint8Array,
+  decryptionKey: Uint8Array,
   ciphertext: Uint8Array,
   options: {
     authenticationData?: Uint8Array
@@ -119,7 +114,7 @@ export function decrypt(
       : options.authenticationData
 
   const result = webassembly_hybrid_decrypt(
-    decryptionKey instanceof PrivateKey ? decryptionKey.bytes() : decryptionKey,
+    decryptionKey,
     ciphertext,
     authenticationData,
   )

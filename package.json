@@ -43,7 +43,8 @@
     "better-sqlite3": "^8.0.1",
     "jose": "^4.14.4",
     "process": "^0.11.10",
-    "stream-browserify": "^3.0.0"
+    "stream-browserify": "^3.0.0",
+    "cloudproof_kms_js": "file:../cloudproof_kms_js/"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
