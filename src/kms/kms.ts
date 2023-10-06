@@ -44,7 +44,6 @@ import {
   KeyWrapType,
   RevocationReasonEnumeration,
 } from "./structs/types"
-import { webassembly_split_encrypted_header } from "../pkg/cover_crypt/cloudproof_cover_crypt"
 
 // eslint-disable-next-line no-unused-vars, @typescript-eslint/no-unused-vars
 export interface KmsRequest<TResponse> {
@@ -849,10 +848,8 @@ export class KmsClient {
     }
 
     const encryptedData = (await this.post(encrypt)).data
-    const { encryptedHeader, ciphertext } =
-      webassembly_split_encrypted_header(encryptedData)
 
-    let { result: nbChunks, tail: tailCiphertext } = decode(ciphertext)
+    let { result: nbChunks, tail: tailCiphertext } = decode(encryptedData)
 
     const encryptedChunks = []
     for (let i = 0; i < nbChunks; i++) {
@@ -860,7 +857,7 @@ export class KmsClient {
       const chunk = tail.slice(0, chunkSize)
       tailCiphertext = tail.slice(chunkSize)
 
-      encryptedChunks.push(new Uint8Array([...encryptedHeader, ...chunk]))
+      encryptedChunks.push(chunk)
     }
 
     return encryptedChunks

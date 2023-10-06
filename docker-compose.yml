@@ -5,15 +5,13 @@ version: "3"
 services:
   kms:
     container_name: kms
-    image: ghcr.io/cosmian/kms:4.7.0
+    image: ghcr.io/cosmian/kms:ser_server_side
     ports:
       - 9998:9998
     environment:
-      JWK_PRIVATE_KEY: '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
-        "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
+      JWK_PRIVATE_KEY: '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x": "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
       # To test in local with AUth0 authentication
       # KMS_JWT_ISSUER_URI: https://kms-cosmian.eu.auth0.com/
-
   findex_cloud:
     image: ghcr.io/cosmian/findex_cloud:0.3.1
     ports:
