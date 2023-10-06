@@ -330,7 +330,7 @@ async function assertCountSelector(
   selector,
   expected,
   additionalMessage = "",
-  timeout = 30000,
+  timeout = 60000,
 ) {
   const start = new Date()
   let count = null

@@ -60,24 +60,24 @@ const policy = new Policy([
   // a low secret marketing message
   const lowSecretMkgData = new TextEncoder().encode("low_secret_mkg_message")
   // The constructor also accepts the public key object returned by the KMS
-  let encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const lowSecretMkgCiphertext = encrypter.encrypt(
+  let encryptor = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+  const lowSecretMkgCiphertext = encryptor.encrypt(
     "Department::MKG && Security Level::Low Secret",
     lowSecretMkgData,
   )
 
   // a top secret marketing message
   const topSecretMkgData = new TextEncoder().encode("top_secret_mkg_message")
-  encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const topSecretMkgCiphertext = encrypter.encrypt(
+  encryptor = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+  const topSecretMkgCiphertext = encryptor.encrypt(
     "Department::MKG && Security Level::Top Secret",
     topSecretMkgData,
   )
 
   // a low secret finance message
   const lowSecretFinData = new TextEncoder().encode("low_secret_fin_message")
-  encrypter = new CoverCryptHybridEncryption(policy, publicKeyBytes)
-  const lowSecretFinCiphertext = encrypter.encrypt(
+  encryptor = new CoverCryptHybridEncryption(policy, publicKeyBytes)
+  const lowSecretFinCiphertext = encryptor.encrypt(
     "Department::FIN && Security Level::Low Secret",
     lowSecretFinData,
   )
@@ -192,8 +192,8 @@ const policy = new Policy([
   const mediumSecretMkgData = new TextEncoder().encode(
     "medium_secret_mkg_message",
   )
-  encrypter = new CoverCryptHybridEncryption(policy, rekeyedPublicKey)
-  const newMediumSecretMkgCiphertext = encrypter.encrypt(
+  encryptor = new CoverCryptHybridEncryption(policy, rekeyedPublicKey)
+  const newMediumSecretMkgCiphertext = encryptor.encrypt(
     "Department::MKG && Security Level::Medium Secret",
     mediumSecretMkgData,
   )

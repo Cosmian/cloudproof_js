@@ -1158,18 +1158,18 @@ test(
     }
 
     // Grant access to another user, to get this object
-    await client.grantAccess(keyId, "client2@cosmian.com", KMIPOperations.get)
+    await client.grantAccess(keyId, "ci2@cosmian.com", KMIPOperations.get)
     const fetchedKey = await client2.getObject(keyId)
     expect(fetchedKey).toEqual(key)
 
     // List associated access to this object
     const access = await client.listAccess(keyId)
     expect(await access.text()).toEqual(
-      '[{"user_id":"client2@cosmian.com","operations":["get"]}]',
+      '[{"user_id":"ci2@cosmian.com","operations":["get"]}]',
     )
 
     // Revoke access to this user
-    await client.revokeAccess(keyId, "client2@cosmian.com", KMIPOperations.get)
+    await client.revokeAccess(keyId, "ci2@cosmian.com", KMIPOperations.get)
     try {
       await client2.getObject(keyId)
     } catch (error) {

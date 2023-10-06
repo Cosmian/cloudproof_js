@@ -28,18 +28,21 @@ jobs:
         npm run lint
 
   test:
+    name: vitest with Auth0
     needs: build_in_docker
-    uses: ./.github/workflows/js_in_docker.yml
+    uses: ./.github/workflows/js_in_docker_with_auth0.yml
     with:
       subcommands: |
         npm test
       kms-version: 4.7.0
-      kms-jwe-key: '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
+      kms-jwe-key:
+        '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
         "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
       findex-cloud-version: 0.3.1
       regression_files: |
         ./node_modules/non_regression_vector.json
         ./node_modules/sqlite.db
+    secrets: inherit
 
   cloudproof_java:
     needs: test
@@ -84,6 +87,7 @@ jobs:
         cp ./cloudproof_js/sqlite.db                  test/resources/findex/non_regression/js_sqlite.db
 
   example_vuejs:
+    name: vuejs tests
     needs: build_in_docker
     uses: ./.github/workflows/js_in_docker.yml
     with:
@@ -99,6 +103,7 @@ jobs:
       findex-cloud-version: 0.3.1
 
   example_reactjs:
+    name: reactjs tests
     needs: build_in_docker
     uses: ./.github/workflows/js_in_docker.yml
     with:
@@ -114,6 +119,7 @@ jobs:
       findex-cloud-version: 0.3.1
 
   example_browser:
+    name: browser
     needs: build_in_docker
     uses: ./.github/workflows/js_in_docker.yml
     with:
@@ -127,6 +133,7 @@ jobs:
       findex-cloud-version: 0.3.1
 
   example_webpack:
+    name: webpack
     needs: build
     uses: ./.github/workflows/js.yml
     with:
@@ -136,8 +143,9 @@ jobs:
         npx webpack
 
   example_nodejs:
+    name: nodejs with Auth0
     needs: build_in_docker
-    uses: ./.github/workflows/js_in_docker.yml
+    uses: ./.github/workflows/js_in_docker_with_auth0.yml
     with:
       subcommands: |
         cd examples/nodejs
@@ -145,8 +153,10 @@ jobs:
         node test.mjs 10
       kms-version: 4.7.0
       findex-cloud-version: 0.3.1
+    secrets: inherit
 
   example_imdb:
+    name: nodejs with imdb
     needs: build
     uses: ./.github/workflows/js.yml
     with:
@@ -158,6 +168,7 @@ jobs:
         node test.mjs
 
   example_full_text_search:
+    name: nodejs with full text search
     needs: build
     uses: ./.github/workflows/js.yml
     with:
