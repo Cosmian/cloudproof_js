@@ -28,14 +28,14 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
 type NewUser = {
   first: string
   last: string
-  country: typeof COUNTRIES[0]
+  country: (typeof COUNTRIES)[0]
   email: string
   project: string
 }
 type User = { id: number } & NewUser
 
 type Request = { method: string; url: string; body?: object; response?: object }
-type EncrypterAndDecrypter = {
+type EncryptorAndDecrypter = {
   encrypt: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>
   decrypt: (
     selectedKey: "aliceKey" | "bobKey" | "charlieKey",
@@ -187,8 +187,8 @@ function App() {
   const [doOr, setDoOr] = useState(false)
   const [query, setQuery] = useState("")
 
-  const [encrypterAndDecrypter, setEncrypterAndDecrypter] = useState(
-    null as null | EncrypterAndDecrypter,
+  const [encryptorAndDecrypter, setEncryptorAndDecrypter] = useState(
+    null as null | EncryptorAndDecrypter,
   )
 
   const [searchResults, setSearchResults] = useState(
@@ -201,9 +201,9 @@ function App() {
     }>,
   )
 
-  const getEncrypterAndDecrypter = async (): Promise<EncrypterAndDecrypter> => {
-    if (encrypterAndDecrypter) {
-      return encrypterAndDecrypter
+  const getEncryptorAndDecrypter = async (): Promise<EncryptorAndDecrypter> => {
+    if (encryptorAndDecrypter) {
+      return encryptorAndDecrypter
     }
     const { Policy, PolicyAxis } = await CoverCrypt()
 
@@ -241,7 +241,7 @@ function App() {
         privateMasterKeyUID,
       )
 
-      const encrypterAndDecrypter = {
+      const encryptorAndDecrypter = {
         encrypt: async (
           accessPolicy: string,
           data: Uint8Array,
@@ -270,8 +270,8 @@ function App() {
           return (await client.coverCryptDecrypt(keyUid, data)).plaintext
         },
       }
-      setEncrypterAndDecrypter(encrypterAndDecrypter)
-      return encrypterAndDecrypter
+      setEncryptorAndDecrypter(encryptorAndDecrypter)
+      return encryptorAndDecrypter
     } else {
       const {
         CoverCryptKeyGeneration,
@@ -307,7 +307,7 @@ function App() {
         policy,
       )
 
-      const encrypterAndDecrypter = {
+      const encryptorAndDecrypter = {
         encrypt: async (
           accessPolicy: string,
           data: Uint8Array,
@@ -332,18 +332,18 @@ function App() {
           return new CoverCryptHybridDecryption(key).decrypt(data).plaintext
         },
       }
-      setEncrypterAndDecrypter(encrypterAndDecrypter)
-      return encrypterAndDecrypter
+      setEncryptorAndDecrypter(encryptorAndDecrypter)
+      return encryptorAndDecrypter
     }
   }
 
   const encryptAndSaveUser = async (
-    encrypter: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>,
+    encryptor: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>,
     user: User,
   ) => {
     // Encrypt user personal data for the marketing team
     // of the corresponding country
-    const encryptedForMarketing = await encrypter(
+    const encryptedForMarketing = await encryptor(
       `department::Marketing && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -356,7 +356,7 @@ function App() {
 
     // Encrypt user contact information for the HR team of
     // the corresponding country
-    const encryptedForHr = await encrypter(
+    const encryptedForHr = await encryptor(
       `department::HR && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -367,7 +367,7 @@ function App() {
 
     // Encrypt the user manager level for the manager
     // team of the corresponding country
-    const encryptedForManager = await encrypter(
+    const encryptedForManager = await encryptor(
       `department::Manager && country::${user.country}`,
       new TextEncoder().encode(
         JSON.stringify({
@@ -397,9 +397,9 @@ function App() {
   const encrypt = async () => {
     setEncrypting(true)
 
-    const encrypter = (await getEncrypterAndDecrypter()).encrypt
+    const encryptor = (await getEncryptorAndDecrypter()).encrypt
 
-    const jobs = users.map((user) => encryptAndSaveUser(encrypter, user))
+    const jobs = users.map((user) => encryptAndSaveUser(encryptor, user))
     await Promise.all(jobs)
 
     setEncrypting(false)
@@ -568,8 +568,8 @@ function App() {
 
     // Only if we didn't encrypt/index yet, encrypt and index this new user otherwise wait for the global encrypt/index
     if (encryptedUsers.length > 0) {
-      const encrypter = (await getEncrypterAndDecrypter()).encrypt
-      await encryptAndSaveUser(encrypter, user)
+      const encryptor = (await getEncryptorAndDecrypter()).encrypt
+      await encryptAndSaveUser(encryptor, user)
     }
 
     if (indexingDone) {
@@ -627,7 +627,7 @@ function App() {
 
     const { search } = await Findex()
 
-    const decrypter = (await getEncrypterAndDecrypter()).decrypt
+    const decrypter = (await getEncryptorAndDecrypter()).decrypt
 
     const savedQuery = query
 

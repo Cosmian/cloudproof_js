@@ -176,7 +176,8 @@ test("Demo using KMS", async () => {
   // Generating the master keys
   //
   const client = new KmsClient(
-    `http://${process.env.KMS_HOST || "localhost"}:9998`,
+    `http://${process.env.KMS_HOST ?? "localhost"}:9998`,
+    process.env.AUTH0_TOKEN_1,
   )
 
   if (!(await client.up())) {
