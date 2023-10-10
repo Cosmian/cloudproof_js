@@ -1,58 +1,87 @@
-import {
-  FindexKey,
-  indexedEntriesToBytes,
-  IndexedEntry,
-  Keyword,
-  Label,
-  SearchResults,
-} from "./types"
+// /* eslint-disable */
+
+// TODO: rename masterKey to FindexKey
+
+import { SymmetricKey } from "cloudproof_kms_js"
 import {
   WasmCallbacks,
   WasmFindex,
   webassembly_logger_init,
 } from "../pkg/findex/cloudproof_findex"
-import { IntermediateSearchResults, Interrupt } from "./types"
-import { loadWasm } from "./init"
-import { SymmetricKey } from "cloudproof_kms_js"
+import { Callbacks } from "./callbacks"
 
-let loggerInit = false
+import {
+  FindexKey,
+  IndexedEntry,
+  IntermediateSearchResults,
+  Interrupt,
+  Keyword,
+  Label,
+  SearchResults,
+  indexedEntriesToBytes,
+} from "./types"
+
+export interface InstantiatedFindex {
+  /**
+   * Add the given values to this Findex index for the corresponding
+   * keywords.
+   * @param {Uint8Array} key
+   * @param {Uint8Array} label
+   * @param {Array<{indexedValue: Uint8Array, keywords: Array<Uint8Array>}>} additions
+   * @returns {Promise<Array<Uint8Array>>}
+   */
+  add: (
+    key: Uint8Array,
+    label: Uint8Array,
+    additions: Array<{ indexedValue: Uint8Array; keywords: Uint8Array[] }>,
+  ) => Promise<Uint8Array[]>
+
+  /**
+   * Remove the given values from this Findex index for the corresponding
+   * keywords.
+   * @param {Uint8Array} key
+   * @param {Uint8Array} label
+   * @param {Array<{indexedValue: Uint8Array, keywords: Array<Uint8Array>}>} deletions
+   * @returns {Promise<Array<Uint8Array>>}
+   */
+  delete: (
+    key: Uint8Array,
+    label: Uint8Array,
+    deletions: Array<{ indexedValue: Uint8Array; keywords: Uint8Array[] }>,
+  ) => Promise<Uint8Array[]>
+
+  /**
+   * Searches this Findex instance for the given keywords.
+   *
+   * The interrupt is called at each search graph level with the level's
+   * results and allows interrupting the search.
+   * @param {Uint8Array} key
+   * @param {Uint8Array} label
+   * @param {Array<Uint8Array>} keywords
+   * @param {Function} interrupt
+   * @returns {Promise<Array<{ keyword: Uint8Array, results: Array<Uint8Array> }>>}
+   */
+  search: (
+    key: Uint8Array,
+    label: Uint8Array,
+    keywords: Uint8Array[],
+    interrupt: Function,
+  ) => Promise<Array<{ keyword: Uint8Array; results: Uint8Array[] }>>
+}
 
 /**
  * Findex definition
- * @returns {Promise<Findex>} results found at every node while the search walks the search graph
+ * @returns {Promise<FindexBase>} results found at every node while the search walks the search graph
  */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export class Findex {
-  readonly wasmFindex: WasmFindex
+export class FindexBase {
+  _instantiatedFindex: InstantiatedFindex
 
-  private constructor(wasm_findex: WasmFindex) {
-    this.wasmFindex = wasm_findex
-  }
-
-  /**
-   * Instantiates a Findex instance usin the given callbacks.
-   */
-  static async new_with_wasm_backend(
-    entry_callbacks: WasmCallbacks,
-    chain_callbacks: WasmCallbacks,
-  ) {
-    await loadWasm()
-    return new Findex(
-      await WasmFindex.new_with_wasm_backend(entry_callbacks, chain_callbacks),
-    )
-  }
-
-  /**
-   * Instantiates a Findex instance using the token and URL.
-   */
-  static async new_with_cloud_backend(token: string, url: string) {
-    await loadWasm()
-    return new Findex(await WasmFindex.new_with_rest_backend(token, url))
+  constructor(instantiatedFindex: InstantiatedFindex) {
+    this._instantiatedFindex = instantiatedFindex
   }
 
   /**
    * Add the following entries in the index.
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
@@ -60,15 +89,14 @@ export class Findex {
    * @param options.verbose the optional verbose bool parameter
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
-  async add(
+  public async add(
     masterKey: FindexKey | SymmetricKey | Uint8Array,
     label: Label | Uint8Array,
     additions: IndexedEntry[],
     options: { verbose?: false } = {},
   ): Promise<Keyword[]> {
-    if (options.verbose === undefined && !loggerInit) {
+    if (options.verbose !== undefined && options.verbose) {
       await webassembly_logger_init()
-      loggerInit = true
     }
 
     if (masterKey instanceof SymmetricKey) {
@@ -84,7 +112,7 @@ export class Findex {
 
     const additionsBytes = indexedEntriesToBytes(additions, "additions")
 
-    const newIds: Uint8Array[] = await this.wasmFindex.add(
+    const newIds: Uint8Array[] = await this._instantiatedFindex.add(
       masterKey.bytes,
       label.bytes,
       additionsBytes,
@@ -95,7 +123,6 @@ export class Findex {
 
   /**
    * Delete the following entries from the index.
-   *
    * @param {FindexKey | SymmetricKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} deletions new entries to upsert in indexes
@@ -109,9 +136,8 @@ export class Findex {
     deletions: IndexedEntry[],
     options: { verbose?: false } = {},
   ): Promise<Keyword[]> {
-    if (options.verbose === undefined && !loggerInit) {
+    if (options.verbose !== undefined && options.verbose) {
       await webassembly_logger_init()
-      loggerInit = true
     }
 
     if (masterKey instanceof SymmetricKey) {
@@ -127,7 +153,7 @@ export class Findex {
 
     const deletionBytes = indexedEntriesToBytes(deletions, "deletions")
 
-    const newIds: Uint8Array[] = await this.wasmFindex.delete(
+    const newIds: Uint8Array[] = await this._instantiatedFindex.delete(
       masterKey.bytes,
       label.bytes,
       deletionBytes,
@@ -154,9 +180,8 @@ export class Findex {
       verbose?: false
     } = {},
   ): Promise<SearchResults> {
-    if (options.verbose === undefined && !loggerInit) {
+    if (options.verbose !== undefined && options.verbose) {
       await webassembly_logger_init()
-      loggerInit = true
     }
 
     // convert key to a single representation
@@ -183,10 +208,10 @@ export class Findex {
     // Never interrupt the search if no interrupt function is passed.
     const userInterrupt: Interrupt =
       typeof options.userInterrupt === "undefined"
-        ? async (_) => false
+        ? async () => false
         : options.userInterrupt
 
-    const resultsPerKeywords = await this.wasmFindex.search(
+    const resultsPerKeywords = await this._instantiatedFindex.search(
       masterKey.bytes,
       label.bytes,
       kws,
@@ -203,5 +228,54 @@ export class Findex {
     )
 
     return new SearchResults(resultsPerKeywords)
+  }
+}
+
+export class FindexWithWasmBackend extends FindexBase {
+  constructor() {
+    super(new WasmFindex()) // TODO: revisit this impl'.
+  }
+
+  public async createWithWasmBackend(
+    entriesCallbacks: Callbacks,
+    chainsCallbacks: Callbacks,
+  ): Promise<void> {
+    const entries = new WasmCallbacks()
+    entries.delete = entriesCallbacks.delete
+    entries.fetch = entriesCallbacks.fetch
+    entries.insert = entriesCallbacks.insert
+    entries.upsert = entriesCallbacks.upsert
+
+    const chains = new WasmCallbacks()
+    chains.delete = chainsCallbacks.delete
+    chains.fetch = chainsCallbacks.fetch
+    chains.insert = chainsCallbacks.insert
+    chains.upsert = chainsCallbacks.upsert
+
+    this._instantiatedFindex = await WasmFindex.new_with_wasm_backend(
+      entries,
+      chains,
+    )
+  }
+}
+
+export class FindexWithCloudBackend extends FindexBase {
+  // TODO: rename to rest
+  constructor() {
+    super(new WasmFindex())
+  }
+
+  /**
+   * Instantiates a Findex instance using the token and URL.
+   * @param token findex server authorization token
+   * @param url findex server
+   * @returns initialized object
+   */
+  public async createWithCloudBackend(
+    token: string,
+    url: string,
+  ): Promise<void> {
+    const findex = await WasmFindex.new_with_rest_backend(token, url)
+    this._instantiatedFindex = findex
   }
 }

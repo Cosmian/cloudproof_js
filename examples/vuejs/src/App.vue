@@ -3,13 +3,13 @@ import {
   CoverCrypt,
   Findex,
   FindexKey,
-  type UidsAndValues,
   Label,
   Location,
   KmsClient,
-  type UidsAndValuesToUpsert,
+  type UidsAndValues,
   generateAliases,
   PolicyKms,
+  Callbacks,
 } from "cloudproof_js"
 import { defineComponent } from "vue"
 import Key from "./Key.vue"
@@ -32,7 +32,7 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
 type NewUser = {
   first: string
   last: string
-  country: typeof COUNTRIES[0]
+  country: (typeof COUNTRIES)[0]
   email: string
   project: string
 }
@@ -370,9 +370,21 @@ export default defineComponent({
       masterKey: Exclude<typeof this.masterKey, null>,
       users: User[],
     ) {
-      let { upsert } = await Findex()
+      let { FindexWithWasmBackend } = await Findex()
+      const findex = new FindexWithWasmBackend()
+      const entriesCallbacks = new Callbacks()
+      entriesCallbacks.fetch = async (uids) =>
+        await this.fetchCallback("entries", uids)
+      entriesCallbacks.upsert = async (
+        oldValues: UidsAndValues,
+        newValues: UidsAndValues,
+      ) => await this.upsertCallback("entries", oldValues, newValues)
+      const chainsCallbacks = new Callbacks()
+      chainsCallbacks.insert = async (uidsAndValues) =>
+        await this.insertCallback("chains", uidsAndValues)
+      await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
 
-      await upsert(
+      await findex.add(
         masterKey,
         FINDEX_LABEL,
         this.users.flatMap((user, index) => {
@@ -397,12 +409,6 @@ export default defineComponent({
               : []),
           ]
         }),
-        [],
-        async (uids) => await this.fetchCallback("entries", uids),
-        async (uidsAndValues) =>
-          await this.upsertCallback("entries", uidsAndValues),
-        async (uidsAndValues) =>
-          await this.insertCallback("chains", uidsAndValues),
       )
     },
 
@@ -464,21 +470,27 @@ export default defineComponent({
 
     async upsertCallback(
       table: "entries" | "chains",
-      uidsAndValues: UidsAndValuesToUpsert,
+      oldValues: UidsAndValues,
+      newValues: UidsAndValues,
     ): Promise<UidsAndValues> {
       const rejected = []
-      uidsAndValuesLoop: for (const {
-        uid: newUid,
-        oldValue,
-        newValue,
-      } of uidsAndValues) {
+
+      // Add old values in a map to efficiently search for matching UIDs.
+      const mapOfOldValues = new Map()
+      for (const { uid, value } of oldValues) {
+        mapOfOldValues.set(uid.toString(), value)
+      }
+
+      uidsAndValuesLoop: for (const { uid, value } of newValues) {
         for (const tableEntry of this.indexes[table]) {
-          if (this.uint8ArrayEquals(tableEntry.uid, newUid)) {
+          if (this.uint8ArrayEquals(tableEntry.uid, uid)) {
+            const oldValue = mapOfOldValues.get(uid.toString())
+
             if (
               oldValue !== null &&
               this.uint8ArrayEquals(tableEntry.value, oldValue)
             ) {
-              tableEntry.value = newValue
+              tableEntry.value = value
             } else {
               rejected.push(tableEntry)
             }
@@ -490,17 +502,28 @@ export default defineComponent({
         this.logRequest({
           method: "POST",
           url: `/index_${table}`,
-          body: { uid: newUid, value: newValue },
+          body: { uid: uid, value: value },
         })
-        this.indexes[table].push({ uid: newUid, value: newValue })
+        this.indexes[table].push({ uid: uid, value: value })
       }
+
       return rejected
     },
 
     async search() {
       if (!this.query || !this.selectedKey) return []
 
-      let { search } = await Findex()
+      let { FindexWithWasmBackend } = await Findex()
+      const findex = new FindexWithWasmBackend()
+      const entriesCallbacks = new Callbacks()
+      entriesCallbacks.fetch = async (uids) =>
+        await this.fetchCallback("entries", uids)
+      const chainsCallbacks = new Callbacks()
+      chainsCallbacks.fetch = async (uids) =>
+        await this.fetchCallback("chains", uids)
+
+      await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
+
       const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
       if (!this.masterKey) throw "No Findex key"
@@ -516,24 +539,12 @@ export default defineComponent({
       let locations: Array<Location> | null = null
       if (this.doOr) {
         locations = (
-          await search(
-            this.masterKey,
-            FINDEX_LABEL,
-            keywords,
-            async (uids) => await this.fetchCallback("entries", uids),
-            async (uids) => await this.fetchCallback("chains", uids),
-          )
+          await findex.search(this.masterKey, FINDEX_LABEL, keywords)
         ).locations()
       } else {
         for (const keyword of keywords) {
           const newLocations = (
-            await search(
-              this.masterKey,
-              FINDEX_LABEL,
-              [keyword],
-              async (uids) => await this.fetchCallback("entries", uids),
-              async (uids) => await this.fetchCallback("chains", uids),
-            )
+            await findex.search(this.masterKey, FINDEX_LABEL, [keyword])
           ).locations()
 
           if (locations === null) {

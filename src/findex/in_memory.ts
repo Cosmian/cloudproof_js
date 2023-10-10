@@ -1,12 +1,13 @@
-import { WasmCallbacks } from "../pkg/findex/cloudproof_findex"
-import { loadWasm, UidsAndValues } from "./init"
+import { logger } from "utils/logger"
+import { Callbacks } from "./callbacks"
+import { UidsAndValues } from "./types"
 
 /**
  * @returns the callbacks
  */
 export async function callbacksExamplesInMemory(): Promise<{
-  entryCallbacks: WasmCallbacks
-  chainCallbacks: WasmCallbacks
+  entryCallbacks: Callbacks
+  chainCallbacks: Callbacks
   dumpTables: () => void
   dropTables: () => Promise<void>
 }> {
@@ -34,14 +35,14 @@ export async function callbacksExamplesInMemory(): Promise<{
     const rejected = [] as UidsAndValues
 
     // Add old values in a map to efficiently search for matching UIDs.
-    let mapOfOldValues = new Map()
+    const mapOfOldValues = new Map()
     for (const { uid, value } of oldValues) {
       mapOfOldValues.set(uid.toString(), value)
     }
 
     for (const { uid, value: newValue } of newValues) {
-      let oldValue = mapOfOldValues.get(uid.toString())
-      let actualValue = entries.get(uid.toString())
+      const oldValue = mapOfOldValues.get(uid.toString())
+      const actualValue = entries.get(uid.toString())
 
       if (actualValue?.toString() === oldValue?.toString()) {
         entries.set(uid.toString(), newValue)
@@ -62,26 +63,23 @@ export async function callbacksExamplesInMemory(): Promise<{
     }
   }
 
-  const dumpTables = () => {
-    console.log("entry table length: ", entries.size)
-    console.log("chain table length: ", chains.size)
+  const dumpTables = (): void => {
+    logger.log(() => `entry table length: ${entries.size}`)
+    logger.log(() => `chain table length: ${chains.size}`)
   }
 
-  const dropTables = async () => {
+  const dropTables = async (): Promise<void> => {
     entries.clear()
     chains.clear()
   }
 
-  // Load WASM file before using it.
-  await loadWasm()
-
-  let entryCallbacks = new WasmCallbacks()
+  const entryCallbacks = new Callbacks()
   entryCallbacks.fetch = async (uids: Uint8Array[]) => {
     return await fetchCallback(entries, uids)
   }
   entryCallbacks.upsert = upsertEntries
 
-  let chainCallbacks = new WasmCallbacks()
+  const chainCallbacks = new Callbacks()
   chainCallbacks.fetch = async (uids: Uint8Array[]) => {
     return await fetchCallback(chains, uids)
   }

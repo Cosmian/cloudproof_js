@@ -33,6 +33,9 @@ export {
 } from "./cover_crypt/key_generation"
 export * from "./ecies/init"
 export * from "./findex/init"
+export * from "./findex/callbacks"
+export * from "./findex/server_token"
+export * from "./findex/types"
 export * from "./fpe/fpe"
 export { logger } from "./utils/logger"
 export {

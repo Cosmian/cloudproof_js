@@ -1,19 +1,21 @@
 import {
-  Findex,
   FindexKey,
   IndexedEntry,
   IndexedValue,
   Keyword,
   Label,
   Location,
-  callbacksExamplesInMemory,
+  Findex,
 } from ".."
 import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
 import { randomBytes } from "crypto"
 
+const { FindexWithWasmBackend, callbacksExamplesInMemory } = await Findex()
+
 const callbacks = await callbacksExamplesInMemory()
-const findex = await Findex.new_with_wasm_backend(
+const findex = new FindexWithWasmBackend()
+await findex.createWithWasmBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
