@@ -1,13 +1,6 @@
 import { Database, Statement } from "better-sqlite3"
-import {
-  FetchChains,
-  FetchEntries,
-  Index,
-  InsertChains,
-  UidsAndValues,
-  UidsAndValuesToUpsert,
-  UpsertEntries,
-} from "./init"
+import { WasmCallbacks } from "../pkg/findex/cloudproof_findex"
+import { Index, loadWasm, UidsAndValues } from "./init"
 
 /**
  * @param db the SQLite3 connection
@@ -15,22 +8,21 @@ import {
  * @param chainsTableName name of the chains table
  * @returns the callbacks
  */
-export function callbacksExamplesBetterSqlite3(
+export async function callbacksExamplesBetterSqlite3(
   db: Database,
   entriesTableName: string = "entries",
   chainsTableName: string = "chains",
-): {
-  fetchEntries: FetchEntries
-  fetchChains: FetchChains
-  upsertEntries: UpsertEntries
-  insertChains: InsertChains
-} {
+): Promise<{
+  entryCallbacks: WasmCallbacks
+  chainCallbacks: WasmCallbacks
+}> {
   db.prepare(
     `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
   db.prepare(
     `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
+
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
@@ -87,10 +79,19 @@ export function callbacksExamplesBetterSqlite3(
   }
 
   const upsertEntries = async (
-    uidsAndValues: UidsAndValuesToUpsert,
+    oldValues: UidsAndValues,
+    newValues: UidsAndValues,
   ): Promise<UidsAndValues> => {
     const rejected = []
-    for (const { uid, oldValue, newValue } of uidsAndValues) {
+
+    // Add old values in a map to efficiently search for matching UIDs.
+    let mapOfOldValues = new Map()
+    for (const { uid, value } of oldValues) {
+      mapOfOldValues.set(uid.toString(), value)
+    }
+
+    for (const { uid, value: newValue } of newValues) {
+      let oldValue = mapOfOldValues.get(uid.toString())
       const result = upsertIntoEntriesTableStmt.run(
         uid,
         newValue,
@@ -114,12 +115,18 @@ export function callbacksExamplesBetterSqlite3(
     }
   }
 
-  return {
-    fetchEntries: async (uids: Uint8Array[]) =>
-      await fetchCallback(entriesTableName, uids),
-    fetchChains: async (uids: Uint8Array[]) =>
-      await fetchCallback(chainsTableName, uids),
-    upsertEntries,
-    insertChains,
-  }
+  // Load WASM file before using it.
+  await loadWasm()
+
+  let entryCallbacks = new WasmCallbacks()
+  entryCallbacks.fetch = async (uids: Uint8Array[]) =>
+    await fetchCallback(entriesTableName, uids)
+  entryCallbacks.upsert = upsertEntries
+
+  let chainCallbacks = new WasmCallbacks()
+  chainCallbacks.fetch = async (uids: Uint8Array[]) =>
+    await fetchCallback(chainsTableName, uids)
+  chainCallbacks.insert = insertChains
+
+  return { entryCallbacks, chainCallbacks }
 }

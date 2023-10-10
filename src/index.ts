@@ -32,7 +32,6 @@ export {
   type CoverCryptKeyGeneration,
 } from "./cover_crypt/key_generation"
 export * from "./ecies/init"
-export * from "./findex/findex_cloud"
 export * from "./findex/init"
 export * from "./fpe/fpe"
 export { logger } from "./utils/logger"

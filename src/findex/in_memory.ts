@@ -1,92 +1,91 @@
-import { bytesEquals } from "../utils/utils"
-import {
-  FetchChains,
-  FetchEntries,
-  InsertChains,
-  UidsAndValues,
-  UidsAndValuesToUpsert,
-  UpsertEntries,
-} from "./init"
+import { WasmCallbacks } from "../pkg/findex/cloudproof_findex"
+import { loadWasm, UidsAndValues } from "./init"
 
 /**
  * @returns the callbacks
  */
-export function callbacksExamplesInMemory(): {
-  fetchEntries: FetchEntries
-  fetchChains: FetchChains
-  upsertEntries: UpsertEntries
-  insertChains: InsertChains
-} {
-  const entries: UidsAndValues = []
-  const chains: UidsAndValues = []
+export async function callbacksExamplesInMemory(): Promise<{
+  entryCallbacks: WasmCallbacks
+  chainCallbacks: WasmCallbacks
+  dumpTables: () => void
+  dropTables: () => Promise<void>
+}> {
+  const entries: Map<string, Uint8Array> = new Map()
+  const chains: Map<string, Uint8Array> = new Map()
 
   const fetchCallback = async (
-    table: UidsAndValues,
+    table: Map<string, Uint8Array>,
     uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
-      for (const { uid, value } of table) {
-        if (bytesEquals(uid, requestedUid)) {
-          results.push({ uid, value })
-          break
-        }
+      const requestedValue = table.get(requestedUid.toString())
+      if (requestedValue !== undefined) {
+        results.push({ uid: requestedUid, value: requestedValue })
       }
     }
     return results
   }
+
   const upsertEntries = async (
-    uidsAndValues: UidsAndValuesToUpsert,
+    oldValues: UidsAndValues,
+    newValues: UidsAndValues,
   ): Promise<UidsAndValues> => {
     const rejected = [] as UidsAndValues
-    uidsAndValuesLoop: for (const {
-      uid: newUid,
-      oldValue,
-      newValue,
-    } of uidsAndValues) {
-      for (const tableEntry of entries) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          if (bytesEquals(tableEntry.value, oldValue)) {
-            tableEntry.value = newValue
-          } else {
-            rejected.push(tableEntry)
-          }
-          continue uidsAndValuesLoop
-        }
-      }
 
-      // The uid doesn't exist yet.
-      if (oldValue !== null) {
+    // Add old values in a map to efficiently search for matching UIDs.
+    let mapOfOldValues = new Map()
+    for (const { uid, value } of oldValues) {
+      mapOfOldValues.set(uid.toString(), value)
+    }
+
+    for (const { uid, value: newValue } of newValues) {
+      let oldValue = mapOfOldValues.get(uid.toString())
+      let actualValue = entries.get(uid.toString())
+
+      if (actualValue?.toString() === oldValue?.toString()) {
+        entries.set(uid.toString(), newValue)
+      } else if (actualValue === undefined) {
         throw new Error(
           "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
         )
+      } else {
+        rejected.push({ uid, value: actualValue })
       }
-
-      entries.push({ uid: newUid, value: newValue })
     }
-
     return rejected
   }
+
   const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
     for (const { uid: newUid, value: newValue } of uidsAndValues) {
-      for (const tableEntry of chains) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          tableEntry.value = newValue
-          break
-        }
-      }
-
-      // The uid doesn't exist yet.
-      chains.push({ uid: newUid, value: newValue })
+      chains.set(newUid.toString(), newValue)
     }
   }
 
-  return {
-    fetchEntries: async (uids: Uint8Array[]) =>
-      await fetchCallback(entries, uids),
-    fetchChains: async (uids: Uint8Array[]) =>
-      await fetchCallback(chains, uids),
-    upsertEntries,
-    insertChains,
+  const dumpTables = () => {
+    console.log("entry table length: ", entries.size)
+    console.log("chain table length: ", chains.size)
   }
+
+  const dropTables = async () => {
+    entries.clear()
+    chains.clear()
+  }
+
+  // Load WASM file before using it.
+  await loadWasm()
+
+  let entryCallbacks = new WasmCallbacks()
+  entryCallbacks.fetch = async (uids: Uint8Array[]) => {
+    return await fetchCallback(entries, uids)
+  }
+  entryCallbacks.upsert = upsertEntries
+
+  let chainCallbacks = new WasmCallbacks()
+  chainCallbacks.fetch = async (uids: Uint8Array[]) => {
+    return await fetchCallback(chains, uids)
+  }
+  chainCallbacks.insert = insertChains
+
+  return { entryCallbacks, chainCallbacks, dumpTables, dropTables }
 }
