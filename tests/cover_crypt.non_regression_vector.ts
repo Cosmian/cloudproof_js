@@ -171,32 +171,29 @@ export class NonRegressionVector {
   }
 
   public static async generate(): Promise<NonRegressionVector> {
-    const policy = new Policy(
-      [
-        new PolicyAxis(
-          "Security Level",
-          [
-            { name: "Protected", isHybridized: false },
-            { name: "Low Secret", isHybridized: false },
-            { name: "Medium Secret", isHybridized: false },
-            { name: "High Secret", isHybridized: false },
-            { name: "Top Secret", isHybridized: false },
-          ],
-          true,
-        ),
-        new PolicyAxis(
-          "Department",
-          [
-            { name: "R&D", isHybridized: false },
-            { name: "HR", isHybridized: false },
-            { name: "MKG", isHybridized: false },
-            { name: "FIN", isHybridized: false },
-          ],
-          false,
-        ),
-      ],
-      100,
-    )
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Low Secret", isHybridized: false },
+          { name: "Medium Secret", isHybridized: false },
+          { name: "High Secret", isHybridized: false },
+          { name: "Top Secret", isHybridized: false },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "R&D", isHybridized: false },
+          { name: "HR", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "FIN", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
     const masterKeys = keyGenerator.generateMasterKeys(policy)
 
     // Generate user secret keys

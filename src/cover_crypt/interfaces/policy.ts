@@ -28,8 +28,8 @@ export class PolicyAxis {
 export class Policy {
   private _policyBytes: Uint8Array
 
-  constructor(axes: PolicyAxis[], nbCreations?: number) {
-    let policy = webassembly_policy(nbCreations ?? (2 ^ 32) - 1)
+  constructor(axes: PolicyAxis[]) {
+    let policy = webassembly_policy()
     for (const axis of axes) {
       policy = webassembly_add_axis(policy, axis.toString())
     }
@@ -45,7 +45,7 @@ export class Policy {
   }
 
   static fromBytes(policyBytes: Uint8Array): Policy {
-    const policy = new Policy([], 0)
+    const policy = new Policy([])
     policy._policyBytes = policyBytes
     return policy
   }
