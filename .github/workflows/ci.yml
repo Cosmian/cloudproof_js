@@ -16,7 +16,7 @@ jobs:
       subcommands: |
         python3 scripts/download_wasm.py
         npm install
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
 
   lint:
