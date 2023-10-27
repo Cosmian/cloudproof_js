@@ -41,10 +41,11 @@
   "dependencies": {
     "base64-js": "^1.5.1",
     "better-sqlite3": "^8.0.1",
+    "cloudproof_kms_js": "file:../cloudproof_kms_js/",
+    "dotenv": "^16.3.1",
     "jose": "^4.14.4",
     "process": "^0.11.10",
-    "stream-browserify": "^3.0.0",
-    "cloudproof_kms_js": "file:../cloudproof_kms_js/"
+    "stream-browserify": "^3.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",

@@ -13,6 +13,7 @@ import {
 
 import { CoverCrypt, hexEncode } from ".."
 
+import "dotenv/config"
 import { beforeAll, expect, test } from "vitest"
 import {
   NIST_P256_CERTIFICATE,

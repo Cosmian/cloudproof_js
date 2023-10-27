@@ -3,3 +3,4 @@ site/*.js
 dist/
 pgdata/
 package-lock.json
+.env
