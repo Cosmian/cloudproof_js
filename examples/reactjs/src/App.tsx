@@ -5,6 +5,7 @@ import {
   KmsClient,
   Label,
   Location,
+  PolicyKms,
   UidsAndValuesToUpsert,
   generateAliases,
   type UidsAndValues,
@@ -28,7 +29,7 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
 type NewUser = {
   first: string
   last: string
-  country: (typeof COUNTRIES)[0]
+  country: typeof COUNTRIES[0]
   email: string
   project: string
 }
@@ -215,6 +216,8 @@ function App() {
       100,
     )
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     if (kmsServerUrl) {
       const client = new KmsClient(kmsServerUrl)
       const upResponse = await client.up()
@@ -222,7 +225,7 @@ function App() {
         throw new Error("KMS server must be running")
       }
       const [privateMasterKeyUID, publicKeyUID] =
-        await client.createCoverCryptMasterKeyPair(policy)
+        await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
       let aliceUid = await client.createCoverCryptUserDecryptionKey(
         "country::France && department::Marketing",

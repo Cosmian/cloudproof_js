@@ -9,6 +9,7 @@ import {
   KmsClient,
   type UidsAndValuesToUpsert,
   generateAliases,
+  PolicyKms,
 } from "cloudproof_js"
 import { defineComponent } from "vue"
 import Key from "./Key.vue"
@@ -31,7 +32,7 @@ const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
 type NewUser = {
   first: string
   last: string
-  country: (typeof COUNTRIES)[0]
+  country: typeof COUNTRIES[0]
   email: string
   project: string
 }
@@ -186,10 +187,12 @@ export default defineComponent({
         100,
       )
 
+      const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
       if (this.kmsServerUrl) {
         const client = new KmsClient(this.kmsServerUrl)
         const [privateMasterKeyUID, publicKeyUID] =
-          await client.createCoverCryptMasterKeyPair(policy)
+          await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
         const aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",

@@ -1,4 +1,10 @@
-import { CoverCrypt, KmsClient, hexEncode, hexDecode } from "cloudproof_js"
+import {
+  AccessPolicyKms,
+  CoverCrypt,
+  KmsClient,
+  hexDecode,
+  hexEncode,
+} from "cloudproof_js"
 
 process.removeAllListeners("warning") // To remove experimental fetch warnings
 ;(async () => {
@@ -33,12 +39,13 @@ process.removeAllListeners("warning") // To remove experimental fetch warnings
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
       process.env.AUTH0_TOKEN_1,
     )
+    const userKeyAccessPolicyKms = new AccessPolicyKms(userKeyAccessPolicy)
 
     if (!userKeyUID) {
       const uniqueIdentifier = Math.random().toString(36).slice(2, 7)
       userKeyUID = await client.importCoverCryptUserDecryptionKey(
         uniqueIdentifier,
-        { bytes: userKeyBytes, policy: userKeyAccessPolicy },
+        { bytes: userKeyBytes, policy: userKeyAccessPolicyKms },
       )
     }
 

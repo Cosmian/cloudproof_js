@@ -1,5 +1,5 @@
 import { CoverCrypt, KmsClient, hexEncode } from "cloudproof_js"
-import { policy } from "./utils.mjs"
+import { bytesPolicy, policy } from "./utils.mjs"
 
 process.removeAllListeners("warning") // To remove experimental fetch warnings
 ;(async () => {
@@ -16,7 +16,7 @@ process.removeAllListeners("warning") // To remove experimental fetch warnings
       `http://${process.env.KMS_HOST || "localhost"}:9998`,
       process.env.AUTH0_TOKEN_1,
     )
-    const keys = await client.createCoverCryptMasterKeyPair(policy)
+    const keys = await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
     privateKeyUID = keys[0]
     publicKeyUID = keys[1]

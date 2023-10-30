@@ -16,6 +16,7 @@ import findex_wasm from "./pkg/findex/cloudproof_findex_bg.wasm"
 import { setFpeInit } from "./fpe/fpe"
 import fpe_wasm from "./pkg/fpe/cloudproof_fpe_bg.wasm"
 
+export * from "cloudproof_kms_js"
 export * from "./aesgcm/init"
 export * from "./anonymization/init"
 export { type CoverCryptHybridDecryption } from "./cover_crypt/decryption"
