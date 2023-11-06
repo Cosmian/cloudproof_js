@@ -1,4 +1,4 @@
-import { CoverCrypt } from "cloudproof_js"
+import { CoverCrypt, PolicyKms } from "cloudproof_js"
 
 /* Importing the functions from the CoverCrypt library. */
 const { Policy, PolicyAxis } = await CoverCrypt()
@@ -26,3 +26,5 @@ export const policy = new Policy([
     false,
   ),
 ])
+
+export const bytesPolicy = new PolicyKms(policy.toBytes())

@@ -1,5 +1,5 @@
-import { CoverCrypt, KmsClient, hexEncode, hexDecode } from "cloudproof_js"
-import { policy } from "./utils.mjs"
+import { CoverCrypt, KmsClient, hexDecode, hexEncode } from "cloudproof_js"
+import { bytesPolicy, policy } from "./utils.mjs"
 
 process.removeAllListeners("warning") // To remove experimental fetch warnings
 ;(async () => {
@@ -49,7 +49,7 @@ process.removeAllListeners("warning") // To remove experimental fetch warnings
       const uniqueIdentifier = Math.random().toString(36).slice(2, 7)
       publicMasterKeyUID = await client.importCoverCryptPublicMasterKey(
         uniqueIdentifier,
-        { bytes: publicMasterKeyBytes, policy },
+        { bytes: publicMasterKeyBytes, policy: bytesPolicy },
       )
     }
 

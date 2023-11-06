@@ -1,13 +1,12 @@
 import {
-  webassembly_encrypt_symmetric_block,
   webassembly_encrypt_hybrid_header,
+  webassembly_encrypt_symmetric_block,
   webassembly_hybrid_encrypt,
 } from "../pkg/cover_crypt/cloudproof_cover_crypt"
-import { Policy } from "./interfaces/policy"
-import { PublicKey } from "../kms/structs/objects"
 import { logger } from "../utils/logger"
 import { hexEncode } from "../utils/utils"
 import { EncryptedHeader } from "./interfaces/encrypted_header"
+import { Policy } from "./interfaces/policy"
 
 /**
  * This class exposes the CoverCrypt primitives.
@@ -17,14 +16,10 @@ export class CoverCryptHybridEncryption {
   private readonly _publicKey: Uint8Array
   private readonly _policy: Policy
 
-  constructor(policy: Policy, publicKey: PublicKey | Uint8Array) {
+  constructor(policy: Policy, publicKey: Uint8Array) {
     this._policy = policy
 
-    if (publicKey instanceof PublicKey) {
-      this._publicKey = publicKey.bytes()
-    } else {
-      this._publicKey = publicKey
-    }
+    this._publicKey = publicKey
   }
 
   public get policy(): Policy {

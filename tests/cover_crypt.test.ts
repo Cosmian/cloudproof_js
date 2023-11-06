@@ -1,8 +1,9 @@
 import * as fs from "fs"
 import { expect, test } from "vitest"
 
+import { KmsClient, PolicyKms } from "cloudproof_kms_js"
+import { CoverCrypt } from ".."
 import { NonRegressionVector } from "./cover_crypt.non_regression_vector"
-import { CoverCrypt, KmsClient } from ".."
 
 /* Importing the functions from the CoverCrypt library. */
 const {
@@ -176,16 +177,17 @@ test("Demo using KMS", async () => {
   // Generating the master keys
   //
   const client = new KmsClient(
-    `http://${process.env.KMS_HOST ?? "localhost"}:9998`,
-    process.env.AUTH0_TOKEN_1,
+    `http://${process.env.KMS_HOST || "localhost"}:9998`,
   )
+
+  const policyKms = new PolicyKms(policy.toBytes())
 
   if (!(await client.up())) {
     console.error("No KMIP server. Skipping test")
     return
   }
 
-  const masterKeys = await client.createCoverCryptMasterKeyPair(policy)
+  const masterKeys = await client.createCoverCryptMasterKeyPair(policyKms)
   const masterSecretKeyUID = masterKeys[0]
   const masterPublicKeyUID = masterKeys[1]
 
@@ -357,14 +359,14 @@ test("Demo using KMS", async () => {
 
   // protectedMkgCiphertext
   const protectedMkgCleartext3 = new CoverCryptHybridDecryption(
-    oldConfidentialMkgUserKey,
+    oldConfidentialMkgUserKey.bytes(),
   ).decrypt(protectedMkgCiphertext)
   expect(protectedMkgData).toEqual(protectedMkgCleartext3.plaintext)
 
   // newConfidentialMkgCiphertext
   try {
     // will throw
-    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey).decrypt(
+    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey.bytes()).decrypt(
       newConfidentialMkgCiphertext,
     )
   } catch (error) {

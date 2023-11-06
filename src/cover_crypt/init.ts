@@ -1,7 +1,7 @@
 import init from "../pkg/cover_crypt/cloudproof_cover_crypt"
-import { Policy, PolicyAxis } from "./interfaces/policy"
 import { CoverCryptHybridDecryption, decrypt } from "./decryption"
 import { CoverCryptHybridEncryption, encrypt } from "./encryption"
+import { Policy, PolicyAxis } from "./interfaces/policy"
 import {
   CoverCryptKeyGeneration,
   generateMasterKeys,

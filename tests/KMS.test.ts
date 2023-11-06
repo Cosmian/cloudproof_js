@@ -1,30 +1,19 @@
 import {
-  AccessPolicy,
+  AccessPolicyKms,
   Attributes,
-  CoverCrypt,
-  Create,
-  CryptographicAlgorithm,
-  CryptographicUsageMask,
-  KMIPOperations,
-  KeyFormatType,
-  KeyValue,
   KmsClient,
   Link,
   LinkType,
-  RecommendedCurve,
-  SymmetricKey,
+  PolicyKms,
   SymmetricKeyAlgorithm,
   TTLV,
-  TransparentECPublicKey,
-  TransparentSymmetricKey,
   VendorAttributes,
-  deserialize,
-  fromTTLV,
-  hexEncode,
-  serialize,
   toTTLV,
-} from ".."
+} from "cloudproof_kms_js"
 
+import { CoverCrypt, hexEncode } from ".."
+
+import "dotenv/config"
 import { beforeAll, expect, test } from "vitest"
 import {
   NIST_P256_CERTIFICATE,
@@ -41,96 +30,10 @@ beforeAll(async () => {
   )
 })
 
-test("serialize/deserialize Create", async () => {
-  await CoverCrypt()
-
-  const attributes = new Attributes()
-  attributes.objectType = "SymmetricKey"
-  attributes.link = [new Link(LinkType.ParentLink, "SK")]
-  attributes.cryptographicAlgorithm = CryptographicAlgorithm.AES
-  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-
-  const create = new Create(attributes.objectType, attributes)
-
-  const ttlv = toTTLV(create)
-  const create2 = fromTTLV<Create>(ttlv)
-
-  const ttlv2 = toTTLV(create2)
-
-  expect(ttlv2).toEqual(ttlv)
-})
-
-test("deserialize", () => {
-  const create: Create = deserialize<Create>(CREATE_SYMMETRIC_KEY)
-  expect(create.objectType).toEqual("SymmetricKey")
-  expect(create.protectionStorageMasks).toBeNull()
-  expect(create.attributes.cryptographicAlgorithm).toEqual(
-    CryptographicAlgorithm.AES,
-  )
-  expect(create.attributes.link).toBeDefined()
-  // linter guard
-  if (typeof create.attributes.link !== "undefined") {
-    expect(create.attributes.link.length).toEqual(1)
-    const link: Link = create.attributes.link[0]
-    expect(link.linkType).toEqual(LinkType.ParentLink)
-    expect(link.linkedObjectIdentifier).toEqual("SK")
-  }
-})
-
-// generated from Rust
-const CREATE_SYMMETRIC_KEY = `{
-  "tag": "Create",
-  "type": "Structure",
-  "value": [
-    {
-      "tag": "ObjectType",
-      "type": "Enumeration",
-      "value": "SymmetricKey"
-    },
-    {
-      "tag": "Attributes",
-      "type": "Structure",
-      "value": [
-        {
-          "tag": "CryptographicAlgorithm",
-          "type": "Enumeration",
-          "value": "AES"
-        },
-        {
-          "tag": "Link",
-          "type": "Structure",
-          "value": [
-            {
-              "tag": "Link",
-              "type": "Structure",
-              "value": [
-                {
-                  "tag": "LinkType",
-                  "type": "Enumeration",
-                  "value": "ParentLink"
-                },
-                {
-                  "tag": "LinkedObjectIdentifier",
-                  "type": "TextString",
-                  "value": "SK"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "tag": "ObjectType",
-          "type": "Enumeration",
-          "value": "SymmetricKey"
-        }
-      ]
-    }
-  ]
-}`
-
 test(
-  "KMS Import Master Keys",
+  "KMS create, retrieve and import Covercrypt master keys",
   async () => {
+    // Defining policy
     const { Policy, PolicyAxis } = await CoverCrypt()
 
     const policy = new Policy([
@@ -145,33 +48,59 @@ test(
       ),
     ])
 
-    const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
-      await client.createCoverCryptMasterKeyPair(policy)
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
+    // Create master key pair and retrieve them
+    const [secretKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
+      await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
     const publicKey = await client.retrieveCoverCryptPublicMasterKey(
       publicKeyUniqueIdentifier,
     )
-    const privateKey = await client.retrieveCoverCryptSecretMasterKey(
-      privateKeyUniqueIdentifier,
+    const secretKey = await client.retrieveCoverCryptSecretMasterKey(
+      secretKeyUniqueIdentifier,
     )
 
+    // Import Covercrypt public and secret keys
     const importedPublicKeyUniqueIdentifier =
       await client.importCoverCryptPublicMasterKey(
         `${publicKeyUniqueIdentifier}-imported`,
         publicKey,
       )
-    const importedPrivateKeyUniqueIdentifier =
+    const importedSecretKeyUniqueIdentifier =
       await client.importCoverCryptSecretMasterKey(
-        `${privateKeyUniqueIdentifier}-imported`,
-        privateKey,
+        `${secretKeyUniqueIdentifier}-imported`,
+        secretKey,
       )
 
-    await client.retrieveCoverCryptPublicMasterKey(
+    const importedPublicKey = await client.retrieveCoverCryptPublicMasterKey(
       importedPublicKeyUniqueIdentifier,
     )
-    await client.retrieveCoverCryptSecretMasterKey(
-      importedPrivateKeyUniqueIdentifier,
+    const importedSecretKey = await client.retrieveCoverCryptSecretMasterKey(
+      importedSecretKeyUniqueIdentifier,
     )
+    expect(importedPublicKey.bytes()).toEqual(publicKey.bytes())
+    expect(importedSecretKey.bytes()).toEqual(secretKey.bytes())
+
+    // Revoke Covercrypt public key
+    await client.revokeCoverCryptPublicMasterKey(
+      importedPublicKeyUniqueIdentifier,
+      "revoke",
+    )
+    try {
+      await client.retrieveCoverCryptPublicMasterKey(
+        importedPublicKeyUniqueIdentifier,
+      )
+    } catch (error) {
+      expect(error).toMatch(/(Item not found)/i)
+    }
+    try {
+      await client.retrieveCoverCryptSecretMasterKey(
+        importedSecretKeyUniqueIdentifier,
+      )
+    } catch (error) {
+      expect(error).toMatch(/(Item not found)/i)
+    }
   },
   {
     timeout: 30 * 1000,
@@ -179,70 +108,7 @@ test(
 )
 
 test(
-  "KMS With JWE encryption",
-  async () => {
-    const { Policy, PolicyAxis } = await CoverCrypt()
-
-    client.setEncryption({
-      kty: "OKP",
-      use: "enc",
-      crv: "X25519",
-      kid: "DX3GC+Fx3etxfRJValQNbqaB0gs=",
-      x: "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY",
-      alg: "ECDH-ES",
-    })
-
-    const policy = new Policy([
-      new PolicyAxis(
-        "Department",
-        [
-          { name: "FIN", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "HR", isHybridized: false },
-        ],
-        false,
-      ),
-    ])
-
-    await client.createCoverCryptMasterKeyPair(policy)
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
-
-test(
-  "KMS Locate",
-  async () => {
-    const TAG = (Math.random() * 100000000).toString()
-    const uniqueIdentifier = await client.createSymmetricKey(
-      SymmetricKeyAlgorithm.AES,
-      256,
-      undefined,
-      [TAG],
-    )
-    const uniqueIdentifier2 = await client.createSymmetricKey(
-      SymmetricKeyAlgorithm.AES,
-      256,
-      undefined,
-      [TAG],
-    )
-
-    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
-    expect(uniqueIdentifiers.length).toEqual(2)
-    expect(uniqueIdentifiers).toContain(uniqueIdentifier)
-    expect(uniqueIdentifiers).toContain(uniqueIdentifier2)
-
-    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
-    expect(notExist.length).toEqual(0)
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
-
-test(
-  "KMS Locate CoverCrypt IUD",
+  "KMS create, import, and locate Covercrypt user decryption key",
   async () => {
     const TAG = (Math.random() * 100000000).toString()
 
@@ -269,53 +135,10 @@ test(
       ),
     ])
 
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
-      TAG,
-    ])
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
 
-    const uniqueIdentifiers = await client.getUniqueIdentifiersByTags([TAG])
-    expect(uniqueIdentifiers.length).toEqual(2)
-    expect(uniqueIdentifiers).toContain(mskID)
-    expect(uniqueIdentifiers).toContain(mpkID)
-
-    const notExist = await client.getUniqueIdentifiersByTags(["TAG_NOT_EXIST"])
-    expect(notExist.length).toEqual(0)
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
-
-test(
-  "KMS Locate Covercrypt user decryption key",
-  async () => {
-    const TAG = (Math.random() * 100000000).toString()
-
-    const { Policy, PolicyAxis } = await CoverCrypt()
-
-    const policy = new Policy([
-      new PolicyAxis(
-        "Security Level",
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true,
-      ),
-      new PolicyAxis(
-        "Department",
-        [
-          { name: "FIN", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "HR", isHybridized: false },
-        ],
-        false,
-      ),
-    ])
-
-    // create user decryption Key
-    const [mskID] = await client.createCoverCryptMasterKeyPair(policy)
+    // Create user decryption Key
+    const [mskID] = await client.createCoverCryptMasterKeyPair(bytesPolicy)
     const uniqueIdentifier = await client.createCoverCryptUserDecryptionKey(
       "(Department::MKG || Department::FIN) && Security Level::Confidential",
       mskID,
@@ -326,8 +149,20 @@ test(
     const uniqueIdentifiersByTag = await client.getUniqueIdentifiersByTags([
       TAG,
     ])
-
     expect(uniqueIdentifiersByTag).toContain(uniqueIdentifier)
+
+    // Import user decryption key
+    const udk = await client.retrieveCoverCryptUserDecryptionKey(
+      uniqueIdentifier,
+    )
+    await client.importCoverCryptUserDecryptionKey(
+      `${uniqueIdentifier}-imported`,
+      udk,
+    )
+    const udk_imported = await client.retrieveCoverCryptUserDecryptionKey(
+      `${uniqueIdentifier}-imported`,
+    )
+    expect(udk.bytes()).toEqual(udk_imported.bytes())
   },
   {
     timeout: 30 * 1000,
@@ -362,10 +197,13 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     // create Covercrypt master key pair (1 & 2)
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy, [
-      TAG,
-    ])
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(
+      bytesPolicy,
+      [TAG],
+    )
     // create Covercrypt user decryption key (3)
     const decryptionKeyID = await client.createCoverCryptUserDecryptionKey(
       "(Department::MKG || Department::FIN) && Security Level::Confidential",
@@ -394,64 +232,7 @@ test(
   },
 )
 
-test(
-  "KMS Symmetric Key",
-  async () => {
-    await CoverCrypt()
-
-    // create
-    const uniqueIdentifier = await client.createSymmetricKey(
-      SymmetricKeyAlgorithm.AES,
-      256,
-    )
-    expect(uniqueIdentifier).toBeTypeOf("string")
-
-    // recover
-    const key: SymmetricKey = await client.retrieveSymmetricKey(
-      uniqueIdentifier,
-    )
-    expect(key.keyBlock.cryptographicAlgorithm).toEqual(
-      CryptographicAlgorithm.AES,
-    )
-    expect(key.keyBlock.cryptographicLength).toEqual(256)
-    expect(key.keyBlock.keyFormatType).toEqual(
-      KeyFormatType.TransparentSymmetricKey,
-    )
-    expect(key.keyBlock.keyValue).not.toBeNull()
-    expect(key.keyBlock.keyValue).toBeInstanceOf(KeyValue)
-
-    const keyValue = key?.keyBlock?.keyValue as KeyValue
-    expect(keyValue.keyMaterial).toBeInstanceOf(TransparentSymmetricKey)
-
-    const sk = keyValue.keyMaterial as TransparentSymmetricKey
-    expect(sk.key.length).toEqual(32)
-
-    // import
-    const uid = await client.importSymmetricKey(
-      uniqueIdentifier + "-1",
-      key.bytes(),
-      false,
-    )
-    expect(uid).toEqual(uniqueIdentifier + "-1")
-
-    // get
-    const key_ = await client.retrieveSymmetricKey(uid)
-    expect(key_.bytes()).toEqual(key.bytes())
-
-    // revoke
-    await client.revokeSymmetricKey(uniqueIdentifier, "revoked")
-    await client.revokeSymmetricKey(uid, "revoked")
-
-    // destroy
-    await client.destroySymmetricKey(uid)
-    await client.destroySymmetricKey(uniqueIdentifier)
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
-
-test("Policy", async () => {
+test("KMS CoverCrypt Policy", async () => {
   const { Policy, PolicyAxis } = await CoverCrypt()
 
   const policy = new Policy(
@@ -477,8 +258,10 @@ test("Policy", async () => {
     ],
     20,
   )
+  const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
   // TTLV Test
-  const ttlv = toTTLV(policy.toVendorAttribute())
+  const ttlv = toTTLV(bytesPolicy.toVendorAttribute())
   const children = ttlv.value as TTLV[]
   expect(children[0].value).toEqual(VendorAttributes.VENDOR_ID_COSMIAN)
   expect(children[1].value).toEqual(
@@ -486,58 +269,28 @@ test("Policy", async () => {
   )
   expect(children[2].value).toEqual(hexEncode(policy.toBytes()))
   // Vendor Attributes test
-  const va = policy.toVendorAttribute()
+  const va = bytesPolicy.toVendorAttribute()
   const att = new Attributes("PrivateKey")
   att.vendorAttributes = [va]
-  const policy_ = Policy.fromAttributes(att)
+  const policy_ = PolicyKms.fromAttributes(att)
   expect(policy_).toEqual(policy)
-})
-
-test("Big Ints", async () => {
-  const publicKey = new TransparentECPublicKey(
-    RecommendedCurve.ANSIX9C2PNB163V1,
-    99999999999999999999999998888888888888888n,
-  )
-
-  const json = JSON.stringify(toTTLV(publicKey))
-  expect(json).toEqual(
-    '{"tag":"TransparentECPublicKey","type":"Structure","value":[{"tag":"RecommendedCurve","type":"Enumeration","value":"ANSIX9C2PNB163V1"},{"tag":"Q","type":"BigInteger","value":"0x125DFA371A19E6F7CB54391D77348EA8E38"}]}',
-  )
-
-  const publicKey2 = deserialize<TransparentECPublicKey>(json)
-  expect(publicKey2.q).toBe(99999999999999999999999998888888888888888n)
-})
-
-test("Enums", async () => {
-  const attributes = new Attributes("SymmetricKey")
-  attributes.keyFormatType = KeyFormatType.TransparentSymmetricKey
-  attributes.cryptographicUsageMask =
-    CryptographicUsageMask.Encrypt | CryptographicUsageMask.Decrypt
-
-  const json = serialize(attributes)
-  const attributes2 = deserialize<Attributes>(json)
-
-  expect(attributes2.keyFormatType).toEqual(attributes.keyFormatType)
-  expect(attributes2.cryptographicUsageMask).toEqual(
-    attributes.cryptographicUsageMask,
-  )
 })
 
 test("KMS CoverCrypt Access Policy", async () => {
   await CoverCrypt()
 
-  const apb = new AccessPolicy(
+  const apb = new AccessPolicyKms(
     "(Department::MKG || Department::FIN) && Security Level::Confidential",
   )
   // vendor attributes
   const va = await apb.toVendorAttribute()
   const attributes = new Attributes("PrivateKey")
   attributes.vendorAttributes = [va]
-  expect(AccessPolicy.fromAttributes(attributes)).toEqual(apb)
+  expect(AccessPolicyKms.fromAttributes(attributes)).toEqual(apb)
 })
 
 test(
-  "KMS CoverCrypt keys",
+  "KMS CoverCrypt encryption and decryption",
   async () => {
     const { CoverCryptHybridDecryption, Policy, PolicyAxis } =
       await CoverCrypt()
@@ -563,12 +316,16 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     // create master keys
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(
+      bytesPolicy,
+    )
 
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
-    const policyMsk = Policy.fromKey(msk)
+    const policyMsk = PolicyKms.fromKey(msk)
 
     // Policies are compared under JSON format but comparison will become a raw bytes comparison since JSON format will be removed
     const policyJson = JSON.parse(new TextDecoder().decode(policy.toBytes()))
@@ -577,7 +334,7 @@ test(
     )
     expect(policyJson).toEqual(policyMskJson)
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
-    const policyMpk = Policy.fromKey(mpk)
+    const policyMpk = PolicyKms.fromKey(mpk)
     const policyMpkJson = JSON.parse(
       new TextDecoder().decode(policyMpk.toBytes()),
     )
@@ -588,7 +345,7 @@ test(
       "(Department::MKG || Department::FIN) && Security Level::Confidential"
     const udkID = await client.createCoverCryptUserDecryptionKey(apb, mskID)
     const udk = await client.retrieveCoverCryptUserDecryptionKey(udkID)
-    expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
+    expect(AccessPolicyKms.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
     // encryption
     const plaintext = new TextEncoder().encode("abcdefgh")
@@ -629,14 +386,14 @@ test(
     // decryption
     {
       // Previous local key should not work anymore.
-      const decrypter2 = new CoverCryptHybridDecryption(udk)
+      const decrypter2 = new CoverCryptHybridDecryption(udk.bytes())
       expect(() => decrypter2.decrypt(ciphertext2)).toThrow()
     }
 
     // decrypt with new fetches KMS key
     {
       const udk2 = await client.retrieveCoverCryptUserDecryptionKey(udkID)
-      const decrypter2 = new CoverCryptHybridDecryption(udk2)
+      const decrypter2 = new CoverCryptHybridDecryption(udk2.bytes())
       const { plaintext: cleartext } = decrypter2.decrypt(ciphertext2)
       expect(cleartext).toEqual(plaintext)
     }
@@ -681,12 +438,16 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     // create master keys
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(
+      bytesPolicy,
+    )
 
     // recover keys and policies
     const msk = await client.retrieveCoverCryptSecretMasterKey(mskID)
-    const policyMsk = Policy.fromKey(msk)
+    const policyMsk = PolicyKms.fromKey(msk)
 
     // Policies are compared under JSON format but comparison will become a raw bytes comparison since JSON format will be removed
     const policyJson = JSON.parse(new TextDecoder().decode(policy.toBytes()))
@@ -695,7 +456,7 @@ test(
     )
     expect(policyJson).toEqual(policyMskJson)
     const mpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
-    const policyMpk = Policy.fromKey(mpk)
+    const policyMpk = PolicyKms.fromKey(mpk)
     const policyMpkJson = JSON.parse(
       new TextDecoder().decode(policyMpk.toBytes()),
     )
@@ -706,7 +467,7 @@ test(
       "(Department::MKG || Department::FIN) && Security Level::Confidential"
     const udkID = await client.createCoverCryptUserDecryptionKey(apb, mskID)
     const udk = await client.retrieveCoverCryptUserDecryptionKey(udkID)
-    expect(AccessPolicy.fromKey(udk).booleanAccessPolicy).toEqual(apb)
+    expect(AccessPolicyKms.fromKey(udk).booleanAccessPolicy).toEqual(apb)
 
     // encryption
     const plaintext = []
@@ -749,8 +510,12 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     // create master keys
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(
+      bytesPolicy,
+    )
     const ciphertext = await client.coverCryptEncrypt(
       mpkID,
       "Security::TopSecret",
@@ -831,12 +596,16 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     // create master keys
-    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(policy)
+    const [mskID, mpkID] = await client.createCoverCryptMasterKeyPair(
+      bytesPolicy,
+    )
     const oldPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const oldLocalEncryption = new CoverCryptHybridEncryption(
       policy,
-      oldPublicKey,
+      oldPublicKey.bytes(),
     )
 
     const oldPlaintext = Uint8Array.from([1, 2, 3])
@@ -858,7 +627,9 @@ test(
     const oldUserKey = await client.retrieveCoverCryptUserDecryptionKey(
       userKeyID,
     )
-    const oldLocalDecryption = new CoverCryptHybridDecryption(oldUserKey)
+    const oldLocalDecryption = new CoverCryptHybridDecryption(
+      oldUserKey.bytes(),
+    )
 
     expect(
       (await client.coverCryptDecrypt(userKeyID, oldKmsCiphertext)).plaintext,
@@ -874,13 +645,14 @@ test(
       oldPlaintext,
     )
 
-    const newPolicy = await client.rotateCoverCryptAttributes(mskID, [
+    const newPolicyBytes = await client.rotateCoverCryptAttributes(mskID, [
       "Security::Simple",
     ])
+    const newPolicy = Policy.fromBytes(newPolicyBytes.toBytes())
     const newPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const newLocalEncryption = new CoverCryptHybridEncryption(
       newPolicy,
-      newPublicKey,
+      newPublicKey.bytes(),
     )
     expect(newPublicKey.bytes()).not.toEqual(oldPublicKey.bytes())
 
@@ -898,7 +670,9 @@ test(
     const newUserKey = await client.retrieveCoverCryptUserDecryptionKey(
       userKeyID,
     )
-    const newLocalDecryption = new CoverCryptHybridDecryption(newUserKey)
+    const newLocalDecryption = new CoverCryptHybridDecryption(
+      newUserKey.bytes(),
+    )
 
     expect(
       (await client.coverCryptDecrypt(userKeyID, oldKmsCiphertext)).plaintext,
@@ -936,107 +710,6 @@ test(
     expect(() => oldLocalDecryption.decrypt(newLocalCiphertext)).toThrow()
     expect(newLocalDecryption.decrypt(newLocalCiphertext).plaintext).toEqual(
       newPlaintext,
-    )
-  },
-  {
-    timeout: 10 * 1000,
-  },
-)
-
-test(
-  "KMS Export wrapped key and Import unwrapping key",
-  async () => {
-    const { Policy, PolicyAxis } = await CoverCrypt()
-
-    const importedCertificateUniqueIdentifier = await client.importPem(
-      "my_cert_id",
-      new TextEncoder().encode(NIST_P256_CERTIFICATE),
-      ["certificate", "x509"],
-      true,
-    )
-
-    await client.importPem(
-      "my_private_key_id",
-      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
-      ["private key", "x509"],
-      true,
-    )
-
-    const policy = new Policy([
-      new PolicyAxis(
-        "Security Level",
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true,
-      ),
-      new PolicyAxis(
-        "Department",
-        [
-          { name: "FIN", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "HR", isHybridized: false },
-        ],
-        false,
-      ),
-    ])
-
-    const [privateKeyUniqueIdentifier] =
-      await client.createCoverCryptMasterKeyPair(policy)
-
-    const decryptionKeyUniqueIdentifier =
-      await client.createCoverCryptUserDecryptionKey(
-        "(Department::MKG || Department::FIN) && Security Level::Confidential",
-        privateKeyUniqueIdentifier,
-      )
-
-    const wrappedUserDecryptionKey = await client.getWrappedKey(
-      decryptionKeyUniqueIdentifier,
-      importedCertificateUniqueIdentifier,
-    )
-
-    const unwrappedKeyIdentifier = await client.importKey(
-      "unwrappedUserDecryptionKey",
-      wrappedUserDecryptionKey,
-      true,
-      null,
-      true,
-    )
-
-    const initialKey = await client.getObject(decryptionKeyUniqueIdentifier)
-    const unwrappedKey = await client.getObject(unwrappedKeyIdentifier)
-
-    if (
-      initialKey.type === "Certificate" ||
-      initialKey.type === "CertificateRequest" ||
-      initialKey.type === "OpaqueObject"
-    ) {
-      throw new Error(`The KmsObject ${initialKey.type} cannot be unwrapped.`)
-    }
-    if (
-      !(initialKey.value.keyBlock.keyValue instanceof KeyValue) ||
-      initialKey.value.keyBlock.keyValue.attributes == null
-    ) {
-      throw new Error(`KmsObject is missing the attributes property.`)
-    }
-    if (
-      unwrappedKey.type === "Certificate" ||
-      unwrappedKey.type === "CertificateRequest" ||
-      unwrappedKey.type === "OpaqueObject"
-    ) {
-      throw new Error(`The KmsObject ${initialKey.type} cannot be unwrapped.`)
-    }
-    if (
-      !(unwrappedKey.value.keyBlock.keyValue instanceof KeyValue) ||
-      unwrappedKey.value.keyBlock.keyValue.attributes == null
-    ) {
-      throw new Error(`KmsObject is missing the attributes property.`)
-    }
-
-    expect(initialKey.value.keyBlock.keyValue.keyMaterial).toEqual(
-      unwrappedKey.value.keyBlock.keyValue.keyMaterial,
     )
   },
   {
@@ -1084,8 +757,10 @@ test(
       ),
     ])
 
+    const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
+
     const [privateKeyUniqueIdentifier, publicKeyUniqueIdentifier] =
-      await client.createCoverCryptMasterKeyPair(policy)
+      await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
     const decryptionKeyUniqueIdentifier =
       await client.createCoverCryptUserDecryptionKey(
@@ -1134,108 +809,5 @@ test(
   },
   {
     timeout: 30 * 1000,
-  },
-)
-
-test(
-  "Grant and revoke Access",
-  async () => {
-    const kmsToken2 = process.env.AUTH0_TOKEN_2
-
-    // Create a simple KmsObject
-    const keyId = await client.createSymmetricKey()
-    const key = await client.getObject(keyId)
-    const client2 = new KmsClient(
-      `http://${process.env.KMS_HOST ?? "localhost"}:9998`,
-      kmsToken2,
-    )
-
-    // Check that another user cannot get this object
-    try {
-      await client2.getObject(keyId)
-    } catch (error) {
-      expect(error).toMatch(/(Item not found)/i)
-    }
-
-    // Grant access to another user, to get this object
-    await client.grantAccess(keyId, "ci2@cosmian.com", KMIPOperations.get)
-    const fetchedKey = await client2.getObject(keyId)
-    expect(fetchedKey).toEqual(key)
-
-    // List associated access to this object
-    const access = await client.listAccess(keyId)
-    expect(await access.text()).toEqual(
-      '[{"user_id":"ci2@cosmian.com","operations":["get"]}]',
-    )
-
-    // Revoke access to this user
-    await client.revokeAccess(keyId, "ci2@cosmian.com", KMIPOperations.get)
-    try {
-      await client2.getObject(keyId)
-    } catch (error) {
-      expect(error).toMatch(/(Item not found)/i)
-    }
-  },
-  {
-    timeout: 30 * 1000,
-  },
-)
-
-test(
-  "Overwrite KeyWrappingData when importing key",
-  async () => {
-    const keyUid = await client.createSymmetricKey()
-
-    const importedCertificateUniqueIdentifier = await client.importPem(
-      "my_cert_id",
-      new TextEncoder().encode(NIST_P256_CERTIFICATE),
-      ["certificate", "x509"],
-      true,
-    )
-
-    await client.importPem(
-      "my_private_key_id",
-      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
-      ["private key", "x509"],
-      true,
-    )
-
-    const wrappedKey = await client.getWrappedKey(
-      keyUid,
-      importedCertificateUniqueIdentifier,
-    )
-
-    // Key can be unwrapped directly specifying the private key id (matching the certificate)
-    let unwrappedKeyUid = await client.importKey(
-      "unwrappedSymmetricKey",
-      wrappedKey,
-      true,
-      "my_private_key_id",
-      true,
-    )
-
-    const unwrappedKey = await client.getObject(unwrappedKeyUid)
-
-    if (
-      unwrappedKey.type === "Certificate" ||
-      unwrappedKey.type === "CertificateRequest" ||
-      unwrappedKey.type === "OpaqueObject"
-    ) {
-      throw new Error(`The KmsObject ${unwrappedKey.type} cannot be unwrapped.`)
-    }
-
-    expect(unwrappedKey.value.keyBlock.keyWrappingData).toEqual(null)
-
-    // Key can also be unwrapped indirectly using the certificate id. In that case, KMS will locate the private key if already imported
-    unwrappedKeyUid = await client.importKey(
-      "unwrappedSymmetricKey",
-      wrappedKey,
-      true,
-      "my_cert_id",
-      true,
-    )
-  },
-  {
-    timeout: 10 * 1000,
   },
 )
