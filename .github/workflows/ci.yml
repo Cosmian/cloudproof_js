@@ -34,7 +34,7 @@ jobs:
     with:
       subcommands: |
         npm test
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       kms-jwe-key:
         '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
         "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
@@ -48,12 +48,12 @@ jobs:
     needs: test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_java_in_docker.yml@develop
     with:
-      branch: v6.0.0
+      branch: feat/edit_policy
       target: x86_64-unknown-linux-gnu
       extension: so
       destination: linux-x86-64
       os: ubuntu-20.04
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
       copy_fresh_build: false
       copy_regression_files: |
@@ -65,9 +65,9 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: develop
+      branch: feat/edit_policy
       target: x86_64-unknown-linux-gnu
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       copy_fresh_build: false
       copy_regression_files: |
         cp ./cloudproof_js/non_regression_vector.json tests/data/cover_crypt/non_regression/js_non_regression_vector.json
@@ -78,7 +78,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_flutter.yml@develop
     with:
-      branch: v7.0.0
+      branch: feat/edit_policy
       target: x86_64-unknown-linux-gnu
       extension: so
       copy_fresh_build: false
@@ -99,7 +99,7 @@ jobs:
         sleep 5
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
 
   example_reactjs:
@@ -115,7 +115,7 @@ jobs:
         sleep 5
         cd ../test
         node chrome.mjs http://localhost:8090 http://kms:9998
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
 
   example_browser:
@@ -129,7 +129,7 @@ jobs:
         python3 -m http.server &
         sleep 3
         node test.mjs
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
 
   example_webpack:
@@ -151,7 +151,7 @@ jobs:
         cd examples/nodejs
         npm install
         node test.mjs 10
-      kms-version: 4.8.0
+      kms-version: feat-edit_policy
       findex-cloud-version: 0.3.1
     secrets: inherit
 
