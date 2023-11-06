@@ -235,29 +235,26 @@ test(
 test("KMS CoverCrypt Policy", async () => {
   const { Policy, PolicyAxis } = await CoverCrypt()
 
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level",
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true,
-      ),
-      new PolicyAxis(
-        "Department",
-        [
-          { name: "FIN", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "HR", isHybridized: false },
-        ],
-        false,
-      ),
-    ],
-    20,
-  )
+  const policy = new Policy([
+    new PolicyAxis(
+      "Security Level",
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true,
+    ),
+    new PolicyAxis(
+      "Department",
+      [
+        { name: "FIN", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "HR", isHybridized: false },
+      ],
+      false,
+    ),
+  ])
   const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
 
   // TTLV Test
