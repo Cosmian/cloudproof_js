@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.5.0] - 2023-11-10
+
+### Features
+
+- Export KMS code into cloudproof_kms_js and import it as npm dependency
+- Covercrypt edit policy capability
+
+### Testing
+
+- Make KMS, Redis and Findex_cloud services mandatory
+
+### Ci
+
+- Enable auth0 in tests
+
 ## [9.4.1] - 2023-10-03
 
 ### Bug Fixes
