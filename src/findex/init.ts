@@ -4,13 +4,12 @@ import init, {
   webassembly_upsert,
 } from "../pkg/findex/cloudproof_findex"
 
-import { SymmetricKey } from "../kms/structs/objects"
+import { fromByteArray } from "base64-js"
 import { parse as parseUuid, stringify as stringifyUuid } from "uuid"
 import { bytesEquals, hexEncode } from "../utils/utils"
-import { fromByteArray } from "base64-js"
 
-export * from "./sqlite"
 export * from "./in_memory"
+export * from "./sqlite"
 
 let initialized: Promise<void> | undefined
 let loggerInit = false
@@ -343,7 +342,7 @@ export async function Findex() {
 
   /**
    * Insert or update existing (a.k.a upsert) entries in the index
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
+   * @param {FindexKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
    * @param {IndexedEntry[]} deletions entries to remove from the indexes
@@ -355,7 +354,7 @@ export async function Findex() {
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
   const upsert = async (
-    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    masterKey: FindexKey | Uint8Array,
     label: Label | Uint8Array,
     additions: IndexedEntry[],
     deletions: IndexedEntry[],
@@ -370,9 +369,6 @@ export async function Findex() {
       loggerInit = true
     }
     // convert key to a single representation
-    if (masterKey instanceof SymmetricKey) {
-      masterKey = new FindexKey(masterKey.bytes())
-    }
     if (masterKey instanceof Uint8Array) {
       masterKey = new FindexKey(masterKey)
     }
@@ -404,7 +400,7 @@ export async function Findex() {
 
   /**
    * Search indexed keywords and return the corresponding IndexedValues
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
+   * @param {FindexKey} masterKey Findex's key
    * @param {Label} label public label for the index
    * @param keywords keywords to search inside the indexes
    * @param {FetchEntries} fetchEntries callback to fetch the entries table
@@ -415,7 +411,7 @@ export async function Findex() {
    * @returns the search results
    */
   const search = async (
-    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    masterKey: FindexKey | Uint8Array,
     label: Label | Uint8Array,
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
     fetchEntries: FetchEntries,
@@ -432,9 +428,6 @@ export async function Findex() {
     }
 
     // convert key to a single representation
-    if (masterKey instanceof SymmetricKey) {
-      masterKey = new FindexKey(masterKey.bytes())
-    }
     if (masterKey instanceof Uint8Array) {
       masterKey = new FindexKey(masterKey)
     }

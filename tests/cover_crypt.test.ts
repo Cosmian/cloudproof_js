@@ -1,8 +1,9 @@
 import * as fs from "fs"
 import { expect, test } from "vitest"
 
+import { KmsClient, PolicyKms } from "cloudproof_kms_js"
+import { CoverCrypt } from ".."
 import { NonRegressionVector } from "./cover_crypt.non_regression_vector"
-import { CoverCrypt, KmsClient } from ".."
 
 /* Importing the functions from the CoverCrypt library. */
 const {
@@ -18,31 +19,28 @@ test("Demo using Wasm only", async () => {
   //
   // Creating a Policy
   //
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level", // this axis name is `Security Level`
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          // the following attribute is hybridized allowing post-quantum resistance
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true, // this is a hierarchical axis
-      ),
-      new PolicyAxis(
-        "Department", // this axis name
-        [
-          { name: "R&D", isHybridized: false },
-          { name: "HR", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "FIN", isHybridized: false },
-        ],
-        false, // this is NOT a hierarchical axis
-      ),
-    ],
-    100, // maximum number of creation of partition values
-  )
+  const policy = new Policy([
+    new PolicyAxis(
+      "Security Level", // this axis name is `Security Level`
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        // the following attribute is hybridized allowing post-quantum resistance
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true, // this is a hierarchical axis
+    ),
+    new PolicyAxis(
+      "Department", // this axis name
+      [
+        { name: "R&D", isHybridized: false },
+        { name: "HR", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "FIN", isHybridized: false },
+      ],
+      false, // this is NOT a hierarchical axis
+    ),
+  ])
 
   //
   // Generating the master keys
@@ -146,31 +144,28 @@ test("Demo using KMS", async () => {
   //
   // Creating a Policy
   //
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level", // this axis name is `Security Level`
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          // the following attribute is hybridized allowing post-quantum resistance
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true, // this is a hierarchical axis
-      ),
-      new PolicyAxis(
-        "Department", // this axis name
-        [
-          { name: "R&D", isHybridized: false },
-          { name: "HR", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "FIN", isHybridized: false },
-        ],
-        false, // this is NOT a hierarchical axis
-      ),
-    ],
-    100, // maximum number of creation of partition values
-  )
+  const policy = new Policy([
+    new PolicyAxis(
+      "Security Level", // this axis name is `Security Level`
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        // the following attribute is hybridized allowing post-quantum resistance
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true, // this is a hierarchical axis
+    ),
+    new PolicyAxis(
+      "Department", // this axis name
+      [
+        { name: "R&D", isHybridized: false },
+        { name: "HR", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "FIN", isHybridized: false },
+      ],
+      false, // this is NOT a hierarchical axis
+    ),
+  ])
 
   //
   // Generating the master keys
@@ -179,12 +174,14 @@ test("Demo using KMS", async () => {
     `http://${process.env.KMS_HOST || "localhost"}:9998`,
   )
 
+  const policyKms = new PolicyKms(policy.toBytes())
+
   if (!(await client.up())) {
     console.error("No KMIP server. Skipping test")
     return
   }
 
-  const masterKeys = await client.createCoverCryptMasterKeyPair(policy)
+  const masterKeys = await client.createCoverCryptMasterKeyPair(policyKms)
   const masterSecretKeyUID = masterKeys[0]
   const masterPublicKeyUID = masterKeys[1]
 
@@ -356,14 +353,14 @@ test("Demo using KMS", async () => {
 
   // protectedMkgCiphertext
   const protectedMkgCleartext3 = new CoverCryptHybridDecryption(
-    oldConfidentialMkgUserKey,
+    oldConfidentialMkgUserKey.bytes(),
   ).decrypt(protectedMkgCiphertext)
   expect(protectedMkgData).toEqual(protectedMkgCleartext3.plaintext)
 
   // newConfidentialMkgCiphertext
   try {
     // will throw
-    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey).decrypt(
+    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey.bytes()).decrypt(
       newConfidentialMkgCiphertext,
     )
   } catch (error) {

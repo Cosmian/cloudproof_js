@@ -7,7 +7,7 @@
 
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
-exclude: dist|tests/data|tests/findex.test.ts|src/pkg|examples/full_text_search/data/|docker-compose.yml
+exclude: dist|tests/data|tests/findex.test.ts|src/pkg|examples/full_text_search/data/|docker-compose.yml|.github/workflows/
 repos:
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v2.3.0
@@ -50,10 +50,12 @@ repos:
       - id: typos
 
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.40.0
+    rev: v8.50.0
     hooks:
       - id: eslint
         args: [src, --fix]
+        files: \.[jt]sx?$,\.vue
+        types: [file]
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.1
@@ -112,3 +114,12 @@ repos:
       - id: requirements-txt-fixer
       - id: sort-simple-yaml
       - id: trailing-whitespace
+
+  - repo: https://github.com/Cosmian/git-hooks.git
+    rev: v1.0.20
+    hooks:
+      - id: docker-compose-up
+      - id: npm-run-format
+      - id: npm-install
+      - id: npm-test
+      - id: docker-compose-down

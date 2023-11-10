@@ -1,3 +1,5 @@
+import { expect, test } from "vitest"
+import { decode, encode } from "../src/utils/leb128"
 import {
   deserializeList,
   fromBeBytes,
@@ -5,8 +7,6 @@ import {
   hexEncode,
   toBeBytes,
 } from "../src/utils/utils"
-import { encode, decode } from "../src/utils/leb128"
-import { expect, test } from "vitest"
 
 test("hexEncode+hexDecode", () => {
   const s = "ça va être la fête"

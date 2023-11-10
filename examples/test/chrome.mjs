@@ -5,7 +5,7 @@ const host = process.argv[2] || undefined
 const kmsHost = process.argv[3] || undefined
 
 if (!host) {
-  console.error("Please provide host: chrome.mjs http://localhost:9090")
+  console.error("Please provide host: chrome.mjs http://localhost:8080")
   exit(1)
 }
 
@@ -330,7 +330,7 @@ async function assertCountSelector(
   selector,
   expected,
   additionalMessage = "",
-  timeout = 30000,
+  timeout = 60000,
 ) {
   const start = new Date()
   let count = null

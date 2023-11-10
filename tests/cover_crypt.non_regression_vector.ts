@@ -1,15 +1,14 @@
 /* tslint:disable:max-classes-per-file */
 
-import { expect } from "vitest"
-import { CoverCrypt, Policy as CoverCryptPolicy } from ".."
 import { fromByteArray, toByteArray } from "base64-js"
+import { expect } from "vitest"
+import { CoverCrypt, Policy } from ".."
 
 /* Importing the functions from the CoverCrypt library. */
 const {
   CoverCryptKeyGeneration,
   CoverCryptHybridEncryption,
   CoverCryptHybridDecryption,
-  Policy,
   PolicyAxis,
 } = await CoverCrypt()
 const keyGenerator = new CoverCryptKeyGeneration()
@@ -26,7 +25,7 @@ export class UserSecretKeyTestVector {
   public static async generate(
     masterSecretKey: Uint8Array,
     accessPolicy: string,
-    policy: CoverCryptPolicy,
+    policy: Policy,
   ): Promise<UserSecretKeyTestVector> {
     const key = keyGenerator.generateUserSecretKey(
       masterSecretKey,
@@ -73,7 +72,7 @@ export class EncryptionTestVector {
   }
 
   public static async generate(
-    policy: CoverCryptPolicy,
+    policy: Policy,
     publicKey: Uint8Array,
     encryptionPolicy: string,
     plaintext: string,
@@ -141,7 +140,7 @@ export class EncryptionTestVector {
 export class NonRegressionVector {
   private readonly publicKey: Uint8Array
   private readonly masterSecretKey: Uint8Array
-  private readonly policy: CoverCryptPolicy
+  private readonly policy: Policy
   private readonly topSecretMkgFinKey: UserSecretKeyTestVector
   private readonly mediumSecretMkgKey: UserSecretKeyTestVector
   private readonly topSecretFinKey: UserSecretKeyTestVector
@@ -150,7 +149,7 @@ export class NonRegressionVector {
   private readonly lowSecretFinTestVector: EncryptionTestVector
 
   constructor(
-    policy: CoverCryptPolicy,
+    policy: Policy,
     publicKey: Uint8Array,
     masterSecretKey: Uint8Array,
     topSecretMkgFinKey: UserSecretKeyTestVector,
@@ -172,32 +171,29 @@ export class NonRegressionVector {
   }
 
   public static async generate(): Promise<NonRegressionVector> {
-    const policy = new Policy(
-      [
-        new PolicyAxis(
-          "Security Level",
-          [
-            { name: "Protected", isHybridized: false },
-            { name: "Low Secret", isHybridized: false },
-            { name: "Medium Secret", isHybridized: false },
-            { name: "High Secret", isHybridized: false },
-            { name: "Top Secret", isHybridized: false },
-          ],
-          true,
-        ),
-        new PolicyAxis(
-          "Department",
-          [
-            { name: "R&D", isHybridized: false },
-            { name: "HR", isHybridized: false },
-            { name: "MKG", isHybridized: false },
-            { name: "FIN", isHybridized: false },
-          ],
-          false,
-        ),
-      ],
-      100,
-    )
+    const policy = new Policy([
+      new PolicyAxis(
+        "Security Level",
+        [
+          { name: "Protected", isHybridized: false },
+          { name: "Low Secret", isHybridized: false },
+          { name: "Medium Secret", isHybridized: false },
+          { name: "High Secret", isHybridized: false },
+          { name: "Top Secret", isHybridized: false },
+        ],
+        true,
+      ),
+      new PolicyAxis(
+        "Department",
+        [
+          { name: "R&D", isHybridized: false },
+          { name: "HR", isHybridized: false },
+          { name: "MKG", isHybridized: false },
+          { name: "FIN", isHybridized: false },
+        ],
+        false,
+      ),
+    ])
     const masterKeys = keyGenerator.generateMasterKeys(policy)
 
     // Generate user secret keys

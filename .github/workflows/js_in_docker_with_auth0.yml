@@ -32,6 +32,7 @@ jobs:
         image: ghcr.io/cosmian/kms:${{ inputs.kms-version }}
         env:
           JWK_PRIVATE_KEY: ${{ inputs.kms-jwe-key }}
+          KMS_JWT_ISSUER_URI: https://kms-cosmian.eu.auth0.com/
 
       findex_cloud:
         image: ghcr.io/cosmian/findex_cloud:${{ inputs.findex-cloud-version }}
@@ -60,12 +61,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-node-${{ hashFiles('package.json') }}-${{ hashFiles('src/**', '!.git') }}
 
-      - name: Test (no Auth0)
+      - name: Test
         run: ${{ inputs.subcommands }}
         env:
           REDIS_HOST: redis
           KMS_HOST: kms
           FINDEX_CLOUD_HOST: findex_cloud
+          AUTH0_TOKEN_1: ${{ secrets.AUTH0_TOKEN_1 }}
+          AUTH0_TOKEN_2: ${{ secrets.AUTH0_TOKEN_2 }}
 
       - name: Upload non-regression test vectors
         if: inputs.regression_files != ''

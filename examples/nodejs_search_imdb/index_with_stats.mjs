@@ -50,7 +50,7 @@ const { upsert: upsertCloud, search: searchCloud } = await FindexCloud()
 const masterKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
-const baseUrl = "http://127.0.0.1:9090"
+const baseUrl = "http://127.0.0.1:8080"
 
 // Init databases
 const dbClear = new Database(":memory:")

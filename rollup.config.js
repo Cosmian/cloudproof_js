@@ -1,6 +1,6 @@
+import commonjs from "@rollup/plugin-commonjs"
 import typescript from "@rollup/plugin-typescript"
 import { wasm } from "@rollup/plugin-wasm"
-import commonjs from "@rollup/plugin-commonjs"
 
 const production = !process.env.ROLLUP_WATCH
 
@@ -20,7 +20,7 @@ const rolls = (fmt, env) => ({
     entryFileNames: `[name].${fmt === "cjs" ? "cjs" : "js"}`,
     name: "cloudproof_js",
   },
-  external: ["jose", "uuid", "base64-js"],
+  external: ["jose", "uuid", "base64-js", "cloudproof_kms_js"],
   plugins: [
     commonjs(),
     // We want to inline our wasm bundle as base64. Not needing browser users

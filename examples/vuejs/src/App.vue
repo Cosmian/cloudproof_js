@@ -9,6 +9,7 @@ import {
   KmsClient,
   type UidsAndValuesToUpsert,
   generateAliases,
+  PolicyKms,
 } from "cloudproof_js"
 import { defineComponent } from "vue"
 import Key from "./Key.vue"
@@ -39,7 +40,7 @@ type User = { id: number } & NewUser
 
 type Request = { method: string; url: string; body?: object; response?: object }
 
-type EncrypterAndDecrypter = {
+type EncryptorAndDecrypter = {
   encrypt: (accessPolicy: string, data: Uint8Array) => Promise<Uint8Array>
   decrypt: (
     selectedKey: "aliceKey" | "bobKey" | "charlieKey",
@@ -139,7 +140,7 @@ export default defineComponent({
       addingUser: false,
       newUser: { ...DEFAULT_USER },
 
-      encrypterAndDecrypter: null as null | EncrypterAndDecrypter,
+      encryptorAndDecrypter: null as null | EncryptorAndDecrypter,
 
       encrypting: false,
       showEncryptedData: true,
@@ -174,22 +175,21 @@ export default defineComponent({
   },
 
   methods: {
-    async getEncrypterAndDecrypter(): Promise<EncrypterAndDecrypter> {
-      if (this.encrypterAndDecrypter) return this.encrypterAndDecrypter
+    async getEncryptorAndDecrypter(): Promise<EncryptorAndDecrypter> {
+      if (this.encryptorAndDecrypter) return this.encryptorAndDecrypter
       const { Policy, PolicyAxis } = await CoverCrypt()
 
-      const policy = new Policy(
-        [
-          new PolicyAxis("department", DEPARTMENTS_AXIS, true),
-          new PolicyAxis("country", COUNTRIES_AXIS, false),
-        ],
-        100,
-      )
+      const policy = new Policy([
+        new PolicyAxis("department", DEPARTMENTS_AXIS, true),
+        new PolicyAxis("country", COUNTRIES_AXIS, false),
+      ])
+
+      const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
 
       if (this.kmsServerUrl) {
         const client = new KmsClient(this.kmsServerUrl)
         const [privateMasterKeyUID, publicKeyUID] =
-          await client.createCoverCryptMasterKeyPair(policy)
+          await client.createCoverCryptMasterKeyPair(bytesPolicy)
 
         const aliceUid = await client.createCoverCryptUserDecryptionKey(
           "country::France && department::Marketing",
@@ -208,7 +208,7 @@ export default defineComponent({
           privateMasterKeyUID,
         )
 
-        return (this.encrypterAndDecrypter = {
+        return (this.encryptorAndDecrypter = {
           encrypt: async (
             accessPolicy: string,
             data: Uint8Array,
@@ -269,7 +269,7 @@ export default defineComponent({
           policy,
         )
 
-        return (this.encrypterAndDecrypter = {
+        return (this.encryptorAndDecrypter = {
           encrypt: async (
             accessPolicy: string,
             data: Uint8Array,
@@ -298,7 +298,7 @@ export default defineComponent({
     },
 
     async encryptAndSaveUser(
-      encrypter: (
+      encryptor: (
         accessPolicy: string,
         data: Uint8Array,
       ) => Promise<Uint8Array>,
@@ -306,7 +306,7 @@ export default defineComponent({
     ) {
       // Encrypt user personal data for the marketing team
       // of the corresponding country
-      const encryptedForMarketing = await encrypter(
+      const encryptedForMarketing = await encryptor(
         `department::Marketing && country::${user.country}`,
         new TextEncoder().encode(
           JSON.stringify({
@@ -319,7 +319,7 @@ export default defineComponent({
 
       // Encrypt user contact information for the HR team of
       // the corresponding country
-      const encryptedForHr = await encrypter(
+      const encryptedForHr = await encryptor(
         `department::HR && country::${user.country}`,
         new TextEncoder().encode(
           JSON.stringify({
@@ -330,7 +330,7 @@ export default defineComponent({
 
       // Encrypt the user manager level for the manager
       // team of the corresponding country
-      const encryptedForManager = await encrypter(
+      const encryptedForManager = await encryptor(
         `department::Manager && country::${user.country}`,
         new TextEncoder().encode(
           JSON.stringify({
@@ -355,10 +355,10 @@ export default defineComponent({
 
     async encrypt() {
       this.encrypting = true
-      const encrypter = (await this.getEncrypterAndDecrypter()).encrypt
+      const encryptor = (await this.getEncryptorAndDecrypter()).encrypt
 
       let jobs = this.users.map((user) =>
-        this.encryptAndSaveUser(encrypter, user),
+        this.encryptAndSaveUser(encryptor, user),
       )
 
       await Promise.all(jobs)
@@ -501,7 +501,7 @@ export default defineComponent({
       if (!this.query || !this.selectedKey) return []
 
       let { search } = await Findex()
-      const decrypter = (await this.getEncrypterAndDecrypter()).decrypt
+      const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
       if (!this.masterKey) throw "No Findex key"
 
@@ -618,8 +618,8 @@ export default defineComponent({
 
       // Only if we didn't encrypt/index yet, encrypt and index this new user otherwise wait for the global encrypt/index
       if (this.encryptedUsers.length > 0) {
-        const encrypter = (await this.getEncrypterAndDecrypter()).encrypt
-        this.encryptAndSaveUser(encrypter, user)
+        const encryptor = (await this.getEncryptorAndDecrypter()).encrypt
+        this.encryptAndSaveUser(encryptor, user)
       }
 
       if (this.indexingDone) {
@@ -745,10 +745,7 @@ export default defineComponent({
             <button
               class="btn btn-outline-secondary"
               type="button"
-              @click="
-                kmsServerUrl =
-                  'https://demo-cloudproof.cosmian.com/kms'
-              "
+              @click="kmsServerUrl = 'https://demo-cloudproof.cosmian.com/kms'"
             >
               Demo
             </button>
