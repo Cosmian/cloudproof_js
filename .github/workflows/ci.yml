@@ -65,7 +65,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: feat/edit_policy
+      branch: develop
       target: x86_64-unknown-linux-gnu
       kms-version: feat-edit_policy
       copy_fresh_build: false
@@ -78,7 +78,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_flutter.yml@develop
     with:
-      branch: feat/edit_policy
+      branch: develop
       target: x86_64-unknown-linux-gnu
       extension: so
       copy_fresh_build: false
