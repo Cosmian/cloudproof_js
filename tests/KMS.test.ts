@@ -92,14 +92,14 @@ test(
         importedPublicKeyUniqueIdentifier,
       )
     } catch (error) {
-      expect(error).toMatch(/(Item not found)/i)
+      expect(error).toMatch(/(Item_not_found)/i)
     }
     try {
       await client.retrieveCoverCryptSecretMasterKey(
         importedSecretKeyUniqueIdentifier,
       )
     } catch (error) {
-      expect(error).toMatch(/(Item not found)/i)
+      expect(error).toMatch(/(Item_not_found)/i)
     }
   },
   {
