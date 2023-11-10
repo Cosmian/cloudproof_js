@@ -116,9 +116,10 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/Cosmian/git-hooks.git
-    rev: v1.0.18
+    rev: v1.0.20
     hooks:
       - id: docker-compose-up
       - id: npm-run-format
       - id: npm-install
       - id: npm-test
+      - id: docker-compose-down
