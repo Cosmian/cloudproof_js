@@ -208,13 +208,10 @@ function App() {
     }
     const { Policy, PolicyAxis } = await CoverCrypt()
 
-    const policy = new Policy(
-      [
-        new PolicyAxis("department", DEPARTMENTS_AXIS, true),
-        new PolicyAxis("country", COUNTRIES_AXIS, false),
-      ],
-      100,
-    )
+    const policy = new Policy([
+      new PolicyAxis("department", DEPARTMENTS_AXIS, true),
+      new PolicyAxis("country", COUNTRIES_AXIS, false),
+    ])
 
     const bytesPolicy: PolicyKms = new PolicyKms(policy.toBytes())
 

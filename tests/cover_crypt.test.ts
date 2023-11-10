@@ -19,31 +19,28 @@ test("Demo using Wasm only", async () => {
   //
   // Creating a Policy
   //
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level", // this axis name is `Security Level`
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          // the following attribute is hybridized allowing post-quantum resistance
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true, // this is a hierarchical axis
-      ),
-      new PolicyAxis(
-        "Department", // this axis name
-        [
-          { name: "R&D", isHybridized: false },
-          { name: "HR", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "FIN", isHybridized: false },
-        ],
-        false, // this is NOT a hierarchical axis
-      ),
-    ],
-    100, // maximum number of creation of partition values
-  )
+  const policy = new Policy([
+    new PolicyAxis(
+      "Security Level", // this axis name is `Security Level`
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        // the following attribute is hybridized allowing post-quantum resistance
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true, // this is a hierarchical axis
+    ),
+    new PolicyAxis(
+      "Department", // this axis name
+      [
+        { name: "R&D", isHybridized: false },
+        { name: "HR", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "FIN", isHybridized: false },
+      ],
+      false, // this is NOT a hierarchical axis
+    ),
+  ])
 
   //
   // Generating the master keys
@@ -147,31 +144,28 @@ test("Demo using KMS", async () => {
   //
   // Creating a Policy
   //
-  const policy = new Policy(
-    [
-      new PolicyAxis(
-        "Security Level", // this axis name is `Security Level`
-        [
-          { name: "Protected", isHybridized: false },
-          { name: "Confidential", isHybridized: false },
-          // the following attribute is hybridized allowing post-quantum resistance
-          { name: "Top Secret", isHybridized: true },
-        ],
-        true, // this is a hierarchical axis
-      ),
-      new PolicyAxis(
-        "Department", // this axis name
-        [
-          { name: "R&D", isHybridized: false },
-          { name: "HR", isHybridized: false },
-          { name: "MKG", isHybridized: false },
-          { name: "FIN", isHybridized: false },
-        ],
-        false, // this is NOT a hierarchical axis
-      ),
-    ],
-    100, // maximum number of creation of partition values
-  )
+  const policy = new Policy([
+    new PolicyAxis(
+      "Security Level", // this axis name is `Security Level`
+      [
+        { name: "Protected", isHybridized: false },
+        { name: "Confidential", isHybridized: false },
+        // the following attribute is hybridized allowing post-quantum resistance
+        { name: "Top Secret", isHybridized: true },
+      ],
+      true, // this is a hierarchical axis
+    ),
+    new PolicyAxis(
+      "Department", // this axis name
+      [
+        { name: "R&D", isHybridized: false },
+        { name: "HR", isHybridized: false },
+        { name: "MKG", isHybridized: false },
+        { name: "FIN", isHybridized: false },
+      ],
+      false, // this is NOT a hierarchical axis
+    ),
+  ])
 
   //
   // Generating the master keys
