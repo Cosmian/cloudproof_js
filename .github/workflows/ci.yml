@@ -44,6 +44,13 @@ jobs:
         ./node_modules/sqlite.db
     secrets: inherit
 
+  cloudproof_kms_js:
+    needs: test
+    uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_kms_js.yml@develop
+    with:
+      branch: test/kms_4_9
+      kms-version: 4.9.0
+
   cloudproof_java:
     needs: test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_java_in_docker.yml@develop
@@ -180,6 +187,7 @@ jobs:
   publish-dry-run:
     needs:
       - lint
+      - cloudproof_kms_js
       - cloudproof_java
       - cloudproof_flutter
       - cloudproof_python
