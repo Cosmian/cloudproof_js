@@ -1,36 +1,44 @@
-import { toByteArray } from "base64-js"
-import Database from "better-sqlite3"
 import { randomBytes } from "crypto"
-import * as fs from "fs"
-import * as os from "os"
-import { WasmToken } from "pkg/findex/cloudproof_findex"
+import { FindexBase } from "findex/findex"
 import { expect, test } from "vitest"
 import {
+  Callbacks,
+  FindexKey,
   IndexedEntry,
   IndexedValue,
-  FindexKey,
-  SearchResults,
-  Keyword,
-  Label,
-  Location,
-  LocationIndexEntry,
-  KeywordIndexEntry,
-  generateAliases,
-  callbacksExamplesBetterSqlite3,
-  callbacksExamplesInMemory,
   Findex,
   IntermediateSearchResults,
   Interrupt,
-  WasmCallbacks,
+  Keyword,
+  KeywordIndexEntry,
+  Label,
+  Location,
+  LocationIndexEntry,
+  SearchResults,
+  generateAliases,
+  logger,
 } from ".."
 import { USERS } from "./data/users"
+import Database from "better-sqlite3"
+import * as fs from "fs"
+import * as os from "os"
+import { toByteArray } from "base64-js"
+
+const {
+  FindexWithWasmBackend,
+  FindexWithCloudBackend,
+  callbacksExamplesInMemory,
+  callbacksExamplesBetterSqlite3,
+  ServerToken,
+} = await Findex()
 
 const FINDEX_TEST_KEY = "6hb1TznoNQFvCWisGWajkA=="
 const FINDEX_TEST_LABEL = "Some Label"
+const LOGGER_INIT = false
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function run(
-  findex: Findex,
+  findex: FindexBase,
   userInterrupt?: Interrupt,
   dumpTables?: () => void,
   dropTables?: () => Promise<void>,
@@ -39,10 +47,9 @@ async function run(
   const key = new FindexKey(randomBytes(16))
 
   {
-    console.log(
-      "test adding ",
-      USERS.length,
-      " users and searching for the first one",
+    logger.log(
+      () =>
+        `test adding ${USERS.length}  users and searching for the first one`,
     )
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
@@ -52,10 +59,10 @@ async function run(
       })
     }
 
-    await findex.add(key, label, newIndexedEntries)
-    await findex.add(key, label, newIndexedEntries)
+    await findex.add(key, label, newIndexedEntries, { verbose: LOGGER_INIT })
+    await findex.add(key, label, newIndexedEntries, { verbose: LOGGER_INIT })
 
-    if (dumpTables) {
+    if (dumpTables != null) {
       dumpTables()
     }
 
@@ -63,9 +70,8 @@ async function run(
       key,
       label,
       [USERS[0].firstName, USERS[0].country],
-      { userInterrupt: userInterrupt },
+      { userInterrupt, verbose: LOGGER_INIT },
     )
-    console.log("check returned locations: ", results)
 
     const locations = results.get(USERS[0].firstName)
 
@@ -74,9 +80,10 @@ async function run(
   }
 
   {
-    console.log("checking results for 'Spain'")
+    logger.log(() => "checking results for 'Spain'")
     const results = await findex.search(key, label, ["Spain"], {
-      userInterrupt: userInterrupt,
+      userInterrupt,
+      verbose: LOGGER_INIT,
     })
 
     expect(
@@ -92,9 +99,9 @@ async function run(
   }
 
   {
-    console.log("Test searching for Spain and France.")
+    logger.log(() => "Test searching for Spain and France.")
     const results = await findex.search(key, label, ["Spain", "France"], {
-      userInterrupt: userInterrupt,
+      userInterrupt,
     })
 
     expect(
@@ -134,7 +141,7 @@ async function run(
   }
 
   {
-    console.log("Test upsert an alias to the first user.")
+    logger.log(() => "Test upsert an alias to the first user.")
     await findex.add(key, label, [
       {
         indexedValue: Keyword.fromString(USERS[0].firstName),
@@ -159,10 +166,10 @@ async function run(
     await searchAndCheck("SomeAlia")
   }
 
-  if (dropTables) {
+  if (dropTables != null) {
     await dropTables()
   }
-  if (dumpTables) {
+  if (dumpTables != null) {
     dumpTables()
   }
 
@@ -171,7 +178,7 @@ async function run(
   await Promise.all(
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     sourceIds.map((id) => {
-      return findex.add(key, label, [
+      return findex.add(key.bytes, label.bytes, [
         {
           indexedValue: Location.fromNumber(id),
           keywords: ["Concurrent"],
@@ -183,7 +190,7 @@ async function run(
   {
     const results = await findex.search(key, label, ["Concurrent"])
 
-    if (dumpTables) {
+    if (dumpTables != null) {
       dumpTables()
     }
 
@@ -196,45 +203,15 @@ async function run(
   }
 }
 
-//test(
-//  "Findex Cloud",
-//  async () => {
-//    await runInFindexCloud()
-//  },
-//  { timeout: 60000 },
-//)
-
-test("in memory", async () => {
-  const callbacks = await callbacksExamplesInMemory()
-  callbacks.dumpTables()
-  await runWithFindexCallbacks(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
-    callbacks.dumpTables,
-  )
-  callbacks.dumpTables()
-})
-
-test("SQLite", async () => {
-  const db = new Database(":memory:")
-  const callbacks = await callbacksExamplesBetterSqlite3(db)
-  await runWithFindexCallbacks(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
-  )
-})
-
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function runWithFindexCallbacks(
-  entryCallbacks: WasmCallbacks,
-  chainCallbacks: WasmCallbacks,
+  entryCallbacks: Callbacks,
+  chainCallbacks: Callbacks,
   dumpTables?: () => void,
   dropTables?: () => Promise<void>,
 ): Promise<void> {
-  const findex = await Findex.new_with_wasm_backend(
-    entryCallbacks,
-    chainCallbacks,
-  )
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(entryCallbacks, chainCallbacks)
   await run(
     findex,
     async (results: IntermediateSearchResults) => {
@@ -252,43 +229,76 @@ async function runWithFindexCallbacks(
   )
 }
 
-//// eslint-disable-next-line jsdoc/require-jsdoc
-//async function runInFindexCloud(): Promise<void> {
-//  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
-//    process.env.FINDEX_CLOUD_PORT ?? "8080"
-//  }`
-//
-//  let response
-//  try {
-//    response = await fetch(`${baseUrl}/indexes`, {
-//      method: "POST",
-//      headers: {
-//        "Content-Type": "application/json",
-//      },
-//      body: JSON.stringify({
-//        name: "Test",
-//      }),
-//    })
-//  } catch (e) {
-//    if (
-//      e instanceof TypeError &&
-//      // @ts-expect-error
-//      (e.cause.message.includes("ECONNREFUSED") as boolean)
-//    ) {
-//      return
-//    } else {
-//      throw e
-//    }
-//  }
-//
-//  const data = await response.json()
-//
-//  const findex = await Findex.new_with_cloud_backend(
-//    WasmToken.random(data.public_id),
-//    baseUrl,
-//  )
-//  await run(findex)
-//}
+// eslint-disable-next-line jsdoc/require-jsdoc
+async function runInFindexCloud(): Promise<void> {
+  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
+    process.env.FINDEX_CLOUD_PORT ?? "8080"
+  }`
+
+  let response
+  try {
+    response = await fetch(`${baseUrl}/indexes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Test",
+      }),
+    })
+  } catch (e) {
+    if (
+      e instanceof TypeError &&
+      // @ts-expect-error
+      (e.cause.message.includes("ECONNREFUSED") as boolean)
+    ) {
+      return
+    } else {
+      throw e
+    }
+  }
+
+  const data = await response.json()
+  const findex = new FindexWithCloudBackend()
+  const token = ServerToken.new(
+    data.public_id,
+    Uint8Array.from(data.fetch_entries_key),
+    Uint8Array.from(data.fetch_chains_key),
+    Uint8Array.from(data.upsert_entries_key),
+    Uint8Array.from(data.insert_chains_key),
+  )
+  await findex.createWithCloudBackend(token, baseUrl)
+  await run(findex)
+}
+
+test(
+  "Findex Cloud",
+  async () => {
+    await runInFindexCloud()
+  },
+  { timeout: 60000 },
+)
+
+test("in memory", async () => {
+  const callbacks = await callbacksExamplesInMemory()
+  callbacks.dumpTables()
+  await runWithFindexCallbacks(
+    callbacks.entryCallbacks,
+    callbacks.chainCallbacks,
+    callbacks.dumpTables,
+    callbacks.dropTables,
+  )
+  callbacks.dumpTables()
+})
+
+test("SQLite", async () => {
+  const db = new Database(":memory:")
+  const callbacks = await callbacksExamplesBetterSqlite3(db)
+  await runWithFindexCallbacks(
+    callbacks.entryCallbacks,
+    callbacks.chainCallbacks,
+  )
+})
 
 test("generateAliases", async () => {
   const checkAlias = (alias: IndexedEntry, from: string, to: string): void => {
@@ -417,10 +427,9 @@ test("Location conversions", async () => {
 
 test("upsert and search cycle", async () => {
   const { entryCallbacks, chainCallbacks } = await callbacksExamplesInMemory()
-  const findex = await Findex.new_with_wasm_backend(
-    entryCallbacks,
-    chainCallbacks,
-  )
+
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(entryCallbacks, chainCallbacks)
   const key = new FindexKey(randomBytes(16))
   const label = new Label(randomBytes(10))
 
@@ -440,10 +449,8 @@ test("upsert and search cycle", async () => {
 
 test("upsert and search memory", async () => {
   const { entryCallbacks, chainCallbacks } = await callbacksExamplesInMemory()
-  const findex = await Findex.new_with_wasm_backend(
-    entryCallbacks,
-    chainCallbacks,
-  )
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(entryCallbacks, chainCallbacks)
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(Location.fromString("ROBERT file")),
@@ -513,10 +520,8 @@ test("generate non regression database", async () => {
   const { entryCallbacks, chainCallbacks } =
     await callbacksExamplesBetterSqlite3(db, "entry_table", "chain_table")
 
-  const findex = await Findex.new_with_wasm_backend(
-    entryCallbacks,
-    chainCallbacks,
-  )
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(entryCallbacks, chainCallbacks)
   const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)
 
@@ -558,7 +563,8 @@ async function verify(dbFilepath: string): Promise<void> {
     "entry_table",
     "chain_table",
   )
-  const findex = await Findex.new_with_wasm_backend(
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(
     callbacks.entryCallbacks,
     callbacks.chainCallbacks,
   )

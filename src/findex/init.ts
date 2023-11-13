@@ -1,10 +1,10 @@
-import init, { WasmCallbacks } from "../pkg/findex/cloudproof_findex"
+import init from "../pkg/findex/cloudproof_findex"
 
+import { FindexWithCloudBackend, FindexWithWasmBackend } from "./findex"
 import { callbacksExamplesInMemory } from "./in_memory"
 import { callbacksExamplesBetterSqlite3 } from "./sqlite"
-import { Findex } from "./findex"
-
-export * from "./types"
+import { Callbacks } from "./callbacks"
+import { ServerToken } from "./server_token"
 
 let initialized: Promise<void> | undefined
 
@@ -14,17 +14,29 @@ export const setFindexInit = (arg: () => any): void => {
   wasmInit = arg
 }
 
-export async function loadWasm() {
+/**
+ * This is the main function for reusing webassembly code
+ * @returns initialized objects
+ */
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export async function Findex() {
   if (initialized === undefined) {
-    // @ts-expect-error @ts-ignore-error
-    initialized = init(wasmInit())
-  }
-  await initialized
-}
+    if (wasmInit === undefined) {
+      throw new Error("Please provide a WASM init function")
+    }
 
-export {
-  Findex,
-  WasmCallbacks,
-  callbacksExamplesInMemory,
-  callbacksExamplesBetterSqlite3,
+    const loadModule = wasmInit()
+    initialized = init(loadModule).then(() => undefined)
+  }
+
+  await initialized
+
+  return {
+    Callbacks,
+    callbacksExamplesInMemory,
+    callbacksExamplesBetterSqlite3,
+    FindexWithWasmBackend,
+    FindexWithCloudBackend,
+    ServerToken,
+  }
 }

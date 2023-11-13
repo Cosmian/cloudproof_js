@@ -1,19 +1,16 @@
-import {
-  FindexKey,
-  Label,
-  Location,
-  Findex,
-  callbacksExamplesInMemory,
-} from ".."
+import { FindexKey, Label, Location, Findex } from ".."
 import { expect, test } from "vitest"
 import { randomBytes } from "crypto"
+
+const { FindexWithWasmBackend, callbacksExamplesInMemory } = await Findex()
 
 test("errors", async () => {
   const callbacks = await callbacksExamplesInMemory()
   const toUpsert = [
     { indexedValue: Location.fromNumber(42), keywords: ["Answer"] },
   ]
-  const findex = await Findex.new_with_wasm_backend(
+  const findex = new FindexWithWasmBackend()
+  await findex.createWithWasmBackend(
     callbacks.entryCallbacks,
     callbacks.chainCallbacks,
   )
@@ -30,12 +27,12 @@ test("errors", async () => {
   expect(async () => {
     await findex.add(new FindexKey(randomBytes(72)), label, toUpsert)
   }).rejects.toThrow(
-    "While parsing master key for Findex upsert, wrong size when parsing bytes: 72 given should be 16",
+    "Findex add: failed parsing key: try from slice error: could not convert slice to array",
   )
   expect(async () => {
     await findex.search(new FindexKey(randomBytes(13)), label, "Answer")
   }).rejects.toThrow(
-    "While parsing master key for Findex search, wrong size when parsing bytes: 13 given should be 16",
+    "Findex search: While parsing key for Findex search, try from slice error: could not convert slice to array",
   )
 
   // toUpsert argument
