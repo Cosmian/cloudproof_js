@@ -12,6 +12,7 @@ import {
 } from "cloudproof_kms_js"
 
 import { CoverCrypt, hexEncode } from ".."
+import { toByteArray } from "base64-js"
 
 import "dotenv/config"
 import { beforeAll, expect, test } from "vitest"
@@ -724,16 +725,16 @@ test(
   async () => {
     const { Policy, PolicyAxis } = await CoverCrypt()
 
-    const importedCertificateUniqueIdentifier = await client.importPem(
+    const importedCertificateUniqueIdentifier = await client.importDer(
       "my_cert_id",
-      new TextEncoder().encode(NIST_P256_CERTIFICATE),
+      toByteArray(NIST_P256_CERTIFICATE),
       ["certificate", "x509"],
       true,
     )
 
-    await client.importPem(
+    await client.importDer(
       "my_private_key_id",
-      new TextEncoder().encode(NIST_P256_PRIVATE_KEY),
+      toByteArray(NIST_P256_PRIVATE_KEY),
       ["private key", "x509"],
       true,
     )
