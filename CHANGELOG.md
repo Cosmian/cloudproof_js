@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.5.1] - 2023-11-14
+
+### Bug Fixes
+
+- Upgrade cloudproof_kms_js to 2.0.0 to fix Certificate import (#152)
+
 ## [9.5.0] - 2023-11-10
 
 ### Features
