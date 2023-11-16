@@ -1,6 +1,6 @@
 # Cloudproof Javascript Library
 
-![Build status](https://github.com/Cosmian/cloudproof_js/actions/workflows/ci.yml/badge.svg)
+![Build status](https://github.com/Cosmian/cloudproof_js/actions/workflows/ci.yml/badge.svg?branch=main)
 
 The library provides a Typescript-friendly API to the **Cloudproof Encryption** product of the [Cosmian Ubiquitous Encryption platform](https://cosmian.com).
 
