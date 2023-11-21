@@ -1,13 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import {
-  Location,
-  Findex,
-  FindexKey,
-  Label,
-  callbacksExamplesBetterSqlite3,
-  Keyword,
-} from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, Keyword } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -31,12 +24,17 @@ for (const file of files) {
 }
 
 // Init Findex with random key and random label
-const { upsert, search } = await Findex()
-const masterKey = new FindexKey(randomBytes(16))
+const { callbacksExamplesBetterSqlite3, FindexWithWasmBackend } = await Findex()
+const findexKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 const db = new Database(":memory:")
-const callbacks = callbacksExamplesBetterSqlite3(db)
+const callbacks = await callbacksExamplesBetterSqlite3(db)
+const findex = new FindexWithWasmBackend()
+await findex.createWithWasmBackend(
+  callbacks.entryCallbacks,
+  callbacks.chainCallbacks,
+)
 
 const uniqueWords = new Set()
 
@@ -83,22 +81,14 @@ for (const [name, content] of Object.entries(contents)) {
     }
   }
 
-  await upsert(
-    masterKey,
-    label,
-    toUpsert,
-    [],
-    callbacks.fetchEntries,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
+  await findex.add(findexKey, label, toUpsert)
 }
 
 console.log("---")
 console.log(`Add aliases from word's stem to word…`)
 console.log("---")
-await upsert(
-  masterKey,
+await findex.add(
+  findexKey,
   label,
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
@@ -107,10 +97,6 @@ await upsert(
       indexedValue: Keyword.fromString(word),
       keywords: [stem],
     })),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 console.log("---")
@@ -119,24 +105,20 @@ console.log("---")
 // Since phonetic is not a correct word (for example the phonetic for "Phrase" is "FRS")
 // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
 // which will make searching for it highly unlikely. We'll use this prefix in our search below.
-await upsert(
-  masterKey,
+await findex.add(
+  findexKey,
   label,
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)],
   })),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 console.log("---")
 console.log(`Add aliases from word's synonyms to word…`)
 console.log("---")
-await upsert(
-  masterKey,
+await findex.add(
+  findexKey,
   label,
   Array.from(uniqueWords)
     .map((word) => {
@@ -151,10 +133,6 @@ await upsert(
       }
     })
     .filter((synonymsToUpsert) => synonymsToUpsert !== null),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 const rl = readline.createInterface({
@@ -171,13 +149,11 @@ while (true) {
   const stem = natural.PorterStemmer.stem(query)
   const phonetic = natural.Metaphone.process(query)
 
-  const rawResults = await search(
-    masterKey,
-    label,
-    [query, stem, "phonetic_prefix_" + phonetic],
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  const rawResults = await findex.search(findexKey, label, [
+    query,
+    stem,
+    "phonetic_prefix_" + phonetic,
+  ])
 
   console.log(
     `Searching for ${query} (${stem}, ${phonetic}), ${rawResults.total()} results.`,

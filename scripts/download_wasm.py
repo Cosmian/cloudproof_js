@@ -71,6 +71,6 @@ def download_wasm(version: str) -> bool:
 
 
 if __name__ == "__main__":
-    RET = download_wasm("v2.3.0")
+    RET = download_wasm("v2.4.0")
     if RET is False and getenv("GITHUB_ACTIONS"):
-        download_wasm("last_build/feature/edit_policy")
+        download_wasm("last_build/feature/findex_v6_ffi")

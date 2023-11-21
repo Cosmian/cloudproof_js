@@ -1,4 +1,5 @@
 import init from "../pkg/anonymization/cloudproof_anonymization"
+
 import { Hasher } from "./hash"
 import { NoiseWithBounds, NoiseWithParameters } from "./noise"
 import { NumberAggregator, NumberScaler, DateAggregator } from "./number"
@@ -13,6 +14,7 @@ export const setAnonymizationInit = (arg: () => any): void => {
 
 /**
  * This is the main function for reusing webassembly code
+ * @returns initialized objects
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export async function Anonymization() {
