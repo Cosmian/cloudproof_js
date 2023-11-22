@@ -1,7 +1,5 @@
 // /* eslint-disable */
 
-// TODO: rename masterKey to FindexKey
-
 import { SymmetricKey } from "cloudproof_kms_js"
 import {
   WasmCallbacks,
@@ -82,7 +80,7 @@ export class FindexBase {
 
   /**
    * Add the following entries in the index.
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
+   * @param {FindexKey | SymmetricKey} findexKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} additions new entries to upsert in indexes
    * @param options Additional optional options
@@ -90,7 +88,7 @@ export class FindexBase {
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
   public async add(
-    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    findexKey: FindexKey | SymmetricKey | Uint8Array,
     label: Label | Uint8Array,
     additions: IndexedEntry[],
     options: { verbose?: false } = {},
@@ -99,11 +97,11 @@ export class FindexBase {
       await webassembly_logger_init()
     }
 
-    if (masterKey instanceof SymmetricKey) {
-      masterKey = new FindexKey(masterKey.bytes())
+    if (findexKey instanceof SymmetricKey) {
+      findexKey = new FindexKey(findexKey.bytes())
     }
-    if (masterKey instanceof Uint8Array) {
-      masterKey = new FindexKey(masterKey)
+    if (findexKey instanceof Uint8Array) {
+      findexKey = new FindexKey(findexKey)
     }
 
     if (label instanceof Uint8Array) {
@@ -113,7 +111,7 @@ export class FindexBase {
     const additionsBytes = indexedEntriesToBytes(additions, "additions")
 
     const newIds: Uint8Array[] = await this._instantiatedFindex.add(
-      masterKey.bytes,
+      findexKey.bytes,
       label.bytes,
       additionsBytes,
     )
@@ -123,7 +121,7 @@ export class FindexBase {
 
   /**
    * Delete the following entries from the index.
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
+   * @param {FindexKey | SymmetricKey} findexKey Findex's key
    * @param {Label} label public label for the index
    * @param {IndexedEntry[]} deletions new entries to upsert in indexes
    * @param options Additional optional options
@@ -131,7 +129,7 @@ export class FindexBase {
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
    */
   async delete(
-    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    findexKey: FindexKey | SymmetricKey | Uint8Array,
     label: Label | Uint8Array,
     deletions: IndexedEntry[],
     options: { verbose?: false } = {},
@@ -140,11 +138,11 @@ export class FindexBase {
       await webassembly_logger_init()
     }
 
-    if (masterKey instanceof SymmetricKey) {
-      masterKey = new FindexKey(masterKey.bytes())
+    if (findexKey instanceof SymmetricKey) {
+      findexKey = new FindexKey(findexKey.bytes())
     }
-    if (masterKey instanceof Uint8Array) {
-      masterKey = new FindexKey(masterKey)
+    if (findexKey instanceof Uint8Array) {
+      findexKey = new FindexKey(findexKey)
     }
 
     if (label instanceof Uint8Array) {
@@ -154,7 +152,7 @@ export class FindexBase {
     const deletionBytes = indexedEntriesToBytes(deletions, "deletions")
 
     const newIds: Uint8Array[] = await this._instantiatedFindex.delete(
-      masterKey.bytes,
+      findexKey.bytes,
       label.bytes,
       deletionBytes,
     )
@@ -163,7 +161,7 @@ export class FindexBase {
 
   /**
    * Search indexed keywords and return the corresponding IndexedValues
-   * @param {FindexKey | SymmetricKey} masterKey Findex's key
+   * @param {FindexKey | SymmetricKey} findexKey Findex's key
    * @param {Label} label public label for the index
    * @param keywords keywords to search inside the indexes
    * @param options Additional optional options to the search
@@ -172,7 +170,7 @@ export class FindexBase {
    * @returns the search results
    */
   async search(
-    masterKey: FindexKey | SymmetricKey | Uint8Array,
+    findexKey: FindexKey | SymmetricKey | Uint8Array,
     label: Label | Uint8Array,
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
     options: {
@@ -185,11 +183,11 @@ export class FindexBase {
     }
 
     // convert key to a single representation
-    if (masterKey instanceof SymmetricKey) {
-      masterKey = new FindexKey(masterKey.bytes())
+    if (findexKey instanceof SymmetricKey) {
+      findexKey = new FindexKey(findexKey.bytes())
     }
-    if (masterKey instanceof Uint8Array) {
-      masterKey = new FindexKey(masterKey)
+    if (findexKey instanceof Uint8Array) {
+      findexKey = new FindexKey(findexKey)
     }
 
     if (label instanceof Uint8Array) {
@@ -212,7 +210,7 @@ export class FindexBase {
         : options.userInterrupt
 
     const resultsPerKeywords = await this._instantiatedFindex.search(
-      masterKey.bytes,
+      findexKey.bytes,
       label.bytes,
       kws,
       async (

@@ -1,4 +1,5 @@
 import {
+  Callbacks,
   CoverCrypt,
   Findex,
   FindexKey,
@@ -6,9 +7,8 @@ import {
   Label,
   Location,
   PolicyKms,
-  type UidsAndValues,
   generateAliases,
-  Callbacks,
+  type UidsAndValues,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -175,7 +175,7 @@ function App() {
     }[],
   )
 
-  const [masterKey, setMasterKey] = useState(null as FindexKey | null)
+  const [findexKey, setMasterKey] = useState(null as FindexKey | null)
   const [indexesEntries, setIndexesEntries] = useState([] as UidsAndValues)
   const [indexesChains, setIndexesChains] = useState([] as UidsAndValues)
 
@@ -406,7 +406,7 @@ function App() {
   }
 
   const indexUsers = async (
-    localMasterKey: Exclude<typeof masterKey, null>,
+    localMasterKey: Exclude<typeof findexKey, null>,
     users: User[],
   ) => {
     let { FindexWithWasmBackend } = await Findex()
@@ -454,10 +454,10 @@ function App() {
   const index = async () => {
     setIndexing(true)
 
-    let masterKey = new FindexKey(Uint8Array.from(Array(16).keys()))
-    setMasterKey(masterKey)
+    let findexKey = new FindexKey(Uint8Array.from(Array(16).keys()))
+    setMasterKey(findexKey)
 
-    indexUsers(masterKey, users)
+    indexUsers(findexKey, users)
 
     setIndexing(false)
     setIndexingDone(true)
@@ -580,11 +580,11 @@ function App() {
     }
 
     if (indexingDone) {
-      if (!masterKey)
+      if (!findexKey)
         throw new Error(
-          "masterKey should be present when first indexing is done",
+          "findexKey should be present when first indexing is done",
         )
-      await indexUsers(masterKey, [user])
+      await indexUsers(findexKey, [user])
     }
 
     setAddingUser(false)
@@ -630,7 +630,7 @@ function App() {
   const doSearch = async () => {
     if (!query) return []
     if (!selectedKey) return []
-    if (!masterKey) throw new Error("No Findex key")
+    if (!findexKey) throw new Error("No Findex key")
 
     let { FindexWithWasmBackend } = await Findex()
     const findex = new FindexWithWasmBackend()
@@ -654,12 +654,12 @@ function App() {
     let locations: Array<Location> | null = null
     if (doOr) {
       locations = (
-        await findex.search(masterKey, FINDEX_LABEL, new Set(keywords))
+        await findex.search(findexKey, FINDEX_LABEL, new Set(keywords))
       ).locations()
     } else {
       for (const keyword of keywords) {
         const newLocations = (
-          await findex.search(masterKey, FINDEX_LABEL, new Set([keyword]))
+          await findex.search(findexKey, FINDEX_LABEL, new Set([keyword]))
         ).locations()
 
         if (locations === null) {

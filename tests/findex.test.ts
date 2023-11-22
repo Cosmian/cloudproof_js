@@ -1,12 +1,16 @@
+import { toByteArray } from "base64-js"
+import Database from "better-sqlite3"
 import { randomBytes } from "crypto"
 import { FindexBase } from "findex/findex"
+import * as fs from "fs"
+import * as os from "os"
 import { expect, test } from "vitest"
 import {
   Callbacks,
+  Findex,
   FindexKey,
   IndexedEntry,
   IndexedValue,
-  Findex,
   IntermediateSearchResults,
   Interrupt,
   Keyword,
@@ -19,10 +23,6 @@ import {
   logger,
 } from ".."
 import { USERS } from "./data/users"
-import Database from "better-sqlite3"
-import * as fs from "fs"
-import * as os from "os"
-import { toByteArray } from "base64-js"
 
 const {
   FindexWithWasmBackend,
@@ -522,7 +522,7 @@ test("generate non regression database", async () => {
 
   const findex = new FindexWithWasmBackend()
   await findex.createWithWasmBackend(entryCallbacks, chainCallbacks)
-  const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
+  const findexKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)
 
   {
@@ -543,9 +543,9 @@ test("generate non regression database", async () => {
       })
     }
 
-    await findex.add(masterKey, label, newIndexedEntries)
+    await findex.add(findexKey, label, newIndexedEntries)
 
-    const results = await findex.search(masterKey, label, ["France"])
+    const results = await findex.search(findexKey, label, ["France"])
 
     const locations = results.get("France")
     expect(locations.length).toEqual(30)
