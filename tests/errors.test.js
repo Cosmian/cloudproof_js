@@ -1,6 +1,6 @@
-import { FindexKey, Label, Location, Findex } from ".."
-import { expect, test } from "vitest"
 import { randomBytes } from "crypto"
+import { expect, test } from "vitest"
+import { Findex, FindexKey, Label, Location } from ".."
 
 const { FindexWithWasmBackend, callbacksExamplesInMemory } = await Findex()
 
@@ -14,14 +14,14 @@ test("errors", async () => {
     callbacks.entryCallbacks,
     callbacks.chainCallbacks,
   )
-  const masterKey = new FindexKey(randomBytes(16))
+  const findexKey = new FindexKey(randomBytes(16))
   const label = new Label(randomBytes(32))
 
-  await findex.add(masterKey, label, toUpsert)
+  await findex.add(findexKey, label, toUpsert)
 
-  await findex.delete(masterKey, label, toUpsert)
+  await findex.delete(findexKey, label, toUpsert)
 
-  await findex.add(masterKey, label, toUpsert)
+  await findex.add(findexKey, label, toUpsert)
 
   // Master key size
   expect(async () => {
@@ -37,19 +37,19 @@ test("errors", async () => {
 
   // toUpsert argument
   expect(async () => {
-    await findex.add(masterKey, label, undefined)
+    await findex.add(findexKey, label, undefined)
   }).rejects.toThrow(
     "During Findex upsert: `additions` should be an array, undefined received",
   )
 
   expect(async () => {
-    await findex.add(masterKey, label, [{}])
+    await findex.add(findexKey, label, [{}])
   }).rejects.toThrow(
     "During Findex upsert: all the `indexedValue` inside the `additions` array should be of type IndexedValue, Location or Keyword, undefined received (undefined).",
   )
 
   expect(async () => {
-    await findex.add(masterKey, label, [
+    await findex.add(findexKey, label, [
       { indexedValue: Location.fromNumber(42) },
     ])
   }).rejects.toThrow(
@@ -57,7 +57,7 @@ test("errors", async () => {
   )
 
   expect(async () => {
-    await findex.add(masterKey, label, [
+    await findex.add(findexKey, label, [
       {
         indexedValue: Location.fromNumber(42),
         keywords: [{ name: "Thibaud" }],

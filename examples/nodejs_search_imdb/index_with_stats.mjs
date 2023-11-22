@@ -47,7 +47,7 @@ const csvStats = fs.createWriteStream("stats.csv", { flags: "a+" })
 // Init Findex with random key and random label
 const { upsert, search } = await Findex()
 const { upsert: upsertCloud, search: searchCloud } = await FindexCloud()
-const masterKey = new FindexKey(randomBytes(16))
+const findexKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
 const baseUrl = "http://127.0.0.1:8080"
@@ -172,7 +172,7 @@ for await (const line of rl) {
   ) {
     const insertFindexStart = performance.now()
     await upsert(
-      masterKey,
+      findexKey,
       label,
       toUpsert,
       [],
@@ -250,7 +250,7 @@ for await (const line of rl) {
         const searchNow = performance.now()
 
         const results = await search(
-          masterKey,
+          findexKey,
           label,
           new Set(["Documentary"]),
           async (uids) => {

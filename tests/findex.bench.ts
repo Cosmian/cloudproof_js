@@ -1,15 +1,15 @@
+import { randomBytes } from "crypto"
+import { bench, describe } from "vitest"
 import {
+  Findex,
   FindexKey,
   IndexedEntry,
   IndexedValue,
   Keyword,
   Label,
   Location,
-  Findex,
 } from ".."
-import { bench, describe } from "vitest"
 import { USERS } from "./data/users"
-import { randomBytes } from "crypto"
 
 const { FindexWithWasmBackend, callbacksExamplesInMemory } = await Findex()
 
@@ -19,7 +19,7 @@ await findex.createWithWasmBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
-const masterKey = new FindexKey(randomBytes(16))
+const findexKey = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 describe("Findex Upsert", async () => {
@@ -35,7 +35,7 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.add(masterKey, label, newIndexedEntries)
+    await findex.add(findexKey, label, newIndexedEntries)
   })
 
   bench("Upsert 99 users", async () => {
@@ -50,7 +50,7 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.add(masterKey, label, newIndexedEntries)
+    await findex.add(findexKey, label, newIndexedEntries)
   })
 })
 
@@ -66,9 +66,9 @@ describe("Findex Search", async () => {
     })
   }
 
-  await findex.add(masterKey, label, newIndexedEntries)
+  await findex.add(findexKey, label, newIndexedEntries)
 
   bench("Search", async () => {
-    await findex.search(masterKey, label, new Set([USERS[0].firstName]))
+    await findex.search(findexKey, label, new Set([USERS[0].firstName]))
   })
 })

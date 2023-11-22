@@ -1,15 +1,15 @@
 <script lang="ts">
 import {
+  Callbacks,
   CoverCrypt,
   Findex,
   FindexKey,
+  KmsClient,
   Label,
   Location,
-  KmsClient,
-  type UidsAndValues,
-  generateAliases,
   PolicyKms,
-  Callbacks,
+  generateAliases,
+  type UidsAndValues,
 } from "cloudproof_js"
 import { defineComponent } from "vue"
 import Key from "./Key.vue"
@@ -150,7 +150,7 @@ export default defineComponent({
         manager: Uint8Array
       }[],
 
-      masterKey: null as FindexKey | null,
+      findexKey: null as FindexKey | null,
       indexes: {
         entries: [] as UidsAndValues,
         chains: [] as UidsAndValues,
@@ -367,7 +367,7 @@ export default defineComponent({
     },
 
     async indexUsers(
-      masterKey: Exclude<typeof this.masterKey, null>,
+      findexKey: Exclude<typeof this.findexKey, null>,
       users: User[],
     ) {
       let { FindexWithWasmBackend } = await Findex()
@@ -385,7 +385,7 @@ export default defineComponent({
       await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
 
       await findex.add(
-        masterKey,
+        findexKey,
         FINDEX_LABEL,
         this.users.flatMap((user, index) => {
           return [
@@ -415,9 +415,9 @@ export default defineComponent({
     async index() {
       this.indexing = true
 
-      this.masterKey = new FindexKey(Uint8Array.from(Array(16).fill(1)))
+      this.findexKey = new FindexKey(Uint8Array.from(Array(16).fill(1)))
 
-      this.indexUsers(this.masterKey, this.users)
+      this.indexUsers(this.findexKey, this.users)
 
       this.indexing = false
       this.indexingDone = true
@@ -526,7 +526,7 @@ export default defineComponent({
 
       const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
-      if (!this.masterKey) throw "No Findex key"
+      if (!this.findexKey) throw "No Findex key"
 
       const query = this.query
 
@@ -539,12 +539,12 @@ export default defineComponent({
       let locations: Array<Location> | null = null
       if (this.doOr) {
         locations = (
-          await findex.search(this.masterKey, FINDEX_LABEL, keywords)
+          await findex.search(this.findexKey, FINDEX_LABEL, keywords)
         ).locations()
       } else {
         for (const keyword of keywords) {
           const newLocations = (
-            await findex.search(this.masterKey, FINDEX_LABEL, [keyword])
+            await findex.search(this.findexKey, FINDEX_LABEL, [keyword])
           ).locations()
 
           if (locations === null) {
@@ -634,11 +634,11 @@ export default defineComponent({
       }
 
       if (this.indexingDone) {
-        if (!this.masterKey)
+        if (!this.findexKey)
           throw new Error(
-            "masterKey should be present when first indexing is done",
+            "findexKey should be present when first indexing is done",
           )
-        await this.indexUsers(this.masterKey, [user])
+        await this.indexUsers(this.findexKey, [user])
       }
 
       this.addingUser = false
