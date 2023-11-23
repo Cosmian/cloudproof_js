@@ -75,6 +75,7 @@ jobs:
       branch: develop
       target: x86_64-unknown-linux-gnu
       kms-version: 4.9.1
+      findex-cloud-version: 0.3.1
       copy_fresh_build: false
       copy_regression_files: |
         cp ./cloudproof_js/non_regression_vector.json tests/data/cover_crypt/non_regression/js_non_regression_vector.json
