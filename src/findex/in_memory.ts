@@ -1,5 +1,6 @@
 import { logger } from "utils/logger"
 import { Callbacks } from "./callbacks"
+import { loadWasm } from "./init"
 import { UidsAndValues } from "./types"
 
 /**
@@ -11,6 +12,8 @@ export async function callbacksExamplesInMemory(): Promise<{
   dumpTables: () => void
   dropTables: () => Promise<void>
 }> {
+  await loadWasm()
+
   const entries: Map<string, Uint8Array> = new Map()
   const chains: Map<string, Uint8Array> = new Map()
 

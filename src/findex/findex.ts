@@ -7,6 +7,7 @@ import {
   webassembly_logger_init,
 } from "../pkg/findex/cloudproof_findex"
 import { Callbacks } from "./callbacks"
+import { loadWasm } from "./init"
 
 import {
   FindexKey,
@@ -69,34 +70,17 @@ export interface InstantiatedFindex {
 
 /**
  * Findex definition
- * @returns {Promise<FindexBase>} results found at every node while the search walks the search graph
+ * @returns {Promise<Findex>} results found at every node while the search walks the search graph
  */
-export class FindexBase {
-  _instantiatedFindex: InstantiatedFindex
+export class Findex {
+  key: FindexKey
+  label: Label
+  _instantiatedFindex: InstantiatedFindex | null
 
-  constructor(instantiatedFindex: InstantiatedFindex) {
-    this._instantiatedFindex = instantiatedFindex
-  }
-
-  /**
-   * Add the following entries in the index.
-   * @param {FindexKey | SymmetricKey} findexKey Findex's key
-   * @param {Label} label public label for the index
-   * @param {IndexedEntry[]} additions new entries to upsert in indexes
-   * @param options Additional optional options
-   * @param options.verbose the optional verbose bool parameter
-   * @returns {Keyword[]} the list of the newly inserted keywords in the index
-   */
-  public async add(
+  constructor(
     findexKey: FindexKey | SymmetricKey | Uint8Array,
     label: Label | Uint8Array,
-    additions: IndexedEntry[],
-    options: { verbose?: false } = {},
-  ): Promise<Keyword[]> {
-    if (options.verbose !== undefined && options.verbose) {
-      await webassembly_logger_init()
-    }
-
+  ) {
     if (findexKey instanceof SymmetricKey) {
       findexKey = new FindexKey(findexKey.bytes())
     }
@@ -108,136 +92,21 @@ export class FindexBase {
       label = new Label(label)
     }
 
-    const additionsBytes = indexedEntriesToBytes(additions, "additions")
-
-    const newIds: Uint8Array[] = await this._instantiatedFindex.add(
-      findexKey.bytes,
-      label.bytes,
-      additionsBytes,
-    )
-
-    return newIds.map((value: Uint8Array) => new Keyword(value))
+    this.key = findexKey
+    this.label = label
+    this._instantiatedFindex = null
   }
 
   /**
-   * Delete the following entries from the index.
-   * @param {FindexKey | SymmetricKey} findexKey Findex's key
-   * @param {Label} label public label for the index
-   * @param {IndexedEntry[]} deletions new entries to upsert in indexes
-   * @param options Additional optional options
-   * @param options.verbose the optional verbose bool parameter
-   * @returns {Keyword[]} the list of the newly inserted keywords in the index
+   * Instantiates a custom backend.
+   * @param entriesCallbacks Entry Table backend API
+   * @param chainsCallbacks  Chain Table backend API
    */
-  async delete(
-    findexKey: FindexKey | SymmetricKey | Uint8Array,
-    label: Label | Uint8Array,
-    deletions: IndexedEntry[],
-    options: { verbose?: false } = {},
-  ): Promise<Keyword[]> {
-    if (options.verbose !== undefined && options.verbose) {
-      await webassembly_logger_init()
-    }
-
-    if (findexKey instanceof SymmetricKey) {
-      findexKey = new FindexKey(findexKey.bytes())
-    }
-    if (findexKey instanceof Uint8Array) {
-      findexKey = new FindexKey(findexKey)
-    }
-
-    if (label instanceof Uint8Array) {
-      label = new Label(label)
-    }
-
-    const deletionBytes = indexedEntriesToBytes(deletions, "deletions")
-
-    const newIds: Uint8Array[] = await this._instantiatedFindex.delete(
-      findexKey.bytes,
-      label.bytes,
-      deletionBytes,
-    )
-    return newIds.map((value: Uint8Array) => new Keyword(value))
-  }
-
-  /**
-   * Search indexed keywords and return the corresponding IndexedValues
-   * @param {FindexKey | SymmetricKey} findexKey Findex's key
-   * @param {Label} label public label for the index
-   * @param keywords keywords to search inside the indexes
-   * @param options Additional optional options to the search
-   * @param options.userInterrupt the optional callback of found values as the search graph is walked. Returning `true` stops the walk
-   * @param options.verbose the optional verbose bool parameter
-   * @returns the search results
-   */
-  async search(
-    findexKey: FindexKey | SymmetricKey | Uint8Array,
-    label: Label | Uint8Array,
-    keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
-    options: {
-      userInterrupt?: Interrupt
-      verbose?: false
-    } = {},
-  ): Promise<SearchResults> {
-    if (options.verbose !== undefined && options.verbose) {
-      await webassembly_logger_init()
-    }
-
-    // convert key to a single representation
-    if (findexKey instanceof SymmetricKey) {
-      findexKey = new FindexKey(findexKey.bytes())
-    }
-    if (findexKey instanceof Uint8Array) {
-      findexKey = new FindexKey(findexKey)
-    }
-
-    if (label instanceof Uint8Array) {
-      label = new Label(label)
-    }
-
-    const kws: Uint8Array[] = []
-    for (const k of keywords) {
-      if (k instanceof Uint8Array) {
-        kws.push(k)
-      } else {
-        kws.push(Keyword.fromString(k).bytes)
-      }
-    }
-
-    // Never interrupt the search if no interrupt function is passed.
-    const userInterrupt: Interrupt =
-      typeof options.userInterrupt === "undefined"
-        ? async () => false
-        : options.userInterrupt
-
-    const resultsPerKeywords = await this._instantiatedFindex.search(
-      findexKey.bytes,
-      label.bytes,
-      kws,
-      async (
-        indexedValuesPerKeywords: Array<{
-          keyword: Uint8Array
-          results: Uint8Array[]
-        }>,
-      ) => {
-        return await userInterrupt(
-          new IntermediateSearchResults(indexedValuesPerKeywords),
-        )
-      },
-    )
-
-    return new SearchResults(resultsPerKeywords)
-  }
-}
-
-export class FindexWithWasmBackend extends FindexBase {
-  constructor() {
-    super(new WasmFindex()) // TODO: revisit this impl'.
-  }
-
-  public async createWithWasmBackend(
+  public async instantiateCustomBackend(
     entriesCallbacks: Callbacks,
     chainsCallbacks: Callbacks,
   ): Promise<void> {
+    await loadWasm()
     const entries = new WasmCallbacks()
     entries.delete = entriesCallbacks.delete
     entries.fetch = entriesCallbacks.fetch
@@ -255,25 +124,145 @@ export class FindexWithWasmBackend extends FindexBase {
       chains,
     )
   }
-}
-
-export class FindexWithCloudBackend extends FindexBase {
-  // TODO: rename to rest
-  constructor() {
-    super(new WasmFindex())
-  }
 
   /**
-   * Instantiates a Findex instance using the token and URL.
+   * Instantiates a REST backend using the given token and URL.
    * @param token findex server authorization token
    * @param url findex server
-   * @returns initialized object
    */
-  public async createWithCloudBackend(
+  public async instantiateRestBackend(
     token: string,
     url: string,
   ): Promise<void> {
+    await loadWasm()
     const findex = await WasmFindex.new_with_rest_backend(token, url)
     this._instantiatedFindex = findex
+  }
+
+  /**
+   * Add the following entries in the index.
+   * @param {IndexedEntry[]} additions new entries to upsert in indexes
+   * @param options Additional optional options
+   * @param options.verbose the optional verbose bool parameter
+   * @returns {Keyword[]} the list of the newly inserted keywords in the index
+   * @throws when the backend is not instantiated
+   */
+  public async add(
+    additions: IndexedEntry[],
+    options: { verbose?: false } = {},
+  ): Promise<Keyword[]> {
+    if (this._instantiatedFindex instanceof WasmFindex) {
+      if (options.verbose !== undefined && options.verbose) {
+        await webassembly_logger_init()
+      }
+
+      const additionsBytes = indexedEntriesToBytes(additions, "additions")
+
+      const newIds: Uint8Array[] = await this._instantiatedFindex.add(
+        this.key.bytes,
+        this.label.bytes,
+        additionsBytes,
+      )
+
+      return newIds.map((value: Uint8Array) => new Keyword(value))
+    } else {
+      throw "Instantiate a backend before calling `add`"
+    }
+  }
+
+  /**
+   * Delete the following entries from the index.
+   * @param {IndexedEntry[]} deletions new entries to upsert in indexes
+   * @param options Additional optional options
+   * @param options.verbose the optional verbose bool parameter
+   * @returns {Keyword[]} the list of the newly inserted keywords in the index
+   * @throws when the backend is not instantiated
+   */
+  async delete(
+    deletions: IndexedEntry[],
+    options: { verbose?: false } = {},
+  ): Promise<Keyword[]> {
+    if (this._instantiatedFindex instanceof WasmFindex) {
+      if (options.verbose !== undefined && options.verbose) {
+        await webassembly_logger_init()
+      }
+
+      if (options.verbose !== undefined && options.verbose) {
+        await webassembly_logger_init()
+      }
+
+      const deletionBytes = indexedEntriesToBytes(deletions, "deletions")
+
+      const newIds: Uint8Array[] = await this._instantiatedFindex.delete(
+        this.key.bytes,
+        this.label.bytes,
+        deletionBytes,
+      )
+      return newIds.map((value: Uint8Array) => new Keyword(value))
+    } else {
+      throw "Instantiate a backend before calling `delete`"
+    }
+  }
+
+  /**
+   * Search indexed keywords and return the corresponding IndexedValues
+   * @param keywords keywords to search inside the indexes
+   * @param options Additional optional options to the search
+   * @param options.userInterrupt the optional callback of found values as the search graph is walked. Returning `true` stops the walk
+   * @param options.verbose the optional verbose bool parameter
+   * @returns the search results
+   * @throws when the backend is not instantiated
+   */
+  async search(
+    keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
+    options: {
+      userInterrupt?: Interrupt
+      verbose?: false
+    } = {},
+  ): Promise<SearchResults> {
+    if (this._instantiatedFindex instanceof WasmFindex) {
+      if (options.verbose !== undefined && options.verbose) {
+        await webassembly_logger_init()
+      }
+
+      if (options.verbose !== undefined && options.verbose) {
+        await webassembly_logger_init()
+      }
+
+      const kws: Uint8Array[] = []
+      for (const k of keywords) {
+        if (k instanceof Uint8Array) {
+          kws.push(k)
+        } else {
+          kws.push(Keyword.fromString(k).bytes)
+        }
+      }
+
+      // Never interrupt the search if no interrupt function is passed.
+      const userInterrupt: Interrupt =
+        typeof options.userInterrupt === "undefined"
+          ? async () => false
+          : options.userInterrupt
+
+      const resultsPerKeywords = await this._instantiatedFindex.search(
+        this.key.bytes,
+        this.label.bytes,
+        kws,
+        async (
+          indexedValuesPerKeywords: Array<{
+            keyword: Uint8Array
+            results: Uint8Array[]
+          }>,
+        ) => {
+          return await userInterrupt(
+            new IntermediateSearchResults(indexedValuesPerKeywords),
+          )
+        },
+      )
+
+      return new SearchResults(resultsPerKeywords)
+    } else {
+      throw "Instantiate a backend before calling `search`"
+    }
   }
 }

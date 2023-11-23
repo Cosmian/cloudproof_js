@@ -1,5 +1,6 @@
 import { Database, Statement } from "better-sqlite3"
 import { Callbacks } from "./callbacks"
+import { loadWasm } from "./init"
 import { Index, UidsAndValues } from "./types"
 
 /**
@@ -16,6 +17,8 @@ export async function callbacksExamplesBetterSqlite3(
   entryCallbacks: Callbacks
   chainCallbacks: Callbacks
 }> {
+  await loadWasm()
+
   db.prepare(
     `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
