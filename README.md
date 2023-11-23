@@ -36,7 +36,7 @@ The library is based on:
 
 ## Getting started
 
-Please [check the online documentation](https://docs.cosmian.com/cloudproof_encryption/use_cases_benefits/) for details on using the CloudProof APIs.
+Please [check the online documentation](https://docs.cosmian.com/) for details on using the CloudProof APIs.
 
 You can also look the [`examples` directory](./examples) for examples with multiple JS frameworks/technologies (the [`README`](./examples/README.md) of the [`examples`](./examples) folder can guide you to the best example for you use case).
 
@@ -87,3 +87,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 | 9.4.0,9.4.1     | 2.2.4               | 4.7.0      |
 | 9.5.0           | 2.3.0               | 4.9.0      |
 | 9.5.1           | 2.3.0               | 4.9.1      |
+| 9.6.0           | 2.4.0               | 4.9.1      |
