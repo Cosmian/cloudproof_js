@@ -24,14 +24,12 @@ for (const file of files) {
 }
 
 // Init Findex with random key and random label
-const { callbacksExamplesBetterSqlite3, FindexWithWasmBackend } = await Findex()
-const findexKey = new FindexKey(randomBytes(16))
+const key = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
-
 const db = new Database(":memory:")
 const callbacks = await callbacksExamplesBetterSqlite3(db)
-const findex = new FindexWithWasmBackend()
-await findex.createWithWasmBackend(
+const findex = new Findex(key, label)
+await findex.instantiateCustomBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
@@ -81,7 +79,7 @@ for (const [name, content] of Object.entries(contents)) {
     }
   }
 
-  await findex.add(findexKey, label, toUpsert)
+  await findex.add(toUpsert)
 }
 
 console.log("---")
@@ -149,7 +147,7 @@ while (true) {
   const stem = natural.PorterStemmer.stem(query)
   const phonetic = natural.Metaphone.process(query)
 
-  const rawResults = await findex.search(findexKey, label, [
+  const rawResults = await findex.search([
     query,
     stem,
     "phonetic_prefix_" + phonetic,

@@ -370,8 +370,8 @@ export default defineComponent({
       findexKey: Exclude<typeof this.findexKey, null>,
       users: User[],
     ) {
-      let { FindexWithWasmBackend } = await Findex()
-      const findex = new FindexWithWasmBackend()
+      await loadWasm()
+      const findex = new Findex(findexKey, FINDEX_LABEL)
       const entriesCallbacks = new Callbacks()
       entriesCallbacks.fetch = async (uids) =>
         await this.fetchCallback("entries", uids)
@@ -382,11 +382,9 @@ export default defineComponent({
       const chainsCallbacks = new Callbacks()
       chainsCallbacks.insert = async (uidsAndValues) =>
         await this.insertCallback("chains", uidsAndValues)
-      await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
+      await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
 
       await findex.add(
-        findexKey,
-        FINDEX_LABEL,
         this.users.flatMap((user, index) => {
           return [
             {
@@ -539,12 +537,12 @@ export default defineComponent({
       let locations: Array<Location> | null = null
       if (this.doOr) {
         locations = (
-          await findex.search(this.findexKey, FINDEX_LABEL, keywords)
+          await findex.search(keywords)
         ).locations()
       } else {
         for (const keyword of keywords) {
           const newLocations = (
-            await findex.search(this.findexKey, FINDEX_LABEL, [keyword])
+            await findex.search([keyword])
           ).locations()
 
           if (locations === null) {
