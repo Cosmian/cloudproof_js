@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label, Keyword } from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, Keyword, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -86,8 +86,6 @@ console.log("---")
 console.log(`Add aliases from word's stem to word…`)
 console.log("---")
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
     .filter(({ word, stem }) => word !== stem)
@@ -104,8 +102,6 @@ console.log("---")
 // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
 // which will make searching for it highly unlikely. We'll use this prefix in our search below.
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)],
@@ -116,8 +112,6 @@ console.log("---")
 console.log(`Add aliases from word's synonyms to word…`)
 console.log("---")
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords)
     .map((word) => {
       const wordSynonyms = synonyms(word)

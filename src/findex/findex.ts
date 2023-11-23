@@ -166,7 +166,7 @@ export class Findex {
 
       return newIds.map((value: Uint8Array) => new Keyword(value))
     } else {
-      throw "Instantiate a backend before calling `add`"
+      throw new Error("Instantiate a backend before calling `add`")
     }
   }
 
@@ -200,7 +200,7 @@ export class Findex {
       )
       return newIds.map((value: Uint8Array) => new Keyword(value))
     } else {
-      throw "Instantiate a backend before calling `delete`"
+      throw new Error("Instantiate a backend before calling `delete`")
     }
   }
 
@@ -262,7 +262,7 @@ export class Findex {
 
       return new SearchResults(resultsPerKeywords)
     } else {
-      throw "Instantiate a backend before calling `search`"
+      throw new Error("Instantiate a backend before calling `search`")
     }
   }
 }
