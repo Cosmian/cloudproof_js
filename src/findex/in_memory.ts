@@ -44,17 +44,16 @@ export async function callbacksExamplesInMemory(): Promise<{
     }
 
     for (const { uid, value: newValue } of newValues) {
-      const oldValue = mapOfOldValues.get(uid.toString())
-      const actualValue = entries.get(uid.toString())
+      const currentValue = entries.get(uid.toString())
 
-      if (actualValue?.toString() === oldValue?.toString()) {
+      if (currentValue?.toString() === mapOfOldValues.get(uid.toString())?.toString()) {
         entries.set(uid.toString(), newValue)
-      } else if (actualValue === undefined) {
+      } else if (currentValue === undefined) {
         throw new Error(
           "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
         )
       } else {
-        rejected.push({ uid, value: actualValue })
+        rejected.push({ uid, value: currentValue })
       }
     }
     return rejected
