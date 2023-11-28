@@ -46,7 +46,10 @@ export async function callbacksExamplesInMemory(): Promise<{
     for (const { uid, value: newValue } of newValues) {
       const currentValue = entries.get(uid.toString())
 
-      if (currentValue?.toString() === mapOfOldValues.get(uid.toString())?.toString()) {
+      if (
+        currentValue?.toString() ===
+        mapOfOldValues.get(uid.toString())?.toString()
+      ) {
         entries.set(uid.toString(), newValue)
       } else if (currentValue === undefined) {
         throw new Error(
