@@ -1,7 +1,7 @@
 import { randomBytes } from "crypto"
 import { expect, test } from "vitest"
 import {
-  callbacksExamplesInMemory,
+  backendsExamplesInMemory,
   Findex,
   FindexKey,
   Label,
@@ -9,7 +9,7 @@ import {
 } from ".."
 
 test("errors", async () => {
-  const callbacks = await callbacksExamplesInMemory()
+  const backends = await backendsExamplesInMemory()
   const toUpsert = [
     { indexedValue: Location.fromNumber(42), keywords: ["Answer"] },
   ]
@@ -18,8 +18,8 @@ test("errors", async () => {
   const label = new Label(randomBytes(32))
   const findex = new Findex(key, label)
   await findex.instantiateCustomBackend(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
+    backends.entryBackend,
+    backends.chainBackend,
   )
 
   // Master key size
@@ -28,8 +28,8 @@ test("errors", async () => {
     const label = new Label(randomBytes(32))
     const findex = new Findex(key, label)
     await findex.instantiateCustomBackend(
-      callbacks.entryCallbacks,
-      callbacks.chainCallbacks,
+      backends.entryBackend,
+      backends.chainBackend,
     )
     await findex.add(toUpsert)
   }).rejects.toThrow(
@@ -41,8 +41,8 @@ test("errors", async () => {
     const label = new Label(randomBytes(32))
     const findex = new Findex(key, label)
     await findex.instantiateCustomBackend(
-      callbacks.entryCallbacks,
-      callbacks.chainCallbacks,
+      backends.entryBackend,
+      backends.chainBackend,
     )
     await findex.search("Answer")
   }).rejects.toThrow(

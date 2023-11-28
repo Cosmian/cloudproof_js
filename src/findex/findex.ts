@@ -6,7 +6,7 @@ import {
   WasmFindex,
   webassembly_logger_init,
 } from "../pkg/findex/cloudproof_findex"
-import { Callbacks } from "./callbacks"
+import { Backend } from "./backend"
 import { loadWasm } from "./init"
 
 import {
@@ -103,8 +103,8 @@ export class Findex {
    * @param chainsCallbacks  Chain Table backend API
    */
   public async instantiateCustomBackend(
-    entriesCallbacks: Callbacks,
-    chainsCallbacks: Callbacks,
+    entriesCallbacks: Backend,
+    chainsCallbacks: Backend,
   ): Promise<void> {
     await loadWasm()
     const entries = new WasmCallbacks()

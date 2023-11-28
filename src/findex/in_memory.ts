@@ -1,14 +1,14 @@
 import { logger } from "utils/logger"
-import { Callbacks } from "./callbacks"
+import { Backend } from "./backend"
 import { loadWasm } from "./init"
 import { UidsAndValues } from "./types"
 
 /**
  * @returns the callbacks
  */
-export async function callbacksExamplesInMemory(): Promise<{
-  entryCallbacks: Callbacks
-  chainCallbacks: Callbacks
+export async function backendsExamplesInMemory(): Promise<{
+  entryBackend: Backend
+  chainBackend: Backend
   dumpTables: () => void
   dropTables: () => Promise<void>
 }> {
@@ -78,17 +78,17 @@ export async function callbacksExamplesInMemory(): Promise<{
     chains.clear()
   }
 
-  const entryCallbacks = new Callbacks()
+  const entryCallbacks = new Backend()
   entryCallbacks.fetch = async (uids: Uint8Array[]) => {
     return await fetchCallback(entries, uids)
   }
   entryCallbacks.upsert = upsertEntries
 
-  const chainCallbacks = new Callbacks()
+  const chainCallbacks = new Backend()
   chainCallbacks.fetch = async (uids: Uint8Array[]) => {
     return await fetchCallback(chains, uids)
   }
   chainCallbacks.insert = insertChains
 
-  return { entryCallbacks, chainCallbacks, dumpTables, dropTables }
+  return { entryBackend: entryCallbacks, chainBackend: chainCallbacks, dumpTables, dropTables }
 }

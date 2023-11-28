@@ -9,16 +9,16 @@ import {
   Label,
   Location,
 } from ".."
-import { callbacksExamplesInMemory } from "../dist/umd/findex/in_memory"
+import { backendsExamplesInMemory } from "../dist/umd/findex/in_memory"
 import { USERS } from "./data/users"
 
-const callbacks = await callbacksExamplesInMemory()
+const backends = await backendsExamplesInMemory()
 const key = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 const findex = new Findex(key, label)
 await findex.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+  backends.entryBackend,
+  backends.chainBackend,
 )
 
 describe("Findex Upsert", async () => {

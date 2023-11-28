@@ -34,7 +34,7 @@ export {
 export * from "./ecies/init"
 export * from "./findex/init"
 export * from "./findex/findex"
-export * from "./findex/callbacks"
+export * from "./findex/backend"
 export * from "./findex/server_token"
 export * from "./findex/types"
 export * from "./findex/in_memory"

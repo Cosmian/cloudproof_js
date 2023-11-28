@@ -1,5 +1,5 @@
 import { Database, Statement } from "better-sqlite3"
-import { Callbacks } from "./callbacks"
+import { Backend } from "./backend"
 import { loadWasm } from "./init"
 import { Index, UidsAndValues } from "./types"
 
@@ -9,13 +9,13 @@ import { Index, UidsAndValues } from "./types"
  * @param chainsTableName name of the chains table
  * @returns the callbacks
  */
-export async function callbacksExamplesBetterSqlite3(
+export async function backendsExamplesBetterSqlite3(
   db: Database,
   entriesTableName: string = "entries",
   chainsTableName: string = "chains",
 ): Promise<{
-  entryCallbacks: Callbacks
-  chainCallbacks: Callbacks
+  entryBackend: Backend
+  chainBackend: Backend
 }> {
   await loadWasm()
 
@@ -118,15 +118,15 @@ export async function callbacksExamplesBetterSqlite3(
     }
   }
 
-  const entryCallbacks = new Callbacks()
+  const entryCallbacks = new Backend()
   entryCallbacks.fetch = async (uids: Uint8Array[]) =>
     await fetchCallback(entriesTableName, uids)
   entryCallbacks.upsert = upsertEntries
 
-  const chainCallbacks = new Callbacks()
+  const chainCallbacks = new Backend()
   chainCallbacks.fetch = async (uids: Uint8Array[]) =>
     await fetchCallback(chainsTableName, uids)
   chainCallbacks.insert = insertChains
 
-  return { entryCallbacks, chainCallbacks }
+  return { entryBackend: entryCallbacks, chainBackend: chainCallbacks }
 }

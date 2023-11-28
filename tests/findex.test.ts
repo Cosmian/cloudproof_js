@@ -5,7 +5,7 @@ import * as fs from "fs"
 import * as os from "os"
 import { expect, test } from "vitest"
 import {
-  Callbacks,
+  Backend,
   FindexKey,
   Findex,
   IndexedEntry,
@@ -18,8 +18,8 @@ import {
   Location,
   LocationIndexEntry,
   SearchResults,
-  callbacksExamplesBetterSqlite3,
-  callbacksExamplesInMemory,
+  backendsExamplesBetterSqlite3,
+  backendsExamplesInMemory,
   generateAliases,
   logger,
   ServerToken,
@@ -193,16 +193,16 @@ async function run(
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-async function runWithFindexCallbacks(
-  entryCallbacks: Callbacks,
-  chainCallbacks: Callbacks,
+async function runWithFindexBackends(
+  entryBackends: Backend,
+  chainBackends: Backend,
   dumpTables?: () => void,
   dropTables?: () => Promise<void>,
 ): Promise<void> {
   const label = new Label(randomBytes(10))
   const key = new FindexKey(randomBytes(16))
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryCallbacks, chainCallbacks)
+  await findex.instantiateCustomBackend(entryBackends, chainBackends)
   await run(
     findex,
     async (results: IntermediateSearchResults) => {
@@ -273,23 +273,23 @@ test(
 )
 
 test("in memory", async () => {
-  const callbacks = await callbacksExamplesInMemory()
-  callbacks.dumpTables()
-  await runWithFindexCallbacks(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
-    callbacks.dumpTables,
-    callbacks.dropTables,
+  const backends = await backendsExamplesInMemory()
+  backends.dumpTables()
+  await runWithFindexBackends(
+    backends.entryBackend,
+    backends.chainBackend,
+    backends.dumpTables,
+    backends.dropTables,
   )
-  callbacks.dumpTables()
+  backends.dumpTables()
 })
 
 test("SQLite", async () => {
   const db = new Database(":memory:")
-  const callbacks = await callbacksExamplesBetterSqlite3(db)
-  await runWithFindexCallbacks(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
+  const backends = await backendsExamplesBetterSqlite3(db)
+  await runWithFindexBackends(
+    backends.entryBackend,
+    backends.chainBackend,
   )
 })
 
@@ -419,12 +419,12 @@ test("Location conversions", async () => {
 })
 
 test("upsert and search cycle", async () => {
-  const { entryCallbacks, chainCallbacks } = await callbacksExamplesInMemory()
+  const { entryBackend, chainBackend } = await backendsExamplesInMemory()
 
   const key = new FindexKey(randomBytes(16))
   const label = new Label(randomBytes(10))
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryCallbacks, chainCallbacks)
+  await findex.instantiateCustomBackend(entryBackend, chainBackend)
 
   await findex.add([
     {
@@ -441,13 +441,13 @@ test("upsert and search cycle", async () => {
 })
 
 test("upsert and search memory", async () => {
-  const { entryCallbacks, chainCallbacks } = await callbacksExamplesInMemory()
+  const { entryBackend, chainBackend } = await backendsExamplesInMemory()
 
   const key = new FindexKey(randomBytes(16))
   const label = new Label("test")
   const findex = new Findex(key, label)
 
-  await findex.instantiateCustomBackend(entryCallbacks, chainCallbacks)
+  await findex.instantiateCustomBackend(entryBackend, chainBackend)
 
   const entryLocation: IndexedEntry = {
     indexedValue: IndexedValue.fromLocation(Location.fromString("ROBERT file")),
@@ -508,13 +508,13 @@ test("generate non regression database", async () => {
     fs.unlinkSync(dbFilepath)
   }
   const db = new Database(dbFilepath)
-  const { entryCallbacks, chainCallbacks } =
-    await callbacksExamplesBetterSqlite3(db, "entry_table", "chain_table")
+  const { entryBackend, chainBackend } =
+    await backendsExamplesBetterSqlite3(db, "entry_table", "chain_table")
 
   const key = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryCallbacks, chainCallbacks)
+  await findex.instantiateCustomBackend(entryBackend, chainBackend)
 
   {
     const newIndexedEntries: IndexedEntry[] = []
@@ -549,7 +549,7 @@ test("generate non regression database", async () => {
  */
 async function verify(dbFilepath: string): Promise<void> {
   const db = new Database(dbFilepath)
-  const callbacks = await callbacksExamplesBetterSqlite3(
+  const backends = await backendsExamplesBetterSqlite3(
     db,
     "entry_table",
     "chain_table",
@@ -559,8 +559,8 @@ async function verify(dbFilepath: string): Promise<void> {
   const findex = new Findex(key, label)
 
   await findex.instantiateCustomBackend(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
+    backends.entryBackend,
+    backends.chainBackend,
   )
 
   //
