@@ -184,7 +184,6 @@ export interface IndexedEntry {
  * If keyword is "Thibaud" and minChars is 3 return these aliases ["Thi" => "Thib", "Thib" => "Thiba", "Thiba" => "Thibau", "Thibau" => "Thibaud"]
  * @param keyword Generate aliases to this keyword
  * @param minChars Start at this number of characters
- * @param maxChars Do not generate alias of greater length than maxChars, last alias will target the original keyword
  * @returns IndexedEntry to add with upsert
  */
 export function generateAliases(

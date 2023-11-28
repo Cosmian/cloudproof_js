@@ -7,8 +7,9 @@ import {
   Label,
   Location,
   PolicyKms,
+  UidsAndValues,
   generateAliases,
-  type UidsAndValues,
+  loadWasm
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -409,8 +410,8 @@ function App() {
     localMasterKey: Exclude<typeof findexKey, null>,
     users: User[],
   ) => {
-    let { FindexWithWasmBackend } = await Findex()
-    const findex = new FindexWithWasmBackend()
+    await loadWasm()
+    const findex = new Findex(localMasterKey, FINDEX_LABEL)
     const entriesCallbacks = new Callbacks()
     entriesCallbacks.fetch = async (uids) =>
       await fetchCallback("entries", uids)
@@ -421,11 +422,9 @@ function App() {
     const chainsCallbacks = new Callbacks()
     chainsCallbacks.insert = async (uidsAndValues) =>
       await insertCallback("chains", uidsAndValues)
-    await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
+    await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
 
     await findex.add(
-      localMasterKey,
-      FINDEX_LABEL,
       users.flatMap((user) => {
         return [
           {
@@ -632,15 +631,14 @@ function App() {
     if (!selectedKey) return []
     if (!findexKey) throw new Error("No Findex key")
 
-    let { FindexWithWasmBackend } = await Findex()
-    const findex = new FindexWithWasmBackend()
+    const findex = new Findex(findexKey, FINDEX_LABEL)
     const entriesCallbacks = new Callbacks()
     entriesCallbacks.fetch = async (uids) =>
       await fetchCallback("entries", uids)
     const chainsCallbacks = new Callbacks()
     chainsCallbacks.fetch = async (uids) => await fetchCallback("chains", uids)
 
-    await findex.createWithWasmBackend(entriesCallbacks, chainsCallbacks)
+    await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
     const decrypter = (await getEncryptorAndDecrypter()).decrypt
 
     const savedQuery = query
@@ -654,12 +652,12 @@ function App() {
     let locations: Array<Location> | null = null
     if (doOr) {
       locations = (
-        await findex.search(findexKey, FINDEX_LABEL, new Set(keywords))
+        await findex.search(new Set(keywords))
       ).locations()
     } else {
       for (const keyword of keywords) {
         const newLocations = (
-          await findex.search(findexKey, FINDEX_LABEL, new Set([keyword]))
+          await findex.search(new Set([keyword]))
         ).locations()
 
         if (locations === null) {

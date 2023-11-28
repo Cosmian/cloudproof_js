@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label, Keyword } from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, Keyword, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -24,14 +24,12 @@ for (const file of files) {
 }
 
 // Init Findex with random key and random label
-const { callbacksExamplesBetterSqlite3, FindexWithWasmBackend } = await Findex()
-const findexKey = new FindexKey(randomBytes(16))
+const key = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
-
 const db = new Database(":memory:")
 const callbacks = await callbacksExamplesBetterSqlite3(db)
-const findex = new FindexWithWasmBackend()
-await findex.createWithWasmBackend(
+const findex = new Findex(key, label)
+await findex.instantiateCustomBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
@@ -81,15 +79,13 @@ for (const [name, content] of Object.entries(contents)) {
     }
   }
 
-  await findex.add(findexKey, label, toUpsert)
+  await findex.add(toUpsert)
 }
 
 console.log("---")
 console.log(`Add aliases from word's stem to word…`)
 console.log("---")
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
     .filter(({ word, stem }) => word !== stem)
@@ -106,8 +102,6 @@ console.log("---")
 // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
 // which will make searching for it highly unlikely. We'll use this prefix in our search below.
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)],
@@ -118,8 +112,6 @@ console.log("---")
 console.log(`Add aliases from word's synonyms to word…`)
 console.log("---")
 await findex.add(
-  findexKey,
-  label,
   Array.from(uniqueWords)
     .map((word) => {
       const wordSynonyms = synonyms(word)
@@ -149,7 +141,7 @@ while (true) {
   const stem = natural.PorterStemmer.stem(query)
   const phonetic = natural.Metaphone.process(query)
 
-  const rawResults = await findex.search(findexKey, label, [
+  const rawResults = await findex.search([
     query,
     stem,
     "phonetic_prefix_" + phonetic,

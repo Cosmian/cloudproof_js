@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label } from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -31,14 +31,13 @@ if (!fs.existsSync(dataFilename)) {
 const input = fs.createReadStream(dataFilename)
 
 // Init Findex with random key and random label
-const { callbacksExamplesBetterSqlite3, FindexWithWasmBackend } = await Findex()
-const findexKey = new FindexKey(randomBytes(16))
+const key = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 
 const db = new Database(":memory:")
 const callbacks = await callbacksExamplesBetterSqlite3(db)
-const findex = new FindexWithWasmBackend()
-await findex.createWithWasmBackend(
+const findex = new Findex(key, label)
+await findex.instantiateCustomBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
@@ -88,7 +87,7 @@ for await (const line of readline.createInterface({ input })) {
   }
 
   if (toUpsert.length >= MAX_UPSERT_LINES || end) {
-    await findex.add(findexKey, label, toUpsert)
+    await findex.add(toUpsert)
 
     toUpsert = []
 
@@ -111,7 +110,7 @@ process.stdout.write("Search for: ")
 for await (const query of queries) {
   console.log(query)
 
-  const results = await findex.search(findexKey, label, [query])
+  const results = await findex.search([query])
 
   console.log(`Searching for ${query} returned ${results.total()} results:`)
   for (const result of results) {

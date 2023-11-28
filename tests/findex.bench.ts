@@ -9,18 +9,17 @@ import {
   Label,
   Location,
 } from ".."
+import { callbacksExamplesInMemory } from "../dist/umd/findex/in_memory"
 import { USERS } from "./data/users"
 
-const { FindexWithWasmBackend, callbacksExamplesInMemory } = await Findex()
-
 const callbacks = await callbacksExamplesInMemory()
-const findex = new FindexWithWasmBackend()
-await findex.createWithWasmBackend(
+const key = new FindexKey(randomBytes(16))
+const label = new Label(randomBytes(10))
+const findex = new Findex(key, label)
+await findex.instantiateCustomBackend(
   callbacks.entryCallbacks,
   callbacks.chainCallbacks,
 )
-const findexKey = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
 
 describe("Findex Upsert", async () => {
   bench("Upsert 10 users", async () => {
@@ -35,7 +34,7 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.add(findexKey, label, newIndexedEntries)
+    await findex.add(newIndexedEntries)
   })
 
   bench("Upsert 99 users", async () => {
@@ -50,7 +49,7 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.add(findexKey, label, newIndexedEntries)
+    await findex.add(newIndexedEntries)
   })
 })
 
@@ -66,9 +65,9 @@ describe("Findex Search", async () => {
     })
   }
 
-  await findex.add(findexKey, label, newIndexedEntries)
+  await findex.add(newIndexedEntries)
 
   bench("Search", async () => {
-    await findex.search(findexKey, label, new Set([USERS[0].firstName]))
+    await findex.search(new Set([USERS[0].firstName]))
   })
 })
