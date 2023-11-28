@@ -5,14 +5,14 @@ import { Index, UidsAndValues } from "./types"
 
 /**
  * @param db the SQLite3 connection
- * @param entriesTableName name of the entries table
- * @param chainsTableName name of the chains table
+ * @param entryTableName name of the entries table
+ * @param chainTableName name of the chains table
  * @returns the callbacks
  */
 export async function backendsExamplesBetterSqlite3(
   db: Database,
-  entriesTableName: string = "entries",
-  chainsTableName: string = "chains",
+  entryTableName: string = "entries",
+  chainTableName: string = "chains",
 ): Promise<{
   entryBackend: Backend
   chainBackend: Backend
@@ -20,24 +20,24 @@ export async function backendsExamplesBetterSqlite3(
   await loadWasm()
 
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${entryTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${chainTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
 
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
   //
-  const upsertIntoChainsTableStmt = db.prepare(
-    `INSERT OR REPLACE INTO ${chainsTableName} (uid, value) VALUES(?, ?)`,
+  const upsertIntoTableStmt = db.prepare(
+    `INSERT OR REPLACE INTO ? (uid, value) VALUES(?, ?)`,
   )
   const upsertIntoEntriesTableStmt = db.prepare(
-    `INSERT INTO ${entriesTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
+    `INSERT INTO ${entryTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
   )
   const selectOneEntriesTableItemStmt = db.prepare(
-    `SELECT value FROM ${entriesTableName} WHERE uid = ?`,
+    `SELECT value FROM ${entryTableName} WHERE uid = ?`,
   )
 
   // Save some prepare statements inside these objects
@@ -52,7 +52,7 @@ export async function backendsExamplesBetterSqlite3(
     numberOfUids: number,
   ): Statement => {
     let cache
-    if (table === entriesTableName) {
+    if (table === entryTableName) {
       cache = fetchMultipleEntriesTableStmt
     } else {
       cache = fetchMultipleChainsTableStmt
@@ -72,9 +72,9 @@ export async function backendsExamplesBetterSqlite3(
     return statement
   }
 
-  const fetchCallback = async (
-    table: string,
+  const fetch = async (
     uids: Uint8Array[],
+    table: string,
   ): Promise<UidsAndValues> => {
     return prepareFetchMultipleQuery(table, uids.length).all(
       ...uids,
@@ -112,21 +112,20 @@ export async function backendsExamplesBetterSqlite3(
     return rejected
   }
 
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid, value } of uidsAndValues) {
-      upsertIntoChainsTableStmt.run(uid, value)
+  const insert = async (links: UidsAndValues, table: string): Promise<void> => {
+    for (const { uid, value } of links) {
+      upsertIntoTableStmt.run(table, uid, value)
     }
   }
 
   const entryCallbacks = new Backend()
-  entryCallbacks.fetch = async (uids: Uint8Array[]) =>
-    await fetchCallback(entriesTableName, uids)
+  entryCallbacks.fetch = async (uids: Uint8Array[]) => await fetch(uids, entryTableName)
   entryCallbacks.upsert = upsertEntries
+  entryCallbacks.insert = async (links: UidsAndValues) => await insert(links, entryTableName)
 
   const chainCallbacks = new Backend()
-  chainCallbacks.fetch = async (uids: Uint8Array[]) =>
-    await fetchCallback(chainsTableName, uids)
-  chainCallbacks.insert = insertChains
+  chainCallbacks.fetch = async (uids: Uint8Array[]) => await fetch(uids, chainTableName)
+  chainCallbacks.insert = async (links: UidsAndValues) => await insert(links, chainTableName)
 
   return { entryBackend: entryCallbacks, chainBackend: chainCallbacks }
 }

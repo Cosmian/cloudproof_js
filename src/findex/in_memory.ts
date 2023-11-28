@@ -17,9 +17,9 @@ export async function backendsExamplesInMemory(): Promise<{
   const entries: Map<string, Uint8Array> = new Map()
   const chains: Map<string, Uint8Array> = new Map()
 
-  const fetchCallback = async (
-    table: Map<string, Uint8Array>,
+  const fetch = async (
     uids: Uint8Array[],
+    table: Map<string, Uint8Array>,
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
@@ -62,9 +62,12 @@ export async function backendsExamplesInMemory(): Promise<{
     return rejected
   }
 
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid: newUid, value: newValue } of uidsAndValues) {
-      chains.set(newUid.toString(), newValue)
+  const insert = async (
+    links: UidsAndValues,
+    table: Map<string, Uint8Array>,
+  ): Promise<void> => {
+    for (const { uid: newUid, value: newValue } of links) {
+      table.set(newUid.toString(), newValue)
     }
   }
 
@@ -78,17 +81,22 @@ export async function backendsExamplesInMemory(): Promise<{
     chains.clear()
   }
 
-  const entryCallbacks = new Backend()
-  entryCallbacks.fetch = async (uids: Uint8Array[]) => {
-    return await fetchCallback(entries, uids)
+  const entryBackend = new Backend()
+  entryBackend.fetch = async (uids: Uint8Array[]) => {
+    return await fetch(uids, entries)
   }
-  entryCallbacks.upsert = upsertEntries
-
-  const chainCallbacks = new Backend()
-  chainCallbacks.fetch = async (uids: Uint8Array[]) => {
-    return await fetchCallback(chains, uids)
+  entryBackend.upsert = upsertEntries
+  entryBackend.insert = async (links: UidsAndValues): Promise<void> => {
+    return await insert(links, chains)
   }
-  chainCallbacks.insert = insertChains
 
-  return { entryBackend: entryCallbacks, chainBackend: chainCallbacks, dumpTables, dropTables }
+  const chainBackend = new Backend()
+  chainBackend.fetch = async (uids: Uint8Array[]) => {
+    return await fetch(uids, entries)
+  }
+  chainBackend.insert = async (links: UidsAndValues): Promise<void> => {
+    return await insert(links, chains)
+  }
+
+  return { entryBackend, chainBackend, dumpTables, dropTables }
 }
