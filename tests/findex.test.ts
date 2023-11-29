@@ -287,10 +287,7 @@ test("in memory", async () => {
 test("SQLite", async () => {
   const db = new Database(":memory:")
   const backends = await backendsExamplesBetterSqlite3(db)
-  await runWithFindexBackends(
-    backends.entryBackend,
-    backends.chainBackend,
-  )
+  await runWithFindexBackends(backends.entryBackend, backends.chainBackend)
 })
 
 test("generateAliases", async () => {
@@ -508,8 +505,11 @@ test("generate non regression database", async () => {
     fs.unlinkSync(dbFilepath)
   }
   const db = new Database(dbFilepath)
-  const { entryBackend, chainBackend } =
-    await backendsExamplesBetterSqlite3(db, "entry_table", "chain_table")
+  const { entryBackend, chainBackend } = await backendsExamplesBetterSqlite3(
+    db,
+    "entry_table",
+    "chain_table",
+  )
 
   const key = new FindexKey(toByteArray(FINDEX_TEST_KEY))
   const label = new Label(FINDEX_TEST_LABEL)

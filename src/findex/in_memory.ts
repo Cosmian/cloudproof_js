@@ -82,13 +82,17 @@ export async function backendsExamplesInMemory(): Promise<{
   }
 
   const entryBackend = new Backend()
-  entryBackend.fetch = async (uids: Uint8Array[]) => await fetch(uids, entryTable)
-  entryBackend.insert = async (entries: UidsAndValues) => await insert(entries, entryTable)
+  entryBackend.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, entryTable)
+  entryBackend.insert = async (entries: UidsAndValues) =>
+    await insert(entries, entryTable)
   entryBackend.upsert = upsertEntries
 
   const chainBackend = new Backend()
-  chainBackend.fetch = async (uids: Uint8Array[]) => await fetch(uids, chainTable)
-  chainBackend.insert = async (links: UidsAndValues) => await insert(links, chainTable)
+  chainBackend.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, chainTable)
+  chainBackend.insert = async (links: UidsAndValues) =>
+    await insert(links, chainTable)
 
   return { entryBackend, chainBackend, dumpTables, dropTables }
 }
