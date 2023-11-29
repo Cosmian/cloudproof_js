@@ -1,5 +1,5 @@
 import {
-  Callbacks,
+  Backend,
   CoverCrypt,
   Findex,
   FindexKey,
@@ -412,17 +412,17 @@ function App() {
   ) => {
     await loadWasm()
     const findex = new Findex(localMasterKey, FINDEX_LABEL)
-    const entriesCallbacks = new Callbacks()
-    entriesCallbacks.fetch = async (uids) =>
-      await fetchCallback("entries", uids)
-    entriesCallbacks.upsert = async (
+    const entriesBackend = new Backend()
+    entriesBackend.fetch = async (uids) =>
+      await fetch("entries", uids)
+    entriesBackend.upsert = async (
       oldValues: UidsAndValues,
       newValues: UidsAndValues,
-    ) => await upsertCallback("entries", oldValues, newValues)
-    const chainsCallbacks = new Callbacks()
-    chainsCallbacks.insert = async (uidsAndValues) =>
-      await insertCallback("chains", uidsAndValues)
-    await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
+    ) => await upsert("entries", oldValues, newValues)
+    const chainsBackend = new Backend()
+    chainsBackend.insert = async (uidsAndValues) =>
+      await insert("chains", uidsAndValues)
+    await findex.instantiateCustomBackend(entriesBackend, chainsBackend)
 
     await findex.add(
       users.flatMap((user) => {
@@ -462,7 +462,7 @@ function App() {
     setIndexingDone(true)
   }
 
-  const fetchCallback = async (
+  const fetch= async (
     table: "entries" | "chains",
     uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
@@ -487,7 +487,7 @@ function App() {
     return results
   }
 
-  const insertCallback = async (
+  const insert= async (
     table: "entries" | "chains",
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
@@ -520,7 +520,7 @@ function App() {
     }
   }
 
-  const upsertCallback = async (
+  const upsert= async (
     table: "entries" | "chains",
     oldValues: UidsAndValues,
     newValues: UidsAndValues,
@@ -632,13 +632,13 @@ function App() {
     if (!findexKey) throw new Error("No Findex key")
 
     const findex = new Findex(findexKey, FINDEX_LABEL)
-    const entriesCallbacks = new Callbacks()
-    entriesCallbacks.fetch = async (uids) =>
-      await fetchCallback("entries", uids)
-    const chainsCallbacks = new Callbacks()
-    chainsCallbacks.fetch = async (uids) => await fetchCallback("chains", uids)
+    const entriesBackend = new Backend()
+    entriesBackend.fetch = async (uids) =>
+      await fetch("entries", uids)
+    const chainsBackend = new Backend()
+    chainsBackend.fetch = async (uids) => await fetch("chains", uids)
 
-    await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
+    await findex.instantiateCustomBackend(entriesBackend, chainsBackend)
     const decrypter = (await getEncryptorAndDecrypter()).decrypt
 
     const savedQuery = query

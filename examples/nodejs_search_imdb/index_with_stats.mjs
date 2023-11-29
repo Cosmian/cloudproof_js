@@ -6,7 +6,7 @@ import {
   Keyword,
   Label,
   Location,
-  callbacksExamplesBetterSqlite3,
+  backendsExamplesBetterSqlite3,
   generateAliases,
 } from "cloudproof_js"
 import { randomBytes } from "crypto"
@@ -70,11 +70,11 @@ const dbIndex = new Database(":memory:")
 if (fs.existsSync("findex_indexes.sqlite"))
   fs.unlinkSync("findex_indexes.sqlite")
 
-const callbacks = await callbacksExamplesBetterSqlite3(dbIndex)
+const backends = await backendsExamplesBetterSqlite3(dbIndex)
 const findexSqlite = new Findex(key, label)
 await findexSqlite.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+  backends.entryBackend,
+  backends.chainBackend,
 )
 
 //

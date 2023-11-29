@@ -118,18 +118,18 @@ export async function backendsExamplesBetterSqlite3(
     }
   }
 
-  const entryCallbacks = new Backend()
-  entryCallbacks.fetch = async (uids: Uint8Array[]) =>
+  const entryBackend = new Backend()
+  entryBackend.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, entryTableName)
-  entryCallbacks.upsert = upsertEntries
-  entryCallbacks.insert = async (entries: UidsAndValues) =>
+  entryBackend.upsert = upsertEntries
+  entryBackend.insert = async (entries: UidsAndValues) =>
     await insert(entries, entryTableName)
 
-  const chainCallbacks = new Backend()
-  chainCallbacks.fetch = async (uids: Uint8Array[]) =>
+  const chainBackend = new Backend()
+  chainBackend.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, chainTableName)
-  chainCallbacks.insert = async (links: UidsAndValues) =>
+  chainBackend.insert = async (links: UidsAndValues) =>
     await insert(links, chainTableName)
 
-  return { entryBackend: entryCallbacks, chainBackend: chainCallbacks }
+  return { entryBackend: entryBackend, chainBackend: chainBackend }
 }

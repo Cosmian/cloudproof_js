@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label, Keyword, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
+import { Location, Findex, FindexKey, Label, Keyword, backendsExamplesBetterSqlite3 } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -27,11 +27,11 @@ for (const file of files) {
 const key = new FindexKey(randomBytes(16))
 const label = new Label(randomBytes(10))
 const db = new Database(":memory:")
-const callbacks = await callbacksExamplesBetterSqlite3(db)
+const backends = await backendsExamplesBetterSqlite3(db)
 const findex = new Findex(key, label)
 await findex.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+  backends.entryBackend,
+  backends.chainBackend,
 )
 
 const uniqueWords = new Set()

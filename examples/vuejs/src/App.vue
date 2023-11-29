@@ -1,6 +1,6 @@
 <script lang="ts">
 import {
-  Callbacks,
+  Backend,
   CoverCrypt,
   Findex,
   FindexKey,
@@ -373,17 +373,17 @@ export default defineComponent({
     ) {
       await loadWasm()
       const findex = new Findex(findexKey, FINDEX_LABEL)
-      const entriesCallbacks = new Callbacks()
-      entriesCallbacks.fetch = async (uids) =>
-        await this.fetchCallback("entries", uids)
-      entriesCallbacks.upsert = async (
+      const entryBackend = new Backend()
+      entryBackend.fetch = async (uids) =>
+        await this.fetch("entries", uids)
+      entryBackend.upsert = async (
         oldValues: UidsAndValues,
         newValues: UidsAndValues,
-      ) => await this.upsertCallback("entries", oldValues, newValues)
-      const chainsCallbacks = new Callbacks()
-      chainsCallbacks.insert = async (uidsAndValues) =>
-        await this.insertCallback("chains", uidsAndValues)
-      await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
+      ) => await this.upsert("entries", oldValues, newValues)
+      const chainBackend = new Backend()
+      chainBackend.insert = async (uidsAndValues) =>
+        await this.insert("chains", uidsAndValues)
+      await findex.instantiateCustomBackend(entryBackend, chainBackend)
 
       await findex.add(
         this.users.flatMap((user, index) => {
@@ -422,7 +422,7 @@ export default defineComponent({
       this.indexingDone = true
     },
 
-    async fetchCallback(
+    async fetch(
       table: "entries" | "chains",
       uids: Uint8Array[],
     ): Promise<UidsAndValues> {
@@ -445,7 +445,7 @@ export default defineComponent({
       return results
     },
 
-    async insertCallback(
+    async insert(
       table: "entries" | "chains",
       uidsAndValues: UidsAndValues,
     ): Promise<void> {
@@ -467,7 +467,7 @@ export default defineComponent({
       }
     },
 
-    async upsertCallback(
+    async upsert(
       table: "entries" | "chains",
       oldValues: UidsAndValues,
       newValues: UidsAndValues,
@@ -512,18 +512,18 @@ export default defineComponent({
     async search() {
       if (!this.query || !this.selectedKey) return []
 
-      const entriesCallbacks = new Callbacks()
-      entriesCallbacks.fetch = async (uids) =>
-        await this.fetchCallback("entries", uids)
-      const chainsCallbacks = new Callbacks()
-      chainsCallbacks.fetch = async (uids) =>
-        await this.fetchCallback("chains", uids)
+      const entryBackend = new Backend()
+      entryBackend.fetch = async (uids) =>
+        await this.fetch("entries", uids)
+      const chainBackend = new Backend()
+      chainBackend.fetch = async (uids) =>
+        await this.fetch("chains", uids)
 
       const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
       if (!this.findexKey) throw "No Findex key"
       const findex = new Findex(this.findexKey, FINDEX_LABEL)
-      await findex.instantiateCustomBackend(entriesCallbacks, chainsCallbacks)
+      await findex.instantiateCustomBackend(entryBackend, chainBackend)
 
 
       const query = this.query
