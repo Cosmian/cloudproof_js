@@ -30,8 +30,8 @@ export async function backendsExamplesBetterSqlite3(
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
   //
-  const upsertIntoTableStmt = db.prepare(
-    `INSERT OR REPLACE INTO ? (uid, value) VALUES(?, ?)`,
+  const upsertIntoTableStmt = (table: string) => db.prepare(
+    `INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`,
   )
   const upsertIntoEntriesTableStmt = db.prepare(
     `INSERT INTO ${entryTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
@@ -112,16 +112,16 @@ export async function backendsExamplesBetterSqlite3(
     return rejected
   }
 
-  const insert = async (links: UidsAndValues, table: string): Promise<void> => {
-    for (const { uid, value } of links) {
-      upsertIntoTableStmt.run(table, uid, value)
+  const insert = async (items: UidsAndValues, table: string): Promise<void> => {
+    for (const { uid, value } of items) {
+      upsertIntoTableStmt(table).run(uid, value)
     }
   }
 
   const entryCallbacks = new Backend()
   entryCallbacks.fetch = async (uids: Uint8Array[]) => await fetch(uids, entryTableName)
   entryCallbacks.upsert = upsertEntries
-  entryCallbacks.insert = async (links: UidsAndValues) => await insert(links, entryTableName)
+  entryCallbacks.insert = async (entries: UidsAndValues) => await insert(entries, entryTableName)
 
   const chainCallbacks = new Backend()
   chainCallbacks.fetch = async (uids: Uint8Array[]) => await fetch(uids, chainTableName)

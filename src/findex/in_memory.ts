@@ -14,8 +14,8 @@ export async function backendsExamplesInMemory(): Promise<{
 }> {
   await loadWasm()
 
-  const entries: Map<string, Uint8Array> = new Map()
-  const chains: Map<string, Uint8Array> = new Map()
+  const entryTable: Map<string, Uint8Array> = new Map()
+  const chainTable: Map<string, Uint8Array> = new Map()
 
   const fetch = async (
     uids: Uint8Array[],
@@ -44,13 +44,13 @@ export async function backendsExamplesInMemory(): Promise<{
     }
 
     for (const { uid, value: newValue } of newValues) {
-      const currentValue = entries.get(uid.toString())
+      const currentValue = entryTable.get(uid.toString())
 
       if (
         currentValue?.toString() ===
         mapOfOldValues.get(uid.toString())?.toString()
       ) {
-        entries.set(uid.toString(), newValue)
+        entryTable.set(uid.toString(), newValue)
       } else if (currentValue === undefined) {
         throw new Error(
           "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
@@ -63,40 +63,32 @@ export async function backendsExamplesInMemory(): Promise<{
   }
 
   const insert = async (
-    links: UidsAndValues,
+    items: UidsAndValues,
     table: Map<string, Uint8Array>,
   ): Promise<void> => {
-    for (const { uid: newUid, value: newValue } of links) {
+    for (const { uid: newUid, value: newValue } of items) {
       table.set(newUid.toString(), newValue)
     }
   }
 
   const dumpTables = (): void => {
-    logger.log(() => `entry table length: ${entries.size}`)
-    logger.log(() => `chain table length: ${chains.size}`)
+    logger.log(() => `entry table length: ${entryTable.size}`)
+    logger.log(() => `chain table length: ${chainTable.size}`)
   }
 
   const dropTables = async (): Promise<void> => {
-    entries.clear()
-    chains.clear()
+    entryTable.clear()
+    chainTable.clear()
   }
 
   const entryBackend = new Backend()
-  entryBackend.fetch = async (uids: Uint8Array[]) => {
-    return await fetch(uids, entries)
-  }
+  entryBackend.fetch = async (uids: Uint8Array[]) => await fetch(uids, entryTable)
+  entryBackend.insert = async (entries: UidsAndValues) => await insert(entries, entryTable)
   entryBackend.upsert = upsertEntries
-  entryBackend.insert = async (links: UidsAndValues): Promise<void> => {
-    return await insert(links, chains)
-  }
 
   const chainBackend = new Backend()
-  chainBackend.fetch = async (uids: Uint8Array[]) => {
-    return await fetch(uids, entries)
-  }
-  chainBackend.insert = async (links: UidsAndValues): Promise<void> => {
-    return await insert(links, chains)
-  }
+  chainBackend.fetch = async (uids: Uint8Array[]) => await fetch(uids, chainTable)
+  chainBackend.insert = async (links: UidsAndValues) => await insert(links, chainTable)
 
   return { entryBackend, chainBackend, dumpTables, dropTables }
 }
