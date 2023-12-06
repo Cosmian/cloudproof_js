@@ -5,8 +5,7 @@ import * as fs from "fs"
 import * as os from "os"
 import { expect, test } from "vitest"
 import {
-  Backend,
-  FindexKey,
+  DbInterface,
   Findex,
   IndexedEntry,
   IndexedValue,
@@ -14,12 +13,11 @@ import {
   Interrupt,
   Keyword,
   KeywordIndexEntry,
-  Label,
-  Location,
-  LocationIndexEntry,
+  Data,
+  DataIndexEntry,
   SearchResults,
-  backendsExamplesBetterSqlite3,
-  backendsExamplesInMemory,
+  sqliteDbInterfaceExample,
+  inMemoryDbInterfaceExample,
   generateAliases,
   logger,
   ServerToken,
@@ -45,7 +43,7 @@ async function run(
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromNumber(user.id),
+        indexedValue: Data.fromNumber(user.id),
         keywords: [user.firstName, user.country],
       })
     }
@@ -62,10 +60,10 @@ async function run(
       { userInterrupt, verbose: LOGGER_INIT },
     )
 
-    const locations = results.get(USERS[0].firstName)
+    const data = results.get(USERS[0].firstName)
 
-    expect(locations.length).toEqual(1)
-    expect(locations[0].toNumber()).toEqual(USERS[0].id)
+    expect(data.length).toEqual(1)
+    expect(data[0].toNumber()).toEqual(USERS[0].id)
   }
 
   {
@@ -117,8 +115,8 @@ async function run(
 
     expect(
       results
-        .locations()
-        .map((location) => location.toNumber())
+        .data()
+        .map((data) => data.toNumber())
         .sort((a, b) => a - b),
     ).toEqual(
       USERS.filter(
@@ -142,9 +140,9 @@ async function run(
     const searchAndCheck = async (keyword: string): Promise<void> => {
       const results = await findex.search([keyword])
 
-      const locations = results.get(keyword)
-      expect(locations.length).toEqual(1)
-      expect(locations[0].toNumber()).toEqual(USERS[0].id)
+      const data = results.get(keyword)
+      expect(data.length).toEqual(1)
+      expect(data[0].toNumber()).toEqual(USERS[0].id)
     }
 
     await searchAndCheck("Som")
@@ -169,7 +167,7 @@ async function run(
     sourceIds.map((id) => {
       return findex.add([
         {
-          indexedValue: Location.fromNumber(id),
+          indexedValue: Data.fromNumber(id),
           keywords: ["Concurrent"],
         },
       ])
@@ -184,9 +182,9 @@ async function run(
     }
 
     expect(results.total()).toEqual(100)
-    const locations = results.locations()
-    const resultsIds = locations
-      .map((location) => location.toNumber())
+    const data = results.data()
+    const resultsIds = data
+      .map((data) => data.toNumber())
       .sort((a, b) => a - b)
     expect(resultsIds).toEqual(sourceIds)
   }
@@ -194,22 +192,22 @@ async function run(
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function runWithFindexBackends(
-  entryBackends: Backend,
-  chainBackends: Backend,
+  entryBackends: DbInterface,
+  chainBackends: DbInterface,
   dumpTables?: () => void,
   dropTables?: () => Promise<void>,
 ): Promise<void> {
-  const label = new Label(randomBytes(10))
-  const key = new FindexKey(randomBytes(16))
+  const label = randomBytes(10).toString()
+  const key = randomBytes(16)
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryBackends, chainBackends)
+  await findex.instantiateCustomInterface(entryBackends, chainBackends)
   await run(
     findex,
     async (results: IntermediateSearchResults) => {
       try {
-        const locations = results.getLocations(USERS[0].firstName)
-        expect(locations.length).toEqual(1)
-        expect(locations[0].toNumber()).toEqual(USERS[0].id)
+        const data = results.getData(USERS[0].firstName)
+        expect(data.length).toEqual(1)
+        expect(data[0].toNumber()).toEqual(USERS[0].id)
         return true
       } catch {
         return false
@@ -250,8 +248,8 @@ async function runInFindexCloud(): Promise<void> {
   }
 
   const data = await response.json()
-  const label = new Label(randomBytes(10))
-  const key = new FindexKey(randomBytes(16))
+  const label = randomBytes(10).toString()
+  const key = randomBytes(16)
   const findex = new Findex(key, label)
   const token = await ServerToken.new(
     data.public_id,
@@ -260,7 +258,7 @@ async function runInFindexCloud(): Promise<void> {
     Uint8Array.from(data.upsert_entries_key),
     Uint8Array.from(data.insert_chains_key),
   )
-  await findex.instantiateRestBackend(token, baseUrl)
+  await findex.instantiateRestInterface(token, baseUrl, baseUrl)
   await run(findex)
 }
 
@@ -273,11 +271,11 @@ test(
 )
 
 test("in memory", async () => {
-  const backends = await backendsExamplesInMemory()
+  const backends = await inMemoryDbInterfaceExample()
   backends.dumpTables()
   await runWithFindexBackends(
-    backends.entryBackend,
-    backends.chainBackend,
+    backends.entryInterface,
+    backends.chainInterface,
     backends.dumpTables,
     backends.dropTables,
   )
@@ -286,8 +284,8 @@ test("in memory", async () => {
 
 test("SQLite", async () => {
   const db = new Database(":memory:")
-  const backends = await backendsExamplesBetterSqlite3(db)
-  await runWithFindexBackends(backends.entryBackend, backends.chainBackend)
+  const backends = await sqliteDbInterfaceExample(db)
+  await runWithFindexBackends(backends.entryInterface, backends.chainInterface)
 })
 
 test("generateAliases", async () => {
@@ -334,11 +332,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [Location.fromNumber(1).bytes],
+        results: [Data.fromNumber(1).bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [Location.fromNumber(2).bytes],
+        results: [Data.fromNumber(2).bytes],
       },
     ])
 
@@ -348,11 +346,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [Location.fromString("XXX").bytes],
+        results: [Data.fromString("XXX").bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [Location.fromString("YYY").bytes],
+        results: [Data.fromString("YYY").bytes],
       },
     ])
 
@@ -363,13 +361,13 @@ test("SearchResults", async () => {
       {
         keyword: Keyword.fromString("A").bytes,
         results: [
-          Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes,
+          Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes,
         ],
       },
       {
         keyword: Keyword.fromString("B").bytes,
         results: [
-          Location.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes,
+          Data.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes,
         ],
       },
     ])
@@ -381,32 +379,32 @@ test("SearchResults", async () => {
   }
 })
 
-test("Location conversions", async () => {
-  expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
-  expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
+test("Data conversions", async () => {
+  expect(Data.fromString("Hello World!").toString()).toEqual("Hello World!")
+  expect(Data.fromNumber(1337).toNumber()).toEqual(1337)
   expect(
-    Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
+    Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
   ).toEqual("933f6cee-5e0f-4cad-b5b3-56de0fe003d0")
 
   //
   // check that the formats are the same as Java
   //
-  expect(Location.fromNumber(1337).bytes).toEqual(
+  expect(Data.fromNumber(1337).bytes).toEqual(
     Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57]),
   )
   expect(
-    new Location(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
+    new Data(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
   ).toEqual(1337)
 
   expect(
-    Location.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
+    Data.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
   ).toEqual(
     Uint8Array.from([
       -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100, 17,
     ]),
   )
   expect(
-    new Location(
+    new Data(
       Uint8Array.from([
         -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100,
         17,
@@ -416,12 +414,12 @@ test("Location conversions", async () => {
 })
 
 test("upsert and search cycle", async () => {
-  const { entryBackend, chainBackend } = await backendsExamplesInMemory()
+  const { entryInterface, chainInterface } = await inMemoryDbInterfaceExample()
 
-  const key = new FindexKey(randomBytes(16))
-  const label = new Label(randomBytes(10))
+  const key = randomBytes(16)
+  const label = randomBytes(10).toString()
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryBackend, chainBackend)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
   await findex.add([
     {
@@ -438,31 +436,31 @@ test("upsert and search cycle", async () => {
 })
 
 test("upsert and search memory", async () => {
-  const { entryBackend, chainBackend } = await backendsExamplesInMemory()
+  const { entryInterface, chainInterface } = await inMemoryDbInterfaceExample()
 
-  const key = new FindexKey(randomBytes(16))
-  const label = new Label("test")
+  const key = randomBytes(16)
+  const label = "test"
   const findex = new Findex(key, label)
 
-  await findex.instantiateCustomBackend(entryBackend, chainBackend)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
-  const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(Location.fromString("ROBERT file")),
+  const entryData: IndexedEntry = {
+    indexedValue: IndexedValue.fromData(Data.fromString("ROBERT file")),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
-  const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
-  expect(entryLocation_).toEqual(entryLocation)
+  const entryData_ = new DataIndexEntry("ROBERT file", ["ROBERT"])
+  expect(entryData_).toEqual(entryData)
 
-  const arrayLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(
-      Location.fromString("ROBERT file array"),
+  const arrayData: IndexedEntry = {
+    indexedValue: IndexedValue.fromData(
+      Data.fromString("ROBERT file array"),
     ),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
-  const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
+  const arrayData_ = new DataIndexEntry("ROBERT file array", [
     new TextEncoder().encode("ROBERT"),
   ])
-  expect(arrayLocation_).toEqual(arrayLocation)
+  expect(arrayData_).toEqual(arrayData)
 
   const entryKeyword: IndexedEntry = {
     indexedValue: IndexedValue.fromNextWord(Keyword.fromString("ROBERT")),
@@ -471,7 +469,7 @@ test("upsert and search memory", async () => {
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
 
-  await findex.add([entryLocation, entryKeyword, arrayLocation])
+  await findex.add([entryData, entryKeyword, arrayData])
 
   const results0 = await findex.search(new Set(["ROBERT"]))
   expect(results0.total()).toEqual(2)
@@ -505,22 +503,22 @@ test("generate non regression database", async () => {
     fs.unlinkSync(dbFilepath)
   }
   const db = new Database(dbFilepath)
-  const { entryBackend, chainBackend } = await backendsExamplesBetterSqlite3(
+  const { entryInterface, chainInterface } = await sqliteDbInterfaceExample(
     db,
     "entry_table",
     "chain_table",
   )
 
-  const key = new FindexKey(toByteArray(FINDEX_TEST_KEY))
-  const label = new Label(FINDEX_TEST_LABEL)
+  const key = toByteArray(FINDEX_TEST_KEY)
+  const label = FINDEX_TEST_LABEL
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(entryBackend, chainBackend)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
   {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromNumber(user.id),
+        indexedValue: Data.fromNumber(user.id),
         keywords: [
           user.firstName,
           user.lastName,
@@ -538,8 +536,8 @@ test("generate non regression database", async () => {
 
     const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(30)
+    const data = results.get("France")
+    expect(data.length).toEqual(30)
   }
 })
 
@@ -549,18 +547,18 @@ test("generate non regression database", async () => {
  */
 async function verify(dbFilepath: string): Promise<void> {
   const db = new Database(dbFilepath)
-  const backends = await backendsExamplesBetterSqlite3(
+  const backends = await sqliteDbInterfaceExample(
     db,
     "entry_table",
     "chain_table",
   )
-  const key = new FindexKey(toByteArray(FINDEX_TEST_KEY))
-  const label = new Label(FINDEX_TEST_LABEL)
+  const key = toByteArray(FINDEX_TEST_KEY)
+  const label = FINDEX_TEST_LABEL
   const findex = new Findex(key, label)
 
-  await findex.instantiateCustomBackend(
-    backends.entryBackend,
-    backends.chainBackend,
+  await findex.instantiateCustomInterface(
+    backends.entryInterface,
+    backends.chainInterface,
   )
 
   //
@@ -569,8 +567,8 @@ async function verify(dbFilepath: string): Promise<void> {
   {
     const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(30)
+    const data = results.get("France")
+    expect(data.length).toEqual(30)
   }
 
   //
@@ -590,7 +588,7 @@ async function verify(dbFilepath: string): Promise<void> {
       security: "confidential",
     }
     newIndexedEntries.push({
-      indexedValue: Location.fromNumber(newUser.id),
+      indexedValue: Data.fromNumber(newUser.id),
       keywords: [
         newUser.firstName,
         newUser.lastName,
@@ -612,8 +610,8 @@ async function verify(dbFilepath: string): Promise<void> {
   {
     const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(31)
+    const data = results.get("France")
+    expect(data.length).toEqual(31)
   }
 }
 

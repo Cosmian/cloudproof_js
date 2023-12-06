@@ -1,7 +1,7 @@
 import { WasmCallbacks as WebAssemblyCallbacks } from "../pkg/findex/cloudproof_findex"
 import { UidsAndValues } from "./types"
 
-export class Backend {
+export class DbInterface {
   private readonly _callbacks: WebAssemblyCallbacks
 
   constructor() {

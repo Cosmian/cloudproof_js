@@ -22,11 +22,11 @@ export class IndexedValue {
     this.bytes = bytes
   }
 
-  static fromLocation(location: Location): IndexedValue {
-    const prefix = new Uint8Array(location.bytes.length + 1)
+  static fromData(data: Data): IndexedValue {
+    const prefix = new Uint8Array(data.bytes.length + 1)
     prefix[0] = IndexedValue.L_PREFIX
-    for (let index = 0; index < location.bytes.length; index++) {
-      prefix[index + 1] = location.bytes[index]
+    for (let index = 0; index < data.bytes.length; index++) {
+      prefix[index + 1] = data.bytes[index]
     }
 
     return new IndexedValue(prefix)
@@ -46,9 +46,9 @@ export class IndexedValue {
     return fromByteArray(this.bytes)
   }
 
-  getLocation(): Location | null {
+  getData(): Data | null {
     if (this.bytes[0] === IndexedValue.L_PREFIX) {
-      return new Location(this.bytes.slice(1))
+      return new Data(this.bytes.slice(1))
     }
 
     return null
@@ -63,14 +63,14 @@ export class IndexedValue {
   }
 }
 
-export class Location {
+export class Data {
   bytes: Uint8Array
   constructor(bytes: Uint8Array) {
     this.bytes = bytes
   }
 
-  static fromString(value: string): Location {
-    return new Location(new TextEncoder().encode(value))
+  static fromString(value: string): Data {
+    return new Data(new TextEncoder().encode(value))
   }
 
   /**
@@ -80,22 +80,22 @@ export class Location {
    * is easier to use in JS that BigInt. If we insert a really big 64bits number in Java for example, JS will
    * not be able to read it.
    * @param value number
-   * @returns location
+   * @returns data
    */
-  static fromNumber(value: number): Location {
+  static fromNumber(value: number): Data {
     const buffer = new ArrayBuffer(8)
     new DataView(buffer).setBigInt64(0, BigInt(value), false)
 
-    return new Location(new Uint8Array(buffer))
+    return new Data(new Uint8Array(buffer))
   }
 
   /**
    * Convert UUIDv4 only because they are more common.
    * @param uuidv4 uuid
-   * @returns location
+   * @returns data
    */
-  static fromUuid(uuidv4: string): Location {
-    return new Location(Uint8Array.from(parseUuid(uuidv4)))
+  static fromUuid(uuidv4: string): Data {
+    return new Data(Uint8Array.from(parseUuid(uuidv4)))
   }
 
   toString(): string {
@@ -105,7 +105,7 @@ export class Location {
   toNumber(): number {
     if (this.bytes.length !== 8) {
       throw new Error(
-        `The location is of length ${this.bytes.length}, 8 bytes expected for a number.`,
+        `The data is of length ${this.bytes.length}, 8 bytes expected for a number.`,
       )
     }
 
@@ -140,42 +140,12 @@ export class Keyword {
   }
 }
 
-export class FindexKey {
-  _bytes: Uint8Array
-  constructor(bytes: Uint8Array) {
-    this._bytes = bytes
-  }
-
-  toBase64(): string {
-    return fromByteArray(this.bytes)
-  }
-
-  public get bytes(): Uint8Array {
-    return this._bytes
-  }
-}
-
-export class Label {
-  bytes: Uint8Array
-  constructor(value: string | Uint8Array) {
-    if (value instanceof Uint8Array) {
-      this.bytes = value
-    } else {
-      this.bytes = new TextEncoder().encode(value)
-    }
-  }
-
-  static fromString(value: string): Label {
-    return new Label(new TextEncoder().encode(value))
-  }
-}
-
 /**
  * A new value to index for a given set of keywords:
  * IndexedValue -> Set<KeyWord>
  */
 export interface IndexedEntry {
-  indexedValue: IndexedValue | Location | Keyword
+  indexedValue: IndexedValue | Data | Keyword
   keywords: Set<Keyword> | Keyword[] | string[]
 }
 
@@ -206,21 +176,21 @@ export function generateAliases(
 
 /**
  * A helper class to create a {@link IndexedEntry} when
- * indexing a {@link Location} with keywords supplied
+ * indexing a {@link Data} with keywords supplied
  * as arrays of strings or bytes
  */
-export class LocationIndexEntry implements IndexedEntry {
+export class DataIndexEntry implements IndexedEntry {
   indexedValue: IndexedValue
   keywords: Set<Keyword>
   constructor(
-    location: string | Uint8Array,
+    data: string | Uint8Array,
     keywords: string[] | Uint8Array[],
   ) {
-    if (location instanceof Uint8Array) {
-      this.indexedValue = IndexedValue.fromLocation(new Location(location))
+    if (data instanceof Uint8Array) {
+      this.indexedValue = IndexedValue.fromData(new Data(data))
     } else {
-      this.indexedValue = IndexedValue.fromLocation(
-        new Location(new TextEncoder().encode(location)),
+      this.indexedValue = IndexedValue.fromData(
+        new Data(new TextEncoder().encode(data)),
       )
     }
     this.keywords = new Set(
@@ -289,30 +259,30 @@ export type Interrupt = (
 ) => Promise<boolean>
 
 export class SearchResults {
-  locationsPerKeywords: Array<{
+  dataPerKeywords: Array<{
     keyword: Uint8Array
-    locations: Location[]
+    data: Data[]
   }>
 
   constructor(
     resultsPerKeywords: Array<{ keyword: Uint8Array; results: Uint8Array[] }>,
   ) {
-    this.locationsPerKeywords = resultsPerKeywords.map(
+    this.dataPerKeywords = resultsPerKeywords.map(
       ({ keyword, results }) => ({
         keyword,
-        locations: results.map((bytes) => new Location(bytes)),
+        data: results.map((bytes) => new Data(bytes)),
       }),
     )
   }
 
-  get(keyword: string | Uint8Array): Location[] {
+  get(keyword: string | Uint8Array): Data[] {
     const keywordAsBytes =
       typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
 
-    for (const { keyword: keywordInResults, locations } of this
-      .locationsPerKeywords) {
+    for (const { keyword: keywordInResults, data: data } of this
+      .dataPerKeywords) {
       if (bytesEquals(keywordAsBytes, keywordInResults)) {
-        return locations
+        return data
       }
     }
 
@@ -321,36 +291,36 @@ export class SearchResults {
     throw new Error(`Cannot find ${keywordAsString} inside the search results.`)
   }
 
-  locations(): Location[] {
+  data(): Data[] {
     return Array.from(this)
   }
 
   toNumbers(): number[] {
-    return this.locations().map((location) => location.toNumber())
+    return this.data().map((data) => data.toNumber())
   }
 
   toStrings(): string[] {
-    return this.locations().map((location) => location.toString())
+    return this.data().map((data) => data.toString())
   }
 
   toUuidStrings(): string[] {
-    return this.locations().map((location) => location.toUuidString())
+    return this.data().map((data) => data.toUuidString())
   }
 
   total(): number {
-    return this.locations().length
+    return this.data().length
   }
 
-  *[Symbol.iterator](): Generator<Location, void, void> {
-    const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
+  *[Symbol.iterator](): Generator<Data, void, void> {
+    const alreadyYields = new Set() // Do not yield multiple times the same data if returned from multiple keywords
 
-    for (const { locations } of this.locationsPerKeywords) {
-      for (const location of locations) {
-        const locationEncoded = hexEncode(location.bytes)
+    for (const { data: data } of this.dataPerKeywords) {
+      for (const datum of data) {
+        const DatumEncoded = hexEncode(datum.bytes)
 
-        if (!alreadyYields.has(locationEncoded)) {
-          alreadyYields.add(locationEncoded)
-          yield location
+        if (!alreadyYields.has(DatumEncoded)) {
+          alreadyYields.add(DatumEncoded)
+          yield datum
         }
       }
     }
@@ -374,10 +344,10 @@ export class IntermediateSearchResults {
     )
   }
 
-  getLocations(keyword: string | Uint8Array): Location[] {
+  getData(keyword: string | Uint8Array): Data[] {
     return this.getAllIndexedValues(keyword)
-      .map((result) => result.getLocation())
-      .filter((location) => location !== null) as Location[]
+      .map((result) => result.getData())
+      .filter((data) => data !== null) as Data[]
   }
 
   getKeywords(keyword: string | Uint8Array): Keyword[] {
@@ -411,7 +381,7 @@ export class IntermediateSearchResults {
   }
 
   *[Symbol.iterator](): Generator<IndexedValue, void, void> {
-    const alreadyYields = new Set() // Do not yield multiple times the same location if returned from multiple keywords
+    const alreadyYields = new Set() // Do not yield multiple times the same data if returned from multiple keywords
 
     for (const { indexedValues } of this.indexedValuesPerKeywords) {
       for (const indexedValue of indexedValues) {
@@ -449,13 +419,13 @@ export function indexedEntriesToBytes(
     let indexedValueBytes
     if (indexedValue instanceof IndexedValue) {
       indexedValueBytes = indexedValue.bytes
-    } else if (indexedValue instanceof Location) {
-      indexedValueBytes = IndexedValue.fromLocation(indexedValue).bytes
+    } else if (indexedValue instanceof Data) {
+      indexedValueBytes = IndexedValue.fromData(indexedValue).bytes
     } else if (indexedValue instanceof Keyword) {
       indexedValueBytes = IndexedValue.fromNextWord(indexedValue).bytes
     } else {
       throw new Error(
-        `During Findex upsert: all the \`indexedValue\` inside the \`${debugName}\` array should be of type IndexedValue, Location or Keyword, ${typeof indexedValue} received (${JSON.stringify(
+        `During Findex upsert: all the \`indexedValue\` inside the \`${debugName}\` array should be of type IndexedValue, Data or Keyword, ${typeof indexedValue} received (${JSON.stringify(
           indexedValue,
         )}).`,
       )

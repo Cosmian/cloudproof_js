@@ -1,5 +1,5 @@
 import { Database, Statement } from "better-sqlite3"
-import { Backend } from "./backend"
+import { DbInterface } from "./backend"
 import { loadWasm } from "./init"
 import { Index, UidsAndValues } from "./types"
 
@@ -9,13 +9,13 @@ import { Index, UidsAndValues } from "./types"
  * @param chainTableName name of the chains table
  * @returns the callbacks
  */
-export async function backendsExamplesBetterSqlite3(
+export async function sqliteDbInterfaceExample(
   db: Database,
   entryTableName: string = "entries",
   chainTableName: string = "chains",
 ): Promise<{
-  entryBackend: Backend
-  chainBackend: Backend
+  entryInterface: DbInterface
+  chainInterface: DbInterface
 }> {
   await loadWasm()
 
@@ -118,18 +118,18 @@ export async function backendsExamplesBetterSqlite3(
     }
   }
 
-  const entryBackend = new Backend()
-  entryBackend.fetch = async (uids: Uint8Array[]) =>
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, entryTableName)
-  entryBackend.upsert = upsertEntries
-  entryBackend.insert = async (entries: UidsAndValues) =>
+  entryInterface.upsert = upsertEntries
+  entryInterface.insert = async (entries: UidsAndValues) =>
     await insert(entries, entryTableName)
 
-  const chainBackend = new Backend()
-  chainBackend.fetch = async (uids: Uint8Array[]) =>
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, chainTableName)
-  chainBackend.insert = async (links: UidsAndValues) =>
+  chainInterface.insert = async (links: UidsAndValues) =>
     await insert(links, chainTableName)
 
-  return { entryBackend: entryBackend, chainBackend: chainBackend }
+  return { entryInterface, chainInterface }
 }

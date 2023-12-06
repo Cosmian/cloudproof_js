@@ -1,14 +1,14 @@
 import { logger } from "utils/logger"
-import { Backend } from "./backend"
+import { DbInterface } from "./backend"
 import { loadWasm } from "./init"
 import { UidsAndValues } from "./types"
 
 /**
  * @returns the callbacks
  */
-export async function backendsExamplesInMemory(): Promise<{
-  entryBackend: Backend
-  chainBackend: Backend
+export async function inMemoryDbInterfaceExample(): Promise<{
+  entryInterface: DbInterface
+  chainInterface: DbInterface
   dumpTables: () => void
   dropTables: () => Promise<void>
 }> {
@@ -81,18 +81,18 @@ export async function backendsExamplesInMemory(): Promise<{
     chainTable.clear()
   }
 
-  const entryBackend = new Backend()
-  entryBackend.fetch = async (uids: Uint8Array[]) =>
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, entryTable)
-  entryBackend.insert = async (entries: UidsAndValues) =>
+  entryInterface.insert = async (entries: UidsAndValues) =>
     await insert(entries, entryTable)
-  entryBackend.upsert = upsertEntries
+  entryInterface.upsert = upsertEntries
 
-  const chainBackend = new Backend()
-  chainBackend.fetch = async (uids: Uint8Array[]) =>
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
     await fetch(uids, chainTable)
-  chainBackend.insert = async (links: UidsAndValues) =>
+  chainInterface.insert = async (links: UidsAndValues) =>
     await insert(links, chainTable)
 
-  return { entryBackend, chainBackend, dumpTables, dropTables }
+  return { entryInterface, chainInterface, dumpTables, dropTables }
 }
