@@ -189,16 +189,16 @@ async function run(
 }
 
 // eslint-disable-next-line jsdoc/require-jsdoc
-async function runWithFindexBackends(
-  entryBackends: DbInterface,
-  chainBackends: DbInterface,
+async function runWithFindexInterface(
+  entryInterface: DbInterface,
+  chainInterface: DbInterface,
   dumpTables?: () => void,
   dropTables?: () => Promise<void>,
 ): Promise<void> {
   const label = randomBytes(10).toString()
   const key = randomBytes(16)
   const findex = new Findex(key, label)
-  await findex.instantiateCustomInterface(entryBackends, chainBackends)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
   await run(
     findex,
     async (results: IntermediateSearchResults) => {
@@ -269,21 +269,24 @@ test(
 )
 
 test("in memory", async () => {
-  const backends = await inMemoryDbInterfaceExample()
-  backends.dumpTables()
-  await runWithFindexBackends(
-    backends.entryInterface,
-    backends.chainInterface,
-    backends.dumpTables,
-    backends.dropTables,
+  const interfaces = await inMemoryDbInterfaceExample()
+  interfaces.dumpTables()
+  await runWithFindexInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
+    interfaces.dumpTables,
+    interfaces.dropTables,
   )
-  backends.dumpTables()
+  interfaces.dumpTables()
 })
 
 test("SQLite", async () => {
   const db = new Database(":memory:")
-  const backends = await sqliteDbInterfaceExample(db)
-  await runWithFindexBackends(backends.entryInterface, backends.chainInterface)
+  const interfaces = await sqliteDbInterfaceExample(db)
+  await runWithFindexInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
+  )
 })
 
 test("generateAliases", async () => {
@@ -537,7 +540,7 @@ test("generate non regression database", async () => {
  */
 async function verify(dbFilepath: string): Promise<void> {
   const db = new Database(dbFilepath)
-  const backends = await sqliteDbInterfaceExample(
+  const interfaces = await sqliteDbInterfaceExample(
     db,
     "entry_table",
     "chain_table",
@@ -547,8 +550,8 @@ async function verify(dbFilepath: string): Promise<void> {
   const findex = new Findex(key, label)
 
   await findex.instantiateCustomInterface(
-    backends.entryInterface,
-    backends.chainInterface,
+    interfaces.entryInterface,
+    interfaces.chainInterface,
   )
 
   //

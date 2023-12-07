@@ -4,13 +4,13 @@ import { Findex, IndexedEntry, IndexedValue, Keyword, Data } from ".."
 import { inMemoryDbInterfaceExample } from "../dist/umd/findex/in_memory"
 import { USERS } from "./data/users"
 
-const backends = await inMemoryDbInterfaceExample()
+const interfaces = await inMemoryDbInterfaceExample()
 const key = randomBytes(16)
 const label = randomBytes(10).toString()
 const findex = new Findex(key, label)
 await findex.instantiateCustomInterface(
-  backends.entryInterface,
-  backends.chainInterface,
+  interfaces.entryInterface,
+  interfaces.chainInterface,
 )
 
 describe("Findex Upsert", async () => {

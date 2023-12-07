@@ -1,11 +1,9 @@
 import {
-  Backend,
+  DbInterface,
   CoverCrypt,
   Findex,
-  FindexKey,
   KmsClient,
-  Label,
-  Location,
+  Data,
   PolicyKms,
   UidsAndValues,
   generateAliases,
@@ -26,7 +24,7 @@ const DEPARTMENTS_AXIS = [
   { name: "HR", isHybridized: false },
   { name: "Manager", isHybridized: false },
 ]
-const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
+const FINDEX_LABEL = [1, 2, 3].toString()
 type NewUser = {
   first: string
   last: string
@@ -176,7 +174,7 @@ function App() {
     }[],
   )
 
-  const [findexKey, setMasterKey] = useState(null as FindexKey | null)
+  const [key, setMasterKey] = useState(null as Uint8Array | null)
   const [indexesEntries, setIndexesEntries] = useState([] as UidsAndValues)
   const [indexesChains, setIndexesChains] = useState([] as UidsAndValues)
 
@@ -407,28 +405,28 @@ function App() {
   }
 
   const indexUsers = async (
-    localMasterKey: Exclude<typeof findexKey, null>,
+    localMasterKey: Exclude<Uint8Array, null>,
     users: User[],
   ) => {
     await loadWasm()
     const findex = new Findex(localMasterKey, FINDEX_LABEL)
-    const entriesBackend = new Backend()
-    entriesBackend.fetch = async (uids) =>
+    const entryInterface = new DbInterface()
+    entryInterface.fetch = async (uids) =>
       await fetch("entries", uids)
-    entriesBackend.upsert = async (
+    entryInterface.upsert = async (
       oldValues: UidsAndValues,
       newValues: UidsAndValues,
     ) => await upsert("entries", oldValues, newValues)
-    const chainsBackend = new Backend()
-    chainsBackend.insert = async (uidsAndValues) =>
+    const chainInterface = new DbInterface()
+    chainInterface.insert = async (uidsAndValues) =>
       await insert("chains", uidsAndValues)
-    await findex.instantiateCustomBackend(entriesBackend, chainsBackend)
+    await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
     await findex.add(
       users.flatMap((user) => {
         return [
           {
-            indexedValue: Location.fromString(user.id.toString()),
+            indexedValue: Data.fromString(user.id.toString()),
             keywords: [
               user.first,
               user.last,
@@ -453,10 +451,10 @@ function App() {
   const index = async () => {
     setIndexing(true)
 
-    let findexKey = new FindexKey(Uint8Array.from(Array(16).keys()))
-    setMasterKey(findexKey)
+    let key = Uint8Array.from(Array(16).keys())
+    setMasterKey(key)
 
-    indexUsers(findexKey, users)
+    indexUsers(key, users)
 
     setIndexing(false)
     setIndexingDone(true)
@@ -579,11 +577,11 @@ function App() {
     }
 
     if (indexingDone) {
-      if (!findexKey)
+      if (!key)
         throw new Error(
-          "findexKey should be present when first indexing is done",
+          "Findex key should be present when first indexing is done",
         )
-      await indexUsers(findexKey, [user])
+      await indexUsers(key, [user])
     }
 
     setAddingUser(false)
@@ -629,16 +627,16 @@ function App() {
   const doSearch = async () => {
     if (!query) return []
     if (!selectedKey) return []
-    if (!findexKey) throw new Error("No Findex key")
+    if (!key) throw new Error("No Findex key")
 
-    const findex = new Findex(findexKey, FINDEX_LABEL)
-    const entriesBackend = new Backend()
-    entriesBackend.fetch = async (uids) =>
+    const findex = new Findex(key, FINDEX_LABEL)
+    const entryInterface = new DbInterface()
+    entryInterface.fetch = async (uids) =>
       await fetch("entries", uids)
-    const chainsBackend = new Backend()
-    chainsBackend.fetch = async (uids) => await fetch("chains", uids)
+    const chainInterface = new DbInterface()
+    chainInterface.fetch = async (uids) => await fetch("chains", uids)
 
-    await findex.instantiateCustomBackend(entriesBackend, chainsBackend)
+    await findex.instantiateCustomInterface(entryInterface, chainInterface)
     const decrypter = (await getEncryptorAndDecrypter()).decrypt
 
     const savedQuery = query
@@ -649,26 +647,26 @@ function App() {
       .filter((keyword) => keyword)
     if (keywords.length === 0) return
 
-    let locations: Array<Location> | null = null
+    let data: Array<Data> | null = null
     if (doOr) {
-      locations = (
+      data = (
         await findex.search(new Set(keywords))
-      ).locations()
+      ).data()
     } else {
       for (const keyword of keywords) {
-        const newLocations = (
+        const newData = (
           await findex.search(new Set([keyword]))
-        ).locations()
+        ).data()
 
-        if (locations === null) {
-          locations = newLocations
+        if (data === null) {
+          data = newData
         } else {
-          locations = locations.filter((alreadyReturnedLocation) => {
-            for (let newLocation of newLocations) {
+          data = data.filter((alreadyReturnedData) => {
+            for (let newDatum of newData) {
               if (
                 uint8ArrayEquals(
-                  newLocation.bytes,
-                  alreadyReturnedLocation.bytes,
+                  newDatum.bytes,
+                  alreadyReturnedData.bytes,
                 )
               ) {
                 return true
@@ -681,12 +679,12 @@ function App() {
       }
     }
 
-    if (locations === null)
+    if (data === null)
       throw Error("Indexed values cannot be null when a query is provided")
 
     let results = []
-    for (const location of locations) {
-      const userId = parseInt(location.toString())
+    for (const datum of data) {
+      const userId = parseInt(datum.toString())
       let encryptedUser = encryptedUsers.find(
         (encryptedUser) => encryptedUser.id === userId,
       )

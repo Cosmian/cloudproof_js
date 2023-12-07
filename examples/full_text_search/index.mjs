@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label, Keyword, backendsExamplesBetterSqlite3 } from "cloudproof_js"
+import { Data, Findex, Keyword, sqliteDbInterfaceExample } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -24,14 +24,14 @@ for (const file of files) {
 }
 
 // Init Findex with random key and random label
-const key = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 const db = new Database(":memory:")
-const backends = await backendsExamplesBetterSqlite3(db)
+const interfaces = await sqliteDbInterfaceExample(db)
 const findex = new Findex(key, label)
-await findex.instantiateCustomBackend(
-  backends.entryBackend,
-  backends.chainBackend,
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
 )
 
 const uniqueWords = new Set()
@@ -65,7 +65,7 @@ for (const [name, content] of Object.entries(contents)) {
 
       positions.push(index)
       start = index + word.length
-      const locationBytes = Uint8Array.from([
+      const dataBytes = Uint8Array.from([
         ...encode(nameBytes.length),
         ...nameBytes,
         ...encode(index),
@@ -73,7 +73,7 @@ for (const [name, content] of Object.entries(contents)) {
       ])
 
       toUpsert.push({
-        indexedValue: new Location(locationBytes),
+        indexedValue: new Data(dataBytes),
         keywords: [word],
       })
     }
@@ -151,8 +151,8 @@ while (true) {
     `Searching for ${query} (${stem}, ${phonetic}), ${rawResults.total()} results.`,
   )
 
-  // Parse locations and compute distances
-  const results = rawResults.locations().map((result) => {
+  // Parse data and compute distances
+  const results = rawResults.data().map((result) => {
     const { result: filenameLength, tail } = decode(result.bytes)
     const filename = new TextDecoder().decode(tail.slice(0, filenameLength))
 

@@ -75,12 +75,12 @@ export class Findex {
   label: string
   _instantiatedFindex: InstantiatedFindex | null
 
-  constructor(findexKey: SymmetricKey | Uint8Array, label: string) {
-    if (findexKey instanceof SymmetricKey) {
-      findexKey = findexKey.bytes()
+  constructor(key: SymmetricKey | Uint8Array, label: string) {
+    if (key instanceof SymmetricKey) {
+      key = key.bytes()
     }
 
-    this.key = findexKey
+    this.key = key
     this.label = label
     this._instantiatedFindex = null
   }
@@ -116,7 +116,7 @@ export class Findex {
   }
 
   /**
-   * Instantiates a REST backend using the given token and URL.
+   * Instantiates a Findex REST interface using the given token and URL.
    * @param token findex server authorization token
    * @param entryUrl entry table url
    * @param chainUrl chain table url
@@ -142,7 +142,7 @@ export class Findex {
    * @param options Additional optional options
    * @param options.verbose the optional verbose bool parameter
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
-   * @throws when the backend is not instantiated
+   * @throws when the DB interface is not instantiated
    */
   public async add(
     associations: IndexedEntry[],
@@ -163,7 +163,7 @@ export class Findex {
 
       return newIds.map((value: Uint8Array) => new Keyword(value))
     } else {
-      throw new Error("Instantiate a backend before calling `add`")
+      throw new Error("Instantiate a DB interface before calling `add`")
     }
   }
 
@@ -173,7 +173,7 @@ export class Findex {
    * @param options Additional optional options
    * @param options.verbose the optional verbose bool parameter
    * @returns {Keyword[]} the list of the newly inserted keywords in the index
-   * @throws when the backend is not instantiated
+   * @throws when the DB interface is not instantiated
    */
   async delete(
     associations: IndexedEntry[],
@@ -197,7 +197,7 @@ export class Findex {
       )
       return newIds.map((value: Uint8Array) => new Keyword(value))
     } else {
-      throw new Error("Instantiate a backend before calling `delete`")
+      throw new Error("Instantiate a DB interface before calling `delete`")
     }
   }
 
@@ -209,7 +209,7 @@ export class Findex {
    * @param options.userInterrupt the optional callback of found values as the search graph is walked. Returning `true` stops the walk
    * @param options.verbose the optional verbose bool parameter
    * @returns the search results
-   * @throws when the backend is not instantiated
+   * @throws when the DB interface is not instantiated
    */
   async search(
     keywords: Set<string | Uint8Array> | Array<string | Uint8Array>,
@@ -260,7 +260,7 @@ export class Findex {
 
       return new SearchResults(resultsPerKeywords)
     } else {
-      throw new Error("Instantiate a backend before calling `search`")
+      throw new Error("Instantiate a DB interface before calling `search`")
     }
   }
 }
