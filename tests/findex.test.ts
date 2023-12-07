@@ -183,9 +183,7 @@ async function run(
 
     expect(results.total()).toEqual(100)
     const data = results.data()
-    const resultsIds = data
-      .map((data) => data.toNumber())
-      .sort((a, b) => a - b)
+    const resultsIds = data.map((data) => data.toNumber()).sort((a, b) => a - b)
     expect(resultsIds).toEqual(sourceIds)
   }
 }
@@ -360,15 +358,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [
-          Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes,
-        ],
+        results: [Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [
-          Data.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes,
-        ],
+        results: [Data.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes],
       },
     ])
 
@@ -396,9 +390,7 @@ test("Data conversions", async () => {
     new Data(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
   ).toEqual(1337)
 
-  expect(
-    Data.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
-  ).toEqual(
+  expect(Data.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes).toEqual(
     Uint8Array.from([
       -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100, 17,
     ]),
@@ -452,9 +444,7 @@ test("upsert and search memory", async () => {
   expect(entryData_).toEqual(entryData)
 
   const arrayData: IndexedEntry = {
-    indexedValue: IndexedValue.fromData(
-      Data.fromString("ROBERT file array"),
-    ),
+    indexedValue: IndexedValue.fromData(Data.fromString("ROBERT file array")),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
   const arrayData_ = new DataIndexEntry("ROBERT file array", [

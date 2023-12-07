@@ -182,10 +182,7 @@ export function generateAliases(
 export class DataIndexEntry implements IndexedEntry {
   indexedValue: IndexedValue
   keywords: Set<Keyword>
-  constructor(
-    data: string | Uint8Array,
-    keywords: string[] | Uint8Array[],
-  ) {
+  constructor(data: string | Uint8Array, keywords: string[] | Uint8Array[]) {
     if (data instanceof Uint8Array) {
       this.indexedValue = IndexedValue.fromData(new Data(data))
     } else {
@@ -267,19 +264,17 @@ export class SearchResults {
   constructor(
     resultsPerKeywords: Array<{ keyword: Uint8Array; results: Uint8Array[] }>,
   ) {
-    this.dataPerKeywords = resultsPerKeywords.map(
-      ({ keyword, results }) => ({
-        keyword,
-        data: results.map((bytes) => new Data(bytes)),
-      }),
-    )
+    this.dataPerKeywords = resultsPerKeywords.map(({ keyword, results }) => ({
+      keyword,
+      data: results.map((bytes) => new Data(bytes)),
+    }))
   }
 
   get(keyword: string | Uint8Array): Data[] {
     const keywordAsBytes =
       typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
 
-    for (const { keyword: keywordInResults, data: data } of this
+    for (const { keyword: keywordInResults, data } of this
       .dataPerKeywords) {
       if (bytesEquals(keywordAsBytes, keywordInResults)) {
         return data
@@ -314,7 +309,7 @@ export class SearchResults {
   *[Symbol.iterator](): Generator<Data, void, void> {
     const alreadyYields = new Set() // Do not yield multiple times the same data if returned from multiple keywords
 
-    for (const { data: data } of this.dataPerKeywords) {
+    for (const { data } of this.dataPerKeywords) {
       for (const datum of data) {
         const DatumEncoded = hexEncode(datum.bytes)
 

@@ -1,16 +1,10 @@
 import { randomBytes } from "crypto"
 import { expect, test } from "vitest"
-import {
-  inMemoryDbInterfaceExample,
-  Findex,
-  Data,
-} from ".."
+import { inMemoryDbInterfaceExample, Findex, Data } from ".."
 
 test("errors", async () => {
   const interfaces = await inMemoryDbInterfaceExample()
-  const toUpsert = [
-    { indexedValue: Data.fromNumber(42), keywords: ["Answer"] },
-  ]
+  const toUpsert = [{ indexedValue: Data.fromNumber(42), keywords: ["Answer"] }]
 
   const key = randomBytes(16)
   const label = randomBytes(32).toString()

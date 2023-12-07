@@ -1,12 +1,6 @@
 import { randomBytes } from "crypto"
 import { bench, describe } from "vitest"
-import {
-  Findex,
-  IndexedEntry,
-  IndexedValue,
-  Keyword,
-  Data,
-} from ".."
+import { Findex, IndexedEntry, IndexedValue, Keyword, Data } from ".."
 import { inMemoryDbInterfaceExample } from "../dist/umd/findex/in_memory"
 import { USERS } from "./data/users"
 

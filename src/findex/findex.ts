@@ -74,10 +74,7 @@ export class Findex {
   label: string
   _instantiatedFindex: InstantiatedFindex | null
 
-  constructor(
-    findexKey: SymmetricKey | Uint8Array,
-    label: string,
-  ) {
+  constructor(findexKey: SymmetricKey | Uint8Array, label: string) {
     if (findexKey instanceof SymmetricKey) {
       findexKey = findexKey.bytes()
     }
@@ -103,7 +100,8 @@ export class Findex {
     entries.insert = entryInterface.insert
     entries.upsert = entryInterface.upsert
 
-    const newInterface = chainInterface === undefined? entryInterface : chainInterface
+    const newInterface =
+      chainInterface === undefined ? entryInterface : chainInterface
     const chains = new WasmCallbacks()
     chains.delete = newInterface.delete
     chains.fetch = newInterface.fetch
@@ -120,6 +118,7 @@ export class Findex {
    * Instantiates a REST backend using the given token and URL.
    * @param token findex server authorization token
    * @param entryUrl findex server
+   * @param chainUrl
    */
   public async instantiateRestInterface(
     token: string,
@@ -127,8 +126,12 @@ export class Findex {
     chainUrl?: string,
   ): Promise<void> {
     await loadWasm()
-    const newUrl = chainUrl === undefined? entryUrl : chainUrl
-    const findex = await WasmFindex.new_with_rest_interface(token, entryUrl, newUrl)
+    const newUrl = chainUrl === undefined ? entryUrl : chainUrl
+    const findex = await WasmFindex.new_with_rest_interface(
+      token,
+      entryUrl,
+      newUrl,
+    )
     this._instantiatedFindex = findex
   }
 
