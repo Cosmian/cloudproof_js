@@ -274,8 +274,7 @@ export class SearchResults {
     const keywordAsBytes =
       typeof keyword === "string" ? new TextEncoder().encode(keyword) : keyword
 
-    for (const { keyword: keywordInResults, data } of this
-      .dataPerKeywords) {
+    for (const { keyword: keywordInResults, data } of this.dataPerKeywords) {
       if (bytesEquals(keywordAsBytes, keywordInResults)) {
         return data
       }

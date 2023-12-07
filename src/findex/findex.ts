@@ -11,6 +11,7 @@ import { loadWasm } from "./init"
 
 import {
   IndexedEntry,
+  IntermediateSearchResults,
   Interrupt,
   Keyword,
   SearchResults,
@@ -117,8 +118,8 @@ export class Findex {
   /**
    * Instantiates a REST backend using the given token and URL.
    * @param token findex server authorization token
-   * @param entryUrl findex server
-   * @param chainUrl
+   * @param entryUrl entry table url
+   * @param chainUrl chain table url
    */
   public async instantiateRestInterface(
     token: string,
@@ -245,7 +246,16 @@ export class Findex {
         this.key,
         this.label,
         kws,
-        userInterrupt,
+        async (
+          indexedValuesPerKeywords: Array<{
+            keyword: Uint8Array
+            results: Uint8Array[]
+          }>,
+        ) => {
+          return await userInterrupt(
+            new IntermediateSearchResults(indexedValuesPerKeywords),
+          )
+        },
       )
 
       return new SearchResults(resultsPerKeywords)
