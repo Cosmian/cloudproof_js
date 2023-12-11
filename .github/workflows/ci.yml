@@ -48,7 +48,7 @@ jobs:
     needs: test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_kms_js.yml@develop
     with:
-      branch: v2.0.0
+      branch: v3.0.0
       kms-version: 4.10.0
 
   cloudproof_java:
