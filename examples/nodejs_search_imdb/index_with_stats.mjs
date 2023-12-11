@@ -1,13 +1,10 @@
 import Database from "better-sqlite3"
 import {
   Findex,
-  FindexCloud,
-  FindexKey,
   IndexedValue,
   Keyword,
-  Label,
-  Location,
-  callbacksExamplesBetterSqlite3,
+  Data,
+  sqliteDbInterfaceExample,
   generateAliases,
 } from "cloudproof_js"
 import { randomBytes } from "crypto"
@@ -45,12 +42,15 @@ fs.writeFileSync(
 const csvStats = fs.createWriteStream("stats.csv", { flags: "a+" })
 
 // Init Findex with random key and random label
-const { upsert, search } = await Findex()
-const { upsert: upsertCloud, search: searchCloud } = await FindexCloud()
-const masterKey = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
 const baseUrl = "http://127.0.0.1:8080"
+
+if (findexCloudToken) {
+  const findexCloud = new Findex(key, label)
+  await findexCloud.instantiateRestInterface(findexCloudToken, baseUrl)
+}
 
 // Init databases
 const dbClear = new Database(":memory:")
@@ -67,7 +67,13 @@ createMoviesIndexes(dbClearWithIndexes)
 const dbIndex = new Database(":memory:")
 if (fs.existsSync("findex_indexes.sqlite"))
   fs.unlinkSync("findex_indexes.sqlite")
-const callbacks = callbacksExamplesBetterSqlite3(dbIndex)
+
+const dbInterfaces = await sqliteDbInterfaceExample(dbIndex)
+const findexSqlite = new Findex(key, label)
+await findexSqlite.instantiateCustomInterface(
+  dbInterfaces.entryInterface,
+  dbInterfaces.chainInterface,
+)
 
 //
 // Prepare some useful SQL requests on different databases
@@ -156,7 +162,7 @@ for await (const line of rl) {
   }
 
   toUpsert.push({
-    indexedValue: IndexedValue.fromLocation(Location.fromString(info[0])),
+    indexedValue: IndexedValue.fromData(Data.fromString(info[0])),
     keywords: new Set(keywords.map((keyword) => Keyword.fromString(keyword))),
   })
 
@@ -171,29 +177,12 @@ for await (const line of rl) {
     percentageToShow !== latestPercentageShown
   ) {
     const insertFindexStart = performance.now()
-    await upsert(
-      masterKey,
-      label,
-      toUpsert,
-      [],
-      async (uids) => {
-        fetchEntryTableCallbackCount++
-        return await callbacks.fetchEntries(uids)
-      },
-      async (uidsAndValues) => {
-        upsertEntryTableCallbackCount++
-        return await callbacks.upsertEntries(uidsAndValues)
-      },
-      async (uidsAndValues) => {
-        insertChainTableCallbackCount++
-        return await callbacks.insertChains(uidsAndValues)
-      },
-    )
+    await findexSqlite.add(toUpsert)
     timeFindexSinceLastStatsPrint += performance.now() - insertFindexStart
 
     if (findexCloudToken) {
       const insertFindexCloudStart = performance.now()
-      await upsertCloud(findexCloudToken, label, toUpsert, [], { baseUrl })
+      await findexCloud.add(toUpsert)
       timeFindexCloudSinceLastStatsPrint +=
         performance.now() - insertFindexCloudStart
     }
@@ -249,27 +238,7 @@ for await (const line of rl) {
       {
         const searchNow = performance.now()
 
-        const results = await search(
-          masterKey,
-          label,
-          new Set(["Documentary"]),
-          async (uids) => {
-            fetchEntryTableCallbackCount++
-            return await callbacks.fetchEntries(uids)
-          },
-          async (uids) => {
-            fetchChainTableCallbackCount++
-            return await callbacks.fetchChains(uids)
-          },
-        )
-
-        findexResults = new Set(
-          results
-            .locations()
-            .map((indexedLocation) =>
-              new TextDecoder().decode(indexedLocation.bytes),
-            ),
-        )
+        const results = await search(new Set(["Documentary"]))
 
         console.log(
           `${formatNumber(
@@ -304,20 +273,13 @@ for await (const line of rl) {
         {
           const searchNow = performance.now()
 
-          const results = await searchCloud(
-            findexCloudToken,
-            label,
-            new Set(["Documentary"]),
-            {
-              baseUrl,
-            },
-          )
+          const results = await findexCloud.search(new Set(["Documentary"]))
 
           findexCloudResults = new Set(
             results
-              .locations()
-              .map((indexedLocation) =>
-                new TextDecoder().decode(indexedLocation.bytes),
+              .data()
+              .map((indexedData) =>
+                new TextDecoder().decode(indexedData.bytes),
               ),
           )
 

@@ -1,92 +1,98 @@
-import { bytesEquals } from "../utils/utils"
-import {
-  FetchChains,
-  FetchEntries,
-  InsertChains,
-  UidsAndValues,
-  UidsAndValuesToUpsert,
-  UpsertEntries,
-} from "./init"
+import { logger } from "utils/logger"
+import { DbInterface } from "./backend"
+import { loadWasm } from "./init"
+import { UidsAndValues } from "./types"
 
 /**
  * @returns the callbacks
  */
-export function callbacksExamplesInMemory(): {
-  fetchEntries: FetchEntries
-  fetchChains: FetchChains
-  upsertEntries: UpsertEntries
-  insertChains: InsertChains
-} {
-  const entries: UidsAndValues = []
-  const chains: UidsAndValues = []
+export async function inMemoryDbInterfaceExample(): Promise<{
+  entryInterface: DbInterface
+  chainInterface: DbInterface
+  dumpTables: () => void
+  dropTables: () => Promise<void>
+}> {
+  await loadWasm()
 
-  const fetchCallback = async (
-    table: UidsAndValues,
+  const entryTable: Map<string, Uint8Array> = new Map()
+  const chainTable: Map<string, Uint8Array> = new Map()
+
+  const fetch = async (
     uids: Uint8Array[],
+    table: Map<string, Uint8Array>,
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
-      for (const { uid, value } of table) {
-        if (bytesEquals(uid, requestedUid)) {
-          results.push({ uid, value })
-          break
-        }
+      const requestedValue = table.get(requestedUid.toString())
+      if (requestedValue !== undefined) {
+        results.push({ uid: requestedUid, value: requestedValue })
       }
     }
     return results
   }
+
   const upsertEntries = async (
-    uidsAndValues: UidsAndValuesToUpsert,
+    oldValues: UidsAndValues,
+    newValues: UidsAndValues,
   ): Promise<UidsAndValues> => {
     const rejected = [] as UidsAndValues
-    uidsAndValuesLoop: for (const {
-      uid: newUid,
-      oldValue,
-      newValue,
-    } of uidsAndValues) {
-      for (const tableEntry of entries) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          if (bytesEquals(tableEntry.value, oldValue)) {
-            tableEntry.value = newValue
-          } else {
-            rejected.push(tableEntry)
-          }
-          continue uidsAndValuesLoop
-        }
-      }
 
-      // The uid doesn't exist yet.
-      if (oldValue !== null) {
+    // Add old values in a map to efficiently search for matching UIDs.
+    const mapOfOldValues = new Map()
+    for (const { uid, value } of oldValues) {
+      mapOfOldValues.set(uid.toString(), value)
+    }
+
+    for (const { uid, value: newValue } of newValues) {
+      const currentValue = entryTable.get(uid.toString())
+
+      if (
+        currentValue?.toString() ===
+        mapOfOldValues.get(uid.toString())?.toString()
+      ) {
+        entryTable.set(uid.toString(), newValue)
+      } else if (currentValue === undefined) {
         throw new Error(
           "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
         )
+      } else {
+        rejected.push({ uid, value: currentValue })
       }
-
-      entries.push({ uid: newUid, value: newValue })
     }
-
     return rejected
   }
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid: newUid, value: newValue } of uidsAndValues) {
-      for (const tableEntry of chains) {
-        if (bytesEquals(tableEntry.uid, newUid)) {
-          tableEntry.value = newValue
-          break
-        }
-      }
 
-      // The uid doesn't exist yet.
-      chains.push({ uid: newUid, value: newValue })
+  const insert = async (
+    items: UidsAndValues,
+    table: Map<string, Uint8Array>,
+  ): Promise<void> => {
+    for (const { uid: newUid, value: newValue } of items) {
+      table.set(newUid.toString(), newValue)
     }
   }
 
-  return {
-    fetchEntries: async (uids: Uint8Array[]) =>
-      await fetchCallback(entries, uids),
-    fetchChains: async (uids: Uint8Array[]) =>
-      await fetchCallback(chains, uids),
-    upsertEntries,
-    insertChains,
+  const dumpTables = (): void => {
+    logger.log(() => `entry table length: ${entryTable.size}`)
+    logger.log(() => `chain table length: ${chainTable.size}`)
   }
+
+  const dropTables = async (): Promise<void> => {
+    entryTable.clear()
+    chainTable.clear()
+  }
+
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, entryTable)
+  entryInterface.insert = async (entries: UidsAndValues) =>
+    await insert(entries, entryTable)
+  entryInterface.upsert = upsertEntries
+
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, chainTable)
+  chainInterface.insert = async (links: UidsAndValues) =>
+    await insert(links, chainTable)
+
+  return { entryInterface, chainInterface, dumpTables, dropTables }
 }

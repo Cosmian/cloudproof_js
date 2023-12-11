@@ -33,7 +33,7 @@ module.exports = {
   },
   plugins: [
     new webpack.EnvironmentPlugin({
-      SERVER: "http://localhost:3000", // default backend URI
+      SERVER: "http://localhost:3000", // default server URI
     }),
     // Work around for Buffer is undefined:
     // https://github.com/webpack/changelog-v5/issues/10

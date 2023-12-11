@@ -1,6 +1,6 @@
 {
   "name": "cloudproof_js",
-  "version": "9.5.1",
+  "version": "9.6.0",
   "license": "MIT",
   "description": "Cosmian Cloudproof javascript client library",
   "author": "Bruno Grieder<bruno.grieder@cosmian.com>, Pauline Hochard<pauline.hochard@cosmian.com>, Emmanuel Coste<emmanuel.coste@cosmian.com>, Thibaud Dauce<thibaud.dauce@cosmian.com>",
@@ -41,7 +41,7 @@
   "dependencies": {
     "base64-js": "^1.5.1",
     "better-sqlite3": "^8.0.1",
-    "cloudproof_kms_js": "2.0.0",
+    "cloudproof_kms_js": "3.0.0",
     "dotenv": "^16.3.1",
     "jose": "^4.14.4",
     "process": "^0.11.10",

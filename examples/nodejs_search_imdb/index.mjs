@@ -1,12 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import {
-  Location,
-  Findex,
-  FindexKey,
-  Label,
-  callbacksExamplesBetterSqlite3,
-} from "cloudproof_js"
+import { Data, Findex, sqliteDbInterfaceExample } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -37,12 +31,16 @@ if (!fs.existsSync(dataFilename)) {
 const input = fs.createReadStream(dataFilename)
 
 // Init Findex with random key and random label
-const { upsert, search } = await Findex()
-const masterKey = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 
 const db = new Database(":memory:")
-const callbacks = callbacksExamplesBetterSqlite3(db)
+const interfaces = await sqliteDbInterfaceExample(db)
+const findex = new Findex(key, label)
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
+)
 
 // Number of movies to index in a single `upsert` call
 let numberOfMoviesIndexedSoFar = 0
@@ -73,7 +71,7 @@ for await (const line of readline.createInterface({ input })) {
   }
 
   toUpsert.push({
-    indexedValue: Location.fromString(info[0]),
+    indexedValue: Data.fromString(info[0]),
     keywords,
   })
 
@@ -89,15 +87,7 @@ for await (const line of readline.createInterface({ input })) {
   }
 
   if (toUpsert.length >= MAX_UPSERT_LINES || end) {
-    await upsert(
-      masterKey,
-      label,
-      toUpsert,
-      [],
-      callbacks.fetchEntries,
-      callbacks.upsertEntries,
-      callbacks.insertChains,
-    )
+    await findex.add(toUpsert)
 
     toUpsert = []
 
@@ -120,13 +110,7 @@ process.stdout.write("Search for: ")
 for await (const query of queries) {
   console.log(query)
 
-  const results = await search(
-    masterKey,
-    label,
-    [query],
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  const results = await findex.search([query])
 
   console.log(`Searching for ${query} returned ${results.total()} results:`)
   for (const result of results) {

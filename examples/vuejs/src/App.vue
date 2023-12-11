@@ -1,15 +1,14 @@
 <script lang="ts">
 import {
+  Data,
+  DbInterface,
   CoverCrypt,
   Findex,
-  FindexKey,
-  type UidsAndValues,
-  Label,
-  Location,
   KmsClient,
-  type UidsAndValuesToUpsert,
-  generateAliases,
   PolicyKms,
+  generateAliases,
+  type UidsAndValues,
+  loadWasm,
 } from "cloudproof_js"
 import { defineComponent } from "vue"
 import Key from "./Key.vue"
@@ -27,12 +26,12 @@ const DEPARTMENTS_AXIS = [
   { name: "HR", isHybridized: false },
   { name: "Manager", isHybridized: false },
 ]
-const FINDEX_LABEL = new Label(Uint8Array.from([1, 2, 3]))
+const FINDEX_LABEL = Uint8Array.from([1, 2, 3]).toString()
 
 type NewUser = {
   first: string
   last: string
-  country: typeof COUNTRIES[0]
+  country: (typeof COUNTRIES)[0]
   email: string
   project: string
 }
@@ -150,7 +149,7 @@ export default defineComponent({
         manager: Uint8Array
       }[],
 
-      masterKey: null as FindexKey | null,
+      key: null as Uint8Array | null,
       indexes: {
         entries: [] as UidsAndValues,
         chains: [] as UidsAndValues,
@@ -367,18 +366,28 @@ export default defineComponent({
     },
 
     async indexUsers(
-      masterKey: Exclude<typeof this.masterKey, null>,
+      key: Exclude<Uint8Array, null>,
       users: User[],
     ) {
-      let { upsert } = await Findex()
+      await loadWasm()
+      const findex = new Findex(key, FINDEX_LABEL)
+      const entryInterface = new DbInterface()
+      entryInterface.fetch = async (uids) =>
+        await this.fetch("entries", uids)
+      entryInterface.upsert = async (
+        oldValues: UidsAndValues,
+        newValues: UidsAndValues,
+      ) => await this.upsert("entries", oldValues, newValues)
+      const chainInterface = new DbInterface()
+      chainInterface.insert = async (uidsAndValues) =>
+        await this.insert("chains", uidsAndValues)
+      await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
-      await upsert(
-        masterKey,
-        FINDEX_LABEL,
+      await findex.add(
         this.users.flatMap((user, index) => {
           return [
             {
-              indexedValue: Location.fromString(index.toString()),
+              indexedValue: Data.fromString(index.toString()),
               keywords: [
                 user.first,
                 user.last,
@@ -397,27 +406,21 @@ export default defineComponent({
               : []),
           ]
         }),
-        [],
-        async (uids) => await this.fetchCallback("entries", uids),
-        async (uidsAndValues) =>
-          await this.upsertCallback("entries", uidsAndValues),
-        async (uidsAndValues) =>
-          await this.insertCallback("chains", uidsAndValues),
       )
     },
 
     async index() {
       this.indexing = true
 
-      this.masterKey = new FindexKey(Uint8Array.from(Array(16).fill(1)))
+      this.key = Uint8Array.from(Array(16).fill(1))
 
-      this.indexUsers(this.masterKey, this.users)
+      this.indexUsers(this.key, this.users)
 
       this.indexing = false
       this.indexingDone = true
     },
 
-    async fetchCallback(
+    async fetch(
       table: "entries" | "chains",
       uids: Uint8Array[],
     ): Promise<UidsAndValues> {
@@ -440,7 +443,7 @@ export default defineComponent({
       return results
     },
 
-    async insertCallback(
+    async insert(
       table: "entries" | "chains",
       uidsAndValues: UidsAndValues,
     ): Promise<void> {
@@ -462,23 +465,29 @@ export default defineComponent({
       }
     },
 
-    async upsertCallback(
+    async upsert(
       table: "entries" | "chains",
-      uidsAndValues: UidsAndValuesToUpsert,
+      oldValues: UidsAndValues,
+      newValues: UidsAndValues,
     ): Promise<UidsAndValues> {
       const rejected = []
-      uidsAndValuesLoop: for (const {
-        uid: newUid,
-        oldValue,
-        newValue,
-      } of uidsAndValues) {
+
+      // Add old values in a map to efficiently search for matching UIDs.
+      const mapOfOldValues = new Map()
+      for (const { uid, value } of oldValues) {
+        mapOfOldValues.set(uid.toString(), value)
+      }
+
+      uidsAndValuesLoop: for (const { uid, value } of newValues) {
         for (const tableEntry of this.indexes[table]) {
-          if (this.uint8ArrayEquals(tableEntry.uid, newUid)) {
+          if (this.uint8ArrayEquals(tableEntry.uid, uid)) {
+            const oldValue = mapOfOldValues.get(uid.toString())
+
             if (
               oldValue !== null &&
               this.uint8ArrayEquals(tableEntry.value, oldValue)
             ) {
-              tableEntry.value = newValue
+              tableEntry.value = value
             } else {
               rejected.push(tableEntry)
             }
@@ -490,20 +499,30 @@ export default defineComponent({
         this.logRequest({
           method: "POST",
           url: `/index_${table}`,
-          body: { uid: newUid, value: newValue },
+          body: { uid: uid, value: value },
         })
-        this.indexes[table].push({ uid: newUid, value: newValue })
+        this.indexes[table].push({ uid: uid, value: value })
       }
+
       return rejected
     },
 
     async search() {
       if (!this.query || !this.selectedKey) return []
 
-      let { search } = await Findex()
+      const entryInterface = new DbInterface()
+      entryInterface.fetch = async (uids) =>
+        await this.fetch("entries", uids)
+      const chainInterface = new DbInterface()
+      chainInterface.fetch = async (uids) =>
+        await this.fetch("chains", uids)
+
       const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
-      if (!this.masterKey) throw "No Findex key"
+      if (!this.key) throw "No Findex key"
+      const findex = new Findex(this.key, FINDEX_LABEL)
+      await findex.instantiateCustomInterface(entryInterface, chainInterface)
+
 
       const query = this.query
 
@@ -513,38 +532,26 @@ export default defineComponent({
         .filter((keyword) => keyword)
       if (keywords.length === 0) return
 
-      let locations: Array<Location> | null = null
+      let data: Array<Data> | null = null
       if (this.doOr) {
-        locations = (
-          await search(
-            this.masterKey,
-            FINDEX_LABEL,
-            keywords,
-            async (uids) => await this.fetchCallback("entries", uids),
-            async (uids) => await this.fetchCallback("chains", uids),
-          )
-        ).locations()
+        data = (
+          await findex.search(keywords)
+        ).data()
       } else {
         for (const keyword of keywords) {
-          const newLocations = (
-            await search(
-              this.masterKey,
-              FINDEX_LABEL,
-              [keyword],
-              async (uids) => await this.fetchCallback("entries", uids),
-              async (uids) => await this.fetchCallback("chains", uids),
-            )
-          ).locations()
+          const newData = (
+            await findex.search([keyword])
+          ).data()
 
-          if (locations === null) {
-            locations = newLocations
+          if (data === null) {
+            data = newData
           } else {
-            locations = locations.filter((alreadyReturnedLocations) => {
-              for (let newLocation of newLocations) {
+            data = data.filter((alreadyReturnedData) => {
+              for (let newDatum of newData) {
                 if (
                   this.uint8ArrayEquals(
-                    newLocation.bytes,
-                    alreadyReturnedLocations.bytes,
+                    newDatum.bytes,
+                    alreadyReturnedData.bytes,
                   )
                 ) {
                   return true
@@ -557,12 +564,12 @@ export default defineComponent({
         }
       }
 
-      if (locations === null)
+      if (data === null)
         throw Error("Indexed values cannot be null when a query is provided")
 
       let results = []
-      for (const location of locations) {
-        const userId = parseInt(location.toString())
+      for (const datum of data) {
+        const userId = parseInt(datum.toString())
 
         let encryptedUser = this.encryptedUsers[userId]
         this.logRequest({
@@ -623,11 +630,11 @@ export default defineComponent({
       }
 
       if (this.indexingDone) {
-        if (!this.masterKey)
+        if (!this.key)
           throw new Error(
-            "masterKey should be present when first indexing is done",
+            "Findex key should be present when first indexing is done",
           )
-        await this.indexUsers(this.masterKey, [user])
+        await this.indexUsers(this.key, [user])
       }
 
       this.addingUser = false

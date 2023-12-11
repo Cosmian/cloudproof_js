@@ -1,35 +1,24 @@
-import {
-  Findex,
-  FindexKey,
-  IndexedEntry,
-  IndexedValue,
-  Keyword,
-  Label,
-  Location,
-  callbacksExamplesInMemory,
-} from ".."
-import { bench, describe } from "vitest"
-import { USERS } from "./data/users"
 import { randomBytes } from "crypto"
+import { bench, describe } from "vitest"
+import { Findex, IndexedEntry, IndexedValue, Keyword, Data } from ".."
+import { inMemoryDbInterfaceExample } from "../dist/umd/findex/in_memory"
+import { USERS } from "./data/users"
 
-describe("Wasm loading", async () => {
-  bench("Load Findex functions", async () => {
-    await Findex()
-  })
-})
-
-const findex = await Findex()
-const masterKey = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const interfaces = await inMemoryDbInterfaceExample()
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
+const findex = new Findex(key, label)
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
+)
 
 describe("Findex Upsert", async () => {
   bench("Upsert 10 users", async () => {
-    const callbacks = callbacksExamplesInMemory()
-
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS.slice(0, 10)) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+        indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -37,24 +26,14 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.upsert(
-      masterKey,
-      label,
-      newIndexedEntries,
-      [],
-      callbacks.fetchEntries,
-      callbacks.upsertEntries,
-      callbacks.insertChains,
-    )
+    await findex.add(newIndexedEntries)
   })
 
   bench("Upsert 99 users", async () => {
-    const callbacks = callbacksExamplesInMemory()
-
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+        indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -62,25 +41,15 @@ describe("Findex Upsert", async () => {
       })
     }
 
-    await findex.upsert(
-      masterKey,
-      label,
-      newIndexedEntries,
-      [],
-      callbacks.fetchEntries,
-      callbacks.upsertEntries,
-      callbacks.insertChains,
-    )
+    await findex.add(newIndexedEntries)
   })
 })
 
 describe("Findex Search", async () => {
-  const callbacks = callbacksExamplesInMemory()
-
   const newIndexedEntries: IndexedEntry[] = []
   for (const user of USERS) {
     newIndexedEntries.push({
-      indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+      indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
       keywords: new Set([
         Keyword.fromString(user.firstName),
         Keyword.fromString(user.country),
@@ -88,23 +57,9 @@ describe("Findex Search", async () => {
     })
   }
 
-  await findex.upsert(
-    masterKey,
-    label,
-    newIndexedEntries,
-    [],
-    callbacks.fetchEntries,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
+  await findex.add(newIndexedEntries)
 
   bench("Search", async () => {
-    await findex.search(
-      masterKey,
-      label,
-      new Set([USERS[0].firstName]),
-      callbacks.fetchEntries,
-      callbacks.fetchChains,
-    )
+    await findex.search(new Set([USERS[0].firstName]))
   })
 })

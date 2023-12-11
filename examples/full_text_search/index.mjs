@@ -1,13 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import {
-  Location,
-  Findex,
-  FindexKey,
-  Label,
-  callbacksExamplesBetterSqlite3,
-  Keyword,
-} from "cloudproof_js"
+import { Data, Findex, Keyword, sqliteDbInterfaceExample } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -31,12 +24,15 @@ for (const file of files) {
 }
 
 // Init Findex with random key and random label
-const { upsert, search } = await Findex()
-const masterKey = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
-
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 const db = new Database(":memory:")
-const callbacks = callbacksExamplesBetterSqlite3(db)
+const interfaces = await sqliteDbInterfaceExample(db)
+const findex = new Findex(key, label)
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
+)
 
 const uniqueWords = new Set()
 
@@ -69,7 +65,7 @@ for (const [name, content] of Object.entries(contents)) {
 
       positions.push(index)
       start = index + word.length
-      const locationBytes = Uint8Array.from([
+      const dataBytes = Uint8Array.from([
         ...encode(nameBytes.length),
         ...nameBytes,
         ...encode(index),
@@ -77,29 +73,19 @@ for (const [name, content] of Object.entries(contents)) {
       ])
 
       toUpsert.push({
-        indexedValue: new Location(locationBytes),
+        indexedValue: new Data(dataBytes),
         keywords: [word],
       })
     }
   }
 
-  await upsert(
-    masterKey,
-    label,
-    toUpsert,
-    [],
-    callbacks.fetchEntries,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
+  await findex.add(toUpsert)
 }
 
 console.log("---")
 console.log(`Add aliases from word's stem to word…`)
 console.log("---")
-await upsert(
-  masterKey,
-  label,
+await findex.add(
   Array.from(uniqueWords)
     .map((word) => ({ word, stem: natural.PorterStemmer.stem(word) }))
     .filter(({ word, stem }) => word !== stem)
@@ -107,10 +93,6 @@ await upsert(
       indexedValue: Keyword.fromString(word),
       keywords: [stem],
     })),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 console.log("---")
@@ -119,25 +101,17 @@ console.log("---")
 // Since phonetic is not a correct word (for example the phonetic for "Phrase" is "FRS")
 // we don't want a search for "FRS" to return "Phrase". To prevent that, we'll add a prefix to "FRS"
 // which will make searching for it highly unlikely. We'll use this prefix in our search below.
-await upsert(
-  masterKey,
-  label,
+await findex.add(
   Array.from(uniqueWords).map((word) => ({
     indexedValue: Keyword.fromString(word),
     keywords: ["phonetic_prefix_" + natural.Metaphone.process(word)],
   })),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 console.log("---")
 console.log(`Add aliases from word's synonyms to word…`)
 console.log("---")
-await upsert(
-  masterKey,
-  label,
+await findex.add(
   Array.from(uniqueWords)
     .map((word) => {
       const wordSynonyms = synonyms(word)
@@ -151,10 +125,6 @@ await upsert(
       }
     })
     .filter((synonymsToUpsert) => synonymsToUpsert !== null),
-  [],
-  callbacks.fetchEntries,
-  callbacks.upsertEntries,
-  callbacks.insertChains,
 )
 
 const rl = readline.createInterface({
@@ -171,20 +141,18 @@ while (true) {
   const stem = natural.PorterStemmer.stem(query)
   const phonetic = natural.Metaphone.process(query)
 
-  const rawResults = await search(
-    masterKey,
-    label,
-    [query, stem, "phonetic_prefix_" + phonetic],
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  const rawResults = await findex.search([
+    query,
+    stem,
+    "phonetic_prefix_" + phonetic,
+  ])
 
   console.log(
     `Searching for ${query} (${stem}, ${phonetic}), ${rawResults.total()} results.`,
   )
 
-  // Parse locations and compute distances
-  const results = rawResults.locations().map((result) => {
+  // Parse data and compute distances
+  const results = rawResults.data().map((result) => {
     const { result: filenameLength, tail } = decode(result.bytes)
     const filename = new TextDecoder().decode(tail.slice(0, filenameLength))
 

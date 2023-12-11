@@ -1,350 +1,77 @@
-import { fromByteArray, toByteArray } from "base64-js"
+import { toByteArray } from "base64-js"
 import Database from "better-sqlite3"
 import { randomBytes } from "crypto"
 import * as fs from "fs"
 import * as os from "os"
-import { createClient, defineScript } from "redis"
 import { expect, test } from "vitest"
 import {
-  FetchChains,
-  FetchEntries,
+  DbInterface,
   Findex,
-  FindexCloud,
-  FindexKey,
   IndexedEntry,
   IndexedValue,
-  InsertChains,
+  IntermediateSearchResults,
+  Interrupt,
   Keyword,
   KeywordIndexEntry,
-  Label,
-  Location,
-  LocationIndexEntry,
-  ProgressResults,
+  Data,
+  DataIndexEntry,
   SearchResults,
-  UidsAndValues,
-  UidsAndValuesToUpsert,
-  UpsertEntries,
-  callbacksExamplesBetterSqlite3,
-  callbacksExamplesInMemory,
+  sqliteDbInterfaceExample,
+  inMemoryDbInterfaceExample,
   generateAliases,
+  logger,
+  ServerToken,
 } from ".."
 import { USERS } from "./data/users"
 
 const FINDEX_TEST_KEY = "6hb1TznoNQFvCWisGWajkA=="
 const FINDEX_TEST_LABEL = "Some Label"
-
-test(
-  "Findex Cloud",
-  async () => {
-    await runInFindexCloud()
-  },
-  { timeout: 60000 },
-)
-
-test("in memory", async () => {
-  const callbacks = callbacksExamplesInMemory()
-
-  await runWithFindexCallbacks(
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
-})
-
-test("SQLite", async () => {
-  const db = new Database(":memory:")
-
-  const callbacks = callbacksExamplesBetterSqlite3(db)
-
-  await runWithFindexCallbacks(
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
-})
-
-test("Redis", async () => {
-  let url
-  if (typeof process.env.REDIS_HOST !== "undefined") {
-    url = `redis://${process.env.REDIS_HOST}:6379`
-  }
-
-  const client = createClient({
-    url,
-    scripts: {
-      setIfSame: defineScript({
-        NUMBER_OF_KEYS: 1,
-        SCRIPT: `
-          local value = redis.call('GET', KEYS[1])
-          if (((value == false) and (ARGV[1] == "")) or (not(value == false) and (ARGV[1] == value)))
-            then return redis.call('SET', KEYS[1], ARGV[2])
-            else return 'NA' end`,
-        transformArguments(
-          key: string,
-          oldValue: Uint8Array | null,
-          newValue: Uint8Array,
-        ): string[] {
-          return [
-            key,
-            oldValue === null ? "" : fromByteArray(oldValue),
-            fromByteArray(newValue),
-          ]
-        },
-        transformReply(reply: string): boolean {
-          return reply !== "NA"
-        },
-      }),
-    },
-  })
-  await client.connect()
-
-  try {
-    const fetchCallback = async (
-      prefix: string,
-      uids: Uint8Array[],
-    ): Promise<UidsAndValues> => {
-      const redisResults = await client.mGet(
-        uids.map((uid) => `findex.test.ts::${prefix}.${fromByteArray(uid)}`),
-      )
-
-      const results: UidsAndValues = []
-      uids.forEach((uid, index) => {
-        if (redisResults[index] !== null) {
-          results.push({
-            uid,
-            value: Uint8Array.from(toByteArray(redisResults[index] as string)),
-          })
-        }
-      })
-      return results
-    }
-
-    const upsertCallback = async (
-      prefix: string,
-      uidsAndValues: UidsAndValuesToUpsert,
-    ): Promise<UidsAndValues> => {
-      const rejected = [] as UidsAndValues
-      await Promise.all(
-        uidsAndValues.map(async ({ uid, oldValue, newValue }) => {
-          const key = `findex.test.ts::${prefix}.${fromByteArray(uid)}`
-
-          const updated = await client.setIfSame(key, oldValue, newValue)
-
-          if (!updated) {
-            const valueInRedis = await client.get(key)
-            rejected.push({
-              uid,
-              value: toByteArray(valueInRedis as string),
-            })
-          }
-        }),
-      )
-
-      return rejected
-    }
-
-    const insertCallback = async (
-      prefix: string,
-      uidsAndValues: UidsAndValues,
-    ): Promise<void> => {
-      if (uidsAndValues.length === 0) return
-
-      const toSet = uidsAndValues.map(({ uid, value }) => [
-        `findex.test.ts::${prefix}.${fromByteArray(uid)}`,
-        fromByteArray(value),
-      ])
-
-      await client.mSet(toSet as any)
-    }
-
-    await runWithFindexCallbacks(
-      async (uids) => await fetchCallback("entry_table", uids),
-      async (uids) => await fetchCallback("chain_table", uids),
-      async (uidsAndValues) =>
-        await upsertCallback("entry_table", uidsAndValues),
-      async (uidsAndValues) =>
-        await insertCallback("chain_table", uidsAndValues),
-    )
-  } finally {
-    await client.disconnect()
-  }
-})
-
-// eslint-disable-next-line jsdoc/require-jsdoc
-async function runWithFindexCallbacks(
-  fetchEntries: FetchEntries,
-  fetchChains: FetchChains,
-  upsertEntries: UpsertEntries,
-  insertChains: InsertChains,
-): Promise<void> {
-  const findex = await Findex()
-  const masterKey = new FindexKey(randomBytes(16))
-
-  await run(
-    async (label, input) => {
-      return await findex.search(
-        masterKey,
-        label,
-        input,
-        fetchEntries,
-        fetchChains,
-      )
-    },
-    async (label, input) => {
-      return await findex.search(
-        masterKey,
-        label,
-        input,
-        fetchEntries,
-        fetchChains,
-        {
-          progress: async (progressResults: ProgressResults) => {
-            const locations = progressResults.getLocations(USERS[0].firstName)
-            expect(locations.length).toEqual(1)
-            expect(locations[0].toNumber()).toEqual(USERS[0].id)
-            return true
-          },
-        },
-      )
-    },
-    async (label, input) => {
-      return await findex.upsert(
-        masterKey,
-        label,
-        input,
-        [],
-        fetchEntries,
-        upsertEntries,
-        insertChains,
-      )
-    },
-  )
-}
-
-// eslint-disable-next-line jsdoc/require-jsdoc
-async function runInFindexCloud(): Promise<void> {
-  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
-    process.env.FINDEX_CLOUD_PORT ?? "8080"
-  }`
-
-  const response = await fetch(`${baseUrl}/indexes`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      name: "Test",
-    }),
-  })
-
-  const data = await response.json()
-
-  const { generateNewToken, upsert, search } = await FindexCloud()
-
-  const token = generateNewToken(
-    data.public_id,
-    Uint8Array.from(data.fetch_entries_key),
-    Uint8Array.from(data.fetch_chains_key),
-    Uint8Array.from(data.upsert_entries_key),
-    Uint8Array.from(data.insert_chains_key),
-  )
-
-  await run(
-    async (label, input) => {
-      return await search(token, label, input, { baseUrl })
-    },
-    async (label, input) => {
-      return await search(token, label, input, { baseUrl })
-    },
-    async (label, input) => {
-      return await upsert(token, label, input, [], { baseUrl })
-    },
-  )
-}
-
-test("generateAliases", async () => {
-  const checkAlias = (alias: IndexedEntry, from: string, to: string): void => {
-    expect(alias.indexedValue).toEqual(
-      IndexedValue.fromNextWord(Keyword.fromString(to)),
-    )
-    expect(alias.keywords).toEqual(new Set([Keyword.fromString(from)]))
-  }
-
-  {
-    const aliases = generateAliases("Thibaud")
-
-    expect(aliases.length).toEqual(4)
-
-    checkAlias(aliases[0], "Thi", "Thib")
-    checkAlias(aliases[1], "Thib", "Thiba")
-    checkAlias(aliases[2], "Thiba", "Thibau")
-    checkAlias(aliases[3], "Thibau", "Thibaud")
-  }
-
-  {
-    const aliases = generateAliases("Thibaud", 5)
-
-    expect(aliases.length).toEqual(2)
-
-    checkAlias(aliases[0], "Thiba", "Thibau")
-    checkAlias(aliases[1], "Thibau", "Thibaud")
-  }
-
-  {
-    const aliases = generateAliases("Thibaud", 3, 5)
-
-    expect(aliases.length).toEqual(3)
-
-    checkAlias(aliases[0], "Thi", "Thib")
-    checkAlias(aliases[1], "Thib", "Thiba")
-    checkAlias(aliases[2], "Thiba", "Thibaud")
-  }
-})
+const LOGGER_INIT = false
 
 // eslint-disable-next-line jsdoc/require-jsdoc
 async function run(
-  search: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[1],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
-  ) => ReturnType<Awaited<ReturnType<typeof Findex>>["search"]>,
-  searchWithProgress: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[1],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["search"]>[2],
-  ) => ReturnType<Awaited<ReturnType<typeof Findex>>["search"]>,
-  upsert: (
-    label: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[1],
-    input: Parameters<Awaited<ReturnType<typeof Findex>>["upsert"]>[2],
-  ) => ReturnType<Awaited<ReturnType<typeof Findex>>["upsert"]>,
+  findex: Findex,
+  userInterrupt?: Interrupt,
+  dumpTables?: () => void,
+  dropTables?: () => Promise<void>,
 ): Promise<void> {
-  const label = new Label(randomBytes(10))
-
   {
+    logger.log(
+      () =>
+        `test adding ${USERS.length}  users and searching for the first one`,
+    )
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromNumber(user.id),
+        indexedValue: Data.fromNumber(user.id),
         keywords: [user.firstName, user.country],
       })
     }
 
-    await upsert(label, newIndexedEntries)
+    await findex.add(newIndexedEntries, { verbose: LOGGER_INIT })
+    await findex.add(newIndexedEntries, { verbose: LOGGER_INIT })
 
-    // Test with progress callback
+    if (dumpTables != null) {
+      dumpTables()
+    }
 
-    const results = await searchWithProgress(label, [USERS[0].firstName])
+    const results = await findex.search(
+      [USERS[0].firstName, USERS[0].country],
+      { userInterrupt, verbose: LOGGER_INIT },
+    )
 
-    const locations = results.get(USERS[0].firstName)
+    const data = results.get(USERS[0].firstName)
 
-    expect(locations.length).toEqual(1)
-    expect(locations[0].toNumber()).toEqual(USERS[0].id)
+    expect(data.length).toEqual(1)
+    expect(data[0].toNumber()).toEqual(USERS[0].id)
   }
 
   {
-    // Test with multiple results.
-
-    const results = await search(label, ["Spain"])
+    logger.log(() => "checking results for 'Spain'")
+    const results = await findex.search(["Spain"], {
+      userInterrupt,
+      verbose: LOGGER_INIT,
+    })
 
     expect(
       results
@@ -359,9 +86,10 @@ async function run(
   }
 
   {
-    // Test with multiple keywords.
-
-    const results = await search(label, ["Spain", "France"])
+    logger.log(() => "Test searching for Spain and France.")
+    const results = await findex.search(["Spain", "France"], {
+      userInterrupt,
+    })
 
     expect(
       results
@@ -387,8 +115,8 @@ async function run(
 
     expect(
       results
-        .locations()
-        .map((location) => location.toNumber())
+        .data()
+        .map((data) => data.toNumber())
         .sort((a, b) => a - b),
     ).toEqual(
       USERS.filter(
@@ -400,8 +128,8 @@ async function run(
   }
 
   {
-    // Test upsert an alias to the first user.
-    await upsert(label, [
+    logger.log(() => "Test upsert an alias to the first user.")
+    await findex.add([
       {
         indexedValue: Keyword.fromString(USERS[0].firstName),
         keywords: ["SomeAlias"],
@@ -410,11 +138,11 @@ async function run(
     ])
 
     const searchAndCheck = async (keyword: string): Promise<void> => {
-      const results = await search(label, [keyword])
+      const results = await findex.search([keyword])
 
-      const locations = results.get(keyword)
-      expect(locations.length).toEqual(1)
-      expect(locations[0].toNumber()).toEqual(USERS[0].id)
+      const data = results.get(keyword)
+      expect(data.length).toEqual(1)
+      expect(data[0].toNumber()).toEqual(USERS[0].id)
     }
 
     await searchAndCheck("Som")
@@ -425,14 +153,21 @@ async function run(
     await searchAndCheck("SomeAlia")
   }
 
+  if (dropTables != null) {
+    await dropTables()
+  }
+  if (dumpTables != null) {
+    dumpTables()
+  }
+
   const sourceIds = Array.from(Array(100).keys()).map((id) => id * id)
 
   await Promise.all(
     // eslint-disable-next-line @typescript-eslint/promise-function-async
     sourceIds.map((id) => {
-      return upsert(label, [
+      return findex.add([
         {
-          indexedValue: Location.fromNumber(id),
+          indexedValue: Data.fromNumber(id),
           keywords: ["Concurrent"],
         },
       ])
@@ -440,16 +175,119 @@ async function run(
   )
 
   {
-    const results = await search(label, ["Concurrent"])
+    const results = await findex.search(["Concurrent"])
+
+    if (dumpTables != null) {
+      dumpTables()
+    }
 
     expect(results.total()).toEqual(100)
-    const locations = results.locations()
-    const resultsIds = locations
-      .map((location) => location.toNumber())
-      .sort((a, b) => a - b)
+    const data = results.data()
+    const resultsIds = data.map((data) => data.toNumber()).sort((a, b) => a - b)
     expect(resultsIds).toEqual(sourceIds)
   }
 }
+
+// eslint-disable-next-line jsdoc/require-jsdoc
+async function runWithFindexInterface(
+  entryInterface: DbInterface,
+  chainInterface: DbInterface,
+  dumpTables?: () => void,
+  dropTables?: () => Promise<void>,
+): Promise<void> {
+  const label = randomBytes(10).toString()
+  const key = randomBytes(16)
+  const findex = new Findex(key, label)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
+  await run(
+    findex,
+    async (results: IntermediateSearchResults) => {
+      try {
+        const data = results.getData(USERS[0].firstName)
+        expect(data.length).toEqual(1)
+        expect(data[0].toNumber()).toEqual(USERS[0].id)
+        return true
+      } catch {
+        return false
+      }
+    },
+    dumpTables,
+    dropTables,
+  )
+}
+
+// eslint-disable-next-line jsdoc/require-jsdoc
+async function runInFindexCloud(): Promise<void> {
+  const baseUrl = `http://${process.env.FINDEX_CLOUD_HOST ?? "127.0.0.1"}:${
+    process.env.FINDEX_CLOUD_PORT ?? "8080"
+  }`
+
+  let response
+  try {
+    response = await fetch(`${baseUrl}/indexes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Test",
+      }),
+    })
+  } catch (e) {
+    if (
+      e instanceof TypeError &&
+      // @ts-expect-error
+      (e.cause.message.includes("ECONNREFUSED") as boolean)
+    ) {
+      return
+    } else {
+      throw e
+    }
+  }
+
+  const data = await response.json()
+  const label = randomBytes(10).toString()
+  const key = randomBytes(16)
+  const findex = new Findex(key, label)
+  const token = await ServerToken.new(
+    data.public_id,
+    Uint8Array.from(data.fetch_entries_key),
+    Uint8Array.from(data.fetch_chains_key),
+    Uint8Array.from(data.upsert_entries_key),
+    Uint8Array.from(data.insert_chains_key),
+  )
+  await findex.instantiateRestInterface(token, baseUrl, baseUrl)
+  await run(findex)
+}
+
+test(
+  "Findex Cloud",
+  async () => {
+    await runInFindexCloud()
+  },
+  { timeout: 60000 },
+)
+
+test("in memory", async () => {
+  const interfaces = await inMemoryDbInterfaceExample()
+  interfaces.dumpTables()
+  await runWithFindexInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
+    interfaces.dumpTables,
+    interfaces.dropTables,
+  )
+  interfaces.dumpTables()
+})
+
+test("SQLite", async () => {
+  const db = new Database(":memory:")
+  const interfaces = await sqliteDbInterfaceExample(db)
+  await runWithFindexInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
+  )
+})
 
 test("generateAliases", async () => {
   const checkAlias = (alias: IndexedEntry, from: string, to: string): void => {
@@ -480,13 +318,13 @@ test("generateAliases", async () => {
   }
 
   {
-    const aliases = generateAliases("Thibaud", 3, 5)
+    const aliases = generateAliases("Thibaud", 3)
 
-    expect(aliases.length).toEqual(3)
+    expect(aliases.length).toEqual(4)
 
     checkAlias(aliases[0], "Thi", "Thib")
     checkAlias(aliases[1], "Thib", "Thiba")
-    checkAlias(aliases[2], "Thiba", "Thibaud")
+    checkAlias(aliases[2], "Thiba", "Thibau")
   }
 })
 
@@ -495,11 +333,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [Location.fromNumber(1).bytes],
+        results: [Data.fromNumber(1).bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [Location.fromNumber(2).bytes],
+        results: [Data.fromNumber(2).bytes],
       },
     ])
 
@@ -509,11 +347,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [Location.fromString("XXX").bytes],
+        results: [Data.fromString("XXX").bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [Location.fromString("YYY").bytes],
+        results: [Data.fromString("YYY").bytes],
       },
     ])
 
@@ -523,15 +361,11 @@ test("SearchResults", async () => {
     const results = new SearchResults([
       {
         keyword: Keyword.fromString("A").bytes,
-        results: [
-          Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes,
-        ],
+        results: [Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").bytes],
       },
       {
         keyword: Keyword.fromString("B").bytes,
-        results: [
-          Location.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes,
-        ],
+        results: [Data.fromUuid("8e36df4c-8b06-4271-872f-1b076fec552e").bytes],
       },
     ])
 
@@ -542,32 +376,30 @@ test("SearchResults", async () => {
   }
 })
 
-test("Location conversions", async () => {
-  expect(Location.fromString("Hello World!").toString()).toEqual("Hello World!")
-  expect(Location.fromNumber(1337).toNumber()).toEqual(1337)
+test("Data conversions", async () => {
+  expect(Data.fromString("Hello World!").toString()).toEqual("Hello World!")
+  expect(Data.fromNumber(1337).toNumber()).toEqual(1337)
   expect(
-    Location.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
+    Data.fromUuid("933f6cee-5e0f-4cad-b5b3-56de0fe003d0").toUuidString(),
   ).toEqual("933f6cee-5e0f-4cad-b5b3-56de0fe003d0")
 
   //
   // check that the formats are the same as Java
   //
-  expect(Location.fromNumber(1337).bytes).toEqual(
+  expect(Data.fromNumber(1337).bytes).toEqual(
     Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57]),
   )
   expect(
-    new Location(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
+    new Data(Uint8Array.from([0, 0, 0, 0, 0, 0, 5, 57])).toNumber(),
   ).toEqual(1337)
 
-  expect(
-    Location.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes,
-  ).toEqual(
+  expect(Data.fromUuid("9e3bf22a-79bd-4d26-ba2b-d6a2f3a29c11").bytes).toEqual(
     Uint8Array.from([
       -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100, 17,
     ]),
   )
   expect(
-    new Location(
+    new Data(
       Uint8Array.from([
         -98, 59, -14, 42, 121, -67, 77, 38, -70, 43, -42, -94, -13, -94, -100,
         17,
@@ -577,59 +409,51 @@ test("Location conversions", async () => {
 })
 
 test("upsert and search cycle", async () => {
-  const findex = await Findex()
-  const masterKey = new FindexKey(randomBytes(16))
-  const label = new Label(randomBytes(10))
-  const callbacks = callbacksExamplesInMemory()
+  const { entryInterface, chainInterface } = await inMemoryDbInterfaceExample()
 
-  await findex.upsert(
-    masterKey,
-    label,
-    [
-      {
-        indexedValue: Keyword.fromString("B"),
-        keywords: ["A"],
-      },
-      {
-        indexedValue: Keyword.fromString("A"),
-        keywords: ["B"],
-      },
-    ],
-    [],
-    callbacks.fetchEntries,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
+  const key = randomBytes(16)
+  const label = randomBytes(10).toString()
+  const findex = new Findex(key, label)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
 
-  await findex.search(
-    masterKey,
-    label,
-    ["A"],
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  await findex.add([
+    {
+      indexedValue: Keyword.fromString("B"),
+      keywords: ["A"],
+    },
+    {
+      indexedValue: Keyword.fromString("A"),
+      keywords: ["B"],
+    },
+  ])
+
+  await findex.search(["A"])
 })
 
 test("upsert and search memory", async () => {
-  const findex = await Findex()
+  const { entryInterface, chainInterface } = await inMemoryDbInterfaceExample()
 
-  const entryLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(Location.fromString("ROBERT file")),
+  const key = randomBytes(16)
+  const label = "test"
+  const findex = new Findex(key, label)
+
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
+
+  const entryData: IndexedEntry = {
+    indexedValue: IndexedValue.fromData(Data.fromString("ROBERT file")),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
-  const entryLocation_ = new LocationIndexEntry("ROBERT file", ["ROBERT"])
-  expect(entryLocation_).toEqual(entryLocation)
+  const entryData_ = new DataIndexEntry("ROBERT file", ["ROBERT"])
+  expect(entryData_).toEqual(entryData)
 
-  const arrayLocation: IndexedEntry = {
-    indexedValue: IndexedValue.fromLocation(
-      Location.fromString("ROBERT file array"),
-    ),
+  const arrayData: IndexedEntry = {
+    indexedValue: IndexedValue.fromData(Data.fromString("ROBERT file array")),
     keywords: new Set([Keyword.fromString("ROBERT")]),
   }
-  const arrayLocation_ = new LocationIndexEntry("ROBERT file array", [
+  const arrayData_ = new DataIndexEntry("ROBERT file array", [
     new TextEncoder().encode("ROBERT"),
   ])
-  expect(arrayLocation_).toEqual(arrayLocation)
+  expect(arrayData_).toEqual(arrayData)
 
   const entryKeyword: IndexedEntry = {
     indexedValue: IndexedValue.fromNextWord(Keyword.fromString("ROBERT")),
@@ -638,66 +462,28 @@ test("upsert and search memory", async () => {
   const entryKeyword_ = new KeywordIndexEntry("BOB", "ROBERT")
   expect(entryKeyword_).toEqual(entryKeyword)
 
-  const masterKey = new FindexKey(randomBytes(16))
+  await findex.add([entryData, entryKeyword, arrayData])
 
-  const label = new Label("test")
-  const callbacks = callbacksExamplesInMemory()
-
-  await findex.upsert(
-    masterKey,
-    label,
-    [entryLocation, entryKeyword, arrayLocation],
-    [],
-    callbacks.fetchEntries,
-    callbacks.upsertEntries,
-    callbacks.insertChains,
-  )
-
-  const results0 = await findex.search(
-    masterKey,
-    label,
-    new Set(["ROBERT"]),
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  const results0 = await findex.search(new Set(["ROBERT"]))
   expect(results0.total()).toEqual(2)
 
   const results1 = await findex.search(
-    masterKey,
-    label,
     new Set([new TextEncoder().encode("ROBERT")]),
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
   )
   expect(results1.total()).toEqual(2)
 
-  const results2 = await findex.search(
-    masterKey,
-    label,
-    new Set(["BOB"]),
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-  )
+  const results2 = await findex.search(new Set(["BOB"]))
   expect(results2.total()).toEqual(2)
 
   // Test progress callback
 
-  const resultsEarlyStop = await findex.search(
-    masterKey,
-    label,
-    new Set(["BOB"]),
-    callbacks.fetchEntries,
-    callbacks.fetchChains,
-    {
-      progress: async (progressResults: ProgressResults) => {
-        expect(progressResults.total()).toEqual(1)
-        expect(progressResults.getKeywords("BOB")[0].toString()).toEqual(
-          "ROBERT",
-        )
-        return false
-      },
+  const resultsEarlyStop = await findex.search(new Set(["BOB"]), {
+    userInterrupt: async (results: IntermediateSearchResults) => {
+      expect(results.total()).toEqual(1)
+      expect(results.getKeywords("BOB")[0].toString()).toEqual("ROBERT")
+      return true
     },
-  )
+  })
   expect(resultsEarlyStop.total()).toEqual(0)
 })
 
@@ -705,26 +491,27 @@ test("upsert and search memory", async () => {
 // This database will be checked (search + upsert) in another step of the CI:
 // cloudproof_java, cloudproof_flutter and cloudproof_python will verify than searching and upserting the database work
 test("generate non regression database", async () => {
-  const findex = await Findex()
-  const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
-  const label = new Label(FINDEX_TEST_LABEL)
-
   const dbFilepath = "node_modules/sqlite.db"
   if (fs.existsSync(dbFilepath)) {
     fs.unlinkSync(dbFilepath)
   }
   const db = new Database(dbFilepath)
-  const callbacks = callbacksExamplesBetterSqlite3(
+  const { entryInterface, chainInterface } = await sqliteDbInterfaceExample(
     db,
     "entry_table",
     "chain_table",
   )
 
+  const key = toByteArray(FINDEX_TEST_KEY)
+  const label = FINDEX_TEST_LABEL
+  const findex = new Findex(key, label)
+  await findex.instantiateCustomInterface(entryInterface, chainInterface)
+
   {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: Location.fromNumber(user.id),
+        indexedValue: Data.fromNumber(user.id),
         keywords: [
           user.firstName,
           user.lastName,
@@ -738,26 +525,12 @@ test("generate non regression database", async () => {
       })
     }
 
-    await findex.upsert(
-      masterKey,
-      label,
-      newIndexedEntries,
-      [],
-      callbacks.fetchEntries,
-      callbacks.upsertEntries,
-      callbacks.insertChains,
-    )
+    await findex.add(newIndexedEntries)
 
-    const results = await findex.search(
-      masterKey,
-      label,
-      ["France"],
-      callbacks.fetchEntries,
-      callbacks.fetchChains,
-    )
+    const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(30)
+    const data = results.get("France")
+    expect(data.length).toEqual(30)
   }
 })
 
@@ -766,30 +539,29 @@ test("generate non regression database", async () => {
  * @returns nothing
  */
 async function verify(dbFilepath: string): Promise<void> {
-  const findex = await Findex()
-  const masterKey = new FindexKey(toByteArray(FINDEX_TEST_KEY))
-  const label = new Label(FINDEX_TEST_LABEL)
   const db = new Database(dbFilepath)
-  const callbacks = callbacksExamplesBetterSqlite3(
+  const interfaces = await sqliteDbInterfaceExample(
     db,
     "entry_table",
     "chain_table",
+  )
+  const key = toByteArray(FINDEX_TEST_KEY)
+  const label = FINDEX_TEST_LABEL
+  const findex = new Findex(key, label)
+
+  await findex.instantiateCustomInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
   )
 
   //
   // Verifying search results
   //
   {
-    const results = await findex.search(
-      masterKey,
-      label,
-      ["France"],
-      callbacks.fetchEntries,
-      callbacks.fetchChains,
-    )
+    const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(30)
+    const data = results.get("France")
+    expect(data.length).toEqual(30)
   }
 
   //
@@ -809,7 +581,7 @@ async function verify(dbFilepath: string): Promise<void> {
       security: "confidential",
     }
     newIndexedEntries.push({
-      indexedValue: Location.fromNumber(newUser.id),
+      indexedValue: Data.fromNumber(newUser.id),
       keywords: [
         newUser.firstName,
         newUser.lastName,
@@ -822,31 +594,17 @@ async function verify(dbFilepath: string): Promise<void> {
       ],
     })
 
-    await findex.upsert(
-      masterKey,
-      label,
-      newIndexedEntries,
-      [],
-      callbacks.fetchEntries,
-      callbacks.upsertEntries,
-      callbacks.insertChains,
-    )
+    await findex.add(newIndexedEntries)
   }
 
   //
   // Another search
   //
   {
-    const results = await findex.search(
-      masterKey,
-      label,
-      ["France"],
-      callbacks.fetchEntries,
-      callbacks.fetchChains,
-    )
+    const results = await findex.search(["France"])
 
-    const locations = results.get("France")
-    expect(locations.length).toEqual(31)
+    const data = results.get("France")
+    expect(data.length).toEqual(31)
   }
 }
 

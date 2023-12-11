@@ -1,48 +1,43 @@
 import { Database, Statement } from "better-sqlite3"
-import {
-  FetchChains,
-  FetchEntries,
-  Index,
-  InsertChains,
-  UidsAndValues,
-  UidsAndValuesToUpsert,
-  UpsertEntries,
-} from "./init"
+import { DbInterface } from "./backend"
+import { loadWasm } from "./init"
+import { Index, UidsAndValues } from "./types"
 
 /**
  * @param db the SQLite3 connection
- * @param entriesTableName name of the entries table
- * @param chainsTableName name of the chains table
+ * @param entryTableName name of the entries table
+ * @param chainTableName name of the chains table
  * @returns the callbacks
  */
-export function callbacksExamplesBetterSqlite3(
+export async function sqliteDbInterfaceExample(
   db: Database,
-  entriesTableName: string = "entries",
-  chainsTableName: string = "chains",
-): {
-  fetchEntries: FetchEntries
-  fetchChains: FetchChains
-  upsertEntries: UpsertEntries
-  insertChains: InsertChains
-} {
+  entryTableName: string = "entries",
+  chainTableName: string = "chains",
+): Promise<{
+  entryInterface: DbInterface
+  chainInterface: DbInterface
+}> {
+  await loadWasm()
+
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${entryTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${chainTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
+
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
   //
-  const upsertIntoChainsTableStmt = db.prepare(
-    `INSERT OR REPLACE INTO ${chainsTableName} (uid, value) VALUES(?, ?)`,
-  )
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const upsertIntoTableStmt = (table: string) =>
+    db.prepare(`INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`)
   const upsertIntoEntriesTableStmt = db.prepare(
-    `INSERT INTO ${entriesTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
+    `INSERT INTO ${entryTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
   )
   const selectOneEntriesTableItemStmt = db.prepare(
-    `SELECT value FROM ${entriesTableName} WHERE uid = ?`,
+    `SELECT value FROM ${entryTableName} WHERE uid = ?`,
   )
 
   // Save some prepare statements inside these objects
@@ -57,7 +52,7 @@ export function callbacksExamplesBetterSqlite3(
     numberOfUids: number,
   ): Statement => {
     let cache
-    if (table === entriesTableName) {
+    if (table === entryTableName) {
       cache = fetchMultipleEntriesTableStmt
     } else {
       cache = fetchMultipleChainsTableStmt
@@ -77,9 +72,9 @@ export function callbacksExamplesBetterSqlite3(
     return statement
   }
 
-  const fetchCallback = async (
-    table: string,
+  const fetch = async (
     uids: Uint8Array[],
+    table: string,
   ): Promise<UidsAndValues> => {
     return prepareFetchMultipleQuery(table, uids.length).all(
       ...uids,
@@ -87,10 +82,19 @@ export function callbacksExamplesBetterSqlite3(
   }
 
   const upsertEntries = async (
-    uidsAndValues: UidsAndValuesToUpsert,
+    oldValues: UidsAndValues,
+    newValues: UidsAndValues,
   ): Promise<UidsAndValues> => {
     const rejected = []
-    for (const { uid, oldValue, newValue } of uidsAndValues) {
+
+    // Add old values in a map to efficiently search for matching UIDs.
+    const mapOfOldValues = new Map()
+    for (const { uid, value } of oldValues) {
+      mapOfOldValues.set(uid.toString(), value)
+    }
+
+    for (const { uid, value: newValue } of newValues) {
+      const oldValue = mapOfOldValues.get(uid.toString())
       const result = upsertIntoEntriesTableStmt.run(
         uid,
         newValue,
@@ -108,18 +112,24 @@ export function callbacksExamplesBetterSqlite3(
     return rejected
   }
 
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid, value } of uidsAndValues) {
-      upsertIntoChainsTableStmt.run(uid, value)
+  const insert = async (items: UidsAndValues, table: string): Promise<void> => {
+    for (const { uid, value } of items) {
+      upsertIntoTableStmt(table).run(uid, value)
     }
   }
 
-  return {
-    fetchEntries: async (uids: Uint8Array[]) =>
-      await fetchCallback(entriesTableName, uids),
-    fetchChains: async (uids: Uint8Array[]) =>
-      await fetchCallback(chainsTableName, uids),
-    upsertEntries,
-    insertChains,
-  }
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, entryTableName)
+  entryInterface.upsert = upsertEntries
+  entryInterface.insert = async (entries: UidsAndValues) =>
+    await insert(entries, entryTableName)
+
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, chainTableName)
+  chainInterface.insert = async (links: UidsAndValues) =>
+    await insert(links, chainTableName)
+
+  return { entryInterface, chainInterface }
 }
