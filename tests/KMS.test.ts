@@ -93,14 +93,14 @@ test(
         importedPublicKeyUniqueIdentifier,
       )
     } catch (error) {
-      expect(error).toMatch(/(Item_not_found)/i)
+      expect(error).toMatch(/(Item not found)/i)
     }
     try {
       await client.retrieveCoverCryptSecretMasterKey(
         importedSecretKeyUniqueIdentifier,
       )
     } catch (error) {
-      expect(error).toMatch(/(Item_not_found)/i)
+      expect(error).toMatch(/(Item not found)/i)
     }
   },
   {
@@ -160,10 +160,10 @@ test(
       `${uniqueIdentifier}-imported`,
       udk,
     )
-    const udk_imported = await client.retrieveCoverCryptUserDecryptionKey(
+    const udkImported = await client.retrieveCoverCryptUserDecryptionKey(
       `${uniqueIdentifier}-imported`,
     )
-    expect(udk.bytes()).toEqual(udk_imported.bytes())
+    expect(udk.bytes()).toEqual(udkImported.bytes())
   },
   {
     timeout: 30 * 1000,
@@ -725,18 +725,24 @@ test(
   async () => {
     const { Policy, PolicyAxis } = await CoverCrypt()
 
-    const importedCertificateUniqueIdentifier = await client.importDer(
+    const importedCertificateUniqueIdentifier = await client.importCertificate(
       "my_cert_id",
       toByteArray(NIST_P256_CERTIFICATE),
       ["certificate", "x509"],
       true,
+      {
+        privateKeyIdentifier: "my_private_key_id",
+      },
     )
 
-    await client.importDer(
+    await client.importPrivateKey(
       "my_private_key_id",
       toByteArray(NIST_P256_PRIVATE_KEY),
       ["private key", "x509"],
       true,
+      {
+        certificateIdentifier: "my_cert_id",
+      },
     )
 
     const policy = new Policy([
