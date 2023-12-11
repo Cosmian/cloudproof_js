@@ -1,43 +1,43 @@
 import { Database, Statement } from "better-sqlite3"
-import { Callbacks } from "./callbacks"
+import { DbInterface } from "./backend"
 import { loadWasm } from "./init"
 import { Index, UidsAndValues } from "./types"
 
 /**
  * @param db the SQLite3 connection
- * @param entriesTableName name of the entries table
- * @param chainsTableName name of the chains table
+ * @param entryTableName name of the entries table
+ * @param chainTableName name of the chains table
  * @returns the callbacks
  */
-export async function callbacksExamplesBetterSqlite3(
+export async function sqliteDbInterfaceExample(
   db: Database,
-  entriesTableName: string = "entries",
-  chainsTableName: string = "chains",
+  entryTableName: string = "entries",
+  chainTableName: string = "chains",
 ): Promise<{
-  entryCallbacks: Callbacks
-  chainCallbacks: Callbacks
+  entryInterface: DbInterface
+  chainInterface: DbInterface
 }> {
   await loadWasm()
 
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${entriesTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${entryTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
   db.prepare(
-    `CREATE TABLE IF NOT EXISTS ${chainsTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
+    `CREATE TABLE IF NOT EXISTS ${chainTableName} (uid BLOB PRIMARY KEY, value BLOB NOT NULL)`,
   ).run()
 
   //
   // Prepare some useful SQL requests on different databases
   // `prepare` a statement is a costly operation we don't want to do on every line (or in every callback)
   //
-  const upsertIntoChainsTableStmt = db.prepare(
-    `INSERT OR REPLACE INTO ${chainsTableName} (uid, value) VALUES(?, ?)`,
-  )
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+  const upsertIntoTableStmt = (table: string) =>
+    db.prepare(`INSERT OR REPLACE INTO ${table} (uid, value) VALUES(?, ?)`)
   const upsertIntoEntriesTableStmt = db.prepare(
-    `INSERT INTO ${entriesTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
+    `INSERT INTO ${entryTableName} (uid, value) VALUES (?, ?) ON CONFLICT (uid)  DO UPDATE SET value = ? WHERE value = ?`,
   )
   const selectOneEntriesTableItemStmt = db.prepare(
-    `SELECT value FROM ${entriesTableName} WHERE uid = ?`,
+    `SELECT value FROM ${entryTableName} WHERE uid = ?`,
   )
 
   // Save some prepare statements inside these objects
@@ -52,7 +52,7 @@ export async function callbacksExamplesBetterSqlite3(
     numberOfUids: number,
   ): Statement => {
     let cache
-    if (table === entriesTableName) {
+    if (table === entryTableName) {
       cache = fetchMultipleEntriesTableStmt
     } else {
       cache = fetchMultipleChainsTableStmt
@@ -72,9 +72,9 @@ export async function callbacksExamplesBetterSqlite3(
     return statement
   }
 
-  const fetchCallback = async (
-    table: string,
+  const fetch = async (
     uids: Uint8Array[],
+    table: string,
   ): Promise<UidsAndValues> => {
     return prepareFetchMultipleQuery(table, uids.length).all(
       ...uids,
@@ -112,21 +112,24 @@ export async function callbacksExamplesBetterSqlite3(
     return rejected
   }
 
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid, value } of uidsAndValues) {
-      upsertIntoChainsTableStmt.run(uid, value)
+  const insert = async (items: UidsAndValues, table: string): Promise<void> => {
+    for (const { uid, value } of items) {
+      upsertIntoTableStmt(table).run(uid, value)
     }
   }
 
-  const entryCallbacks = new Callbacks()
-  entryCallbacks.fetch = async (uids: Uint8Array[]) =>
-    await fetchCallback(entriesTableName, uids)
-  entryCallbacks.upsert = upsertEntries
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, entryTableName)
+  entryInterface.upsert = upsertEntries
+  entryInterface.insert = async (entries: UidsAndValues) =>
+    await insert(entries, entryTableName)
 
-  const chainCallbacks = new Callbacks()
-  chainCallbacks.fetch = async (uids: Uint8Array[]) =>
-    await fetchCallback(chainsTableName, uids)
-  chainCallbacks.insert = insertChains
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, chainTableName)
+  chainInterface.insert = async (links: UidsAndValues) =>
+    await insert(links, chainTableName)
 
-  return { entryCallbacks, chainCallbacks }
+  return { entryInterface, chainInterface }
 }

@@ -1,24 +1,16 @@
 import { randomBytes } from "crypto"
 import { bench, describe } from "vitest"
-import {
-  Findex,
-  FindexKey,
-  IndexedEntry,
-  IndexedValue,
-  Keyword,
-  Label,
-  Location,
-} from ".."
-import { callbacksExamplesInMemory } from "../dist/umd/findex/in_memory"
+import { Findex, IndexedEntry, IndexedValue, Keyword, Data } from ".."
+import { inMemoryDbInterfaceExample } from "../dist/umd/findex/in_memory"
 import { USERS } from "./data/users"
 
-const callbacks = await callbacksExamplesInMemory()
-const key = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const interfaces = await inMemoryDbInterfaceExample()
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 const findex = new Findex(key, label)
-await findex.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
 )
 
 describe("Findex Upsert", async () => {
@@ -26,7 +18,7 @@ describe("Findex Upsert", async () => {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS.slice(0, 10)) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+        indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -41,7 +33,7 @@ describe("Findex Upsert", async () => {
     const newIndexedEntries: IndexedEntry[] = []
     for (const user of USERS) {
       newIndexedEntries.push({
-        indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+        indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
         keywords: new Set([
           Keyword.fromString(user.firstName),
           Keyword.fromString(user.country),
@@ -57,7 +49,7 @@ describe("Findex Search", async () => {
   const newIndexedEntries: IndexedEntry[] = []
   for (const user of USERS) {
     newIndexedEntries.push({
-      indexedValue: IndexedValue.fromLocation(Location.fromNumber(user.id)),
+      indexedValue: IndexedValue.fromData(Data.fromNumber(user.id)),
       keywords: new Set([
         Keyword.fromString(user.firstName),
         Keyword.fromString(user.country),

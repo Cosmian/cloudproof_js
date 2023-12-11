@@ -1,6 +1,6 @@
 import fs from "fs"
 import readline from "readline"
-import { Location, Findex, FindexKey, Label, callbacksExamplesBetterSqlite3 } from "cloudproof_js"
+import { Data, Findex, sqliteDbInterfaceExample } from "cloudproof_js"
 import path from "path"
 import { fileURLToPath } from "url"
 import { randomBytes } from "crypto"
@@ -31,15 +31,15 @@ if (!fs.existsSync(dataFilename)) {
 const input = fs.createReadStream(dataFilename)
 
 // Init Findex with random key and random label
-const key = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 
 const db = new Database(":memory:")
-const callbacks = await callbacksExamplesBetterSqlite3(db)
+const interfaces = await sqliteDbInterfaceExample(db)
 const findex = new Findex(key, label)
-await findex.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+await findex.instantiateCustomInterface(
+  interfaces.entryInterface,
+  interfaces.chainInterface,
 )
 
 // Number of movies to index in a single `upsert` call
@@ -71,7 +71,7 @@ for await (const line of readline.createInterface({ input })) {
   }
 
   toUpsert.push({
-    indexedValue: Location.fromString(info[0]),
+    indexedValue: Data.fromString(info[0]),
     keywords,
   })
 

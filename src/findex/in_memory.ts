@@ -1,25 +1,25 @@
 import { logger } from "utils/logger"
-import { Callbacks } from "./callbacks"
+import { DbInterface } from "./backend"
 import { loadWasm } from "./init"
 import { UidsAndValues } from "./types"
 
 /**
  * @returns the callbacks
  */
-export async function callbacksExamplesInMemory(): Promise<{
-  entryCallbacks: Callbacks
-  chainCallbacks: Callbacks
+export async function inMemoryDbInterfaceExample(): Promise<{
+  entryInterface: DbInterface
+  chainInterface: DbInterface
   dumpTables: () => void
   dropTables: () => Promise<void>
 }> {
   await loadWasm()
 
-  const entries: Map<string, Uint8Array> = new Map()
-  const chains: Map<string, Uint8Array> = new Map()
+  const entryTable: Map<string, Uint8Array> = new Map()
+  const chainTable: Map<string, Uint8Array> = new Map()
 
-  const fetchCallback = async (
-    table: Map<string, Uint8Array>,
+  const fetch = async (
     uids: Uint8Array[],
+    table: Map<string, Uint8Array>,
   ): Promise<UidsAndValues> => {
     const results: UidsAndValues = []
     for (const requestedUid of uids) {
@@ -44,13 +44,13 @@ export async function callbacksExamplesInMemory(): Promise<{
     }
 
     for (const { uid, value: newValue } of newValues) {
-      const currentValue = entries.get(uid.toString())
+      const currentValue = entryTable.get(uid.toString())
 
       if (
         currentValue?.toString() ===
         mapOfOldValues.get(uid.toString())?.toString()
       ) {
-        entries.set(uid.toString(), newValue)
+        entryTable.set(uid.toString(), newValue)
       } else if (currentValue === undefined) {
         throw new Error(
           "Rust shouldn't send us an oldValue if the table never contained a value… (except if there is a compact between)",
@@ -62,33 +62,37 @@ export async function callbacksExamplesInMemory(): Promise<{
     return rejected
   }
 
-  const insertChains = async (uidsAndValues: UidsAndValues): Promise<void> => {
-    for (const { uid: newUid, value: newValue } of uidsAndValues) {
-      chains.set(newUid.toString(), newValue)
+  const insert = async (
+    items: UidsAndValues,
+    table: Map<string, Uint8Array>,
+  ): Promise<void> => {
+    for (const { uid: newUid, value: newValue } of items) {
+      table.set(newUid.toString(), newValue)
     }
   }
 
   const dumpTables = (): void => {
-    logger.log(() => `entry table length: ${entries.size}`)
-    logger.log(() => `chain table length: ${chains.size}`)
+    logger.log(() => `entry table length: ${entryTable.size}`)
+    logger.log(() => `chain table length: ${chainTable.size}`)
   }
 
   const dropTables = async (): Promise<void> => {
-    entries.clear()
-    chains.clear()
+    entryTable.clear()
+    chainTable.clear()
   }
 
-  const entryCallbacks = new Callbacks()
-  entryCallbacks.fetch = async (uids: Uint8Array[]) => {
-    return await fetchCallback(entries, uids)
-  }
-  entryCallbacks.upsert = upsertEntries
+  const entryInterface = new DbInterface()
+  entryInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, entryTable)
+  entryInterface.insert = async (entries: UidsAndValues) =>
+    await insert(entries, entryTable)
+  entryInterface.upsert = upsertEntries
 
-  const chainCallbacks = new Callbacks()
-  chainCallbacks.fetch = async (uids: Uint8Array[]) => {
-    return await fetchCallback(chains, uids)
-  }
-  chainCallbacks.insert = insertChains
+  const chainInterface = new DbInterface()
+  chainInterface.fetch = async (uids: Uint8Array[]) =>
+    await fetch(uids, chainTable)
+  chainInterface.insert = async (links: UidsAndValues) =>
+    await insert(links, chainTable)
 
-  return { entryCallbacks, chainCallbacks, dumpTables, dropTables }
+  return { entryInterface, chainInterface, dumpTables, dropTables }
 }

@@ -1,12 +1,10 @@
 import Database from "better-sqlite3"
 import {
   Findex,
-  FindexKey,
   IndexedValue,
   Keyword,
-  Label,
-  Location,
-  callbacksExamplesBetterSqlite3,
+  Data,
+  sqliteDbInterfaceExample,
   generateAliases,
 } from "cloudproof_js"
 import { randomBytes } from "crypto"
@@ -44,14 +42,14 @@ fs.writeFileSync(
 const csvStats = fs.createWriteStream("stats.csv", { flags: "a+" })
 
 // Init Findex with random key and random label
-const key = new FindexKey(randomBytes(16))
-const label = new Label(randomBytes(10))
+const key = randomBytes(16)
+const label = randomBytes(10).toString()
 const findexCloudToken = process.env.FINDEX_CLOUD_TOKEN
 const baseUrl = "http://127.0.0.1:8080"
 
 if (findexCloudToken) {
   const findexCloud = new Findex(key, label)
-  await findexCloud.instantiateRestBackend(findexCloudToken, baseUrl)
+  await findexCloud.instantiateRestInterface(findexCloudToken, baseUrl)
 }
 
 // Init databases
@@ -70,11 +68,11 @@ const dbIndex = new Database(":memory:")
 if (fs.existsSync("findex_indexes.sqlite"))
   fs.unlinkSync("findex_indexes.sqlite")
 
-const callbacks = await callbacksExamplesBetterSqlite3(dbIndex)
+const dbInterfaces = await sqliteDbInterfaceExample(dbIndex)
 const findexSqlite = new Findex(key, label)
-await findexSqlite.instantiateCustomBackend(
-  callbacks.entryCallbacks,
-  callbacks.chainCallbacks,
+await findexSqlite.instantiateCustomInterface(
+  dbInterfaces.entryInterface,
+  dbInterfaces.chainInterface,
 )
 
 //
@@ -164,7 +162,7 @@ for await (const line of rl) {
   }
 
   toUpsert.push({
-    indexedValue: IndexedValue.fromLocation(Location.fromString(info[0])),
+    indexedValue: IndexedValue.fromData(Data.fromString(info[0])),
     keywords: new Set(keywords.map((keyword) => Keyword.fromString(keyword))),
   })
 
@@ -279,9 +277,9 @@ for await (const line of rl) {
 
           findexCloudResults = new Set(
             results
-              .locations()
-              .map((indexedLocation) =>
-                new TextDecoder().decode(indexedLocation.bytes),
+              .data()
+              .map((indexedData) =>
+                new TextDecoder().decode(indexedData.bytes),
               ),
           )
 

@@ -1,35 +1,27 @@
 import { randomBytes } from "crypto"
 import { expect, test } from "vitest"
-import {
-  callbacksExamplesInMemory,
-  Findex,
-  FindexKey,
-  Label,
-  Location,
-} from ".."
+import { inMemoryDbInterfaceExample, Findex, Data } from ".."
 
 test("errors", async () => {
-  const callbacks = await callbacksExamplesInMemory()
-  const toUpsert = [
-    { indexedValue: Location.fromNumber(42), keywords: ["Answer"] },
-  ]
+  const interfaces = await inMemoryDbInterfaceExample()
+  const toUpsert = [{ indexedValue: Data.fromNumber(42), keywords: ["Answer"] }]
 
-  const key = new FindexKey(randomBytes(16))
-  const label = new Label(randomBytes(32))
+  const key = randomBytes(16)
+  const label = randomBytes(32).toString()
   const findex = new Findex(key, label)
-  await findex.instantiateCustomBackend(
-    callbacks.entryCallbacks,
-    callbacks.chainCallbacks,
+  await findex.instantiateCustomInterface(
+    interfaces.entryInterface,
+    interfaces.chainInterface,
   )
 
   // Master key size
   expect(async () => {
-    const key = new FindexKey(randomBytes(72))
-    const label = new Label(randomBytes(32))
+    const key = randomBytes(72)
+    const label = randomBytes(32).toString()
     const findex = new Findex(key, label)
-    await findex.instantiateCustomBackend(
-      callbacks.entryCallbacks,
-      callbacks.chainCallbacks,
+    await findex.instantiateCustomInterface(
+      interfaces.entryInterface,
+      interfaces.chainInterface,
     )
     await findex.add(toUpsert)
   }).rejects.toThrow(
@@ -37,12 +29,12 @@ test("errors", async () => {
   )
 
   expect(async () => {
-    const key = new FindexKey(randomBytes(13))
-    const label = new Label(randomBytes(32))
+    const key = randomBytes(13)
+    const label = randomBytes(32).toString()
     const findex = new Findex(key, label)
-    await findex.instantiateCustomBackend(
-      callbacks.entryCallbacks,
-      callbacks.chainCallbacks,
+    await findex.instantiateCustomInterface(
+      interfaces.entryInterface,
+      interfaces.chainInterface,
     )
     await findex.search("Answer")
   }).rejects.toThrow(
@@ -59,11 +51,11 @@ test("errors", async () => {
   expect(async () => {
     await findex.add([{}])
   }).rejects.toThrow(
-    "During Findex upsert: all the `indexedValue` inside the `additions` array should be of type IndexedValue, Location or Keyword, undefined received (undefined).",
+    "During Findex upsert: all the `indexedValue` inside the `additions` array should be of type IndexedValue, Data or Keyword, undefined received (undefined).",
   )
 
   expect(async () => {
-    await findex.add([{ indexedValue: Location.fromNumber(42) }])
+    await findex.add([{ indexedValue: Data.fromNumber(42) }])
   }).rejects.toThrow(
     "During Findex upsert: all the elements inside the `additions` array should have an iterable property `keywords`, undefined received (undefined).",
   )
@@ -71,7 +63,7 @@ test("errors", async () => {
   expect(async () => {
     await findex.add([
       {
-        indexedValue: Location.fromNumber(42),
+        indexedValue: Data.fromNumber(42),
         keywords: [{ name: "Thibaud" }],
       },
     ])
