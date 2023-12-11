@@ -65,7 +65,7 @@ Local encryption and decryption with [CoverCrypt](https://github.com/Cosmian/cov
 This table shows the minimum version correspondence between the various components.
 
 | `cloudproof_js` | CoverCrypt lib | Findex | KMS Server |
-| --------------- | -------------- | ------ | ---------- |
+|-----------------|----------------|--------|------------|
 | 1.0.6           | 6.0.1          | 0.5.0  | 2.2.0      |
 | 3.1.0           | 6.0.7          | 0.7.0  | 2.3.0      |
 | 3.1.0, 4.\*     | 6.0.7          | 0.7.0  | 2.3.0      |
@@ -77,7 +77,7 @@ This table shows the minimum version correspondence between the various componen
 From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://github.com/Cosmian/cloudproof_rust) which wraps the interfaces of `CoverCrypt` and `Findex`.
 
 | `cloudproof_js` | Cloudproof Rust lib | KMS Server |
-| --------------- | ------------------- | ---------- |
+|-----------------|---------------------|------------|
 | 8.0.0           | 1.0.0               | 4.2.0      |
 | 8.1.0           | 1.1.0               | 4.3.0      |
 | 9.0.0           | 2.0.1               | 4.3.0      |
@@ -87,4 +87,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 | 9.4.0,9.4.1     | 2.2.4               | 4.7.0      |
 | 9.5.0           | 2.3.0               | 4.9.0      |
 | 9.5.1           | 2.3.0               | 4.9.1      |
-| 9.6.0           | 2.4.0               | 4.9.1      |
+| 9.6.0           | 2.4.0               | 4.10.0     |

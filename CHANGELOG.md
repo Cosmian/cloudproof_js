@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.6.0] - 2023-12-11
+
+### Bug Fixes
+
+- Support Findex v6
+
+### Documentation
+
+- CI badge
+- Update readme and changelog (#155)
+
 ## [9.5.1] - 2023-11-14
 
 ### Bug Fixes
