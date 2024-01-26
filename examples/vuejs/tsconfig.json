@@ -6,10 +6,8 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "lib": [
-      "dom",
-      "es2019"
-    ],
+    "lib": ["dom", "es2019"],
+    "jsx": "react-jsx"
   },
   "references": [
     {
