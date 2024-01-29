@@ -365,15 +365,11 @@ export default defineComponent({
       this.encrypting = false
     },
 
-    async indexUsers(
-      key: Exclude<Uint8Array, null>,
-      users: User[],
-    ) {
+    async indexUsers(key: Exclude<Uint8Array, null>, users: User[]) {
       await loadWasm()
       const findex = new Findex(key, FINDEX_LABEL)
       const entryInterface = new DbInterface()
-      entryInterface.fetch = async (uids) =>
-        await this.fetch("entries", uids)
+      entryInterface.fetch = async (uids) => await this.fetch("entries", uids)
       entryInterface.upsert = async (
         oldValues: UidsAndValues,
         newValues: UidsAndValues,
@@ -511,18 +507,15 @@ export default defineComponent({
       if (!this.query || !this.selectedKey) return []
 
       const entryInterface = new DbInterface()
-      entryInterface.fetch = async (uids) =>
-        await this.fetch("entries", uids)
+      entryInterface.fetch = async (uids) => await this.fetch("entries", uids)
       const chainInterface = new DbInterface()
-      chainInterface.fetch = async (uids) =>
-        await this.fetch("chains", uids)
+      chainInterface.fetch = async (uids) => await this.fetch("chains", uids)
 
       const decrypter = (await this.getEncryptorAndDecrypter()).decrypt
 
       if (!this.key) throw "No Findex key"
       const findex = new Findex(this.key, FINDEX_LABEL)
       await findex.instantiateCustomInterface(entryInterface, chainInterface)
-
 
       const query = this.query
 
@@ -534,14 +527,10 @@ export default defineComponent({
 
       let data: Array<Data> | null = null
       if (this.doOr) {
-        data = (
-          await findex.search(keywords)
-        ).data()
+        data = (await findex.search(keywords)).data()
       } else {
         for (const keyword of keywords) {
-          const newData = (
-            await findex.search([keyword])
-          ).data()
+          const newData = (await findex.search([keyword])).data()
 
           if (data === null) {
             data = newData
