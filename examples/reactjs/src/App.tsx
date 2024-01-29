@@ -7,7 +7,7 @@ import {
   PolicyKms,
   UidsAndValues,
   generateAliases,
-  loadWasm
+  loadWasm,
 } from "cloudproof_js"
 import { FormEvent, useEffect, useState } from "react"
 
@@ -411,8 +411,7 @@ function App() {
     await loadWasm()
     const findex = new Findex(localMasterKey, FINDEX_LABEL)
     const entryInterface = new DbInterface()
-    entryInterface.fetch = async (uids) =>
-      await fetch("entries", uids)
+    entryInterface.fetch = async (uids) => await fetch("entries", uids)
     entryInterface.upsert = async (
       oldValues: UidsAndValues,
       newValues: UidsAndValues,
@@ -460,7 +459,7 @@ function App() {
     setIndexingDone(true)
   }
 
-  const fetch= async (
+  const fetch = async (
     table: "entries" | "chains",
     uids: Uint8Array[],
   ): Promise<UidsAndValues> => {
@@ -485,7 +484,7 @@ function App() {
     return results
   }
 
-  const insert= async (
+  const insert = async (
     table: "entries" | "chains",
     uidsAndValues: UidsAndValues,
   ): Promise<void> => {
@@ -518,7 +517,7 @@ function App() {
     }
   }
 
-  const upsert= async (
+  const upsert = async (
     table: "entries" | "chains",
     oldValues: UidsAndValues,
     newValues: UidsAndValues,
@@ -631,8 +630,7 @@ function App() {
 
     const findex = new Findex(key, FINDEX_LABEL)
     const entryInterface = new DbInterface()
-    entryInterface.fetch = async (uids) =>
-      await fetch("entries", uids)
+    entryInterface.fetch = async (uids) => await fetch("entries", uids)
     const chainInterface = new DbInterface()
     chainInterface.fetch = async (uids) => await fetch("chains", uids)
 
@@ -649,26 +647,17 @@ function App() {
 
     let data: Array<Data> | null = null
     if (doOr) {
-      data = (
-        await findex.search(new Set(keywords))
-      ).data()
+      data = (await findex.search(new Set(keywords))).data()
     } else {
       for (const keyword of keywords) {
-        const newData = (
-          await findex.search(new Set([keyword]))
-        ).data()
+        const newData = (await findex.search(new Set([keyword]))).data()
 
         if (data === null) {
           data = newData
         } else {
           data = data.filter((alreadyReturnedData) => {
             for (let newDatum of newData) {
-              if (
-                uint8ArrayEquals(
-                  newDatum.bytes,
-                  alreadyReturnedData.bytes,
-                )
-              ) {
+              if (uint8ArrayEquals(newDatum.bytes, alreadyReturnedData.bytes)) {
                 return true
               }
             }

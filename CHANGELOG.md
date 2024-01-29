@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.7.0] - 2024-01-29
+
+### Features
+
+- Support kms 4.11 + kms_js 3.1.2
+
 ## [9.6.0] - 2023-12-11
 
 ### Bug Fixes
