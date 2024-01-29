@@ -60,24 +60,10 @@ npm i cloudproof_js
 
 ## Versions Correspondence
 
-Local encryption and decryption with [CoverCrypt](https://github.com/Cosmian/cover_crypt) and SSE Findex Cosmian scheme use WASM libraries which are transparent for Javascript/Typescript usage.
-
-This table shows the minimum version correspondence between the various components.
-
-| `cloudproof_js` | CoverCrypt lib | Findex | KMS Server |
-|-----------------|----------------|--------|------------|
-| 1.0.6           | 6.0.1          | 0.5.0  | 2.2.0      |
-| 3.1.0           | 6.0.7          | 0.7.0  | 2.3.0      |
-| 3.1.0, 4.\*     | 6.0.7          | 0.7.0  | 2.3.0      |
-| 5.0.0           | 7.0.0          | 0.10.0 | 3.0.0      |
-| 6.0.0           | 8.0.0          | 1.0.0  | 4.0.0      |
-| 6.0.1           | 8.0.0          | 2.0.0  | 4.0.0      |
-| 7.0.0, 7.0.1    | 10.0.0         | 2.0.1  | 4.2.0      |
-
-From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://github.com/Cosmian/cloudproof_rust) which wraps the interfaces of `CoverCrypt` and `Findex`.
+[CoverCrypt](https://github.com/Cosmian/cover_crypt) and SSE [Findex](https://github.com/Cosmian/findex) scheme are wrapped in WebAssembly libraries (WASM) in [cloudproof_rust](https://github.com/Cosmian/cloudproof_rust).
 
 | `cloudproof_js` | Cloudproof Rust lib | KMS Server |
-|-----------------|---------------------|------------|
+| --------------- | ------------------- | ---------- |
 | 8.0.0           | 1.0.0               | 4.2.0      |
 | 8.1.0           | 1.1.0               | 4.3.0      |
 | 9.0.0           | 2.0.1               | 4.3.0      |
@@ -88,3 +74,4 @@ From the version 8.0.0, `cloudproof_js` depends on [cloudproof_rust](https://git
 | 9.5.0           | 2.3.0               | 4.9.0      |
 | 9.5.1           | 2.3.0               | 4.9.1      |
 | 9.6.0           | 2.4.0               | 4.10.0     |
+| 9.7.0           | 2.4.0               | 4.11.3     |

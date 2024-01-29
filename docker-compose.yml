@@ -5,7 +5,7 @@ version: "3"
 services:
   kms:
     container_name: kms
-    image: ghcr.io/cosmian/kms:4.10.0
+    image: ghcr.io/cosmian/kms:4.11.3
     ports:
       - 9998:9998
     environment:
