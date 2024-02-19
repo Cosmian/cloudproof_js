@@ -2,7 +2,6 @@
 import {
   webassembly_generate_master_keys,
   webassembly_generate_user_secret_key,
-  webassembly_rotate_attributes,
 } from "../pkg/cover_crypt/cloudproof_cover_crypt"
 import { fromBeBytes } from "../utils/utils"
 import { Policy } from "./interfaces/policy"
@@ -63,19 +62,6 @@ export class CoverCryptKeyGeneration {
   ): Uint8Array {
     return generateUserSecretKey(masterSecretKeyBytes, accessPolicy, policy)
   }
-
-  /**
-   * Rotate attributes in the given policy
-   *
-   * Note: this does NOT refresh the keys
-   * @param {string[]} attributes to rotate
-   * e.g. ["Department::MKG" , "Department::FIN"]
-   * @param {Policy} policy the policy
-   * @returns {Policy} the updated policy
-   */
-  public rotateAttributes(attributes: string[], policy: Policy): Policy {
-    return rotateAttributes(attributes, policy)
-  }
 }
 
 /**
@@ -112,22 +98,4 @@ export function generateUserSecretKey(
   )
 
   return userSecretKey
-}
-
-/**
- * Rotate attributes in the given policy
- *
- * Note: this does NOT refresh the keys
- * @param {string[]} attributes to rotate
- * e.g. ["Department::MKG" , "Department::FIN"]
- * @param {Policy} policy the policy
- * @returns {Policy} the updated policy
- */
-export function rotateAttributes(attributes: string[], policy: Policy): Policy {
-  const newPolicyBytes = webassembly_rotate_attributes(
-    attributes,
-    policy.toBytes(),
-  )
-
-  return Policy.fromBytes(newPolicyBytes)
 }
