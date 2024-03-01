@@ -158,7 +158,6 @@ test("Demo using KMS", async () => {
     new PolicyAxis(
       "Department", // this axis name
       [
-        { name: "R&D", isHybridized: false },
         { name: "HR", isHybridized: false },
         { name: "MKG", isHybridized: false },
         { name: "FIN", isHybridized: false },
@@ -376,7 +375,7 @@ test("Demo using KMS", async () => {
     "Department::MKG",
   )
 
-  // Decrypting old messages will fail even with the rekeyed key
+  // decrypting old messages will fail even with the rekeyed key
   try {
     // will throw
     await client.coverCryptDecrypt(
@@ -387,12 +386,81 @@ test("Demo using KMS", async () => {
     // ==> the non rekeyed key cannot decrypt the new message after rotation
   }
 
-  // Decrypting the new message will still work
-  const newConfidentialMkgCleartext_ = await client.coverCryptDecrypt(
-    confidentialMkgUserKeyUid,
-    newConfidentialMkgCiphertext,
+  // decrypting the new message will still work
+  {
+    const newConfidentialMkgCleartext = await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      newConfidentialMkgCiphertext,
+    )
+    expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
+  }
+
+  //
+  // Edit Policy
+  //
+
+  // Rename attribute "Department::MKG" to "Department::Marketing"
+  await client.renameCoverCryptAttribute(
+    masterSecretKeyUID,
+    "Department::MKG",
+    "Marketing",
   )
-  expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext_.plaintext)
+
+  // decryption rights have not been modified even for previously generated keys and ciphers
+  {
+    const newConfidentialMkgCleartext = await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      newConfidentialMkgCiphertext,
+    )
+    expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
+  }
+
+  // new encryption or user key generation must use the new attribute name
+  {
+    const topSecretMkgCiphertext = await client.coverCryptEncrypt(
+      masterPublicKeyUID,
+      "Department::Marketing && Security Level::Top Secret",
+      topSecretMkgData,
+    )
+
+    // new "Marketing" message can still be decrypted with "MKG" keys
+    const topSecretMkgCleartext = await client.coverCryptDecrypt(
+      topSecretMkgFinUserKeyUid,
+      topSecretMkgCiphertext,
+    )
+    expect(topSecretMkgData).toEqual(topSecretMkgCleartext.plaintext)
+  }
+
+  // Add new attributes
+  await client.addCoverCryptAttribute(
+    masterSecretKeyUID,
+    "Department::R&D",
+    false,
+  )
+
+  // encrypt a message for the newly created `R&D` attribute
+  const protectedRdData = new TextEncoder().encode("protected_rd_message")
+  const protectedRdCiphertext = await client.coverCryptEncrypt(
+    masterPublicKeyUID,
+    "Department::R&D && Security Level::Protected",
+    protectedRdData,
+  )
+
+  // and generate a user key with access rights for this attribute
+  const confidentialRdFinUserKeyUid =
+    await client.createCoverCryptUserDecryptionKey(
+      "(Department::R&D || Department::FIN) && Security Level::Confidential",
+      masterSecretKeyUID,
+    )
+
+  // decrypt the R&D message with the new user key
+  {
+    const protectedRdCleartext = await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+    expect(protectedRdData).toEqual(protectedRdCleartext.plaintext)
+  }
 })
 
 test("Generate non-regression tests vector", async () => {

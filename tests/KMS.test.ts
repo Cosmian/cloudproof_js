@@ -492,7 +492,7 @@ test(
 )
 
 test(
-  "Key rotation security when importing with tempered access policy",
+  "Key rekey security when importing with tempered access policy",
   async () => {
     const { Policy, PolicyAxis } = await CoverCrypt()
 
@@ -548,14 +548,10 @@ test(
       return await client?.coverCryptDecrypt(userKeyID, ciphertext)
     }).rejects.toThrow()
 
-    // After rekeying, the temperedUserKey get access to new and old TopSecret key
-    {
-      const { plaintext } = await client.coverCryptDecrypt(
-        temperedUserKeyID,
-        ciphertext,
-      )
-      expect(plaintext).toEqual(plaintext)
-    }
+    // After rekeying, the temperedUserKey gains no access to TopSecret
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, ciphertext)
+    }).rejects.toThrow()
 
     const newCiphertext = await client.coverCryptEncrypt(
       mpkID,
@@ -567,10 +563,10 @@ test(
       return await client?.coverCryptDecrypt(userKeyID, newCiphertext)
     }).rejects.toThrow()
 
-    // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)
-    // await expect(async () => {
-    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCiphertext);
-    // }).rejects.toThrow()
+    // Cannot decrypt with the tempered user key)
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, newCiphertext)
+    }).rejects.toThrow()
   },
   {
     timeout: 30 * 1000,
@@ -578,7 +574,7 @@ test(
 )
 
 test(
-  "Decrypt old ciphertext after rotation",
+  "Decrypt old ciphertext after rekeying",
   async () => {
     const {
       CoverCryptHybridEncryption,
