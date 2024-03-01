@@ -365,7 +365,7 @@ test("Demo using KMS", async () => {
     ).decrypt(newConfidentialMkgCiphertext)
     console.log(new TextDecoder("utf-8").decode(x.plaintext))
   } catch (error) {
-    // ==> the non rekeyed key cannot decrypt the new message after rotation
+    // ==> the non rekeyed key cannot decrypt the new message
   }
 
   // Prune: remove old keys for the MKG attribute
@@ -383,7 +383,7 @@ test("Demo using KMS", async () => {
       protectedMkgCiphertext,
     )
   } catch (error) {
-    // ==> the non rekeyed key cannot decrypt the new message after rotation
+    // ==> the pruned key cannot decrypt the old message
   }
 
   // decrypting the new message will still work
@@ -460,6 +460,43 @@ test("Demo using KMS", async () => {
       protectedRdCiphertext,
     )
     expect(protectedRdData).toEqual(protectedRdCleartext.plaintext)
+  }
+
+  // Disable attributes
+  await client.disableCoverCryptAttribute(masterSecretKeyUID, "Department::R&D")
+
+  // new data encryption for `Department::R&D` will fail
+  try {
+    // will throw
+    await client.coverCryptEncrypt(
+      masterPublicKeyUID,
+      "Department::R&D && Security Level::Protected",
+      protectedRdData,
+    )
+  } catch (error) {
+    // ==> disabled attributes can no longer be used to encrypt data
+  }
+
+  // Decryption of R&D ciphertext is still possible
+  {
+    const protectedRdCleartext = await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+    expect(protectedRdData).toEqual(protectedRdCleartext.plaintext)
+  }
+
+  // Remove attributes
+  await client.removeCoverCryptAttribute(masterSecretKeyUID, "Department::R&D")
+
+  // Removed attributes can no longer be used to encrypt or decrypt
+  try {
+    await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+  } catch (error) {
+    // ==> Not able to decrypt
   }
 })
 
