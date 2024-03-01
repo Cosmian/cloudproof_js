@@ -316,9 +316,10 @@ test("Demo using KMS", async () => {
     await client.retrieveCoverCryptUserDecryptionKey(confidentialMkgUserKeyUid)
 
   // Now rotate the MKG attribute - all active keys will be rekeyed, the new policy should be used to encrypt
-  const updatedPolicy = client.rotateCoverCryptAttributes(masterSecretKeyUID, [
+  await client.rekeyCoverCryptAccessPolicy(
+    masterSecretKeyUID,
     "Department::MKG",
-  ])
+  )
 
   // creating a new confidential marketing message
   const confidentialMkgData = new TextEncoder().encode(
@@ -360,12 +361,38 @@ test("Demo using KMS", async () => {
   // newConfidentialMkgCiphertext
   try {
     // will throw
-    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey.bytes()).decrypt(
-      newConfidentialMkgCiphertext,
+    let x = new CoverCryptHybridDecryption(
+      oldConfidentialMkgUserKey.bytes(),
+    ).decrypt(newConfidentialMkgCiphertext)
+    console.log(new TextDecoder("utf-8").decode(x.plaintext))
+  } catch (error) {
+    // ==> the non rekeyed key cannot decrypt the new message after rotation
+  }
+
+  // Prune: remove old keys for the MKG attribute
+
+  await client.pruneCoverCryptAccessPolicy(
+    masterSecretKeyUID,
+    "Department::MKG",
+  )
+
+  // Decrypting old messages will fail even with the rekeyed key
+  try {
+    // will throw
+    await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      protectedMkgCiphertext,
     )
   } catch (error) {
     // ==> the non rekeyed key cannot decrypt the new message after rotation
   }
+
+  // Decrypting the new message will still work
+  const newConfidentialMkgCleartext_ = await client.coverCryptDecrypt(
+    confidentialMkgUserKeyUid,
+    newConfidentialMkgCiphertext,
+  )
+  expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext_.plaintext)
 })
 
 test("Generate non-regression tests vector", async () => {

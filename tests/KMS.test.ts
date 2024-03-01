@@ -362,16 +362,15 @@ test(
     }
 
     // rotate
-    const rotatedPolicy = await client.rotateCoverCryptAttributes(mskID, [
-      "Department::FIN",
-      "Department::MKG",
-    ])
+    await client.rekeyCoverCryptAccessPolicy(
+      mskID,
+      "Department::FIN || Department::MKG",
+    )
 
     const rotatedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
     expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
     const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
-    expect(policy.toBytes()).not.toEqual(rotatedPolicy.toBytes())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")
@@ -543,7 +542,7 @@ test(
       return await client?.coverCryptDecrypt(temperedUserKeyID, ciphertext)
     }).rejects.toThrow()
 
-    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"])
+    await client.rekeyCoverCryptAccessPolicy(mskID, "Security::TopSecret")
 
     await expect(async () => {
       return await client?.coverCryptDecrypt(userKeyID, ciphertext)
@@ -648,13 +647,10 @@ test(
       oldPlaintext,
     )
 
-    const newPolicyBytes = await client.rotateCoverCryptAttributes(mskID, [
-      "Security::Simple",
-    ])
-    const newPolicy = Policy.fromBytes(newPolicyBytes.toBytes())
+    await client.rekeyCoverCryptAccessPolicy(mskID, "Security::Simple")
     const newPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const newLocalEncryption = new CoverCryptHybridEncryption(
-      newPolicy,
+      policy,
       newPublicKey.bytes(),
     )
     expect(newPublicKey.bytes()).not.toEqual(oldPublicKey.bytes())
