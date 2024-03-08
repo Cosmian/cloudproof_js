@@ -416,20 +416,21 @@ test("Demo using KMS", async () => {
   }
 
   // new encryption or user key generation must use the new attribute name
-  {
-    const topSecretMkgCiphertext = await client.coverCryptEncrypt(
-      masterPublicKeyUID,
-      "Department::Marketing && Security Level::Top Secret",
-      topSecretMkgData,
-    )
+  const topSecretMarketingData = new TextEncoder().encode(
+    "top_secret_marketing_message",
+  )
+  const topSecretMarketingCiphertext = await client.coverCryptEncrypt(
+    masterPublicKeyUID,
+    "Department::Marketing && Security Level::Top Secret",
+    topSecretMarketingData,
+  )
 
-    // new "Marketing" message can still be decrypted with "MKG" keys
-    const topSecretMkgCleartext = await client.coverCryptDecrypt(
-      topSecretMkgFinUserKeyUid,
-      topSecretMkgCiphertext,
-    )
-    expect(topSecretMkgData).toEqual(topSecretMkgCleartext.plaintext)
-  }
+  // new "Marketing" message can still be decrypted with "MKG" keys
+  const topSecretMarketingCleartext = await client.coverCryptDecrypt(
+    topSecretMkgFinUserKeyUid,
+    topSecretMarketingCiphertext,
+  )
+  expect(topSecretMarketingData).toEqual(topSecretMarketingCleartext.plaintext)
 
   // Add new attributes
   await client.addCoverCryptAttribute(
@@ -496,7 +497,7 @@ test("Demo using KMS", async () => {
       protectedRdCiphertext,
     )
   } catch (error) {
-    // ==> Not able to decrypt
+    // ==> unable to decrypt data for a removed attribute
   }
 })
 
