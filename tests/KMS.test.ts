@@ -361,16 +361,16 @@ test(
       expect(cleartext).toEqual(plaintext)
     }
 
-    // rotate
+    // rekey
     await client.rekeyCoverCryptAccessPolicy(
       mskID,
       "Department::FIN || Department::MKG",
     )
 
-    const rotatedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
-    expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
-    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
-    expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
+    const rekeyedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
+    expect(rekeyedMsk.bytes()).not.toEqual(msk.bytes())
+    const rekeyedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    expect(rekeyedMpk.bytes()).not.toEqual(mpk.bytes())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")

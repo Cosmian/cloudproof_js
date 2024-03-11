@@ -314,7 +314,7 @@ test("Demo using KMS", async () => {
   const oldConfidentialMkgUserKey =
     await client.retrieveCoverCryptUserDecryptionKey(confidentialMkgUserKeyUid)
 
-  // Now rotate the MKG attribute - all active keys will be rekeyed, the new policy should be used to encrypt
+  // Now rekey the MKG attribute - all active keys will be rekeyed
   await client.rekeyCoverCryptAccessPolicy(
     masterSecretKeyUID,
     "Department::MKG",
