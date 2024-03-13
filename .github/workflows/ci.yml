@@ -72,7 +72,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_python.yml@develop
     with:
-      branch: feature/covercrypt-rekey
+      branch: develop
       target: x86_64-unknown-linux-gnu
       kms-version: ghcr.io/cosmian/kms:4.13.0
       findex-cloud-version: 0.3.1
