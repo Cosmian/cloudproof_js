@@ -30,7 +30,10 @@ const policy = new Policy([
     ],
     false,
   ),
-])(async () => {
+])
+
+// TODO: check if this function is actually tested
+await (async () => {
   const client = new KmsClient(
     `http://${process.env.KMS_HOST || "localhost"}:9998`,
   )
@@ -176,7 +179,7 @@ const policy = new Policy([
     await client.retrieveCoverCryptUserDecryptionKey(mediumSecretMkgUserKeyUid)
 
   // Now revoke the MKG attribute - all active keys will be rekeyed
-  client.rotateCoverCryptAttributes(privateMasterKeyUID, ["Department::MKG"])
+  client.rekeyCoverCryptAccessPolicy(privateMasterKeyUID, ["Department::MKG"])
 
   // retrieve the rekeyed public key
   const rekeyedPublicKey = await client.retrieveCoverCryptPublicMasterKey(

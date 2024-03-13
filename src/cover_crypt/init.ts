@@ -6,7 +6,6 @@ import {
   CoverCryptKeyGeneration,
   generateMasterKeys,
   generateUserSecretKey,
-  rotateAttributes,
 } from "./key_generation"
 
 let initialized: Promise<void> | undefined
@@ -35,7 +34,6 @@ export async function CoverCrypt() {
 
     generateMasterKeys,
     generateUserSecretKey,
-    rotateAttributes,
 
     CoverCryptKeyGeneration,
     CoverCryptHybridDecryption,

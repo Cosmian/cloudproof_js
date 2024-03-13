@@ -158,7 +158,6 @@ test("Demo using KMS", async () => {
     new PolicyAxis(
       "Department", // this axis name
       [
-        { name: "R&D", isHybridized: false },
         { name: "HR", isHybridized: false },
         { name: "MKG", isHybridized: false },
         { name: "FIN", isHybridized: false },
@@ -315,10 +314,11 @@ test("Demo using KMS", async () => {
   const oldConfidentialMkgUserKey =
     await client.retrieveCoverCryptUserDecryptionKey(confidentialMkgUserKeyUid)
 
-  // Now rotate the MKG attribute - all active keys will be rekeyed, the new policy should be used to encrypt
-  const updatedPolicy = client.rotateCoverCryptAttributes(masterSecretKeyUID, [
+  // Now rekey the MKG attribute - all active keys will be rekeyed
+  await client.rekeyCoverCryptAccessPolicy(
+    masterSecretKeyUID,
     "Department::MKG",
-  ])
+  )
 
   // creating a new confidential marketing message
   const confidentialMkgData = new TextEncoder().encode(
@@ -360,11 +360,144 @@ test("Demo using KMS", async () => {
   // newConfidentialMkgCiphertext
   try {
     // will throw
-    new CoverCryptHybridDecryption(oldConfidentialMkgUserKey.bytes()).decrypt(
-      newConfidentialMkgCiphertext,
+    let x = new CoverCryptHybridDecryption(
+      oldConfidentialMkgUserKey.bytes(),
+    ).decrypt(newConfidentialMkgCiphertext)
+    console.log(new TextDecoder("utf-8").decode(x.plaintext))
+  } catch (error) {
+    // ==> the non rekeyed key cannot decrypt the new message
+  }
+
+  // Prune: remove old keys for the MKG attribute
+
+  await client.pruneCoverCryptAccessPolicy(
+    masterSecretKeyUID,
+    "Department::MKG",
+  )
+
+  // decrypting old messages will fail even with the rekeyed key
+  try {
+    // will throw
+    await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      protectedMkgCiphertext,
     )
   } catch (error) {
-    // ==> the non rekeyed key cannot decrypt the new message after rotation
+    // ==> the pruned key cannot decrypt the old message
+  }
+
+  // decrypting the new message will still work
+  {
+    const newConfidentialMkgCleartext = await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      newConfidentialMkgCiphertext,
+    )
+    expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
+  }
+
+  //
+  // Edit Policy
+  //
+
+  // Rename attribute "Department::MKG" to "Department::Marketing"
+  await client.renameCoverCryptAttribute(
+    masterSecretKeyUID,
+    "Department::MKG",
+    "Marketing",
+  )
+
+  // decryption rights have not been modified even for previously generated keys and ciphers
+  {
+    const newConfidentialMkgCleartext = await client.coverCryptDecrypt(
+      confidentialMkgUserKeyUid,
+      newConfidentialMkgCiphertext,
+    )
+    expect(confidentialMkgData).toEqual(newConfidentialMkgCleartext.plaintext)
+  }
+
+  // new encryption or user key generation must use the new attribute name
+  const topSecretMarketingData = new TextEncoder().encode(
+    "top_secret_marketing_message",
+  )
+  const topSecretMarketingCiphertext = await client.coverCryptEncrypt(
+    masterPublicKeyUID,
+    "Department::Marketing && Security Level::Top Secret",
+    topSecretMarketingData,
+  )
+
+  // new "Marketing" message can still be decrypted with "MKG" keys
+  const topSecretMarketingCleartext = await client.coverCryptDecrypt(
+    topSecretMkgFinUserKeyUid,
+    topSecretMarketingCiphertext,
+  )
+  expect(topSecretMarketingData).toEqual(topSecretMarketingCleartext.plaintext)
+
+  // Add new attributes
+  await client.addCoverCryptAttribute(
+    masterSecretKeyUID,
+    "Department::R&D",
+    false,
+  )
+
+  // encrypt a message for the newly created `R&D` attribute
+  const protectedRdData = new TextEncoder().encode("protected_rd_message")
+  const protectedRdCiphertext = await client.coverCryptEncrypt(
+    masterPublicKeyUID,
+    "Department::R&D && Security Level::Protected",
+    protectedRdData,
+  )
+
+  // and generate a user key with access rights for this attribute
+  const confidentialRdFinUserKeyUid =
+    await client.createCoverCryptUserDecryptionKey(
+      "(Department::R&D || Department::FIN) && Security Level::Confidential",
+      masterSecretKeyUID,
+    )
+
+  // decrypt the R&D message with the new user key
+  {
+    const protectedRdCleartext = await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+    expect(protectedRdData).toEqual(protectedRdCleartext.plaintext)
+  }
+
+  // Disable attributes
+  await client.disableCoverCryptAttribute(masterSecretKeyUID, "Department::R&D")
+
+  // new data encryption for `Department::R&D` will fail
+  try {
+    // will throw
+    await client.coverCryptEncrypt(
+      masterPublicKeyUID,
+      "Department::R&D && Security Level::Protected",
+      protectedRdData,
+    )
+  } catch (error) {
+    // ==> disabled attributes can no longer be used to encrypt data
+  }
+
+  // Decryption of R&D ciphertext is still possible
+  {
+    const protectedRdCleartext = await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+    expect(protectedRdData).toEqual(protectedRdCleartext.plaintext)
+  }
+
+  // Remove attributes
+  await client.removeCoverCryptAttribute(masterSecretKeyUID, "Department::R&D")
+
+  // Removed attributes can no longer be used to encrypt or decrypt
+  try {
+    await client.coverCryptDecrypt(
+      confidentialRdFinUserKeyUid,
+      protectedRdCiphertext,
+    )
+  } catch (error) {
+    // ==> unable to decrypt data for a removed attribute
   }
 })
 

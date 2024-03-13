@@ -361,17 +361,16 @@ test(
       expect(cleartext).toEqual(plaintext)
     }
 
-    // rotate
-    const rotatedPolicy = await client.rotateCoverCryptAttributes(mskID, [
-      "Department::FIN",
-      "Department::MKG",
-    ])
+    // rekey
+    await client.rekeyCoverCryptAccessPolicy(
+      mskID,
+      "Department::FIN || Department::MKG",
+    )
 
-    const rotatedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
-    expect(rotatedMsk.bytes()).not.toEqual(msk.bytes())
-    const rotatedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
-    expect(rotatedMpk.bytes()).not.toEqual(mpk.bytes())
-    expect(policy.toBytes()).not.toEqual(rotatedPolicy.toBytes())
+    const rekeyedMsk = await client.retrieveCoverCryptSecretMasterKey(mskID)
+    expect(rekeyedMsk.bytes()).not.toEqual(msk.bytes())
+    const rekeyedMpk = await client.retrieveCoverCryptPublicMasterKey(mpkID)
+    expect(rekeyedMpk.bytes()).not.toEqual(mpk.bytes())
 
     // encryption
     const plaintext2 = new TextEncoder().encode("abcdefgh")
@@ -493,7 +492,7 @@ test(
 )
 
 test(
-  "Key rotation security when importing with tempered access policy",
+  "Key rekey security when importing with tempered access policy",
   async () => {
     const { Policy, PolicyAxis } = await CoverCrypt()
 
@@ -543,20 +542,16 @@ test(
       return await client?.coverCryptDecrypt(temperedUserKeyID, ciphertext)
     }).rejects.toThrow()
 
-    await client.rotateCoverCryptAttributes(mskID, ["Security::TopSecret"])
+    await client.rekeyCoverCryptAccessPolicy(mskID, "Security::TopSecret")
 
     await expect(async () => {
       return await client?.coverCryptDecrypt(userKeyID, ciphertext)
     }).rejects.toThrow()
 
-    // After rekeying, the temperedUserKey get access to new and old TopSecret key
-    {
-      const { plaintext } = await client.coverCryptDecrypt(
-        temperedUserKeyID,
-        ciphertext,
-      )
-      expect(plaintext).toEqual(plaintext)
-    }
+    // After rekeying, the temperedUserKey gains no access to TopSecret
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, ciphertext)
+    }).rejects.toThrow()
 
     const newCiphertext = await client.coverCryptEncrypt(
       mpkID,
@@ -568,10 +563,10 @@ test(
       return await client?.coverCryptDecrypt(userKeyID, newCiphertext)
     }).rejects.toThrow()
 
-    // TODO fix this bug, this should fail (cannot decrypt with the tempered user key)
-    // await expect(async () => {
-    //   return await client.coverCryptDecrypt(temperedUserKeyID, newCiphertext);
-    // }).rejects.toThrow()
+    // Cannot decrypt with the tempered user key)
+    await expect(async () => {
+      return await client.coverCryptDecrypt(temperedUserKeyID, newCiphertext)
+    }).rejects.toThrow()
   },
   {
     timeout: 30 * 1000,
@@ -579,7 +574,7 @@ test(
 )
 
 test(
-  "Decrypt old ciphertext after rotation",
+  "Decrypt old ciphertext after rekeying",
   async () => {
     const {
       CoverCryptHybridEncryption,
@@ -648,13 +643,10 @@ test(
       oldPlaintext,
     )
 
-    const newPolicyBytes = await client.rotateCoverCryptAttributes(mskID, [
-      "Security::Simple",
-    ])
-    const newPolicy = Policy.fromBytes(newPolicyBytes.toBytes())
+    await client.rekeyCoverCryptAccessPolicy(mskID, "Security::Simple")
     const newPublicKey = await client.retrieveCoverCryptPublicMasterKey(mpkID)
     const newLocalEncryption = new CoverCryptHybridEncryption(
-      newPolicy,
+      policy,
       newPublicKey.bytes(),
     )
     expect(newPublicKey.bytes()).not.toEqual(oldPublicKey.bytes())
