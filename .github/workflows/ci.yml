@@ -55,7 +55,7 @@ jobs:
     needs: test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_java_in_docker.yml@develop
     with:
-      branch: feature/covercrypt_rekey
+      branch: develop
       target: x86_64-unknown-linux-gnu
       extension: so
       destination: linux-x86-64
@@ -86,7 +86,7 @@ jobs:
       - test
     uses: Cosmian/reusable_workflows/.github/workflows/cloudproof_flutter.yml@develop
     with:
-      branch: feature/covercrypt_rekey
+      branch: develop
       target: x86_64-unknown-linux-gnu
       extension: so
       copy_fresh_build: false
