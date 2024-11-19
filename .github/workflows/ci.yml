@@ -97,7 +97,6 @@ jobs:
       copy_regression_files: |
         cp ./cloudproof_js/non_regression_vector.json test/resources/cover_crypt/non_regression/js_non_regression_vector.json
         cp ./cloudproof_js/sqlite.db                  test/resources/findex/non_regression/js_sqlite.db
-      fips: false
 
   example_vuejs:
     name: vuejs tests
