@@ -1,11 +1,9 @@
 ---
 # docker-compose.yml
-
-version: "3"
 services:
   kms:
     container_name: kms
-    image: ghcr.io/cosmian/kms:4.13.0
+    image: ghcr.io/cosmian/kms:4.19.3
     ports:
       - 9998:9998
     environment:
