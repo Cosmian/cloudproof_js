@@ -35,9 +35,9 @@ jobs:
       subcommands: |
         npm test
       kms-version: 4.13.0
-      kms-jwe-key:
-        '{"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
-        "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}'
+      kms-jwe-key: >
+        {"kty": "OKP","d": "MPEVJwdRqGM_qhJOUb5hR0Xr9EvwMLZGnkf-eDj5fU8","use": "enc","crv": "X25519","kid": "DX3GC+Fx3etxfRJValQNbqaB0gs=","x":
+        "gdF-1TtAjsFqNWr9nwhGUlFG38qrDUqYgcILgtYrpTY","alg": "ECDH-ES"}
       findex-cloud-version: 0.3.1
       regression_files: |
         ./node_modules/non_regression_vector.json
@@ -50,6 +50,8 @@ jobs:
     with:
       branch: develop
       kms-version: ghcr.io/cosmian/kms:4.13.0
+      fips: false
+
 
   cloudproof_java:
     needs: test
