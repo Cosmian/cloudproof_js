@@ -10,10 +10,6 @@ on:
       kms-version:
         required: true
         type: string
-      kms-jwe-key:
-        required: false
-        type: string
-        default: ""
       findex-cloud-version:
         required: true
         type: string
@@ -31,7 +27,6 @@ jobs:
       kms:
         image: ghcr.io/cosmian/kms:${{ inputs.kms-version }}
         env:
-          JWK_PRIVATE_KEY: ${{ inputs.kms-jwe-key }}
           KMS_JWT_ISSUER_URI: https://kms-cosmian.eu.auth0.com/
 
       findex_cloud:
@@ -68,7 +63,6 @@ jobs:
           KMS_HOST: kms
           FINDEX_CLOUD_HOST: findex_cloud
           AUTH0_TOKEN_1: ${{ secrets.AUTH0_TOKEN_1 }}
-          AUTH0_TOKEN_2: ${{ secrets.AUTH0_TOKEN_2 }}
 
       - name: Upload non-regression test vectors
         if: inputs.regression_files != ''
