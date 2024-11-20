@@ -10,10 +10,6 @@ on:
       kms-version:
         required: true
         type: string
-      kms-jwe-key:
-        required: false
-        type: string
-        default: ""
       findex-cloud-version:
         required: true
         type: string
@@ -30,8 +26,6 @@ jobs:
     services:
       kms:
         image: ghcr.io/cosmian/kms:${{ inputs.kms-version }}
-        env:
-          JWK_PRIVATE_KEY: ${{ inputs.kms-jwe-key }}
 
       findex_cloud:
         image: ghcr.io/cosmian/findex_cloud:${{ inputs.findex-cloud-version }}
