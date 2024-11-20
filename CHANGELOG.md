@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [10.0.1] - 2024-11-20
+
+### 🐛 Bug Fixes
+
+- Update better-sql3 to 11.5.0, bump package json version
+
+### 📚 Documentation
+
+- Update versions correspondence in README
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix auth0 pb
+- Bump KMS version to 4.19.3
+- Remove JWE support (since KMS does not support it anymore)
+
 ## [10.0.0] - 2024-03-13
 
 ### Features
