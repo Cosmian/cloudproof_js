@@ -11,6 +11,7 @@ The library provides a Typescript-friendly API to the **Cloudproof Encryption** 
 - [Getting started](#getting-started)
 - [Using in Javascript projects](#using-in-javascript-projects)
 - [Versions Correspondence](#versions-correspondence)
+- [Renew Auth0 access token](#renew-auth0-access-token)
 
 <!-- tocstop -->
 
@@ -75,3 +76,9 @@ npm i cloudproof_js
 | 9.5.1           | 2.3.0               | 4.9.1      |
 | 9.6.0           | 2.4.0               | 4.10.0     |
 | 9.7.0           | 2.4.0               | 4.11.3     |
+| 10.0.0          | 3.0.0               | 4.13.0     |
+| 10.0.1          | 3.0.0               | 4.19.3     |
+
+## Renew Auth0 access token
+
+Refer to repository <https://github.com/Cosmian/kms-ci-token>
