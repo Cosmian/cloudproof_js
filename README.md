@@ -45,17 +45,32 @@ You can also look the [`examples` directory](./examples) for examples with multi
 
 This library is free software and is available on NPM public repository.
 
-As a pre-requisite, the WASM binaries required for Findex and CoverCrypt must be fetched (or be manually copied from <https://package.cosmian.com> into `src/pkg` directory):
+As a pre-requisite, the WASM binaries required for Findex, CoverCrypt or FPE must be fetched 
+using the the following python script
 
 ```bash
 python3 scripts/download_wasm.py
 ```
 
-And next:
+or be manually copied from <[https://package.cosmian.com/cloudproof_rust/v3.0.2/darwin.zip]> into the `src/pkg` directory:
+
+Then, `the clouproof_js` library should be installed in `node_modules`
 
 ```bash
 npm i cloudproof_js
 ```
+
+After these steps, the project directory should have the following structure
+```
+-> src
+  -> pkg
+     -> cover_crypt
+     -> findex
+     -> fpe
+-> node_modules
+  -> cloudproof_js
+```
+
 
 (version before 3.1.0 were called cosmian_js_lib)
 
